@@ -1,0 +1,23 @@
+{
+  "name": "votes-an-pipeline",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Pipeline d'ingestion des donnees Open Data de l'Assemblee Nationale (deputes, scrutins, classification thematique).",
+  "scripts": {
+    "ingest": "tsx src/ingest.ts",
+    "ingest:download": "tsx src/ingest.ts --download",
+    "classify": "tsx src/classify.ts",
+    "query": "tsx src/query.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.1",
+    "better-sqlite3": "^11.8.1"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

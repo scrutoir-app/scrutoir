@@ -1,0 +1,7 @@
+node_modules/
+data/raw/
+data/*.db
+.env
+.DS_Store
+app/node_modules/
+api/node_modules/
