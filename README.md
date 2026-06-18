@@ -11,10 +11,31 @@ des données Open Data de l'Assemblée Nationale (17ᵉ législature).
 
 ```
 pipeline/   Ingestion Open Data AN → base de données (Node + TypeScript + SQLite)
-api/        (à venir) API HTTP locale au-dessus de la base
+api/        API HTTP locale au-dessus de la base (Express)
 app/        (à venir) Application mobile Expo (React Native, iOS + Android)
 data/       Base votes.db + archives brutes (ignoré par git)
 ```
+
+## Lancer l'API
+
+```bash
+cd api
+npm install
+npm start            # http://localhost:4000
+```
+
+Endpoints :
+- `GET /search?q=…` — recherche unifiée députés + scrutins
+- `GET /deputes/:uid?periode=all|12m|6m` — profil de vote + loyauté au groupe
+- `GET /scrutins/:uid` — détail d'un scrutin (ventilation par groupe + consigne)
+- `GET /scrutins/:uid/vote/:deputeUid` — vote précis + conformité à la consigne
+- `GET /categories` — liste des catégories
+
+## Indicateur de loyauté
+
+L'AN fournit la `positionMajoritaire` (consigne) de chaque groupe par scrutin.
+La loyauté d'un·e député·e = % de ses votes exprimés conformes à la consigne de son
+groupe. Validé : discrimine de ~72 % (les plus indépendants) à ~99 % (cadres de groupe).
 
 La base est en **SQLite** pour le prototype (zéro compte, zéro Docker). Le schéma est
 relationnel pur et **portable vers Postgres / Supabase** pour la mise en ligne.
@@ -58,6 +79,7 @@ npm run query -- "Panot"  # profil de vote d'un député (validation)
 
 ## État actuel
 
-✅ Pipeline d'ingestion complet et validé : 577 députés, 12 groupes, 7422 scrutins,
-~1,15 M de votes individuels, classification thématique (12 catégories).
-🔜 API HTTP + application mobile Expo.
+✅ Pipeline d'ingestion complet : 577 députés, 12 groupes, 7422 scrutins, ~1,15 M de
+votes, classification thématique (12 catégories), consignes de groupe.
+✅ API HTTP : recherche députés+scrutins, profil avec loyauté, détail de scrutin.
+🔜 Application mobile Expo (écrans recherche / fiche député / détail scrutin).
