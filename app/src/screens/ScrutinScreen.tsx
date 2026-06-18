@@ -9,6 +9,7 @@ import type { Nav } from "../nav";
 export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [data, setData] = useState<DetailScrutin | null>(null);
   const [loading, setLoading] = useState(true);
+  const [briefOuvert, setBriefOuvert] = useState(false);
 
   useEffect(() => {
     let vivant = true;
@@ -41,13 +42,29 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
       <View
         style={{
-          alignSelf: "flex-start", paddingHorizontal: 10, paddingVertical: 3, borderRadius: 12,
-          marginBottom: 10, backgroundColor: adopte ? C.loyalHautBg : C.loyalBasBg,
+          flexDirection: "row", alignItems: "center", gap: 12,
+          padding: 12, borderRadius: 12, marginBottom: 14,
+          backgroundColor: adopte ? C.loyalHautBg : C.loyalBasBg,
+          borderLeftWidth: 4, borderLeftColor: adopte ? C.loyalHaut : C.loyalBas,
         }}
       >
-        <Text style={{ fontSize: 12, fontWeight: "500", color: adopte ? C.loyalHaut : C.loyalBas }}>
-          {s.sort_libelle ?? (adopte ? "Adopté" : "Rejeté")}
-        </Text>
+        <View
+          style={{
+            width: 36, height: 36, borderRadius: 18,
+            backgroundColor: adopte ? C.loyalHaut : C.loyalBas,
+            alignItems: "center", justifyContent: "center",
+          }}
+        >
+          <Text style={{ color: "#fff", fontSize: 20, fontWeight: "500" }}>{adopte ? "✓" : "✕"}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontSize: 17, fontWeight: "500", color: adopte ? C.loyalHaut : C.loyalBas }}>
+            {adopte ? "Adopté" : "Rejeté"}
+          </Text>
+          <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 1 }}>
+            {s.sort_libelle ?? (adopte ? "L'Assemblée nationale a adopté" : "L'Assemblée nationale n'a pas adopté")}
+          </Text>
+        </View>
       </View>
 
       <Text style={{ fontSize: 16, color: C.text, lineHeight: 23 }}>{s.titre || s.objet}</Text>
@@ -57,30 +74,49 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
 
       {data.amendement && (data.amendement.expose || data.amendement.dispositif) && (
         <View style={{ marginTop: 16, padding: 14, backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.border, borderRadius: 12 }}>
-          <Text style={{ fontSize: 13, fontWeight: "500", color: C.text }}>
-            Exposé de l'amendement{data.amendement.numero ? ` n° ${data.amendement.numero}` : ""}
-            {data.amendement.article ? ` · ${data.amendement.article}` : ""}
-          </Text>
-          {!!data.amendement.auteur && (
-            <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 3 }} numberOfLines={2}>
-              {data.amendement.auteur}
+          <TouchableOpacity
+            onPress={() => setBriefOuvert((o) => !o)}
+            style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}
+          >
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: "500", color: C.text }}>
+                Exposé de l'amendement{data.amendement.numero ? ` n° ${data.amendement.numero}` : ""}
+                {data.amendement.article ? ` · ${data.amendement.article}` : ""}
+              </Text>
+              {!!data.amendement.auteur && (
+                <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 3 }} numberOfLines={briefOuvert ? 3 : 1}>
+                  {data.amendement.auteur}
+                </Text>
+              )}
+            </View>
+            <Text style={{ fontSize: 13, color: C.accent, marginTop: 1 }}>
+              {briefOuvert ? "Replier ▾" : "Lire ▸"}
             </Text>
-          )}
-          {!!data.amendement.dispositif && (
+          </TouchableOpacity>
+
+          {briefOuvert ? (
             <>
-              <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
-                Ce que l'amendement modifie
-              </Text>
-              <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.dispositif}</Text>
+              {!!data.amendement.dispositif && (
+                <>
+                  <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
+                    Ce que l'amendement modifie
+                  </Text>
+                  <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.dispositif}</Text>
+                </>
+              )}
+              {!!data.amendement.expose && (
+                <>
+                  <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
+                    Justification de l'auteur
+                  </Text>
+                  <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.expose}</Text>
+                </>
+              )}
             </>
-          )}
-          {!!data.amendement.expose && (
-            <>
-              <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
-                Justification de l'auteur
-              </Text>
-              <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.expose}</Text>
-            </>
+          ) : (
+            <Text style={{ fontSize: 12, color: C.textFaint, marginTop: 8 }} numberOfLines={2}>
+              {data.amendement.expose || data.amendement.dispositif}
+            </Text>
           )}
         </View>
       )}

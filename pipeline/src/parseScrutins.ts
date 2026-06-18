@@ -61,11 +61,15 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
       const uid = s.uid;
       const dec = s.syntheseVote?.decompte ?? {};
       const sortLibelle = s.sort?.libelle ?? null;
-      const sortCode = normalize(sortLibelle || s.sort?.code || "").includes("adopt")
-        ? "adopte"
-        : normalize(sortLibelle || "").includes("rejet")
+      // Attention a la negation : "n'a pas adopte" doit etre classe rejete,
+      // pas adopte (le sous-texte contient pourtant "adopte").
+      const lib = normalize(sortLibelle || "");
+      const sortCode =
+        lib.includes("pas adopt") || lib.includes("rejet") || lib.includes("repouss")
           ? "rejete"
-          : (s.sort?.code ?? null);
+          : lib.includes("adopt") || lib.includes("approuv")
+            ? "adopte"
+            : (s.sort?.code ?? null);
 
       insScrutin.run({
         uid,
