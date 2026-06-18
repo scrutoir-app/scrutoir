@@ -153,6 +153,55 @@ export function profilDepute(
   };
 }
 
+/** Derniers grands scrutins : scrutins solennels + motions de censure. */
+export function grandsScrutins(db: Database.Database, limit = 30): ScrutinResume[] {
+  return db
+    .prepare(
+      `SELECT uid, numero, date, titre, objet, type_vote, sort_code, sort_libelle,
+              pour, contre, abstention
+       FROM scrutins
+       WHERE type_vote IN ('scrutin public solennel', 'motion de censure')
+       ORDER BY date DESC, numero DESC
+       LIMIT ?`
+    )
+    .all(limit) as any[];
+}
+
+/** Scrutins rattaches a une categorie, les plus recents d'abord. */
+export function scrutinsParCategorie(db: Database.Database, categorieId: string, limit = 40): ScrutinResume[] {
+  return db
+    .prepare(
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle,
+              s.pour, s.contre, s.abstention
+       FROM scrutins s
+       JOIN scrutin_categories sc ON sc.scrutin_uid = s.uid
+       WHERE sc.categorie_id = ?
+       ORDER BY s.date DESC, s.numero DESC
+       LIMIT ?`
+    )
+    .all(categorieId, limit) as any[];
+}
+
+/** Dissidences : scrutins ou le depute a vote contre la consigne de son groupe. */
+export function dissidences(db: Database.Database, deputeUid: string, limit = 100) {
+  return db
+    .prepare(
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_libelle,
+              v.position, gp.position AS consigne
+       FROM votes v
+       JOIN scrutins s ON s.uid = v.scrutin_uid
+       JOIN groupe_positions gp
+         ON gp.scrutin_uid = v.scrutin_uid AND gp.groupe_uid = v.groupe_uid
+       WHERE v.depute_uid = ?
+         AND v.position IN ('pour','contre','abstention')
+         AND gp.position IS NOT NULL
+         AND v.position != gp.position
+       ORDER BY s.date DESC, s.numero DESC
+       LIMIT ?`
+    )
+    .all(deputeUid, limit) as any[];
+}
+
 /** Detail d'un scrutin : resultat + ventilation par groupe (avec consigne). */
 export function detailScrutin(db: Database.Database, uid: string) {
   const scrutin = db

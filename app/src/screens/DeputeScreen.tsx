@@ -7,6 +7,7 @@ import { getProfil } from "../api";
 import type { ProfilDepute, Periode } from "../types";
 import { VoteBar } from "../components/VoteBar";
 import { LoyautePill } from "../components/LoyauteBadge";
+import type { Nav } from "../nav";
 
 const PERIODES: { id: Periode; label: string }[] = [
   { id: "all", label: "Depuis 2024" },
@@ -14,7 +15,7 @@ const PERIODES: { id: Periode; label: string }[] = [
   { id: "6m", label: "6 mois" },
 ];
 
-export function DeputeScreen({ uid }: { uid: string }) {
+export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
   const [profil, setProfil] = useState<ProfilDepute | null>(null);
   const [loading, setLoading] = useState(true);
@@ -80,6 +81,20 @@ export function DeputeScreen({ uid }: { uid: string }) {
         </Text>
       </View>
 
+      <TouchableOpacity
+        onPress={() => nav.push({ name: "dissidences", uid: d.uid, nom: d.nom_complet })}
+        style={{
+          flexDirection: "row", alignItems: "center", justifyContent: "space-between",
+          paddingVertical: 11, paddingHorizontal: 12, marginBottom: 16,
+          borderWidth: 0.5, borderColor: C.border, borderRadius: 10, backgroundColor: C.surface,
+        }}
+      >
+        <Text style={{ fontSize: 14, color: C.text }}>
+          Voir les dissidences (votes contre la consigne)
+        </Text>
+        <Text style={{ color: C.textFaint, fontSize: 18 }}>›</Text>
+      </TouchableOpacity>
+
       <View
         style={{
           flexDirection: "row", gap: 4, padding: 3, backgroundColor: C.surfaceAlt,
@@ -110,7 +125,12 @@ export function DeputeScreen({ uid }: { uid: string }) {
         const exprimes = c.pour + c.contre;
         const pctPour = exprimes ? Math.round((c.pour / exprimes) * 100) : 0;
         return (
-          <View key={c.id} style={{ paddingVertical: 11, borderTopWidth: 0.5, borderTopColor: C.border }}>
+          <TouchableOpacity
+            key={c.id}
+            activeOpacity={0.6}
+            onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
+            style={{ paddingVertical: 11, borderTopWidth: 0.5, borderTopColor: C.border }}
+          >
             <View
               style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}
             >
@@ -123,7 +143,7 @@ export function DeputeScreen({ uid }: { uid: string }) {
             <Text style={{ fontSize: 11, color: C.textFaint, marginTop: 5 }}>
               {pctPour}% pour · {c.pour} pour · {c.contre} contre · {c.abstention} abst. · {c.absent} absent
             </Text>
-          </View>
+          </TouchableOpacity>
         );
       })}
 

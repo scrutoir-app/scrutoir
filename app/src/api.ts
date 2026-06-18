@@ -1,5 +1,7 @@
 import { Platform } from "react-native";
-import type { ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode } from "./types";
+import type {
+  ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence,
+} from "./types";
 
 /**
  * URL de l'API. Sur le web (prévisualisation), localhost fonctionne.
@@ -28,4 +30,20 @@ export function getProfil(uid: string, periode: Periode) {
 
 export function getScrutin(uid: string) {
   return get<DetailScrutin>(`/scrutins/${uid}`);
+}
+
+export function getGrandsScrutins() {
+  return get<ScrutinResume[]>(`/scrutins-recents`);
+}
+
+export function getCategories() {
+  return get<CategorieRef[]>(`/categories`);
+}
+
+export function getScrutinsCategorie(id: string) {
+  return get<ScrutinResume[]>(`/categories/${id}/scrutins`);
+}
+
+export function getDissidences(uid: string) {
+  return get<Dissidence[]>(`/deputes/${uid}/dissidences`);
 }

@@ -7,6 +7,9 @@ import {
   profilDepute,
   detailScrutin,
   voteDeputeSurScrutin,
+  grandsScrutins,
+  scrutinsParCategorie,
+  dissidences,
   type Periode,
 } from "../../pipeline/src/stats.js";
 
@@ -33,6 +36,21 @@ app.get("/search", (req, res) => {
 
 app.get("/categories", (_req, res) => {
   res.json(db.prepare("SELECT * FROM categories ORDER BY ordre").all());
+});
+
+// Derniers grands scrutins (solennels + motions de censure)
+app.get("/scrutins-recents", (_req, res) => {
+  res.json(grandsScrutins(db, 30));
+});
+
+// Scrutins d'une categorie
+app.get("/categories/:id/scrutins", (req, res) => {
+  res.json(scrutinsParCategorie(db, req.params.id, 40));
+});
+
+// Dissidences d'un depute (votes contre la consigne du groupe)
+app.get("/deputes/:uid/dissidences", (req, res) => {
+  res.json(dissidences(db, req.params.uid, 100));
 });
 
 // Profil de vote d'un depute (avec loyaute), filtrable par periode

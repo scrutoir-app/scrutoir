@@ -5,18 +5,28 @@ import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { DeputeScreen } from "./src/screens/DeputeScreen";
 import { ScrutinScreen } from "./src/screens/ScrutinScreen";
+import { CategorieScreen } from "./src/screens/CategorieScreen";
+import { DissidencesScreen } from "./src/screens/DissidencesScreen";
+import { AProposScreen } from "./src/screens/AProposScreen";
 
 export default function App() {
   const [stack, setStack] = useState<Route[]>([{ name: "search" }]);
   const current = stack[stack.length - 1];
 
   const nav: Nav = {
-    push: useCallback((name, params) => setStack((s) => [...s, { name, ...params } as Route]), []),
+    push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
     pop: useCallback(() => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)), []),
   };
 
-  const titre =
-    current.name === "search" ? "" : current.name === "depute" ? "Député·e" : "Scrutin";
+  const titres: Record<Route["name"], string> = {
+    search: "",
+    depute: "Député·e",
+    scrutin: "Scrutin",
+    categorie: "Thème",
+    dissidences: "Dissidences",
+    apropos: "À propos",
+  };
+  const titre = titres[current.name];
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
@@ -50,8 +60,15 @@ export default function App() {
         )}
 
         {current.name === "search" && <SearchScreen nav={nav} />}
-        {current.name === "depute" && <DeputeScreen uid={current.uid} />}
+        {current.name === "depute" && <DeputeScreen uid={current.uid} nav={nav} />}
         {current.name === "scrutin" && <ScrutinScreen uid={current.uid} />}
+        {current.name === "categorie" && (
+          <CategorieScreen id={current.id} libelle={current.libelle} nav={nav} />
+        )}
+        {current.name === "dissidences" && (
+          <DissidencesScreen uid={current.uid} nom={current.nom} nav={nav} />
+        )}
+        {current.name === "apropos" && <AProposScreen />}
       </View>
     </SafeAreaView>
   );

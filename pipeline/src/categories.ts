@@ -97,7 +97,7 @@ export const CATEGORIES: Categorie[] = [
     motsCles: [
       "immigration", "asile", "etranger", "titre de sejour", "frontiere",
       "refugie", "naturalisation", "expulsion", "oqtf", "visa", "migrant",
-      "regroupement familial", "aide medicale d'etat", "ame", "clandestin",
+      "regroupement familial", "aide medicale d'etat", "clandestin",
     ],
   },
   {
@@ -160,24 +160,49 @@ export const CATEGORIES: Categorie[] = [
 
 export interface ResultatClassif {
   categorieId: string;
-  confiance: number; // 0..1 (nb de mots-cles distincts touches, normalise)
+  confiance: number; // 0..1
+}
+
+// Nombre max de categories attribuees a un meme scrutin.
+const MAX_CATEGORIES = 3;
+// Score minimal pour retenir une categorie (evite les matchs trop faibles).
+const SCORE_MIN = 1;
+
+// Cache des regex par mot-cle. On matche des MOTS ENTIERS (limites de mots)
+// pour eviter qu'un token court ("ame") matche un sous-mot ("amendement").
+const regexCache = new Map<string, RegExp>();
+function regexMot(mc: string): RegExp {
+  let r = regexCache.get(mc);
+  if (!r) {
+    const esc = normalize(mc).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    // Cle >= 5 lettres : on autorise le prefixe (gere pluriels et derives,
+    // ex: "ecolog" -> ecologie/ecologique, "travail" -> travailleur).
+    // Cle plus courte : mot exact, pour eviter qu'un token court matche un
+    // sous-mot frequent (ex: "visa" dans "visant").
+    const noyau = normalize(mc).replace(/\s/g, "");
+    const fin = noyau.length >= 5 ? "" : "(?![a-z0-9])";
+    r = new RegExp(`(?<![a-z0-9])${esc}${fin}`);
+    regexCache.set(mc, r);
+  }
+  return r;
 }
 
 /**
- * Classifieur par mots-cles. Renvoie les categories dont au moins un
- * mot-cle apparait dans le titre/objet, triees par nb de correspondances.
+ * Classifieur par mots-cles. Matche des mots entiers ; un mot-cle compose
+ * (avec espace) pese davantage car plus specifique. Renvoie au plus
+ * MAX_CATEGORIES categories, triees par score.
  */
 export function classifierParMotsCles(titre: string, objet: string): ResultatClassif[] {
   const texte = normalize(`${titre} ${objet}`);
   const resultats: ResultatClassif[] = [];
   for (const cat of CATEGORIES) {
-    let hits = 0;
+    let score = 0;
     for (const mc of cat.motsCles) {
-      if (texte.includes(normalize(mc))) hits++;
+      if (regexMot(mc).test(texte)) score += mc.includes(" ") ? 2 : 1;
     }
-    if (hits > 0) {
-      resultats.push({ categorieId: cat.id, confiance: Math.min(1, hits / 3) });
+    if (score >= SCORE_MIN) {
+      resultats.push({ categorieId: cat.id, confiance: Math.min(1, score / 3) });
     }
   }
-  return resultats.sort((a, b) => b.confiance - a.confiance);
+  return resultats.sort((a, b) => b.confiance - a.confiance).slice(0, MAX_CATEGORIES);
 }
