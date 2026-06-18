@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import type {
-  ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence,
+  ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant,
 } from "./types";
 
 /**
@@ -46,4 +46,15 @@ export function getScrutinsCategorie(id: string) {
 
 export function getDissidences(uid: string) {
   return get<Dissidence[]>(`/deputes/${uid}/dissidences`);
+}
+
+export function getVotesDepute(uid: string, categorie: string, position: string, periode: Periode) {
+  return get<ScrutinResume[]>(
+    `/deputes/${uid}/votes?categorie=${categorie}&position=${position}&periode=${periode}`
+  );
+}
+
+export function getVotants(scrutinUid: string, position: string, groupe?: string) {
+  const g = groupe ? `&groupe=${groupe}` : "";
+  return get<Votant[]>(`/scrutins/${scrutinUid}/votants?position=${position}${g}`);
 }

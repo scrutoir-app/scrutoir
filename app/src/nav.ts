@@ -4,6 +4,22 @@ export type Route =
   | { name: "scrutin"; uid: string }
   | { name: "categorie"; id: string; libelle: string }
   | { name: "dissidences"; uid: string; nom: string }
+  | {
+      name: "votesDepute";
+      uid: string;
+      nom: string;
+      categorie: string;
+      categorieLibelle: string;
+      position: string;
+    }
+  | {
+      name: "votants";
+      scrutinUid: string;
+      titre: string;
+      position: string;
+      groupe?: string;
+      groupeLibelle?: string;
+    }
   | { name: "apropos" };
 
 export interface Nav {

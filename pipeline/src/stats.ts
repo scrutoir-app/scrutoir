@@ -19,15 +19,24 @@ export interface DeputeResume {
   photo_url: string | null;
 }
 
-export function rechercheDeputes(db: Database.Database, q: string, limit = 10): DeputeResume[] {
+export function rechercheDeputes(db: Database.Database, q: string, limit = 250): DeputeResume[] {
+  const like = `%${q}%`;
+  // Matche par nom OU par parti. Le sigle est en correspondance EXACTE (sinon
+  // "RN" matcherait "BaRNier"). Les elus du parti recherche remontent en tete.
   return db
     .prepare(
-      `SELECT d.uid, d.nom_complet, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url
+      `SELECT d.uid, d.nom_complet, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url,
+         CASE WHEN g.abrev = @q COLLATE NOCASE THEN 0
+              WHEN g.libelle LIKE @like COLLATE NOCASE THEN 1
+              ELSE 2 END AS rang
        FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
-       WHERE d.actif = 1 AND d.nom_complet LIKE ? COLLATE NOCASE
-       ORDER BY d.nom LIMIT ?`
+       WHERE d.actif = 1
+         AND (d.nom_complet LIKE @like COLLATE NOCASE
+              OR g.abrev = @q COLLATE NOCASE
+              OR g.libelle LIKE @like COLLATE NOCASE)
+       ORDER BY rang, d.nom LIMIT @limit`
     )
-    .all(`%${q}%`, limit) as DeputeResume[];
+    .all({ q, like, limit }) as DeputeResume[];
 }
 
 export interface ScrutinResume {
@@ -200,6 +209,48 @@ export function dissidences(db: Database.Database, deputeUid: string, limit = 10
        LIMIT ?`
     )
     .all(deputeUid, limit) as any[];
+}
+
+/** Scrutins d'une categorie ou un depute a vote une position donnee. */
+export function votesDeputeCategorie(
+  db: Database.Database,
+  deputeUid: string,
+  categorieId: string,
+  position: string,
+  periode: Periode = "all"
+): ScrutinResume[] {
+  const borne = bornePeriode(periode);
+  const filtreDate = borne ? "AND s.date >= @borne" : "";
+  return db
+    .prepare(
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle
+       FROM votes v
+       JOIN scrutins s            ON s.uid = v.scrutin_uid
+       JOIN scrutin_categories sc ON sc.scrutin_uid = v.scrutin_uid
+       WHERE v.depute_uid = @uid AND sc.categorie_id = @cat AND v.position = @pos ${filtreDate}
+       ORDER BY s.date DESC, s.numero DESC`
+    )
+    .all({ uid: deputeUid, cat: categorieId, pos: position, borne }) as any[];
+}
+
+/** Deputes ayant vote une position donnee sur un scrutin (optionnellement filtre par groupe). */
+export function votantsScrutin(
+  db: Database.Database,
+  scrutinUid: string,
+  position: string,
+  groupeUid?: string
+) {
+  const filtreGroupe = groupeUid ? "AND v.groupe_uid = @grp" : "";
+  return db
+    .prepare(
+      `SELECT d.uid, d.nom_complet, d.photo_url, g.abrev, g.libelle AS groupe, g.couleur
+       FROM votes v
+       JOIN deputes d ON d.uid = v.depute_uid
+       LEFT JOIN groupes g ON g.uid = v.groupe_uid
+       WHERE v.scrutin_uid = @uid AND v.position = @pos ${filtreGroupe}
+       ORDER BY g.abrev, d.nom`
+    )
+    .all({ uid: scrutinUid, pos: position, grp: groupeUid }) as any[];
 }
 
 /** Detail d'un scrutin : resultat + ventilation par groupe (avec consigne). */

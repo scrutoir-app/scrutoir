@@ -10,6 +10,8 @@ import {
   grandsScrutins,
   scrutinsParCategorie,
   dissidences,
+  votesDeputeCategorie,
+  votantsScrutin,
   type Periode,
 } from "../../pipeline/src/stats.js";
 
@@ -29,7 +31,7 @@ app.get("/search", (req, res) => {
   const q = String(req.query.q ?? "").trim();
   if (q.length < 2) return res.json({ deputes: [], scrutins: [] });
   res.json({
-    deputes: rechercheDeputes(db, q, 10),
+    deputes: rechercheDeputes(db, q, 250),
     scrutins: rechercheScrutins(db, q, 15),
   });
 });
@@ -51,6 +53,25 @@ app.get("/categories/:id/scrutins", (req, res) => {
 // Dissidences d'un depute (votes contre la consigne du groupe)
 app.get("/deputes/:uid/dissidences", (req, res) => {
   res.json(dissidences(db, req.params.uid, 100));
+});
+
+// Scrutins d'une categorie ou le depute a vote une position donnee (drill-down)
+app.get("/deputes/:uid/votes", (req, res) => {
+  const categorie = String(req.query.categorie ?? "");
+  const position = String(req.query.position ?? "");
+  const periode = (["all", "12m", "6m"].includes(String(req.query.periode))
+    ? req.query.periode
+    : "all") as Periode;
+  if (!categorie || !position) return res.status(400).json({ error: "categorie et position requis" });
+  res.json(votesDeputeCategorie(db, req.params.uid, categorie, position, periode));
+});
+
+// Deputes ayant vote une position donnee sur un scrutin (drill-down)
+app.get("/scrutins/:uid/votants", (req, res) => {
+  const position = String(req.query.position ?? "");
+  const groupe = req.query.groupe ? String(req.query.groupe) : undefined;
+  if (!position) return res.status(400).json({ error: "position requise" });
+  res.json(votantsScrutin(db, req.params.uid, position, groupe));
 });
 
 // Profil de vote d'un depute (avec loyaute), filtrable par periode

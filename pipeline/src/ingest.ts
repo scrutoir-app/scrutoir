@@ -26,9 +26,9 @@ async function main() {
   console.log("4/5  Categories de reference");
   seedCategories(db);
 
-  console.log("5/5  Classification thematique (mots-cles)");
-  const { lignes, nonClasses } = classifierTout(db, true);
-  console.log(`     ${lignes} associations scrutin↔categorie, ${nonClasses} non classes`);
+  console.log("5/5  Classification thematique (mots-cles + propagation)");
+  const { lignes, propagees, nonClasses } = classifierTout(db, true);
+  console.log(`     ${lignes} par mots-cles, ${propagees} propagees aux amendements, ${nonClasses} non classes`);
 
   db.close();
   console.log(`\n✅ Ingestion terminee en ${((Date.now() - t0) / 1000).toFixed(1)}s`);

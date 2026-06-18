@@ -163,6 +163,20 @@ export interface ResultatClassif {
   confiance: number; // 0..1
 }
 
+/**
+ * Cle identifiant le dossier legislatif a partir de l'intitule du scrutin.
+ * "l'ensemble du projet de loi X" et "l'amendement n° 4 ... du projet de loi X"
+ * renvoient la meme cle => on peut propager le theme aux amendements.
+ */
+export function cleDossier(titre: string | null): string | null {
+  if (!titre) return null;
+  const t = normalize(titre);
+  const m = t.match(/(projet de loi|proposition de loi|proposition de resolution)(.*)$/);
+  if (!m) return null;
+  const cle = (m[1] + m[2]).replace(/\(.*$/, "").trim();
+  return cle.length >= 20 ? cle.slice(0, 90) : null;
+}
+
 // Nombre max de categories attribuees a un meme scrutin.
 const MAX_CATEGORIES = 3;
 // Score minimal pour retenir une categorie (evite les matchs trop faibles).

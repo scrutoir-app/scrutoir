@@ -8,6 +8,8 @@ import { ScrutinScreen } from "./src/screens/ScrutinScreen";
 import { CategorieScreen } from "./src/screens/CategorieScreen";
 import { DissidencesScreen } from "./src/screens/DissidencesScreen";
 import { AProposScreen } from "./src/screens/AProposScreen";
+import { VotesListeScreen } from "./src/screens/VotesListeScreen";
+import { VotantsScreen } from "./src/screens/VotantsScreen";
 
 export default function App() {
   const [stack, setStack] = useState<Route[]>([{ name: "search" }]);
@@ -24,6 +26,8 @@ export default function App() {
     scrutin: "Scrutin",
     categorie: "Thème",
     dissidences: "Dissidences",
+    votesDepute: "Détail des votes",
+    votants: "Votants",
     apropos: "À propos",
   };
   const titre = titres[current.name];
@@ -61,12 +65,32 @@ export default function App() {
 
         {current.name === "search" && <SearchScreen nav={nav} />}
         {current.name === "depute" && <DeputeScreen uid={current.uid} nav={nav} />}
-        {current.name === "scrutin" && <ScrutinScreen uid={current.uid} />}
+        {current.name === "scrutin" && <ScrutinScreen uid={current.uid} nav={nav} />}
         {current.name === "categorie" && (
           <CategorieScreen id={current.id} libelle={current.libelle} nav={nav} />
         )}
         {current.name === "dissidences" && (
           <DissidencesScreen uid={current.uid} nom={current.nom} nav={nav} />
+        )}
+        {current.name === "votesDepute" && (
+          <VotesListeScreen
+            uid={current.uid}
+            nom={current.nom}
+            categorie={current.categorie}
+            categorieLibelle={current.categorieLibelle}
+            position={current.position}
+            nav={nav}
+          />
+        )}
+        {current.name === "votants" && (
+          <VotantsScreen
+            scrutinUid={current.scrutinUid}
+            titre={current.titre}
+            position={current.position}
+            groupe={current.groupe}
+            groupeLibelle={current.groupeLibelle}
+            nav={nav}
+          />
         )}
         {current.name === "apropos" && <AProposScreen />}
       </View>

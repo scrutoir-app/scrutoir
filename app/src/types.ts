@@ -80,4 +80,13 @@ export interface Dissidence {
   consigne: string;
 }
 
+export interface Votant {
+  uid: string;
+  nom_complet: string;
+  photo_url: string | null;
+  abrev: string | null;
+  groupe: string | null;
+  couleur: string | null;
+}
+
 export type Periode = "all" | "12m" | "6m";

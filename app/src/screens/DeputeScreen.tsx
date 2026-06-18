@@ -124,26 +124,38 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
       {categories.map((c) => {
         const exprimes = c.pour + c.contre;
         const pctPour = exprimes ? Math.round((c.pour / exprimes) * 100) : 0;
+        const goVotes = (position: string) =>
+          nav.push({
+            name: "votesDepute",
+            uid: d.uid,
+            nom: d.nom_complet,
+            categorie: c.id,
+            categorieLibelle: c.libelle,
+            position,
+          });
         return (
-          <TouchableOpacity
-            key={c.id}
-            activeOpacity={0.6}
-            onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
-            style={{ paddingVertical: 11, borderTopWidth: 0.5, borderTopColor: C.border }}
-          >
-            <View
+          <View key={c.id} style={{ paddingVertical: 11, borderTopWidth: 0.5, borderTopColor: C.border }}>
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
               style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}
             >
               <Text style={{ fontSize: 14, color: C.text, flex: 1 }}>
                 {c.emoji} {c.libelle}
               </Text>
               <LoyautePill pct={c.loyaute_pct} />
-            </View>
+            </TouchableOpacity>
             <VoteBar pour={c.pour} contre={c.contre} abstention={c.abstention} absent={c.absent} />
-            <Text style={{ fontSize: 11, color: C.textFaint, marginTop: 5 }}>
-              {pctPour}% pour · {c.pour} pour · {c.contre} contre · {c.abstention} abst. · {c.absent} absent
-            </Text>
-          </TouchableOpacity>
+            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 7 }}>
+              <CountChip n={c.pour} label="pour" color={C.pour} onPress={() => goVotes("pour")} />
+              <CountChip n={c.contre} label="contre" color={C.contre} onPress={() => goVotes("contre")} />
+              <CountChip n={c.abstention} label="abst." color={C.abstention} onPress={() => goVotes("abstention")} />
+              <CountChip n={c.absent} label="absent" color={C.absent} onPress={() => goVotes("nonvotant")} />
+              <Text style={{ fontSize: 11, color: C.textFaint, alignSelf: "center", marginLeft: 2 }}>
+                · {pctPour}% pour
+              </Text>
+            </View>
+          </View>
         );
       })}
 
@@ -152,6 +164,33 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         nominatifs sont comptabilisés. La loyauté compare chaque vote à la consigne du groupe.
       </Text>
     </ScrollView>
+  );
+}
+
+function CountChip({
+  n, label, color, onPress,
+}: {
+  n: number;
+  label: string;
+  color: string;
+  onPress: () => void;
+}) {
+  const actif = n > 0;
+  return (
+    <TouchableOpacity
+      disabled={!actif}
+      onPress={onPress}
+      style={{
+        flexDirection: "row", alignItems: "center", gap: 4,
+        paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8,
+        backgroundColor: C.surfaceAlt, opacity: actif ? 1 : 0.5,
+      }}
+    >
+      <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: color }} />
+      <Text style={{ fontSize: 12, color: C.text }}>
+        {n} {label}
+      </Text>
+    </TouchableOpacity>
   );
 }
 
