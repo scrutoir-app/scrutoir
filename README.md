@@ -12,9 +12,26 @@ des données Open Data de l'Assemblée Nationale (17ᵉ législature).
 ```
 pipeline/   Ingestion Open Data AN → base de données (Node + TypeScript + SQLite)
 api/        API HTTP locale au-dessus de la base (Express)
-app/        (à venir) Application mobile Expo (React Native, iOS + Android)
+app/        Application mobile Expo (React Native, iOS + Android + Web)
 data/       Base votes.db + archives brutes (ignoré par git)
 ```
+
+## Lancer l'app (3 terminaux)
+
+```bash
+# 1. (une fois) charger les données
+cd pipeline && npm install && npm run ingest
+
+# 2. l'API
+cd api && npm install && npm start          # http://localhost:4000
+
+# 3. l'app
+cd app && npm install && npm run web         # http://localhost:8081
+#   ou: npm run ios / npm run android / Expo Go sur ton téléphone
+```
+
+Sur téléphone (Expo Go), remplace `localhost` par l'IP LAN de ton Mac dans
+`app/src/api.ts` (ou via la variable `EXPO_PUBLIC_API_BASE`).
 
 ## Lancer l'API
 
@@ -82,4 +99,12 @@ npm run query -- "Panot"  # profil de vote d'un député (validation)
 ✅ Pipeline d'ingestion complet : 577 députés, 12 groupes, 7422 scrutins, ~1,15 M de
 votes, classification thématique (12 catégories), consignes de groupe.
 ✅ API HTTP : recherche députés+scrutins, profil avec loyauté, détail de scrutin.
-🔜 Application mobile Expo (écrans recherche / fiche député / détail scrutin).
+✅ App mobile Expo : 3 écrans fonctionnels (recherche / fiche député / détail scrutin),
+vérifiés sur données réelles.
+
+## Pistes suivantes
+
+- Améliorer la classification (affiner les mots-clés ou brancher Claude API en hybride).
+- Lister les « dissidences » d'un·e député·e (scrutins votés contre la consigne).
+- Filtrer/parcourir les scrutins par catégorie.
+- Mise en ligne : migration SQLite → Supabase (Postgres) + build iOS/Android.
