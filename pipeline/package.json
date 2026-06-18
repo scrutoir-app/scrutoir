@@ -8,11 +8,13 @@
     "ingest": "tsx src/ingest.ts",
     "ingest:download": "tsx src/ingest.ts --download",
     "classify": "tsx src/classify.ts",
+    "link-amendements": "tsx src/linkAmendements.ts",
     "query": "tsx src/query.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
-    "better-sqlite3": "^11.8.1"
+    "better-sqlite3": "^11.8.1",
+    "node-stream-zip": "^1.15.0"
   },
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.12",

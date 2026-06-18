@@ -50,6 +50,14 @@ export interface GroupeVentilation {
   absent: number;
 }
 
+export interface Amendement {
+  numero: number | null;
+  auteur: string | null;
+  article: string | null;
+  dispositif: string | null;
+  expose: string | null;
+}
+
 export interface DetailScrutin {
   scrutin: ScrutinResume & {
     type_vote: string | null;
@@ -59,6 +67,7 @@ export interface DetailScrutin {
     nonvotant: number;
   };
   groupes: GroupeVentilation[];
+  amendement: Amendement | null;
 }
 
 export interface CategorieRef {

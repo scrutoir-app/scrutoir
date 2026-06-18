@@ -51,6 +51,27 @@ export async function assurerDonneesBrutes(force = false): Promise<void> {
   }
 }
 
+// Archive des amendements : on la lit en streaming (pas d'extraction des
+// ~116k fichiers sur disque). On telecharge juste le zip si absent.
+export const AMENDEMENTS_ZIP = path.join(RAW_DIR, "Amendements.json.zip");
+const AMENDEMENTS_URL = `${BASE}/loi/amendements_div_legis/Amendements.json.zip`;
+
+export async function assurerAmendementsZip(force = false): Promise<boolean> {
+  fs.mkdirSync(RAW_DIR, { recursive: true });
+  if (!force && fs.existsSync(AMENDEMENTS_ZIP)) {
+    console.log("  ✓ Amendements.json.zip deja present");
+    return true;
+  }
+  console.log("  ↓ Telechargement Amendements.json.zip (~270 Mo) ...");
+  try {
+    await telecharger(AMENDEMENTS_URL, AMENDEMENTS_ZIP);
+    return true;
+  } catch (e) {
+    console.warn("  ⚠ Echec telechargement amendements :", (e as Error).message);
+    return false;
+  }
+}
+
 export const SCRUTINS_DIR = path.join(RAW_DIR, "scrutins", "json");
 export const ACTEURS_DIR = path.join(RAW_DIR, "amo", "json", "acteur");
 export const ORGANES_DIR = path.join(RAW_DIR, "amo", "json", "organe");

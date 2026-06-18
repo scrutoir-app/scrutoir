@@ -85,6 +85,18 @@ export function createSchema(db: Database.Database): void {
       PRIMARY KEY (scrutin_uid, categorie_id)
     );
 
+    -- Exposé (brief) de l'amendement rattache a un scrutin (jointure heuristique
+    -- date + numero + auteur, ~91% des scrutins sur amendement).
+    CREATE TABLE IF NOT EXISTS amendements (
+      scrutin_uid    TEXT PRIMARY KEY REFERENCES scrutins(uid),
+      amendement_uid TEXT,
+      numero         INTEGER,
+      auteur         TEXT,
+      article        TEXT,
+      dispositif     TEXT,   -- ce que l'amendement modifie
+      expose         TEXT    -- exposé sommaire (justification)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_gp_scrutin     ON groupe_positions(scrutin_uid);
     CREATE INDEX IF NOT EXISTS idx_votes_depute   ON votes(depute_uid);
     CREATE INDEX IF NOT EXISTS idx_votes_scrutin  ON votes(scrutin_uid);

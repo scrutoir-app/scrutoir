@@ -102,6 +102,17 @@ votes, classification thématique (12 catégories), consignes de groupe.
 ✅ App mobile Expo : 3 écrans fonctionnels (recherche / fiche député / détail scrutin),
 vérifiés sur données réelles.
 
+## Exposés des amendements
+
+Quand un scrutin porte sur un amendement, on affiche son exposé sommaire (dispositif +
+justification de l'auteur), issu du jeu de données **Amendements** de l'AN (~270 Mo, lu en
+streaming sans extraction). Le lien scrutin↔amendement est reconstitué par heuristique
+(date du sort + numéro + auteur) : ~91 % des scrutins sur amendement sont reliés.
+
+```bash
+cd pipeline && npm run link-amendements   # télécharge l'archive si besoin + relie
+```
+
 ## Pistes suivantes
 
 - Améliorer la classification (affiner les mots-clés ou brancher Claude API en hybride).

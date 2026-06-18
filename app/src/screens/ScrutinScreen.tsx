@@ -55,6 +55,36 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
         {formatDate(s.date)} · scrutin n° {s.numero}
       </Text>
 
+      {data.amendement && (data.amendement.expose || data.amendement.dispositif) && (
+        <View style={{ marginTop: 16, padding: 14, backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.border, borderRadius: 12 }}>
+          <Text style={{ fontSize: 13, fontWeight: "500", color: C.text }}>
+            Exposé de l'amendement{data.amendement.numero ? ` n° ${data.amendement.numero}` : ""}
+            {data.amendement.article ? ` · ${data.amendement.article}` : ""}
+          </Text>
+          {!!data.amendement.auteur && (
+            <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 3 }} numberOfLines={2}>
+              {data.amendement.auteur}
+            </Text>
+          )}
+          {!!data.amendement.dispositif && (
+            <>
+              <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
+                Ce que l'amendement modifie
+              </Text>
+              <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.dispositif}</Text>
+            </>
+          )}
+          {!!data.amendement.expose && (
+            <>
+              <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
+                Justification de l'auteur
+              </Text>
+              <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.expose}</Text>
+            </>
+          )}
+        </View>
+      )}
+
       <View style={{ flexDirection: "row", gap: 8, marginTop: 16, marginBottom: 4 }}>
         <Chiffre label="Pour" valeur={s.pour} color={C.pour} onPress={() => goVotants("pour")} />
         <Chiffre label="Contre" valeur={s.contre} color={C.contre} onPress={() => goVotants("contre")} />

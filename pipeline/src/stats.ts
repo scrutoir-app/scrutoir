@@ -277,7 +277,15 @@ export function detailScrutin(db: Database.Database, uid: string) {
     )
     .all(uid) as any[];
 
-  return { scrutin, groupes };
+  // Exposé de l'amendement, si ce scrutin porte sur un amendement et qu'on a pu le relier.
+  const amendement = db
+    .prepare(
+      `SELECT numero, auteur, article, dispositif, expose
+       FROM amendements WHERE scrutin_uid = ?`
+    )
+    .get(uid) as any | undefined;
+
+  return { scrutin, groupes, amendement: amendement ?? null };
 }
 
 /** Recherche le vote precis d'un depute sur un scrutin, avec conformite a la consigne. */

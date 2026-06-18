@@ -57,6 +57,13 @@ export function AProposScreen() {
         groupe est fournie par l'Assemblée). Les abstentions et absences sont exclues de ce calcul.
       </Bloc>
 
+      <Bloc titre="Exposé des amendements">
+        Quand un scrutin porte sur un amendement, on affiche son exposé (ce qu'il modifie et
+        sa justification). Le lien entre le scrutin et l'amendement est reconstitué
+        automatiquement (date + numéro + auteur) : il aboutit pour ~9 amendements sur 10 ;
+        sinon l'exposé n'est pas affiché.
+      </Bloc>
+
       <Bloc titre="« Grands scrutins »">
         Le fil d'accueil regroupe les scrutins solennels et les motions de censure — les votes les
         plus marquants de la législature.

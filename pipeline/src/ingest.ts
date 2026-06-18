@@ -1,8 +1,9 @@
 import { openDb, createSchema } from "./db.js";
-import { assurerDonneesBrutes } from "./download.js";
+import { assurerDonneesBrutes, assurerAmendementsZip } from "./download.js";
 import { chargerGroupes, chargerDeputes } from "./parseActeurs.js";
 import { chargerScrutins } from "./parseScrutins.js";
 import { seedCategories, classifierTout } from "./classify.js";
+import { lierAmendements } from "./linkAmendements.js";
 
 async function main() {
   const force = process.argv.includes("--download");
@@ -26,9 +27,16 @@ async function main() {
   console.log("4/5  Categories de reference");
   seedCategories(db);
 
-  console.log("5/5  Classification thematique (mots-cles + propagation)");
+  console.log("5/6  Classification thematique (mots-cles + propagation)");
   const { lignes, propagees, nonClasses } = classifierTout(db, true);
   console.log(`     ${lignes} par mots-cles, ${propagees} propagees aux amendements, ${nonClasses} non classes`);
+
+  console.log("6/6  Exposés des amendements (jointure heuristique)");
+  const okZip = await assurerAmendementsZip(force);
+  if (okZip) {
+    const { lies, total } = await lierAmendements(db);
+    console.log(`     ${lies}/${total} scrutins sur amendement reliés a leur exposé`);
+  }
 
   db.close();
   console.log(`\n✅ Ingestion terminee en ${((Date.now() - t0) / 1000).toFixed(1)}s`);
