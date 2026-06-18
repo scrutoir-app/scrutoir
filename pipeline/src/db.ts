@@ -60,6 +60,15 @@ export function createSchema(db: Database.Database): void {
       PRIMARY KEY (scrutin_uid, depute_uid)
     );
 
+    -- Consigne de vote (position majoritaire) de chaque groupe par scrutin,
+    -- fournie directement par l'AN. Sert a calculer la loyaute des deputes.
+    CREATE TABLE IF NOT EXISTS groupe_positions (
+      scrutin_uid TEXT NOT NULL REFERENCES scrutins(uid),
+      groupe_uid  TEXT NOT NULL,
+      position    TEXT,                  -- pour|contre|abstention
+      PRIMARY KEY (scrutin_uid, groupe_uid)
+    );
+
     CREATE TABLE IF NOT EXISTS categories (
       id      TEXT PRIMARY KEY,          -- "ecologie"
       libelle TEXT NOT NULL,             -- "Ecologie & Climat"
@@ -76,6 +85,7 @@ export function createSchema(db: Database.Database): void {
       PRIMARY KEY (scrutin_uid, categorie_id)
     );
 
+    CREATE INDEX IF NOT EXISTS idx_gp_scrutin     ON groupe_positions(scrutin_uid);
     CREATE INDEX IF NOT EXISTS idx_votes_depute   ON votes(depute_uid);
     CREATE INDEX IF NOT EXISTS idx_votes_scrutin  ON votes(scrutin_uid);
     CREATE INDEX IF NOT EXISTS idx_sc_scrutin     ON scrutin_categories(scrutin_uid);

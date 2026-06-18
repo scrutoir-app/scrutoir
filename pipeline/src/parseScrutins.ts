@@ -42,6 +42,11 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
     `INSERT OR IGNORE INTO deputes (uid, prenom, nom, nom_complet, actif)
      VALUES (?, '', '', ?, 0)`
   );
+  const insGroupePos = db.prepare(
+    `INSERT INTO groupe_positions (scrutin_uid, groupe_uid, position)
+     VALUES (?, ?, ?)
+     ON CONFLICT(scrutin_uid, groupe_uid) DO UPDATE SET position=excluded.position`
+  );
   const connus = new Set<string>(
     db.prepare("SELECT uid FROM deputes").all().map((r: any) => r.uid)
   );
@@ -82,6 +87,8 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
       const groupes = asArray(s.ventilationVotes?.organe?.groupes?.groupe);
       for (const grp of groupes) {
         const groupeUid = grp.organeRef ?? null;
+        const posMaj = grp.vote?.positionMajoritaire ?? null;
+        if (groupeUid && posMaj) insGroupePos.run(uid, groupeUid, posMaj);
         const dn = grp.vote?.decompteNominatif ?? {};
         for (const [bucketKey, position] of BUCKETS) {
           const bucket = dn[bucketKey];

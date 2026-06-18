@@ -1,54 +1,30 @@
 /**
- * Petit script de validation : affiche le profil de vote d'un depute
- * ventile par categorie. Usage : npm run query -- "Nom du depute"
+ * Script de validation : profil de vote d'un depute ventile par categorie,
+ * avec indicateur de loyaute au groupe. Usage : npm run query -- "Nom"
  */
 import { openDb } from "./db.js";
+import { rechercheDeputes, profilDepute } from "./stats.js";
 
 const recherche = process.argv.slice(2).join(" ").trim() || "Panot";
 const db = openDb();
 
-const depute = db
-  .prepare(
-    `SELECT d.uid, d.nom_complet, d.photo_url, g.libelle AS groupe, g.abrev
-     FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
-     WHERE d.actif = 1 AND d.nom_complet LIKE ? COLLATE NOCASE
-     LIMIT 1`
-  )
-  .get(`%${recherche}%`) as any;
-
-if (!depute) {
+const trouve = rechercheDeputes(db, recherche, 1)[0];
+if (!trouve) {
   console.log(`Aucun depute actif trouve pour "${recherche}".`);
   process.exit(0);
 }
 
-console.log(`\n👤 ${depute.nom_complet}  —  ${depute.groupe ?? "?"} (${depute.abrev ?? "?"})`);
-console.log(`   ${depute.photo_url}\n`);
+const p = profilDepute(db, trouve.uid, "all")!;
+const d = p.depute;
+console.log(`\n👤 ${d.nom_complet}  —  ${d.groupe ?? "?"} (${d.abrev ?? "?"})`);
+console.log(`   Loyaute au groupe (global) : ${p.loyaute_globale_pct ?? "?"}%\n`);
 
-const rows = db
-  .prepare(
-    `SELECT c.emoji, c.libelle,
-            SUM(v.position='pour')       AS pour,
-            SUM(v.position='contre')     AS contre,
-            SUM(v.position='abstention') AS abstention,
-            SUM(v.position='nonvotant')  AS absent,
-            COUNT(*)                     AS total
-     FROM votes v
-     JOIN scrutin_categories sc ON sc.scrutin_uid = v.scrutin_uid
-     JOIN categories c          ON c.id = sc.categorie_id
-     WHERE v.depute_uid = ?
-     GROUP BY c.id
-     ORDER BY c.ordre`
-  )
-  .all(depute.uid) as any[];
-
-console.log("Catégorie                              Pour Contre Abst Abs  (% pour exprimés)");
+console.log("Catégorie                              Pour Contre Abst Abs   %pour  loyauté");
 console.log("─".repeat(82));
-for (const r of rows) {
-  const exprimes = r.pour + r.contre;
-  const pct = exprimes ? Math.round((r.pour / exprimes) * 100) : 0;
-  const label = `${r.emoji} ${r.libelle}`.padEnd(36);
+for (const c of p.categories) {
+  const label = `${c.emoji} ${c.libelle}`.padEnd(36);
   console.log(
-    `${label} ${String(r.pour).padStart(4)} ${String(r.contre).padStart(6)} ${String(r.abstention).padStart(4)} ${String(r.absent).padStart(4)}   ${pct}%`
+    `${label} ${String(c.pour).padStart(4)} ${String(c.contre).padStart(6)} ${String(c.abstention).padStart(4)} ${String(c.absent).padStart(4)}   ${String(c.pct_pour_exprimes ?? "-").padStart(4)}%  ${String(c.loyaute_pct ?? "-").padStart(4)}%`
   );
 }
 console.log();
