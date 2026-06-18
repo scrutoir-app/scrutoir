@@ -1,6 +1,6 @@
 import { Platform } from "react-native";
 import type {
-  ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant,
+  ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
 } from "./types";
 
 /**
@@ -52,6 +52,11 @@ export function getVotesDepute(uid: string, categorie: string, position: string,
   return get<ScrutinResume[]>(
     `/deputes/${uid}/votes?categorie=${categorie}&position=${position}&periode=${periode}`
   );
+}
+
+// Tous les votes d'un depute dans une categorie (toutes positions confondues).
+export function getVotesDeputeCategorie(uid: string, categorie: string, periode: Periode) {
+  return get<VoteScrutin[]>(`/deputes/${uid}/votes?categorie=${categorie}&periode=${periode}`);
 }
 
 export function getVotants(scrutinUid: string, position: string, groupe?: string) {

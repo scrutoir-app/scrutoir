@@ -9,6 +9,7 @@ import { CategorieScreen } from "./src/screens/CategorieScreen";
 import { DissidencesScreen } from "./src/screens/DissidencesScreen";
 import { AProposScreen } from "./src/screens/AProposScreen";
 import { VotesListeScreen } from "./src/screens/VotesListeScreen";
+import { VotesCategorieScreen } from "./src/screens/VotesCategorieScreen";
 import { VotantsScreen } from "./src/screens/VotantsScreen";
 
 export default function App() {
@@ -26,6 +27,7 @@ export default function App() {
     scrutin: "Scrutin",
     categorie: "Thème",
     dissidences: "Dissidences",
+    votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes",
     votants: "Votants",
     apropos: "À propos",
@@ -71,6 +73,16 @@ export default function App() {
         )}
         {current.name === "dissidences" && (
           <DissidencesScreen uid={current.uid} nom={current.nom} nav={nav} />
+        )}
+        {current.name === "votesCategorie" && (
+          <VotesCategorieScreen
+            uid={current.uid}
+            nom={current.nom}
+            categorie={current.categorie}
+            categorieLibelle={current.categorieLibelle}
+            periode={current.periode}
+            nav={nav}
+          />
         )}
         {current.name === "votesDepute" && (
           <VotesListeScreen

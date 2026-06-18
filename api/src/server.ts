@@ -58,11 +58,12 @@ app.get("/deputes/:uid/dissidences", (req, res) => {
 // Scrutins d'une categorie ou le depute a vote une position donnee (drill-down)
 app.get("/deputes/:uid/votes", (req, res) => {
   const categorie = String(req.query.categorie ?? "");
-  const position = String(req.query.position ?? "");
+  // position optionnelle : absente => toutes les positions (pour affichage groupé)
+  const position = req.query.position ? String(req.query.position) : null;
   const periode = (["all", "12m", "6m"].includes(String(req.query.periode))
     ? req.query.periode
     : "all") as Periode;
-  if (!categorie || !position) return res.status(400).json({ error: "categorie et position requis" });
+  if (!categorie) return res.status(400).json({ error: "categorie requise" });
   res.json(votesDeputeCategorie(db, req.params.uid, categorie, position, periode));
 });
 

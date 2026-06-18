@@ -211,23 +211,28 @@ export function dissidences(db: Database.Database, deputeUid: string, limit = 10
     .all(deputeUid, limit) as any[];
 }
 
-/** Scrutins d'une categorie ou un depute a vote une position donnee. */
+/**
+ * Scrutins d'un depute dans une categorie. Si `position` est fourni, filtre sur
+ * cette position ; sinon renvoie toutes les positions (avec le champ `position`),
+ * pour un affichage groupé.
+ */
 export function votesDeputeCategorie(
   db: Database.Database,
   deputeUid: string,
   categorieId: string,
-  position: string,
+  position: string | null,
   periode: Periode = "all"
-): ScrutinResume[] {
+): any[] {
   const borne = bornePeriode(periode);
   const filtreDate = borne ? "AND s.date >= @borne" : "";
+  const filtrePos = position ? "AND v.position = @pos" : "";
   return db
     .prepare(
-      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, v.position
        FROM votes v
        JOIN scrutins s            ON s.uid = v.scrutin_uid
        JOIN scrutin_categories sc ON sc.scrutin_uid = v.scrutin_uid
-       WHERE v.depute_uid = @uid AND sc.categorie_id = @cat AND v.position = @pos ${filtreDate}
+       WHERE v.depute_uid = @uid AND sc.categorie_id = @cat ${filtrePos} ${filtreDate}
        ORDER BY s.date DESC, s.numero DESC`
     )
     .all({ uid: deputeUid, cat: categorieId, pos: position, borne }) as any[];

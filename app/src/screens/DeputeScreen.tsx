@@ -137,7 +137,16 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
           <View key={c.id} style={{ paddingVertical: 11, borderTopWidth: 0.5, borderTopColor: C.border }}>
             <TouchableOpacity
               activeOpacity={0.6}
-              onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
+              onPress={() =>
+                nav.push({
+                  name: "votesCategorie",
+                  uid: d.uid,
+                  nom: d.nom_complet,
+                  categorie: c.id,
+                  categorieLibelle: c.libelle,
+                  periode,
+                })
+              }
               style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 7 }}
             >
               <Text style={{ fontSize: 14, color: C.text, flex: 1 }}>

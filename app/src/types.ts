@@ -89,6 +89,10 @@ export interface Dissidence {
   consigne: string;
 }
 
+export interface VoteScrutin extends ScrutinResume {
+  position: string;
+}
+
 export interface Votant {
   uid: string;
   nom_complet: string;
