@@ -37,6 +37,9 @@ cd ../app && npm run web                            # app -> http://localhost:80
   Pour/Contre/Abst/**Absent**), drill-downs.
 - **Détail scrutin** : bandeau Adopté/Rejeté, **exposé d'amendement pliable**, position par groupe
   (cases cliquables → votants).
+- **Taux de réussite** (lentille publique, choix produit A — pas de login) : toggle
+  « Positions / Réussite » sur la fiche élu ; réussite = le résultat a suivi le vote
+  (Pour→adopté / Contre→rejeté), global + par thème. Calcul live dans `profilDepute` (via `sort_code`).
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** en bas.
 
 ## Design system (refonte « app moderne » faite)
@@ -56,9 +59,8 @@ cd ../app && npm run web                            # app -> http://localhost:80
   **mots entiers** + **propagation** aux amendements ; ~40% non classés (assumé). Hybride IA = plus tard.
 - **Exposé d'amendement** : jointure heuristique date+numéro+auteur (~91%), `pipeline/src/linkAmendements.ts`.
 
-## Backlog (après la vue électeur)
-- **Espace « élus »** : **taux de réussite** = part des votes exprimés où le résultat a suivi le vote
-  (Pour→adopté / Contre→rejeté), global + par thème. Données déjà dispo (`sort_code` + position).
+## Backlog
+- ~~Taux de réussite~~ ✅ FAIT (lentille publique sur la fiche élu).
 - Brancher **Claude API** pour la classification hybride (pas encore de clé Anthropic).
 - **Mise en ligne** : SQLite→Supabase + build stores (réglerait l'accès téléphone).
 
