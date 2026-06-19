@@ -48,8 +48,22 @@ cd ../app && npm run web                            # app -> http://localhost:80
   API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
-- Accueil : fil « Derniers grands scrutins » raccourci à 2 + « Tout voir » → écran
-  `GrandsScrutinsScreen` (route `grandsScrutins`), pour que les thèmes soient visibles vite.
+- Accueil : **carrousel hero swipeable** des derniers grands scrutins (`components/HeroScrutins.tsx`,
+  FlatList horizontal + snap + points de pagination) au lieu de la liste verticale → gagne de la
+  hauteur, ajoute un visuel. Carte hero = **photo de fond par thème** (`ImageBackground`, hauteur 210)
+  + **voile sombre** (lisibilité) + **texte blanc** (titre non gras, Manrope SemiBold). Photos =
+  `categoryUI.ts` champ `photos[]` (**2-3 par catégorie**) → **PLACEHOLDERS Unsplash** (à remplacer
+  par des visuels sous licence avant mise en ligne). Rotation **déterministe par scrutin** via
+  `catPhoto(catId, scrutin.uid)` (hash → index) : stable pour un scrutin donné, variée d'une carte à
+  l'autre. Slot **photo du porteur** prévu en avatar
+  (`ScrutinResume.porteur_nom/porteur_photo` — affiche le chip icône de catégorie tant que non
+  branché), kicker (Projet/Proposition de loi / Motion de censure dérivé du libellé), badge
+  Adopté/Rejeté, barre de votes. « Tout voir » → `GrandsScrutinsScreen` (route `grandsScrutins`).
+  ⚠️ Largeur alignée sur les autres composants via **mesure `onLayout`** (pas `useWindowDimensions`,
+  qui ≠ largeur du contenu centré) + remontage `key={winW}` pour reflow au resize web.
+  ⚠️ **Porteur non encore branché** : les grands scrutins portent sur des lois entières (0/75 ont un
+  `auteur` dans la table `amendements`) → la photo du porteur exige d'extraire auteur/rapporteur du
+  dataset **Dossiers législatifs** puis de le relier à un `depute.uid` (chantier pipeline à faire).
 - **Croisé thème × parti** : sur un écran de thème, classement des partis par réussite sur ce
   thème (API `/categories/:id/partis`, `partisParCategorie`, base ≥ 5 scrutins), cliquable → parti.
 - **Picto de catégorie** sur chaque scrutin (ScrutinCard/ScrutinRow ; API renvoie `categorie`

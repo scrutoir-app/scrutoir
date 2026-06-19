@@ -16,10 +16,14 @@ export interface ScrutinResume {
   sort_code: string | null;
   sort_libelle: string | null;
   categorie?: string | null; // catégorie principale (picto)
+  type_vote?: string | null;
   // Présents sur certains endpoints (grands scrutins, scrutins par thème)
   pour?: number;
   contre?: number;
   abstention?: number;
+  // Porteur du texte (auteur/rapporteur) — branché plus tard via Dossiers législatifs
+  porteur_nom?: string | null;
+  porteur_photo?: string | null;
 }
 
 export interface CategorieStats {
