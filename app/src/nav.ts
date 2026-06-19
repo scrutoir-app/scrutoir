@@ -32,7 +32,8 @@ export type Route =
       groupe?: string;
       groupeLibelle?: string;
     }
-  | { name: "apropos" };
+  | { name: "apropos" }
+  | { name: "confrontation"; a?: string; b?: string };
 
 export interface Nav {
   push: (route: Route) => void;

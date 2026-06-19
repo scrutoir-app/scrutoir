@@ -15,6 +15,7 @@ import {
   listePartis,
   profilParti,
   partisParCategorie,
+  confrontation,
   type Periode,
 } from "../../pipeline/src/stats.js";
 
@@ -57,6 +58,17 @@ app.get("/partis/:uid", (req, res) => {
 // Derniers grands scrutins (solennels + motions de censure)
 app.get("/scrutins-recents", (_req, res) => {
   res.json(grandsScrutins(db, 100));
+});
+
+// Confrontation de deux deputes (désaccords / accords par thème)
+app.get("/confrontation", (req, res) => {
+  const a = String(req.query.a ?? "");
+  const b = String(req.query.b ?? "");
+  const periode = (["all", "12m", "6m"].includes(String(req.query.periode)) ? req.query.periode : "all") as Periode;
+  if (!a || !b) return res.status(400).json({ error: "deux députés (a, b) requis" });
+  const r = confrontation(db, a, b, periode);
+  if (!r) return res.status(404).json({ error: "Député introuvable" });
+  res.json(r);
 });
 
 // Scrutins d'une categorie

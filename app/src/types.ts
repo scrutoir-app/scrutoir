@@ -164,3 +164,32 @@ export interface PartiReussiteCategorie {
 }
 
 export type Periode = "all" | "12m" | "6m";
+
+export interface ConfrontationScrutin {
+  uid: string;
+  numero: number | null;
+  date: string | null;
+  titre: string | null;
+  objet: string | null;
+  sort_code: string | null;
+  resume: string | null;
+  posA: string;
+  posB: string;
+}
+export interface ConfrontationTheme {
+  id: string;
+  libelle: string;
+  ordre: number;
+  communs: number;
+  desaccords: ConfrontationScrutin[];
+  accords: ConfrontationScrutin[];
+}
+export interface Confrontation {
+  a: DeputeResume;
+  b: DeputeResume;
+  periode: Periode;
+  communs: number;
+  desaccords: number;
+  accords: number;
+  themes: ConfrontationTheme[];
+}

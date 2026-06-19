@@ -139,6 +139,21 @@ function Accueil({ nav }: { nav: Nav }) {
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => nav.push({ name: "confrontation" })}
+        style={{ marginHorizontal: 18, marginTop: 14, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 13, paddingHorizontal: 15, ...shadowCard }}
+      >
+        <Feather name="git-pull-request" size={20} color="#fff" />
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: F.bold, fontSize: 14.5, color: "#fff" }}>Confronter deux élu·e·s</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: "rgba(255,255,255,0.8)", marginTop: 1 }}>
+            Leurs votes côte à côte, accords et désaccords
+          </Text>
+        </View>
+        <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.8)" />
+      </TouchableOpacity>
+
       <View style={{ paddingHorizontal: 18, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 22, marginBottom: 12 }}>
         <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3 }}>Derniers grands scrutins</Text>
         <TouchableOpacity onPress={() => nav.push({ name: "grandsScrutins" })}>

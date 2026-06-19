@@ -620,3 +620,106 @@ export function voteDeputeSurScrutin(db: Database.Database, scrutinUid: string, 
     )
     .get(scrutinUid, deputeUid) as any;
 }
+
+/**
+ * Confrontation de deux députés : pour chaque thème, les scrutins où les DEUX ont
+ * exprimé un vote nominatif (pour/contre/abstention), séparés en désaccords
+ * (positions différentes) et accords (même position). On ne compare que des votes
+ * nominatifs réels ; un thème sans scrutin commun est "non couvert" (invérifiable
+ * par ce canal — distinct d'une absence). Le titre, la date, le numéro, un résumé
+ * et la catégorie sont renvoyés pour chaque scrutin.
+ */
+export interface ConfrontationScrutin {
+  uid: string;
+  numero: number | null;
+  date: string | null;
+  titre: string | null;
+  objet: string | null;
+  sort_code: string | null;
+  resume: string | null;
+  posA: string;
+  posB: string;
+}
+export interface ConfrontationTheme {
+  id: string;
+  libelle: string;
+  ordre: number;
+  communs: number; // scrutins où A et B ont tous deux exprimé un vote
+  desaccords: ConfrontationScrutin[];
+  accords: ConfrontationScrutin[];
+}
+
+export function confrontation(
+  db: Database.Database,
+  uidA: string,
+  uidB: string,
+  periode: Periode = "all"
+) {
+  const depute = (uid: string) =>
+    db
+      .prepare(
+        `SELECT d.uid, d.nom_complet, d.photo_url, g.libelle AS groupe, g.abrev, g.couleur
+         FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid WHERE d.uid = ?`
+      )
+      .get(uid) as DeputeResume | undefined;
+  const a = depute(uidA);
+  const b = depute(uidB);
+  if (!a || !b) return null;
+
+  const borne = bornePeriode(periode);
+  const filtre = borne ? "AND s.date >= @borne" : "";
+  const rows = db
+    .prepare(
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code,
+              va.position AS posA, vb.position AS posB,
+              am.expose AS resume,
+              (SELECT sc.categorie_id FROM scrutin_categories sc
+               WHERE sc.scrutin_uid = s.uid ORDER BY sc.confiance DESC LIMIT 1) AS categorie
+       FROM votes va
+       JOIN votes vb ON vb.scrutin_uid = va.scrutin_uid AND vb.depute_uid = @b
+       JOIN scrutins s ON s.uid = va.scrutin_uid
+       LEFT JOIN amendements am ON am.scrutin_uid = s.uid
+       WHERE va.depute_uid = @a
+         AND va.position IN ('pour','contre','abstention')
+         AND vb.position IN ('pour','contre','abstention')
+         ${filtre}
+       ORDER BY s.date DESC, s.numero DESC`
+    )
+    .all({ a: uidA, b: uidB, borne }) as any[];
+
+  // Toutes les catégories (pour exposer aussi les thèmes non couverts côté client)
+  const categories = db
+    .prepare("SELECT id, libelle, ordre FROM categories ORDER BY ordre")
+    .all() as Array<{ id: string; libelle: string; ordre: number }>;
+  const themes = new Map<string, ConfrontationTheme>();
+  for (const c of categories)
+    themes.set(c.id, { id: c.id, libelle: c.libelle, ordre: c.ordre, communs: 0, desaccords: [], accords: [] });
+
+  let totalCommuns = 0,
+    totalDesaccords = 0;
+  for (const r of rows) {
+    const t = r.categorie ? themes.get(r.categorie) : null;
+    if (!t) continue; // scrutin non classé : pas de thème → ignoré
+    const sc: ConfrontationScrutin = {
+      uid: r.uid, numero: r.numero, date: r.date, titre: r.titre, objet: r.objet,
+      sort_code: r.sort_code, resume: r.resume, posA: r.posA, posB: r.posB,
+    };
+    t.communs++;
+    totalCommuns++;
+    if (r.posA === r.posB) t.accords.push(sc);
+    else {
+      t.desaccords.push(sc);
+      totalDesaccords++;
+    }
+  }
+
+  return {
+    a,
+    b,
+    periode,
+    communs: totalCommuns,
+    desaccords: totalDesaccords,
+    accords: totalCommuns - totalDesaccords,
+    themes: [...themes.values()].sort((x, y) => x.ordre - y.ordre),
+  };
+}

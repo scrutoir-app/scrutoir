@@ -24,6 +24,7 @@ import { AProposScreen } from "./src/screens/AProposScreen";
 import { VotesListeScreen } from "./src/screens/VotesListeScreen";
 import { VotesCategorieScreen } from "./src/screens/VotesCategorieScreen";
 import { VotantsScreen } from "./src/screens/VotantsScreen";
+import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
@@ -52,6 +53,7 @@ export default function App() {
     depute: "Député·e", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
+    confrontation: "Confrontation",
   };
   const showHeader = stack.length > 1;
 
@@ -109,6 +111,7 @@ export default function App() {
             <VotantsScreen scrutinUid={current.scrutinUid} titre={current.titre} position={current.position} groupe={current.groupe} groupeLibelle={current.groupeLibelle} nav={nav} />
           )}
           {current.name === "apropos" && <AProposScreen />}
+          {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} nav={nav} />}
         </View>
 
         {/* Barre d'onglets */}

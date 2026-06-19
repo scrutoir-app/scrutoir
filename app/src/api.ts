@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
-  PartiResume, ProfilParti, PartiReussiteCategorie,
+  PartiResume, ProfilParti, PartiReussiteCategorie, Confrontation,
 } from "./types";
 
 /**
@@ -17,6 +17,10 @@ async function get<T>(path: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`);
   if (!res.ok) throw new Error(`API ${res.status} sur ${path}`);
   return res.json() as Promise<T>;
+}
+
+export function getConfrontation(a: string, b: string, periode: Periode) {
+  return get<Confrontation>(`/confrontation?a=${a}&b=${b}&periode=${periode}`);
 }
 
 export function rechercher(q: string) {
