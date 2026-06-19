@@ -8,6 +8,7 @@
     "ingest": "tsx src/ingest.ts",
     "ingest:download": "tsx src/ingest.ts --download",
     "classify": "tsx src/classify.ts",
+    "classify:ia": "tsx src/classifyIA.ts",
     "link-amendements": "tsx src/linkAmendements.ts",
     "query": "tsx src/query.ts"
   },
