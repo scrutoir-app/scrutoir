@@ -18,6 +18,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
   const [profil, setProfil] = useState<ProfilDepute | null>(null);
   const [loading, setLoading] = useState(true);
+  const [followed, toggleFollow] = useFollow(uid);
 
   useEffect(() => {
     let vivant = true;
@@ -37,7 +38,6 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   if (!profil) return null;
 
   const { depute: d, participation_pct, participation_rang_pct, categories } = profil;
-  const [followed, toggleFollow] = useFollow(uid);
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
