@@ -98,9 +98,13 @@ export async function lierAmendements(db: Database.Database): Promise<{ lies: nu
 
   // Index : "date|numero" -> [{ nom, auteur }]
   const index = new Map<string, Array<{ nom: string; auteur: string | null }>>();
+  // Comptage de TOUS les amendements déposés par groupe (avant tout filtre).
+  const amdParGroupe = new Map<string, number>();
   let lus = 0;
   for (const nom of noms) {
     const a = JSON.parse((await zip.entryData(nom)).toString("utf8")).amendement;
+    const grp = txt(a?.signataires?.auteur?.groupePolitiqueRef);
+    if (grp) amdParGroupe.set(grp, (amdParGroupe.get(grp) ?? 0) + 1);
     const cdv = a?.cycleDeVie ?? {};
     const ds = txt(cdv.dateSort);
     const sort = cdv.sort;
@@ -170,6 +174,18 @@ export async function lierAmendements(db: Database.Database): Promise<{ lies: nu
       lies++;
     }
   })(charges);
+
+  // Écrit le nombre d'amendements déposés par groupe (groupes connus uniquement).
+  const connus = new Set<string>(
+    (db.prepare("SELECT uid FROM groupes").all() as any[]).map((r) => r.uid)
+  );
+  const insAmd = db.prepare(
+    `INSERT INTO groupe_activite (groupe_uid, amendements) VALUES (?, ?)
+     ON CONFLICT(groupe_uid) DO UPDATE SET amendements=excluded.amendements`
+  );
+  db.transaction(() => {
+    for (const [grp, n] of amdParGroupe) if (connus.has(grp)) insAmd.run(grp, n);
+  })();
 
   await zip.close();
   return { lies, total: scrutins.length };

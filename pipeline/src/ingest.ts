@@ -1,10 +1,11 @@
 import { openDb, createSchema } from "./db.js";
-import { assurerDonneesBrutes, assurerAmendementsZip } from "./download.js";
+import { assurerDonneesBrutes, assurerAmendementsZip, assurerDossiersZip } from "./download.js";
 import { chargerGroupes, chargerDeputes } from "./parseActeurs.js";
 import { chargerScrutins } from "./parseScrutins.js";
 import { seedCategories, classifierTout } from "./classify.js";
 import { lierAmendements } from "./linkAmendements.js";
 import { calculerParticipation } from "./participation.js";
+import { calculerPropositions } from "./activiteGroupes.js";
 
 async function main() {
   const force = process.argv.includes("--download");
@@ -34,11 +35,16 @@ async function main() {
   const { lignes, propagees, nonClasses } = classifierTout(db, true);
   console.log(`     ${lignes} par mots-cles, ${propagees} propagees aux amendements, ${nonClasses} non classes`);
 
-  console.log("6/6  Exposés des amendements (jointure heuristique)");
+  console.log("6/6  Exposés des amendements + activité des groupes");
   const okZip = await assurerAmendementsZip(force);
   if (okZip) {
     const { lies, total } = await lierAmendements(db);
-    console.log(`     ${lies}/${total} scrutins sur amendement reliés a leur exposé`);
+    console.log(`     ${lies}/${total} scrutins sur amendement reliés (+ amendements/groupe)`);
+  }
+  const okDoss = await assurerDossiersZip(force);
+  if (okDoss) {
+    const n = await calculerPropositions(db);
+    console.log(`     propositions de loi comptées pour ${n} groupes`);
   }
 
   db.close();

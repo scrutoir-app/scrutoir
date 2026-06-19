@@ -71,6 +71,39 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <MiniStat valeur={data.participation_moy_pct} label="Participation" />
       </View>
 
+      {/* Activité parlementaire */}
+      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>Activité parlementaire</Text>
+      <View style={{ flexDirection: "row", gap: 11, marginBottom: 6 }}>
+        <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>
+            {data.amendements.toLocaleString("fr-FR")}
+          </Text>
+          <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted, marginTop: 2 }}>Amendements déposés</Text>
+          {data.amendements_par_elu != null && (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}>
+              <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint }}>{data.amendements_par_elu}/élu</Text>
+              {data.amendements_ratio != null && (
+                <View style={{ backgroundColor: C.surfaceAlt, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 }}>
+                  <Text style={{ fontFamily: F.bold, fontSize: 11, color: data.amendements_ratio >= 1.3 ? C.loyalMoyen : C.textMuted }}>
+                    ×{data.amendements_ratio} vs moy.
+                  </Text>
+                </View>
+              )}
+            </View>
+          )}
+        </View>
+        <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>
+            {data.propositions.toLocaleString("fr-FR")}
+          </Text>
+          <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted, marginTop: 2 }}>Propositions de loi</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 8 }}>déposées par le groupe</Text>
+        </View>
+      </View>
+      <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginBottom: 16, lineHeight: 15 }}>
+        Un nombre d'amendements/élu très supérieur à la moyenne peut signaler une activité intense… ou de l'obstruction.
+      </Text>
+
       {/* Période */}
       <View style={{ flexDirection: "row", gap: 4, padding: 4, backgroundColor: C.surfaceAlt, borderRadius: 12, marginBottom: 16 }}>
         {PERIODES.map((pe) => {

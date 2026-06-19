@@ -72,6 +72,26 @@ export async function assurerAmendementsZip(force = false): Promise<boolean> {
   }
 }
 
+// Dossiers législatifs (pour compter les propositions de loi par groupe).
+export const DOSSIERS_ZIP = path.join(RAW_DIR, "Dossiers.json.zip");
+const DOSSIERS_URL = `${BASE}/loi/dossiers_legislatifs/Dossiers_Legislatifs.json.zip`;
+
+export async function assurerDossiersZip(force = false): Promise<boolean> {
+  fs.mkdirSync(RAW_DIR, { recursive: true });
+  if (!force && fs.existsSync(DOSSIERS_ZIP)) {
+    console.log("  ✓ Dossiers.json.zip deja present");
+    return true;
+  }
+  console.log("  ↓ Telechargement Dossiers.json.zip ...");
+  try {
+    await telecharger(DOSSIERS_URL, DOSSIERS_ZIP);
+    return true;
+  } catch (e) {
+    console.warn("  ⚠ Echec telechargement dossiers :", (e as Error).message);
+    return false;
+  }
+}
+
 export const SCRUTINS_DIR = path.join(RAW_DIR, "scrutins", "json");
 export const ACTEURS_DIR = path.join(RAW_DIR, "amo", "json", "acteur");
 export const ORGANES_DIR = path.join(RAW_DIR, "amo", "json", "organe");

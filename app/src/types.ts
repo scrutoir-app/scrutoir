@@ -140,6 +140,10 @@ export interface ProfilParti {
   cohesion_pct: number | null;
   participation_moy_pct: number | null;
   reussite_globale_pct: number | null;
+  amendements: number;
+  propositions: number;
+  amendements_par_elu: number | null;
+  amendements_ratio: number | null;
   categories: PartiCategorie[];
 }
 

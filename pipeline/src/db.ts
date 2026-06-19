@@ -71,6 +71,13 @@ export function createSchema(db: Database.Database): void {
       PRIMARY KEY (scrutin_uid, groupe_uid)
     );
 
+    -- Activité par groupe : amendements et propositions de loi déposés.
+    CREATE TABLE IF NOT EXISTS groupe_activite (
+      groupe_uid   TEXT PRIMARY KEY REFERENCES groupes(uid),
+      amendements  INTEGER DEFAULT 0,
+      propositions INTEGER DEFAULT 0
+    );
+
     CREATE TABLE IF NOT EXISTS categories (
       id      TEXT PRIMARY KEY,          -- "ecologie"
       libelle TEXT NOT NULL,             -- "Ecologie & Climat"

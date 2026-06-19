@@ -287,6 +287,10 @@ export interface ProfilParti {
   cohesion_pct: number | null; // % de votes des membres conformes à la consigne du groupe
   participation_moy_pct: number | null; // participation moyenne des membres
   reussite_globale_pct: number | null;
+  amendements: number; // amendements déposés par le groupe
+  propositions: number; // propositions de loi déposées
+  amendements_par_elu: number | null;
+  amendements_ratio: number | null; // x fois la moyenne (par élu)
   categories: Array<{
     id: string; libelle: string; emoji: string; couleur: string;
     pour: number; contre: number; abstention: number;
@@ -371,12 +375,30 @@ export function profilParti(db: Database.Database, uid: string, periode: Periode
     )
     .get(uid) as any;
 
+  // Activité : amendements + propositions déposés, et comparaison à la moyenne par élu
+  const act = (db.prepare("SELECT amendements, propositions FROM groupe_activite WHERE groupe_uid = ?").get(uid) as any) ?? {};
+  const amendements = act.amendements ?? 0;
+  const propositions = act.propositions ?? 0;
+  const nb = parti.nb_deputes || 0;
+  const amendements_par_elu = nb ? amendements / nb : null;
+  const moy = db
+    .prepare(
+      `SELECT CAST(SUM(a.amendements) AS REAL) /
+              NULLIF(SUM((SELECT COUNT(*) FROM deputes d WHERE d.groupe_uid = a.groupe_uid AND d.actif = 1)), 0) AS m
+       FROM groupe_activite a`
+    )
+    .get() as any;
+
   return {
     parti,
     president,
     cohesion_pct: coh?.base ? Math.round((coh.conformes / coh.base) * 100) : null,
     participation_moy_pct: part?.m != null ? Math.round(part.m * 100) : null,
     reussite_globale_pct: base ? Math.round((glob.gagnes / base) * 100) : null,
+    amendements,
+    propositions,
+    amendements_par_elu: amendements_par_elu != null ? Math.round(amendements_par_elu) : null,
+    amendements_ratio: amendements_par_elu != null && moy?.m ? Math.round((amendements_par_elu / moy.m) * 10) / 10 : null,
     categories: cats,
   };
 }
