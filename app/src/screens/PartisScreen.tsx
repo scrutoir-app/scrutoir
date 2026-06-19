@@ -18,7 +18,7 @@ export function PartisScreen({ nav }: { nav: Nav }) {
     <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
       <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Partis</Text>
       <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1, marginBottom: 16 }}>
-        Taux de réussite par groupe — leur ligne de vote suit-elle le résultat ?
+        Les groupes de la 17ᵉ législature — cohésion, participation et positions par thème.
       </Text>
 
       {loading ? (
@@ -40,10 +40,8 @@ export function PartisScreen({ nav }: { nav: Nav }) {
                 </Text>
               </View>
               <View style={{ alignItems: "flex-end", marginRight: 4 }}>
-                <Text style={{ fontFamily: F.extra, fontSize: 19, color: C.accent, letterSpacing: -0.3 }}>
-                  {p.reussite_pct ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 11, color: C.textFaint }}>%</Text>
-                </Text>
-                <Text style={{ fontFamily: F.medium, fontSize: 10, color: C.textFaint }}>réussite</Text>
+                <Text style={{ fontFamily: F.extra, fontSize: 19, color: C.text, letterSpacing: -0.3 }}>{p.nb_deputes}</Text>
+                <Text style={{ fontFamily: F.medium, fontSize: 10, color: C.textFaint }}>élus</Text>
               </View>
               <Feather name="chevron-right" size={18} color={C.textFaint} />
             </TouchableOpacity>

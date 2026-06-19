@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
+import { catUI } from "../categoryUI";
 import { getParti } from "../api";
-import type { ProfilParti, Periode } from "../types";
-import { ReussiteCard } from "../components/ReussiteCard";
+import type { ProfilParti, PartiCategorie, Periode } from "../types";
 import type { Nav } from "../nav";
 
 const PERIODES: { id: Periode; label: string }[] = [
@@ -64,9 +64,8 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </TouchableOpacity>
       )}
 
-      {/* 3 stats */}
+      {/* 2 stats (réussite retirée : récompensait l'appartenance à la majorité) */}
       <View style={{ flexDirection: "row", gap: 9, marginBottom: 16 }}>
-        <MiniStat valeur={data.reussite_globale_pct} label="Réussite" />
         <MiniStat valeur={data.cohesion_pct} label="Cohésion" />
         <MiniStat valeur={data.participation_moy_pct} label="Participation" />
       </View>
@@ -116,17 +115,17 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         })}
       </View>
 
-      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>Réussite par thème</Text>
+      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>Positions par thème</Text>
       <View style={{ gap: 11 }}>
         {data.categories.map((c) => (
-          <ReussiteCard key={c.id} cat={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
+          <PartiThemeRow key={c.id} cat={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
         ))}
       </View>
 
       <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>
-        Réussite = la ligne du groupe a suivi le résultat (Pour→adopté, Contre→rejeté). Cohésion = part
-        des votes des membres conformes à la consigne. Participation = moyenne des membres. Scrutins
-        publics 17ᵉ législature ; abstentions exclues.
+        Cohésion = part des votes des membres conformes à la consigne du groupe. Participation = moyenne
+        des membres. Positions = répartition des votes du groupe par thème. Scrutins publics nominatifs,
+        17ᵉ législature.
       </Text>
     </ScrollView>
   );
@@ -144,6 +143,32 @@ function amdBg(ratio: number | null): string {
   if (ratio >= 1.5) return C.loyalBasBg;
   if (ratio > 1.0) return C.loyalMoyenBg;
   return C.surfaceAlt;
+}
+
+/** Ligne thème (neutre) : répartition des votes du groupe pour/contre/abstention. */
+function PartiThemeRow({ cat, onPress }: { cat: PartiCategorie; onPress: () => void }) {
+  const ui = catUI(cat.id);
+  const tot = (cat.pour + cat.contre + cat.abstention) || 1;
+  const seg = (v: number, col: string) => (v ? <View key={col} style={{ flex: v / tot, backgroundColor: col }} /> : null);
+  return (
+    <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 }}>
+        <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
+          <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
+        </View>
+        <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>{cat.libelle}</Text>
+        <Feather name="chevron-right" size={18} color={C.textFaint} />
+      </View>
+      <View style={{ flexDirection: "row", height: 7, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken }}>
+        {seg(cat.pour, C.pour)}
+        {seg(cat.contre, C.contre)}
+        {seg(cat.abstention, C.abstention)}
+      </View>
+      <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textMuted, marginTop: 6 }}>
+        {cat.pour} pour · {cat.contre} contre · {cat.abstention} abst.
+      </Text>
+    </TouchableOpacity>
+  );
 }
 
 function MiniStat({ valeur, label }: { valeur: number | null; label: string }) {

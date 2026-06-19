@@ -542,10 +542,13 @@ export function votesDeputeCategorie(
   const filtrePos = position ? "AND v.position = @pos" : "";
   return db
     .prepare(
-      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, v.position, @cat AS categorie
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, v.position,
+              gp.position AS consigne, @cat AS categorie
        FROM votes v
        JOIN scrutins s            ON s.uid = v.scrutin_uid
        JOIN scrutin_categories sc ON sc.scrutin_uid = v.scrutin_uid
+       LEFT JOIN groupe_positions gp
+              ON gp.scrutin_uid = v.scrutin_uid AND gp.groupe_uid = v.groupe_uid
        WHERE v.depute_uid = @uid AND sc.categorie_id = @cat ${filtrePos} ${filtreDate}
        ORDER BY s.date DESC, s.numero DESC`
     )

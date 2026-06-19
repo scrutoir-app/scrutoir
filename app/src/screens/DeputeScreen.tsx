@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard, couleurLoyaute, libelleLoyaute } from "../theme";
+import { C, F, RADIUS, shadowCard } from "../theme";
 import { getProfil } from "../api";
 import type { ProfilDepute, Periode } from "../types";
-import { Ring } from "../components/Ring";
 import { CategoryVoteCard } from "../components/CategoryVoteCard";
-import { ReussiteCard } from "../components/ReussiteCard";
 import type { Nav } from "../nav";
 
 const PERIODES: { id: Periode; label: string }[] = [
@@ -17,7 +15,6 @@ const PERIODES: { id: Periode; label: string }[] = [
 
 export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
-  const [lens, setLens] = useState<"positions" | "reussite">("positions");
   const [profil, setProfil] = useState<ProfilDepute | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -38,8 +35,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
     );
   if (!profil) return null;
 
-  const { depute: d, loyaute_globale_pct, participation_pct, participation_rang_pct, reussite_globale_pct, categories } = profil;
-  const loy = couleurLoyaute(loyaute_globale_pct);
+  const { depute: d, participation_pct, participation_rang_pct, categories } = profil;
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
@@ -55,29 +51,20 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </View>
       </View>
 
-      {/* Deux stats */}
-      <View style={{ flexDirection: "row", gap: 11, marginBottom: 16 }}>
-        <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, alignItems: "center", ...shadowCard }}>
-          <Ring pct={loyaute_globale_pct} color={loy.fg} size={56} />
-          <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.text, marginTop: 8 }}>Loyauté au groupe</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint, marginTop: 2, textAlign: "center" }} numberOfLines={2}>
-            {libelleLoyaute(loyaute_globale_pct)}
+      {/* Participation (relative) — pas de score de loyauté agrégé (cf. consigne par scrutin) */}
+      <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 16, ...shadowCard }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
+          <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text }}>Participation aux scrutins</Text>
+          <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>
+            {participation_pct ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 12, color: C.textFaint }}>%</Text>
           </Text>
         </View>
-
-        <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 26, color: C.text, letterSpacing: -0.5 }}>
-            {participation_pct ?? "—"}
-            <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textFaint }}>%</Text>
-          </Text>
-          <View style={{ height: 6, borderRadius: 3, backgroundColor: C.surfaceSunken, overflow: "hidden", marginTop: 8 }}>
-            <View style={{ width: `${participation_rang_pct ?? 0}%`, height: "100%", backgroundColor: C.accent }} />
-          </View>
-          <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.text, marginTop: 9 }}>Participation</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint, marginTop: 2, lineHeight: 14 }}>
-            {participation_rang_pct != null ? `Plus assidu·e que ${participation_rang_pct} % des députés` : "scrutins publics votés"}
-          </Text>
+        <View style={{ height: 6, borderRadius: 3, backgroundColor: C.surfaceSunken, overflow: "hidden", marginTop: 9 }}>
+          <View style={{ width: `${participation_rang_pct ?? 0}%`, height: "100%", backgroundColor: C.accent }} />
         </View>
+        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 7, lineHeight: 15 }}>
+          {participation_rang_pct != null ? `Plus assidu·e que ${participation_rang_pct} % des députés (scrutins nominatifs)` : "scrutins publics nominatifs votés"}
+        </Text>
       </View>
 
       {/* Période */}
@@ -106,64 +93,28 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <Feather name="chevron-right" size={18} color={C.textFaint} />
       </TouchableOpacity>
 
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3 }}>
-          {lens === "positions" ? "Votes par thème" : "Réussite par thème"}
-        </Text>
-        <View style={{ flexDirection: "row", gap: 3, padding: 3, backgroundColor: C.surfaceAlt, borderRadius: 9 }}>
-          {(["positions", "reussite"] as const).map((l) => {
-            const actif = l === lens;
-            return (
-              <TouchableOpacity
-                key={l}
-                onPress={() => setLens(l)}
-                style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 7, backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : {}) }}
-              >
-                <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 11.5, color: actif ? C.text : C.textMuted }}>
-                  {l === "positions" ? "Positions" : "Réussite"}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-
-      {lens === "reussite" && (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, marginBottom: 12, ...shadowCard }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.accent, letterSpacing: -0.5 }}>
-            {reussite_globale_pct ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textFaint }}>%</Text>
-          </Text>
-          <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 12, color: C.textMuted, lineHeight: 16 }}>
-            de réussite globale — part des votes où le résultat a suivi son vote (Pour→adopté, Contre→rejeté).
-          </Text>
-        </View>
-      )}
+      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>
+        Votes par thème
+      </Text>
 
       <View style={{ gap: 11 }}>
-        {lens === "positions"
-          ? categories.map((c) => (
-              <CategoryVoteCard
-                key={c.id}
-                cat={c}
-                onTitle={() => nav.push({ name: "votesCategorie", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, periode })}
-                onCell={(position) =>
-                  nav.push({ name: "votesDepute", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, position })
-                }
-              />
-            ))
-          : categories.map((c) => (
-              <ReussiteCard
-                key={c.id}
-                cat={c}
-                onPress={() => nav.push({ name: "votesCategorie", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, periode })}
-              />
-            ))}
+        {categories.map((c) => (
+          <CategoryVoteCard
+            key={c.id}
+            cat={c}
+            onTitle={() => nav.push({ name: "votesCategorie", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, periode })}
+            onCell={(position) =>
+              nav.push({ name: "votesDepute", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, position })
+            }
+          />
+        ))}
       </View>
 
       <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>
-        Scrutins publics de l'Assemblée Nationale (17ᵉ législature). « Absent » = n'a pas pris part au
-        scrutin public (délégation, absence…) ; ne reflète pas la présence en commission/séance. La
-        loyauté compare chaque vote à la consigne du groupe.
+        Scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) — la majorité des votes
+        se tiennent à main levée et n'apparaissent pas ici. « Absent » = aucune trace de vote sur le
+        scrutin (déduit) ; « Non votant » = présent·e sans prendre part. La consigne du groupe est
+        indiquée sur chaque scrutin (voir les dissidences pour les écarts).
       </Text>
     </ScrollView>
   );

@@ -66,7 +66,7 @@ export function getDissidences(uid: string) {
 }
 
 export function getVotesDepute(uid: string, categorie: string, position: string, periode: Periode) {
-  return get<ScrutinResume[]>(
+  return get<VoteScrutin[]>(
     `/deputes/${uid}/votes?categorie=${categorie}&position=${position}&periode=${periode}`
   );
 }

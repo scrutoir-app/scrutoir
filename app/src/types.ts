@@ -107,6 +107,7 @@ export interface Dissidence {
 
 export interface VoteScrutin extends ScrutinResume {
   position: string;
+  consigne?: string | null; // consigne du groupe sur ce scrutin (pour lire l'écart)
 }
 
 export interface Votant {

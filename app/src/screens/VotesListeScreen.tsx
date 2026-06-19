@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C, F, positionLabel } from "../theme";
+import { C, F, positionLabel, couleurPosition } from "../theme";
 import { getVotesDepute } from "../api";
-import type { ScrutinResume } from "../types";
+import type { VoteScrutin } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinRow } from "../components/ScrutinRow";
 
@@ -16,8 +16,9 @@ export function VotesListeScreen({
   position: string;
   nav: Nav;
 }) {
-  const [scrutins, setScrutins] = useState<ScrutinResume[]>([]);
+  const [scrutins, setScrutins] = useState<VoteScrutin[]>([]);
   const [loading, setLoading] = useState(true);
+  const voteExprime = position === "pour" || position === "contre" || position === "abstention";
 
   useEffect(() => {
     getVotesDepute(uid, categorie, position, "all")
@@ -55,7 +56,22 @@ export function VotesListeScreen({
         </Text>
       }
       renderItem={({ item }) => (
-        <ScrutinRow scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
+        <View>
+          <ScrutinRow scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
+          {voteExprime && item.consigne != null && (
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: -4, marginBottom: 8, marginLeft: 4 }}>
+              <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>
+                consigne du groupe :
+              </Text>
+              <Text style={{ fontFamily: F.bold, fontSize: 11, color: couleurPosition(item.consigne) }}>
+                {positionLabel(item.consigne)}
+              </Text>
+              {item.consigne !== position && (
+                <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.contre }}>· écart</Text>
+              )}
+            </View>
+          )}
+        </View>
       )}
     />
   );
