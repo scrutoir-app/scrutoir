@@ -76,34 +76,34 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </TouchableOpacity>
       )}
 
-      {/* Exposé d'amendement (pliable) */}
+      {/* Résumé du texte (exposé de l'amendement) — visible par défaut */}
       {am && (am.expose || am.dispositif) && (
         <View style={{ marginTop: 16, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
-          <TouchableOpacity onPress={() => setBriefOuvert((o) => !o)} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
-            <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text }}>
-                Exposé de l'amendement{am.numero ? ` n° ${am.numero}` : ""}{am.article ? ` · ${am.article}` : ""}
-              </Text>
-              {!!am.auteur && (
-                <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 3 }} numberOfLines={briefOuvert ? 3 : 1}>
-                  {am.auteur}
-                </Text>
-              )}
-            </View>
-            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent, marginTop: 1 }}>
-              {briefOuvert ? "Replier ▾" : "Lire ▸"}
-            </Text>
-          </TouchableOpacity>
+          <Text style={{ fontFamily: F.bold, fontSize: 13.5, color: C.text }}>Résumé du texte</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 2 }} numberOfLines={2}>
+            Exposé de l'amendement{am.numero ? ` n° ${am.numero}` : ""}{am.article ? ` · ${am.article}` : ""}
+            {am.auteur ? ` · ${am.auteur}` : ""}
+          </Text>
 
-          {briefOuvert ? (
+          {!briefOuvert ? (
+            <>
+              <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.text, lineHeight: 19, marginTop: 9 }} numberOfLines={5}>
+                {am.expose || am.dispositif}
+              </Text>
+              {((am.expose || "").length > 220 || !!am.dispositif) && (
+                <TouchableOpacity onPress={() => setBriefOuvert(true)} style={{ marginTop: 8 }}>
+                  <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Lire en entier ▾</Text>
+                </TouchableOpacity>
+              )}
+            </>
+          ) : (
             <>
               {!!am.dispositif && <Bloc titre="Ce que l'amendement modifie" texte={am.dispositif} />}
               {!!am.expose && <Bloc titre="Justification de l'auteur" texte={am.expose} />}
+              <TouchableOpacity onPress={() => setBriefOuvert(false)} style={{ marginTop: 10 }}>
+                <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Replier ▴</Text>
+              </TouchableOpacity>
             </>
-          ) : (
-            <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textFaint, marginTop: 8 }} numberOfLines={2}>
-              {am.expose || am.dispositif}
-            </Text>
           )}
         </View>
       )}

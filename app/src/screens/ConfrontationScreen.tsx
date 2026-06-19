@@ -257,7 +257,9 @@ function ThemeSpectrumRow({ theme, nav }: { theme: ConfrontationTheme; nav: Nav 
 
 function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
   const [voirTexte, setVoirTexte] = useState(false);
-  const resume = (sc.resume || sc.objet || "").trim();
+  const expose = (sc.resume || "").trim();
+  const resume = expose || (sc.objet || "").trim();
+  const labelOuvrir = expose ? "Voir le résumé ▾" : "Voir l'intitulé complet ▾";
   const url = scrutinSourceUrl(sc.numero);
   return (
     <View style={{ borderTopWidth: 1, borderTopColor: C.border, paddingTop: 9 }}>
@@ -283,7 +285,7 @@ function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
         <>
           <TouchableOpacity onPress={() => setVoirTexte((v) => !v)} style={{ marginTop: 7 }} hitSlop={6}>
             <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.accent }}>
-              {voirTexte ? "Masquer le texte ▴" : "Voir le texte ▾"}
+              {voirTexte ? "Masquer ▴" : labelOuvrir}
             </Text>
           </TouchableOpacity>
           {voirTexte && (
