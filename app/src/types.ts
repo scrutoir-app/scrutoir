@@ -15,6 +15,10 @@ export interface ScrutinResume {
   objet: string | null;
   sort_code: string | null;
   sort_libelle: string | null;
+  // Présents sur certains endpoints (grands scrutins, scrutins par thème)
+  pour?: number;
+  contre?: number;
+  abstention?: number;
 }
 
 export interface CategorieStats {

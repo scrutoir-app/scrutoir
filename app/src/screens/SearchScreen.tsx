@@ -2,11 +2,13 @@ import React, { useState, useEffect, useRef } from "react";
 import {
   View, Text, TextInput, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView,
 } from "react-native";
-import { C } from "../theme";
+import { Feather } from "@expo/vector-icons";
+import { C, F, RADIUS, shadowCard } from "../theme";
 import { rechercher, getGrandsScrutins, getCategories } from "../api";
 import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
-import { ScrutinRow } from "../components/ScrutinRow";
+import { ScrutinCard } from "../components/ScrutinCard";
+import { CategoryTile } from "../components/CategoryTile";
 
 type Item =
   | { kind: "header"; label: string }
@@ -18,7 +20,6 @@ export function SearchScreen({ nav }: { nav: Nav }) {
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
-
   const enRecherche = q.trim().length >= 2;
 
   useEffect(() => {
@@ -50,30 +51,38 @@ export function SearchScreen({ nav }: { nav: Nav }) {
   }, [q]);
 
   return (
-    <View style={{ flex: 1, paddingTop: 8 }}>
-      <View style={{ paddingHorizontal: 16, marginBottom: 6 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <Text style={{ fontSize: 22, fontWeight: "500", color: C.text }}>
-            Le vote réel des députés
+    <View style={{ flex: 1 }}>
+      {/* Masthead */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
+        <View>
+          <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1 }}>
+            Ce que votent vraiment les députés
           </Text>
-          <TouchableOpacity onPress={() => nav.push({ name: "apropos" })} style={{ padding: 4 }}>
-            <Text style={{ fontSize: 13, color: C.accent }}>ⓘ Infos</Text>
-          </TouchableOpacity>
         </View>
+        <TouchableOpacity
+          onPress={() => nav.push({ name: "apropos" })}
+          style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: C.surfaceAlt, alignItems: "center", justifyContent: "center" }}
+        >
+          <Feather name="info" size={19} color={C.accent} />
+        </TouchableOpacity>
+      </View>
+
+      {/* Recherche */}
+      <View style={{ paddingHorizontal: 18, paddingBottom: 8 }}>
         <View
           style={{
-            flexDirection: "row", alignItems: "center", gap: 8, height: 44, marginTop: 12,
-            borderWidth: 1, borderColor: C.border, borderRadius: 22,
-            paddingHorizontal: 16, backgroundColor: C.surface,
+            flexDirection: "row", alignItems: "center", gap: 9, height: 46,
+            backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 15, ...shadowCard,
           }}
         >
-          <Text style={{ fontSize: 16, color: C.textFaint }}>⌕</Text>
+          <Feather name="search" size={18} color={C.textFaint} />
           <TextInput
             value={q}
             onChangeText={setQ}
-            placeholder="Un·e député·e ou un scrutin…"
+            placeholder="Un·e député·e, un parti, un scrutin…"
             placeholderTextColor={C.textFaint}
-            style={{ flex: 1, fontSize: 15, color: C.text, outlineStyle: "none" } as any}
+            style={{ flex: 1, fontSize: 14.5, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
             autoCorrect={false}
           />
           {loading && <ActivityIndicator size="small" color={C.textFaint} />}
@@ -85,24 +94,24 @@ export function SearchScreen({ nav }: { nav: Nav }) {
       ) : (
         <FlatList
           data={items}
-          keyExtractor={(it, i) =>
-            it.kind === "header" ? `h-${it.label}-${i}` : `${it.kind}-${it.data.uid}`
-          }
+          keyExtractor={(it, i) => (it.kind === "header" ? `h-${it.label}-${i}` : `${it.kind}-${it.data.uid}`)}
           keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 32 }}
+          contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 8, paddingBottom: 32 }}
           ListEmptyComponent={
             !loading ? (
-              <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 32 }}>
+              <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 40, fontFamily: F.medium }}>
                 Aucun résultat pour « {q.trim()} »
               </Text>
             ) : null
           }
           renderItem={({ item }) => {
-            if (item.kind === "header")
-              return <SectionLabel label={item.label} />;
-            if (item.kind === "depute")
-              return <DeputeRow d={item.data} onPress={() => nav.push({ name: "depute", uid: item.data.uid })} />;
-            return <ScrutinRow scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />;
+            if (item.kind === "header") return <SectionLabel label={item.label} />;
+            if (item.kind === "depute") return <DeputeRow d={item.data} onPress={() => nav.push({ name: "depute", uid: item.data.uid })} />;
+            return (
+              <View style={{ marginBottom: 10 }}>
+                <ScrutinCard scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />
+              </View>
+            );
           }}
         />
       )}
@@ -117,10 +126,7 @@ function Accueil({ nav }: { nav: Nav }) {
 
   useEffect(() => {
     Promise.all([getCategories(), getGrandsScrutins()])
-      .then(([c, g]) => {
-        setCats(c);
-        setGrands(g);
-      })
+      .then(([c, g]) => { setCats(c); setGrands(g); })
       .finally(() => setLoading(false));
   }, []);
 
@@ -132,41 +138,39 @@ function Accueil({ nav }: { nav: Nav }) {
     );
 
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}>
-      <SectionLabel label="Parcourir par thème" />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 4, marginBottom: 8 }}>
-        {cats.map((c) => (
-          <TouchableOpacity
-            key={c.id}
-            onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
-            style={{
-              flexDirection: "row", alignItems: "center", gap: 5,
-              paddingHorizontal: 11, paddingVertical: 7, borderRadius: 18,
-              borderWidth: 0.5, borderColor: C.border, backgroundColor: C.surface,
-            }}
-          >
-            <Text style={{ fontSize: 13 }}>{c.emoji}</Text>
-            <Text style={{ fontSize: 13, color: C.text }}>{c.libelle}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+    <ScrollView contentContainerStyle={{ paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
+      <View style={{ paddingHorizontal: 18 }}>
+        <SectionTitle titre="Derniers grands scrutins" />
+        <View style={{ gap: 11 }}>
+          {grands.slice(0, 8).map((s) => (
+            <ScrutinCard key={s.uid} scrutin={s} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} />
+          ))}
+        </View>
 
-      <SectionLabel label="Derniers grands scrutins" />
-      {grands.map((s) => (
-        <ScrutinRow key={s.uid} scrutin={s} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} />
-      ))}
+        <SectionTitle titre="Explorer par thème" />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 11 }}>
+          {cats.map((c) => (
+            <View key={c.id} style={{ width: "48.5%" }}>
+              <CategoryTile id={c.id} libelle={c.libelle} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
+            </View>
+          ))}
+        </View>
+      </View>
     </ScrollView>
+  );
+}
+
+function SectionTitle({ titre }: { titre: string }) {
+  return (
+    <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginTop: 22, marginBottom: 12 }}>
+      {titre}
+    </Text>
   );
 }
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <Text
-      style={{
-        fontSize: 12, color: C.textMuted, fontWeight: "500",
-        marginTop: 18, marginBottom: 6, textTransform: "uppercase", letterSpacing: 0.5,
-      }}
-    >
+    <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.textMuted, marginTop: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
       {label}
     </Text>
   );
@@ -175,18 +179,16 @@ function SectionLabel({ label }: { label: string }) {
 function DeputeRow({ d, onPress }: { d: DeputeResume; onPress: () => void }) {
   return (
     <TouchableOpacity
+      activeOpacity={0.7}
       onPress={onPress}
-      style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8 }}
+      style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, marginBottom: 9, ...shadowCard }}
     >
-      <Image
-        source={{ uri: d.photo_url ?? undefined }}
-        style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: C.surfaceAlt }}
-      />
+      <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
       <View style={{ flex: 1 }}>
-        <Text style={{ fontSize: 15, color: C.text }}>{d.nom_complet}</Text>
-        <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 1 }}>{d.abrev ?? "—"}</Text>
+        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text }}>{d.nom_complet}</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 1 }}>{d.abrev ?? "—"}</Text>
       </View>
-      <Text style={{ color: C.textFaint, fontSize: 18 }}>›</Text>
+      <Feather name="chevron-right" size={20} color={C.textFaint} />
     </TouchableOpacity>
   );
 }

@@ -1,6 +1,14 @@
 import React, { useState, useCallback } from "react";
-import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Platform } from "react-native";
-import { C } from "./src/theme";
+import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Platform, ActivityIndicator } from "react-native";
+import {
+  useFonts,
+  Manrope_400Regular,
+  Manrope_500Medium,
+  Manrope_600SemiBold,
+  Manrope_700Bold,
+  Manrope_800ExtraBold,
+} from "@expo-google-fonts/manrope";
+import { C, F } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { DeputeScreen } from "./src/screens/DeputeScreen";
@@ -13,6 +21,13 @@ import { VotesCategorieScreen } from "./src/screens/VotesCategorieScreen";
 import { VotantsScreen } from "./src/screens/VotantsScreen";
 
 export default function App() {
+  const [fontsLoaded, fontError] = useFonts({
+    Manrope_400Regular,
+    Manrope_500Medium,
+    Manrope_600SemiBold,
+    Manrope_700Bold,
+    Manrope_800ExtraBold,
+  });
   const [stack, setStack] = useState<Route[]>([{ name: "search" }]);
   const current = stack[stack.length - 1];
 
@@ -34,6 +49,14 @@ export default function App() {
   };
   const titre = titres[current.name];
 
+  if (!fontsLoaded && !fontError) {
+    return (
+      <View style={{ flex: 1, backgroundColor: C.bg, justifyContent: "center" }}>
+        <ActivityIndicator color={C.textMuted} />
+      </View>
+    );
+  }
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
       <StatusBar barStyle="dark-content" />
@@ -51,15 +74,16 @@ export default function App() {
         {current.name !== "search" && (
           <View
             style={{
-              flexDirection: "row", alignItems: "center", height: 48,
-              borderBottomWidth: 0.5, borderBottomColor: C.border, paddingHorizontal: 8,
+              flexDirection: "row", alignItems: "center", height: 50,
+              borderBottomWidth: 1, borderBottomColor: C.border, paddingHorizontal: 8,
+              backgroundColor: C.surface,
             }}
           >
             <TouchableOpacity onPress={nav.pop} style={{ padding: 8, flexDirection: "row", alignItems: "center" }}>
-              <Text style={{ fontSize: 22, color: C.accent }}>‹</Text>
-              <Text style={{ fontSize: 15, color: C.accent, marginLeft: 2 }}>Retour</Text>
+              <Text style={{ fontSize: 24, color: C.accent, marginTop: -2 }}>‹</Text>
+              <Text style={{ fontSize: 15, color: C.accent, marginLeft: 2, fontFamily: F.semibold }}>Retour</Text>
             </TouchableOpacity>
-            <Text style={{ flex: 1, textAlign: "center", fontSize: 15, fontWeight: "500", color: C.text, marginRight: 64 }}>
+            <Text style={{ flex: 1, textAlign: "center", fontSize: 16, fontFamily: F.bold, color: C.text, marginRight: 64 }}>
               {titre}
             </Text>
           </View>
