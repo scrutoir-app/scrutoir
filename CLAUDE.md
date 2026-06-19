@@ -32,20 +32,23 @@ cd ../app && npm run web                            # app -> http://localhost:80
 ## Ce qui est construit (vue électeur ~terminée)
 - **Recherche** : députés + **partis** (alias usuels dans `pipeline/src/stats.ts` : LR→DR, PS→SOC,
   EELV→ECOS, Renaissance→EPR, MoDem→DEM, Ciotti→UDDPLR…) + scrutins.
-- **Fiche élu** : 2 stats (**Loyauté** en anneau + **Participation** relative « plus assidu·e que X% »),
-  période (Depuis 2024 / 12m / 6m), **cartes thème « tout cliquable »** (titre + 4 cases
-  Pour/Contre/Abst/**Absent**), drill-downs.
-- **Détail scrutin** : bandeau Adopté/Rejeté, **exposé d'amendement pliable**, position par groupe
-  (cases cliquables → votants).
-- **Taux de réussite** (lentille publique, choix produit A — pas de login) : toggle
-  « Positions / Réussite » sur la fiche élu ; réussite = le résultat a suivi le vote
-  (Pour→adopté / Contre→rejeté), global + par thème. Calcul live dans `profilDepute` (via `sort_code`).
-- **Menu Partis** : liste des groupes + fiche parti = **président·e** (col `deputes.qualite`, cliquable),
-  **réussite** (par thème, via consigne `positionMajoritaire`), **cohésion** (discipline de vote),
-  **participation moyenne**, et **activité parlementaire** : amendements déposés (par groupe via
-  `groupePolitiqueRef`, /élu + ×ratio vs moyenne → signal d'obstruction) et propositions de loi
-  (via initiateur des dossiers). Table `groupe_activite` (peuplée par `linkAmendements` + `activiteGroupes`).
-  API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
+- **Fiche élu** : **Participation** relative (« plus assidu·e que X% »), période (Depuis 2024 / 12m / 6m),
+  **cartes thème « tout cliquable »** (titre + 4 cases Pour/Contre/Abst/**Absent** + ligne **Non votant**),
+  drill-downs. ⚠️ **Plus de score de loyauté agrégé ni de réussite** (recos 6/7) : à la place, la
+  **consigne du groupe est affichée par scrutin** dans le drill-down des votes (« consigne : X · écart »)
+  + les dissidences. **Seuil de fiabilité** (reco 3, `app/src/config.ts SEUIL_FIABILITE`) : sous le seuil
+  de votes exprimés, la case est grisée (« trop peu pour dégager une position »). **Circonscription** +
+  bouton **Suivre** (cloche, `app/src/follows.ts`). Lien **source AN** sur le détail scrutin.
+- **Détail scrutin** : bandeau Adopté/Rejeté, **exposé d'amendement** (résumé visible par défaut, reco 9),
+  position par groupe (cases cliquables → votants), **lien `assemblee-nationale.fr/dyn/17/scrutins/{n°}`**.
+- **Confrontation de deux élus** (reco 1, `ConfrontationScreen` + `/confrontation`) : 2 sélecteurs
+  symétriques + période, désaccords puis accords par thème (seuil reco 3), thèmes « non couvert »
+  listés à part (silence ≠ désaccord), résumé + lien source par scrutin, synthèse honnête. CTA accueil.
+- **Mon·ma député·e** (reco 10, `MonDeputeScreen` + `/departements`, `/circonscription`) : département →
+  circonscription → élu. CTA accueil. (Code postal → circo = référentiel à ajouter ; push = backend.)
+- **Menu Partis** : liste des groupes (nb élus) + fiche parti = **président·e**, **cohésion**,
+  **participation moyenne**, **activité parlementaire** (amendements + propositions, signal d'obstruction),
+  et **positions par thème** (répartition pour/contre/abst — plus de réussite). API `/partis`, `/partis/:uid`.
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
 - Accueil : **carrousel hero swipeable** des derniers grands scrutins (`components/HeroScrutins.tsx`,
@@ -63,14 +66,11 @@ cd ../app && npm run web                            # app -> http://localhost:80
   qui ≠ largeur du contenu centré) + remontage `key={winW}` pour reflow au resize web. Largeur de
   repli (`effW = boxW || min(winW,560)`) pour rendre tout de suite (sinon hero effondré si `onLayout`
   tarde au 1er rendu).
-- Accueil, « Explorer par thème » : **grille fixe de tuiles photo** (`components/CategoryGrid.tsx`,
-  4 colonnes × 3 lignes, 12 thèmes visibles sans défiler, pas de swipe). Même langage que le hero
-  (photo `catPhoto(id, id)` + voile + libellé blanc). Libellés courts via `categoryUI.court`.
-  ⚠️ **Porteur non encore branché** : les grands scrutins portent sur des lois entières (0/75 ont un
-  `auteur` dans la table `amendements`) → la photo du porteur exige d'extraire auteur/rapporteur du
-  dataset **Dossiers législatifs** puis de le relier à un `depute.uid` (chantier pipeline à faire).
-- **Croisé thème × parti** : sur un écran de thème, classement des partis par réussite sur ce
-  thème (API `/categories/:id/partis`, `partisParCategorie`, base ≥ 5 scrutins), cliquable → parti.
+- Accueil, « Explorer par thème » : **grille fixe de pictos NEUTRES** (`components/CategoryGrid.tsx`,
+  4 colonnes × 3 lignes, 12 thèmes visibles sans défiler). Reco 11 : photo réservée au **hero** ; les
+  tuiles thème sont des pictos neutres (icône + libellé court `categoryUI.court`) pour éviter la
+  connotation éditoriale. ⚠️ **Porteur du hero non encore branché** : grands scrutins = lois entières
+  (0/75 ont un `auteur`) → photo du porteur = extraire auteur/rapporteur des Dossiers législatifs (TODO).
 - **Picto de catégorie** sur chaque scrutin (ScrutinCard/ScrutinRow ; API renvoie `categorie`
   principale par sous-requête). **Code couleur** sur le nombre d'amendements d'un parti (orange si
   > moyenne, rouge si ×≥1.5 → signal d'anomalie/obstruction).
@@ -100,13 +100,19 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - **Classification** thématique (12 catégories neutres, `pipeline/src/categories.ts`) : mots-clés en
   **mots entiers** + **propagation** aux amendements. Vocabulaire enrichi → **~10% non classés**
   (était 40% ; le reste = procédural/niche). Dataset **Dossiers législatifs** téléchargé
-  (`data/raw/Dossiers.json.zip`) — a servi à diagnostiquer les thèmes manquants. Hybride IA = plus tard.
+  (`data/raw/Dossiers.json.zip`) — a servi à diagnostiquer les thèmes manquants. **Reco 2 scaffoldée** :
+  `pipeline/src/classifyIA.ts` (`npm run classify:ia`, modèle Haiku 4.5) reclasse les non-classés via
+  l'API Anthropic, **gardé par `ANTHROPIC_API_KEY`** (no-op sans clé). Mots-clés conservés par défaut.
 - **Exposé d'amendement** : jointure heuristique date+numéro+auteur (~91%), `pipeline/src/linkAmendements.ts`.
 
-## Backlog
-- ~~Taux de réussite~~ ✅ FAIT (lentille publique sur la fiche élu).
-- Brancher **Claude API** pour la classification hybride (pas encore de clé Anthropic).
-- **Mise en ligne** : SQLite→Supabase + build stores (réglerait l'accès téléphone).
+## Backlog (recommandations traitées : voir l'historique git "Reco N")
+- **Reco 2 (IA)** : brancher une **clé Anthropic** → `npm run classify:ia` (scaffold prêt).
+- **Mise en ligne** (cible mobile/stores) : SQLite→Supabase + build stores. Débloque le push réel
+  (reco 10 : `follows.ts` + `notifierNouveauxVotes()` stub) et l'accès téléphone.
+- **Référentiel code postal → circonscription** (reco 10) pour la recherche par code postal.
+- **Dataset « tous mandats »** (reco 5) pour borner la fin de mandat des ex-députés (ministres/décès).
+- **Photo du porteur** sur le hero (auteur/rapporteur via Dossiers législatifs).
+- Remplacer les **photos Unsplash placeholder** du hero par des visuels sous licence.
 
 ## Reste à faire côté design (mineur)
 - Le sélecteur segmenté `Tous · Pour · Contre…` sur le détail d'un thème (optionnel : les cases
