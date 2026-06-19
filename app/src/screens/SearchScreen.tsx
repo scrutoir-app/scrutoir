@@ -10,7 +10,7 @@ import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { HeroScrutins } from "../components/HeroScrutins";
 import { CategoryGrid } from "../components/CategoryGrid";
-import { HemicycleMark } from "../components/HemicycleMark";
+import { ScrutoirMark } from "../components/ScrutoirMark";
 
 type Item =
   | { kind: "header"; label: string }
@@ -57,8 +57,8 @@ export function SearchScreen({ nav }: { nav: Nav }) {
       {/* Masthead */}
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10 }}>
-          <HemicycleMark size={40} color={C.text} />
-          <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
+          <ScrutoirMark size={42} color={C.text} accent={C.accent} />
+          <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Scrutoir</Text>
         </View>
         <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
           Scrutins publics nominatifs · 17ᵉ législature

@@ -1,4 +1,4 @@
-// Design system "Hémicycle" — app moderne, palette neutre (encre + gris froid),
+// Design system "Scrutoir" — app moderne, palette neutre (encre + gris froid),
 // la couleur n'encode que la DONNÉE de vote (jamais un parti).
 
 export const C = {

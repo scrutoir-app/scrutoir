@@ -1,7 +1,9 @@
-# Hémicycle — contexte projet (pour Claude)
+# Scrutoir — contexte projet (pour Claude)
 
 App qui montre **ce que votent réellement les députés français** (vue **électeur**), à partir
-de l'Open Data de l'Assemblée Nationale (17ᵉ législature). Nom de travail : **Hémicycle**.
+de l'Open Data de l'Assemblée Nationale (17ᵉ législature). Nom : **Scrutoir** (racine `scrut-` de
+scrutin + sonorité d'un lieu d'observation ; picto = hémicycle de sièges + point focal central =
+tribune/pupille, `components/ScrutoirMark.tsx`). ⚠️ Dispo nom à sécuriser : INPI cl. 9 & 42 + domaines.
 Objectif : confronter discours et actes, de façon **neutre** (aucune couleur de parti ne domine).
 
 ## Stack & structure

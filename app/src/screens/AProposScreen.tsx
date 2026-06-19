@@ -16,7 +16,7 @@ export function AProposScreen() {
     <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
       <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>À propos & limites</Text>
       <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, lineHeight: 20, marginTop: 6, marginBottom: 18 }}>
-        Hémicycle montre les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
+        Scrutoir montre les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
         les seuls votes attribués nominativement à chaque député·e. Pour rester honnête, voici
         précisément ce que l'app couvre — et ce qu'elle ne couvre pas.
       </Text>
