@@ -1,5 +1,8 @@
 import express from "express";
 import cors from "cors";
+import fs from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { openDb } from "../../pipeline/src/db.js";
 import {
   rechercheDeputes,
@@ -21,9 +24,31 @@ import {
   type Periode,
 } from "../../pipeline/src/stats.js";
 
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+// Déploiement : si DB_PATH (inscriptible) est défini et la base absente, on la
+// télécharge depuis DB_URL (ex. asset d'une Release GitHub) — repo léger, base ~174 Mo.
+async function ensureDb() {
+  const p = process.env.DB_PATH;
+  const url = process.env.DB_URL;
+  if (!p || !url || fs.existsSync(p)) return;
+  console.log("⏬ Téléchargement de la base depuis DB_URL…");
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`DB_URL ${res.status}`);
+  fs.mkdirSync(path.dirname(p), { recursive: true });
+  fs.writeFileSync(p, Buffer.from(await res.arrayBuffer()));
+  console.log(`✓ Base téléchargée dans ${p}`);
+}
+await ensureDb();
+
 const db = openDb();
 const app = express();
 app.use(cors());
+
+// Sert le web exporté (Expo web) en même origine que l'API, s'il est présent.
+const WEB_DIR = path.resolve(__dirname, "../../app/dist");
+const webExiste = fs.existsSync(path.join(WEB_DIR, "index.html"));
+if (webExiste) app.use(express.static(WEB_DIR));
 
 const PORT = Number(process.env.PORT) || 4000;
 
@@ -143,6 +168,11 @@ app.get("/scrutins/:uid/vote/:deputeUid", (req, res) => {
   res.json(v);
 });
 
-app.listen(PORT, () => {
-  console.log(`🟢 API votes-an sur http://localhost:${PORT}`);
+// Fallback SPA : toute route non-API renvoie l'app web (après les routes API).
+if (webExiste) {
+  app.get("*", (_req, res) => res.sendFile(path.join(WEB_DIR, "index.html")));
+}
+
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`🟢 votes-an sur http://0.0.0.0:${PORT}${webExiste ? " (web + API)" : " (API)"}`);
 });

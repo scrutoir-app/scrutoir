@@ -1,0 +1,16 @@
+# Déploiement Render (gratuit) — un seul service Node qui sert le web exporté
+# (app/dist) ET l'API, en même origine. La base SQLite (~174 Mo, trop grosse pour
+# git) est téléchargée au démarrage depuis DB_URL (asset d'une Release GitHub).
+services:
+  - type: web
+    name: hemicycle
+    runtime: node
+    plan: free
+    # Installe les deps du pipeline (better-sqlite3, utilisé par l'API) puis de l'API.
+    buildCommand: npm --prefix pipeline install && npm --prefix api install
+    startCommand: npm --prefix api start
+    envVars:
+      - key: DB_PATH
+        value: /tmp/votes.db        # dossier inscriptible sur Render
+      - key: DB_URL
+        sync: false                 # ← à renseigner : URL de votes.db (Release GitHub)

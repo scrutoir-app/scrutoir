@@ -4,7 +4,9 @@ import path from "node:path";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // La base vit dans /data a la racine du projet (partagee avec l'API).
-export const DB_PATH = path.resolve(__dirname, "../../data/votes.db");
+// Surchargée par la variable d'env DB_PATH (utile en déploiement où la base est
+// téléchargée dans un dossier inscriptible, ex. /tmp).
+export const DB_PATH = process.env.DB_PATH || path.resolve(__dirname, "../../data/votes.db");
 
 export function openDb(): Database.Database {
   const db = new Database(DB_PATH);
