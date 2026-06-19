@@ -40,8 +40,9 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - **Taux de réussite** (lentille publique, choix produit A — pas de login) : toggle
   « Positions / Réussite » sur la fiche élu ; réussite = le résultat a suivi le vote
   (Pour→adopté / Contre→rejeté), global + par thème. Calcul live dans `profilDepute` (via `sort_code`).
-- **Menu Partis** : liste des groupes + **taux de réussite par parti et par thème** (calculé sur la
-  consigne de groupe `positionMajoritaire`). API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
+- **Menu Partis** : liste des groupes + fiche parti = **président·e** (col `deputes.qualite`, cliquable),
+  **réussite** (par thème, via consigne `positionMajoritaire`), **cohésion** (discipline de vote),
+  **participation moyenne**. API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
 
