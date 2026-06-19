@@ -18,9 +18,20 @@ cd pipeline && npm install && npm run ingest        # télécharge données AN +
 cd ../api && npm start                              # API -> http://localhost:4000
 cd ../app && npm run web                            # app -> http://localhost:8081 (navigateur du Mac)
 ```
-- **Accès téléphone (Expo Go) ne marche pas en local** : pare-feu macOS **activé** + **McAfee**
-  (qui bloque `ngrok` comme faux positif). Tunnels essayés (cloudflared/ngrok) non fiables ici.
-  → Pour l'instant on utilise l'app **sur le Mac** (`localhost:8081`). Vraie solution = mise en ligne.
+- **Accès téléphone — SOLUTION QUI MARCHE** : tunnel **Cloudflare quick tunnel** (sans compte) vers le
+  **service mono-origine** (l'API sert aussi le web exporté `app/dist` sur :4000). LAN bloqué (pare-feu
+  macOS) et ngrok bloqué par McAfee, mais cloudflared passe (sortant). Recette :
+  ```bash
+  cd app && EXPO_PUBLIC_API_BASE="" npx expo export -p web   # (re)build web si l'app a changé
+  cd ../api && PORT=4000 npm start                           # sert web + API en même origine
+  # binaire cloudflared (1 fichier, pas d'install) :
+  curl -sL https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-darwin-arm64.tgz -o /tmp/cf.tgz && tar -xzf /tmp/cf.tgz -C /tmp && chmod +x /tmp/cloudflared
+  /tmp/cloudflared tunnel --url http://localhost:4000        # → URL publique *.trycloudflare.com
+  ```
+  ⚠️ Lien **temporaire** (change à chaque lancement, vit tant que le Mac + les 2 process tournent).
+  Pour du **permanent** sans Mac allumé → déploiement (cf. `DEPLOY.md`, `render.yaml` : service
+  mono-origine, base ~174 Mo téléchargée au boot via `DB_URL`).
+- Dév local classique : `api` (:4000) + `app` `npm run web` (:8081, navigateur du Mac).
 
 ## Source de données (data.assemblee-nationale.fr, licence Etalab)
 - Scrutins : `repository/17/loi/scrutins/Scrutins.json.zip` (position nominative par député).
