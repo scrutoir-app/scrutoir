@@ -56,7 +56,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
     <View style={{ flex: 1 }}>
       {/* Masthead */}
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10 }}>
           <HemicycleMark size={40} color={C.text} />
           <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
         </View>
