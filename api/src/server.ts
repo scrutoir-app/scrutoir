@@ -14,6 +14,7 @@ import {
   votantsScrutin,
   listePartis,
   profilParti,
+  partisParCategorie,
   type Periode,
 } from "../../pipeline/src/stats.js";
 
@@ -61,6 +62,11 @@ app.get("/scrutins-recents", (_req, res) => {
 // Scrutins d'une categorie
 app.get("/categories/:id/scrutins", (req, res) => {
   res.json(scrutinsParCategorie(db, req.params.id, 40));
+});
+
+// Classement des partis par réussite sur un thème
+app.get("/categories/:id/partis", (req, res) => {
+  res.json(partisParCategorie(db, req.params.id));
 });
 
 // Dissidences d'un depute (votes contre la consigne du groupe)

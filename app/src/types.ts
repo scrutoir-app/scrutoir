@@ -148,4 +148,14 @@ export interface ProfilParti {
   categories: PartiCategorie[];
 }
 
+export interface PartiReussiteCategorie {
+  uid: string;
+  abrev: string | null;
+  libelle: string;
+  couleur: string | null;
+  reussite_pct: number | null;
+  gagnes: number;
+  perdus: number;
+}
+
 export type Periode = "all" | "12m" | "6m";

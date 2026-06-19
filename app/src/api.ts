@@ -1,7 +1,7 @@
 import { Platform } from "react-native";
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
-  PartiResume, ProfilParti,
+  PartiResume, ProfilParti, PartiReussiteCategorie,
 } from "./types";
 
 /**
@@ -51,6 +51,10 @@ export function getParti(uid: string, periode: Periode) {
 
 export function getScrutinsCategorie(id: string) {
   return get<ScrutinResume[]>(`/categories/${id}/scrutins`);
+}
+
+export function getPartisParCategorie(id: string) {
+  return get<PartiReussiteCategorie[]>(`/categories/${id}/partis`);
 }
 
 export function getDissidences(uid: string) {

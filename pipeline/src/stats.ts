@@ -405,6 +405,38 @@ export function profilParti(db: Database.Database, uid: string, periode: Periode
   };
 }
 
+export interface PartiReussiteCategorie {
+  uid: string;
+  abrev: string | null;
+  libelle: string;
+  couleur: string | null;
+  reussite_pct: number | null;
+  gagnes: number;
+  perdus: number;
+}
+
+/** Classement des partis par réussite sur un thème (leur ligne a suivi le résultat). */
+export function partisParCategorie(db: Database.Database, categorieId: string): PartiReussiteCategorie[] {
+  return db
+    .prepare(
+      `SELECT g.uid, g.abrev, g.libelle, g.couleur,
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='adopte') OR (gp.position='contre' AND s.sort_code='rejete') THEN 1 ELSE 0 END) AS gagnes,
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='rejete') OR (gp.position='contre' AND s.sort_code='adopte') THEN 1 ELSE 0 END) AS perdus
+       FROM groupe_positions gp
+       JOIN scrutins s            ON s.uid = gp.scrutin_uid
+       JOIN scrutin_categories sc ON sc.scrutin_uid = gp.scrutin_uid AND sc.categorie_id = ?
+       JOIN groupes g             ON g.uid = gp.groupe_uid
+       GROUP BY g.uid
+       HAVING (gagnes + perdus) >= 5
+       ORDER BY CAST(gagnes AS REAL) / (gagnes + perdus) DESC`
+    )
+    .all(categorieId)
+    .map((r: any) => ({
+      uid: r.uid, abrev: r.abrev, libelle: r.libelle, couleur: r.couleur, gagnes: r.gagnes, perdus: r.perdus,
+      reussite_pct: r.gagnes + r.perdus ? Math.round((r.gagnes / (r.gagnes + r.perdus)) * 100) : null,
+    }));
+}
+
 /** Derniers grands scrutins : scrutins solennels + motions de censure. */
 export function grandsScrutins(db: Database.Database, limit = 30): ScrutinResume[] {
   return db
