@@ -9,6 +9,7 @@ import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { CategoryTile } from "../components/CategoryTile";
+import { HemicycleMark } from "../components/HemicycleMark";
 
 type Item =
   | { kind: "header"; label: string }
@@ -54,8 +55,11 @@ export function SearchScreen({ nav }: { nav: Nav }) {
     <View style={{ flex: 1 }}>
       {/* Masthead */}
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+          <HemicycleMark size={40} color={C.text} />
+          <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
+        </View>
+        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
           Ce que votent vraiment les députés
         </Text>
       </View>
