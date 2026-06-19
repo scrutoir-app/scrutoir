@@ -40,7 +40,10 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - **Taux de réussite** (lentille publique, choix produit A — pas de login) : toggle
   « Positions / Réussite » sur la fiche élu ; réussite = le résultat a suivi le vote
   (Pour→adopté / Contre→rejeté), global + par thème. Calcul live dans `profilDepute` (via `sort_code`).
-- Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** en bas.
+- **Menu Partis** : liste des groupes + **taux de réussite par parti et par thème** (calculé sur la
+  consigne de groupe `positionMajoritaire`). API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
+- Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
+  Accueil · Thèmes · Partis · Infos).
 
 ## Design system (refonte « app moderne » faite)
 - `app/src/theme.ts` : palette **neutre** (encre `#171A1F` + gris froid `#F2F4F7`), accent ardoise
@@ -56,7 +59,9 @@ cd ../app && npm run web                            # app -> http://localhost:80
   Calcul dans `pipeline/src/participation.ts` (colonne `deputes.participation_rate`).
 - `sort_code` : « **n'a pas adopté** » contient « adopté » → géré (négation) dans `parseScrutins.ts`.
 - **Classification** thématique (12 catégories neutres, `pipeline/src/categories.ts`) : mots-clés en
-  **mots entiers** + **propagation** aux amendements ; ~40% non classés (assumé). Hybride IA = plus tard.
+  **mots entiers** + **propagation** aux amendements. Vocabulaire enrichi → **~10% non classés**
+  (était 40% ; le reste = procédural/niche). Dataset **Dossiers législatifs** téléchargé
+  (`data/raw/Dossiers.json.zip`) — a servi à diagnostiquer les thèmes manquants. Hybride IA = plus tard.
 - **Exposé d'amendement** : jointure heuristique date+numéro+auteur (~91%), `pipeline/src/linkAmendements.ts`.
 
 ## Backlog
