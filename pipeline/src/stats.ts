@@ -19,24 +19,48 @@ export interface DeputeResume {
   photo_url: string | null;
 }
 
+// Alias usuels de partis -> sigle du groupe en 17e legislature.
+// (la 17e a renomme : LR -> "Droite Republicaine"/DR, Renaissance -> EPR, etc.)
+const ALIAS_PARTIS: Record<string, string> = {
+  lr: "DR", "les republicains": "DR", republicains: "DR", republicain: "DR",
+  renaissance: "EPR", macron: "EPR", ensemble: "EPR", majorite: "EPR",
+  modem: "DEM", "mouvement democrate": "DEM", democrates: "DEM", democrate: "DEM",
+  ps: "SOC", "parti socialiste": "SOC", socialiste: "SOC", socialistes: "SOC",
+  lfi: "LFI-NFP", insoumis: "LFI-NFP", insoumise: "LFI-NFP", melenchon: "LFI-NFP",
+  nfp: "LFI-NFP", "nouveau front populaire": "LFI-NFP", "france insoumise": "LFI-NFP",
+  rn: "RN", "rassemblement national": "RN", "le pen": "RN", bardella: "RN", "front national": "RN", fn: "RN",
+  eelv: "ECOS", verts: "ECOS", vert: "ECOS", ecolo: "ECOS", ecologiste: "ECOS", ecologistes: "ECOS", ecologie: "ECOS",
+  pcf: "GDR", communiste: "GDR", communistes: "GDR", "gauche democrate": "GDR",
+  horizons: "HOR", "edouard philippe": "HOR", philippe: "HOR",
+  liot: "LIOT",
+  udr: "UDDPLR", ciotti: "UDDPLR", "union des droites": "UDDPLR",
+  "non inscrit": "NI", "non inscrits": "NI", ni: "NI",
+};
+
+function normaliser(s: string): string {
+  return (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+}
+
 export function rechercheDeputes(db: Database.Database, q: string, limit = 250): DeputeResume[] {
   const like = `%${q}%`;
-  // Matche par nom OU par parti. Le sigle est en correspondance EXACTE (sinon
-  // "RN" matcherait "BaRNier"). Les elus du parti recherche remontent en tete.
+  const alias = ALIAS_PARTIS[normaliser(q)] ?? null; // sigle de groupe si q est un alias de parti
+  // Matche par nom OU par parti (sigle exact, libelle, ou alias usuel).
+  // Le sigle est exact (sinon "RN" matcherait "BaRNier"). Les elus du parti remontent en tete.
   return db
     .prepare(
       `SELECT d.uid, d.nom_complet, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url,
-         CASE WHEN g.abrev = @q COLLATE NOCASE THEN 0
+         CASE WHEN g.abrev = @q COLLATE NOCASE OR (@alias IS NOT NULL AND g.abrev = @alias) THEN 0
               WHEN g.libelle LIKE @like COLLATE NOCASE THEN 1
               ELSE 2 END AS rang
        FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
        WHERE d.actif = 1
          AND (d.nom_complet LIKE @like COLLATE NOCASE
               OR g.abrev = @q COLLATE NOCASE
-              OR g.libelle LIKE @like COLLATE NOCASE)
+              OR g.libelle LIKE @like COLLATE NOCASE
+              OR (@alias IS NOT NULL AND g.abrev = @alias))
        ORDER BY rang, d.nom LIMIT @limit`
     )
-    .all({ q, like, limit }) as DeputeResume[];
+    .all({ q, like, alias, limit }) as DeputeResume[];
 }
 
 export interface ScrutinResume {

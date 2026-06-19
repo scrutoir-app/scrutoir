@@ -53,19 +53,11 @@ export function SearchScreen({ nav }: { nav: Nav }) {
   return (
     <View style={{ flex: 1 }}>
       {/* Masthead */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <View>
-          <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1 }}>
-            Ce que votent vraiment les députés
-          </Text>
-        </View>
-        <TouchableOpacity
-          onPress={() => nav.push({ name: "apropos" })}
-          style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: C.surfaceAlt, alignItems: "center", justifyContent: "center" }}
-        >
-          <Feather name="info" size={19} color={C.accent} />
-        </TouchableOpacity>
+      <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
+        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1 }}>
+          Ce que votent vraiment les députés
+        </Text>
       </View>
 
       {/* Recherche */}
