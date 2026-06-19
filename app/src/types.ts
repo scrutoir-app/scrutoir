@@ -112,4 +112,32 @@ export interface Votant {
   couleur: string | null;
 }
 
+export interface PartiResume {
+  uid: string;
+  libelle: string;
+  abrev: string | null;
+  couleur: string | null;
+  nb_deputes: number;
+  reussite_pct: number | null;
+}
+
+export interface PartiCategorie {
+  id: string;
+  libelle: string;
+  emoji: string;
+  couleur: string;
+  pour: number;
+  contre: number;
+  abstention: number;
+  gagnes: number;
+  perdus: number;
+  reussite_pct: number | null;
+}
+
+export interface ProfilParti {
+  parti: { uid: string; libelle: string; abrev: string | null; couleur: string | null; nb_deputes: number };
+  reussite_globale_pct: number | null;
+  categories: PartiCategorie[];
+}
+
 export type Periode = "all" | "12m" | "6m";

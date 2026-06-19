@@ -13,6 +13,8 @@ import { C, F, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { ThemesScreen } from "./src/screens/ThemesScreen";
+import { PartisScreen } from "./src/screens/PartisScreen";
+import { PartiScreen } from "./src/screens/PartiScreen";
 import { DeputeScreen } from "./src/screens/DeputeScreen";
 import { ScrutinScreen } from "./src/screens/ScrutinScreen";
 import { CategorieScreen } from "./src/screens/CategorieScreen";
@@ -25,6 +27,7 @@ import { VotantsScreen } from "./src/screens/VotantsScreen";
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
   { root: "themes", label: "Thèmes", icon: "grid" },
+  { root: "partis", label: "Partis", icon: "users" },
   { root: "apropos", label: "Infos", icon: "info" },
 ];
 
@@ -43,7 +46,8 @@ export default function App() {
   const goTab = (name: Route["name"]) => setStack([{ name } as Route]);
 
   const titres: Record<Route["name"], string> = {
-    search: "", themes: "", apropos: "",
+    search: "", themes: "", apropos: "", partis: "",
+    parti: "Parti",
     depute: "Député·e", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
@@ -87,6 +91,8 @@ export default function App() {
         <View style={{ flex: 1 }}>
           {current.name === "search" && <SearchScreen nav={nav} />}
           {current.name === "themes" && <ThemesScreen nav={nav} />}
+          {current.name === "partis" && <PartisScreen nav={nav} />}
+          {current.name === "parti" && <PartiScreen uid={current.uid} nav={nav} />}
           {current.name === "depute" && <DeputeScreen uid={current.uid} nav={nav} />}
           {current.name === "scrutin" && <ScrutinScreen uid={current.uid} nav={nav} />}
           {current.name === "categorie" && <CategorieScreen id={current.id} libelle={current.libelle} nav={nav} />}

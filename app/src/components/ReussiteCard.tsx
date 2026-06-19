@@ -3,10 +3,17 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
-import type { CategorieStats } from "../types";
 
-/** Carte "Réussite" d'un thème : le résultat a-t-il suivi le vote du député ? */
-export function ReussiteCard({ cat, onPress }: { cat: CategorieStats; onPress: () => void }) {
+interface ReussiteData {
+  id: string;
+  libelle: string;
+  gagnes: number;
+  perdus: number;
+  reussite_pct: number | null;
+}
+
+/** Carte "Réussite" d'un thème : le résultat a-t-il suivi le vote (député ou parti) ? */
+export function ReussiteCard({ cat, onPress }: { cat: ReussiteData; onPress: () => void }) {
   const ui = catUI(cat.id);
   const base = cat.gagnes + cat.perdus;
   const pct = cat.reussite_pct;

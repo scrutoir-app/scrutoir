@@ -12,6 +12,8 @@ import {
   dissidences,
   votesDeputeCategorie,
   votantsScrutin,
+  listePartis,
+  profilParti,
   type Periode,
 } from "../../pipeline/src/stats.js";
 
@@ -38,6 +40,17 @@ app.get("/search", (req, res) => {
 
 app.get("/categories", (_req, res) => {
   res.json(db.prepare("SELECT * FROM categories ORDER BY ordre").all());
+});
+
+// Partis (groupes) : liste + profil (réussite par thème)
+app.get("/partis", (_req, res) => {
+  res.json(listePartis(db));
+});
+app.get("/partis/:uid", (req, res) => {
+  const periode = (["all", "12m", "6m"].includes(String(req.query.periode)) ? req.query.periode : "all") as Periode;
+  const p = profilParti(db, req.params.uid, periode);
+  if (!p) return res.status(404).json({ error: "Parti introuvable" });
+  res.json(p);
 });
 
 // Derniers grands scrutins (solennels + motions de censure)

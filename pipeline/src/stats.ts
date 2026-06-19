@@ -249,6 +249,103 @@ export function profilDepute(
   };
 }
 
+// ---- Partis (groupes politiques) ----
+
+export interface PartiResume {
+  uid: string;
+  libelle: string;
+  abrev: string | null;
+  couleur: string | null;
+  nb_deputes: number;
+  reussite_pct: number | null;
+}
+
+/** Liste des partis avec leur taux de réussite global. */
+export function listePartis(db: Database.Database): PartiResume[] {
+  return db
+    .prepare(
+      `SELECT g.uid, g.libelle, g.abrev, g.couleur,
+         (SELECT COUNT(*) FROM deputes d WHERE d.groupe_uid = g.uid AND d.actif = 1) AS nb_deputes,
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='adopte') OR (gp.position='contre' AND s.sort_code='rejete') THEN 1 ELSE 0 END) AS gagnes,
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='rejete') OR (gp.position='contre' AND s.sort_code='adopte') THEN 1 ELSE 0 END) AS perdus
+       FROM groupes g
+       JOIN groupe_positions gp ON gp.groupe_uid = g.uid
+       JOIN scrutins s          ON s.uid = gp.scrutin_uid
+       GROUP BY g.uid
+       ORDER BY nb_deputes DESC`
+    )
+    .all()
+    .map((r: any) => ({
+      uid: r.uid, libelle: r.libelle, abrev: r.abrev, couleur: r.couleur, nb_deputes: r.nb_deputes,
+      reussite_pct: r.gagnes + r.perdus ? Math.round((r.gagnes / (r.gagnes + r.perdus)) * 100) : null,
+    }));
+}
+
+export interface ProfilParti {
+  parti: { uid: string; libelle: string; abrev: string | null; couleur: string | null; nb_deputes: number };
+  reussite_globale_pct: number | null;
+  categories: Array<{
+    id: string; libelle: string; emoji: string; couleur: string;
+    pour: number; contre: number; abstention: number;
+    gagnes: number; perdus: number; reussite_pct: number | null;
+  }>;
+}
+
+/** Profil d'un parti : réussite globale + par thème (sur sa consigne de vote). */
+export function profilParti(db: Database.Database, uid: string, periode: Periode = "all"): ProfilParti | null {
+  const parti = db
+    .prepare(
+      `SELECT g.uid, g.libelle, g.abrev, g.couleur,
+         (SELECT COUNT(*) FROM deputes d WHERE d.groupe_uid = g.uid AND d.actif = 1) AS nb_deputes
+       FROM groupes g WHERE g.uid = ?`
+    )
+    .get(uid) as any;
+  if (!parti) return null;
+
+  const borne = bornePeriode(periode);
+  const filtreDate = borne ? "AND s.date >= @borne" : "";
+  const params = { uid, borne };
+
+  const cats = db
+    .prepare(
+      `SELECT c.id, c.libelle, c.emoji, c.couleur,
+         SUM(gp.position='pour')       AS pour,
+         SUM(gp.position='contre')     AS contre,
+         SUM(gp.position='abstention') AS abstention,
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='adopte') OR (gp.position='contre' AND s.sort_code='rejete') THEN 1 ELSE 0 END) AS gagnes,
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='rejete') OR (gp.position='contre' AND s.sort_code='adopte') THEN 1 ELSE 0 END) AS perdus
+       FROM groupe_positions gp
+       JOIN scrutins s            ON s.uid = gp.scrutin_uid
+       JOIN scrutin_categories sc ON sc.scrutin_uid = gp.scrutin_uid
+       JOIN categories c          ON c.id = sc.categorie_id
+       WHERE gp.groupe_uid = @uid ${filtreDate}
+       GROUP BY c.id ORDER BY c.ordre`
+    )
+    .all(params)
+    .map((r: any) => ({
+      id: r.id, libelle: r.libelle, emoji: r.emoji, couleur: r.couleur,
+      pour: r.pour, contre: r.contre, abstention: r.abstention, gagnes: r.gagnes, perdus: r.perdus,
+      reussite_pct: r.gagnes + r.perdus ? Math.round((r.gagnes / (r.gagnes + r.perdus)) * 100) : null,
+    }));
+
+  const glob = db
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='adopte') OR (gp.position='contre' AND s.sort_code='rejete') THEN 1 ELSE 0 END) AS gagnes,
+         SUM(CASE WHEN (gp.position='pour' AND s.sort_code='rejete') OR (gp.position='contre' AND s.sort_code='adopte') THEN 1 ELSE 0 END) AS perdus
+       FROM groupe_positions gp JOIN scrutins s ON s.uid = gp.scrutin_uid
+       WHERE gp.groupe_uid = @uid ${filtreDate}`
+    )
+    .get(params) as any;
+  const base = (glob?.gagnes ?? 0) + (glob?.perdus ?? 0);
+
+  return {
+    parti,
+    reussite_globale_pct: base ? Math.round((glob.gagnes / base) * 100) : null,
+    categories: cats,
+  };
+}
+
 /** Derniers grands scrutins : scrutins solennels + motions de censure. */
 export function grandsScrutins(db: Database.Database, limit = 30): ScrutinResume[] {
   return db
