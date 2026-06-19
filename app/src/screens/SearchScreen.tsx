@@ -61,7 +61,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
           <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Hémicycle</Text>
         </View>
         <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
-          Ce que votent vraiment les députés
+          Scrutins publics nominatifs · 17ᵉ législature
         </Text>
       </View>
 

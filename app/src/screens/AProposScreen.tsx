@@ -16,9 +16,9 @@ export function AProposScreen() {
     <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
       <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>À propos & limites</Text>
       <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, lineHeight: 20, marginTop: 6, marginBottom: 18 }}>
-        Hémicycle montre comment votent réellement les députés, à partir des données publiques de
-        l'Assemblée Nationale. Pour rester honnête, voici précisément ce qu'elle couvre — et ce
-        qu'elle ne couvre pas.
+        Hémicycle montre les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
+        les seuls votes attribués nominativement à chaque député·e. Pour rester honnête, voici
+        précisément ce que l'app couvre — et ce qu'elle ne couvre pas.
       </Text>
 
       <View style={{ backgroundColor: C.loyalMoyenBg, borderRadius: RADIUS.md, padding: 13, marginBottom: 20 }}>
@@ -34,11 +34,12 @@ export function AProposScreen() {
         de l'application.
       </Bloc>
 
-      <Bloc titre="« Absent » et taux de participation">
-        Un·e député·e absent·e n'apparaît pas dans un scrutin. On déduit donc l'absence : scrutins
-        d'un thème (sur la période) moins les votes exprimés. C'est « n'a pas pris part au scrutin
-        public » (délégation, absence…), et non la présence en commission ou en séance. Le taux de
-        participation est montré en relatif (« plus assidu·e que X % ») car il est bas pour tous.
+      <Bloc titre="« Absent », « Non votant » et participation">
+        Un·e député·e absent·e n'apparaît pas dans un scrutin : l'absence est déduite (scrutins d'un
+        thème moins les votes), et bornée aux dates réelles du mandat (pas d'absences « fantômes »
+        avant l'entrée en fonction). « Non votant » = présent·e mais n'ayant pas pris part (ex. la
+        présidence de séance) — distinct d'« Absent ». Le taux de participation est montré en relatif
+        (« plus assidu·e que X % ») car il est bas pour tout le monde.
       </Bloc>
 
       <Bloc titre="Classification thématique approximative">
@@ -52,15 +53,16 @@ export function AProposScreen() {
         insuffisante. Les pourcentages sont des indicateurs, pas des jugements.
       </Bloc>
 
-      <Bloc titre="Loyauté au groupe">
-        Pourcentage de votes conformes à la consigne du groupe (position majoritaire fournie par
-        l'Assemblée). Les abstentions et absences sont exclues de ce calcul.
+      <Bloc titre="Consigne du groupe (pas de score de loyauté)">
+        Plutôt qu'un score de loyauté agrégé — qui se prête à un jugement hâtif — on affiche la
+        consigne du groupe (position majoritaire fournie par l'Assemblée) à côté de chaque vote, et
+        les écarts sont listés dans les « dissidences ». À vous de lire l'écart.
       </Bloc>
 
-      <Bloc titre="Taux de réussite">
-        Part des votes exprimés où le résultat a suivi le vote du député (Pour → adopté, Contre →
-        rejeté). Indique s'il/elle se retrouve plutôt dans la majorité ou la minorité, au global et
-        par thème. Les abstentions sont exclues.
+      <Bloc titre="Confronter deux élu·e·s">
+        On compare deux député·e·s sur les seuls scrutins nominatifs où les deux ont voté. Un thème
+        sans scrutin commun est « non couvert » (invérifiable) — un silence de données n'est pas un
+        désaccord.
       </Bloc>
 
       <Bloc titre="Exposé des amendements">
