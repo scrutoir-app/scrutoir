@@ -51,9 +51,10 @@ export const CATEGORIES: Categorie[] = [
     couleur: "#6A1B9A",
     motsCles: [
       "budget", "fiscal", "impot", "taxe", "finances publiques", "deficit",
-      "dette", "economie", "entreprise", "croissance", "tva", "investissement",
+      "dette", "economie", "economique", "entreprise", "croissance", "tva", "investissement",
       "banque", "loi de finances", "depense publique", "cotisation",
-      "pouvoir d'achat", "inflation", "commerce",
+      "pouvoir d'achat", "inflation", "commerce", "souverainete", "simplification",
+      "industrie", "industriel", "nationalisation", "relocalisation", "concurrence",
     ],
   },
   {
@@ -76,6 +77,7 @@ export const CATEGORIES: Categorie[] = [
       "sante", "hopital", "medic", "soin", "securite sociale", "maladie",
       "soignant", "medecin", "pharmac", "vaccin", "psychiatr", "ehpad",
       "fin de vie", "hospital", "deser medic", "ameli", "assurance maladie",
+      "mourir", "palliatif", "euthanasie", "handicap", "cancer",
     ],
   },
   {
@@ -129,9 +131,9 @@ export const CATEGORIES: Categorie[] = [
     emoji: "🚜",
     couleur: "#558B2F",
     motsCles: [
-      "agricult", "agriculteur", "alimentation", "peche", "elevage",
+      "agricult", "agricol", "agriculteur", "aliment", "agroaliment", "peche", "elevage",
       "foncier agricole", "pac", "viticult", "bio", "rural", "ferme",
-      "produit phytosanitaire", "souverainete alimentaire",
+      "produit phytosanitaire", "souverainete alimentaire", "pesticide",
     ],
   },
   {
@@ -154,6 +156,7 @@ export const CATEGORIES: Categorie[] = [
       "logement", "urbanisme", "habitat", "loyer", "construction", "foncier",
       "amenagement du territoire", "ville", "hlm", "bail", "copropriete",
       "transport", "mobilite", "outre-mer", "zone rurale",
+      "mayotte", "montagne", "territoriale", "territoriales", "collectivites territoriales",
     ],
   },
 ];
