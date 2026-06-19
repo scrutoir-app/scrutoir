@@ -23,6 +23,30 @@ export function getDepartements() {
   return get<Departement[]>(`/departements`);
 }
 
+/**
+ * Recherche de commune via l'API Géo officielle (geo.api.gouv.fr) — sert à aider
+ * l'utilisateur à partir de ce qu'il connaît (sa ville / son code postal) plutôt
+ * que d'un numéro de circonscription. Renvoie le département (la circonscription
+ * précise n'est pas exposée par l'API → on amène l'utilisateur à son département).
+ */
+export interface Commune {
+  nom: string;
+  code: string; // INSEE
+  codeDepartement: string;
+  codesPostaux?: string[];
+}
+export async function rechercheCommunes(q: string): Promise<Commune[]> {
+  const s = q.trim();
+  const estCP = /^\d{5}$/.test(s);
+  const base = "https://geo.api.gouv.fr/communes";
+  const url = estCP
+    ? `${base}?codePostal=${s}&fields=nom,code,codeDepartement,codesPostaux&format=json`
+    : `${base}?nom=${encodeURIComponent(s)}&fields=nom,code,codeDepartement,codesPostaux&boost=population&limit=8&format=json`;
+  const res = await fetch(url);
+  if (!res.ok) return [];
+  return (await res.json()) as Commune[];
+}
+
 export function getCirconscription(dept: string, circo?: string) {
   const c = circo ? `&circo=${circo}` : "";
   return get<DeputeResume[]>(`/circonscription?dept=${dept}${c}`);

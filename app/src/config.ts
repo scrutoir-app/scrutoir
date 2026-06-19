@@ -12,3 +12,6 @@ export const SEUIL_FIABILITE = 5;
 export function scrutinSourceUrl(numero: number | null | undefined): string | null {
   return numero ? `https://www.assemblee-nationale.fr/dyn/17/scrutins/${numero}` : null;
 }
+
+/** Portail officiel « Vos députés » (pour aider à identifier sa circonscription). */
+export const AN_DEPUTES_URL = "https://www.assemblee-nationale.fr/dyn/vos-deputes";
