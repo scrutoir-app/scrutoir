@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
-import { C, formatDate, positionLabel } from "../theme";
+import { Feather } from "@expo/vector-icons";
+import { C, F, RADIUS, shadowCard, formatDate, positionLabel } from "../theme";
 import { getScrutin } from "../api";
 import type { DetailScrutin } from "../types";
-import { VoteBar } from "../components/VoteBar";
 import type { Nav } from "../nav";
 
 export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
@@ -14,12 +14,8 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   useEffect(() => {
     let vivant = true;
     setLoading(true);
-    getScrutin(uid)
-      .then((d) => vivant && setData(d))
-      .finally(() => vivant && setLoading(false));
-    return () => {
-      vivant = false;
-    };
+    getScrutin(uid).then((d) => vivant && setData(d)).finally(() => vivant && setLoading(false));
+    return () => { vivant = false; };
   }, [uid]);
 
   if (loading)
@@ -33,174 +29,142 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const s = data.scrutin;
   const adopte = s.sort_code === "adopte";
   const titreCourt = (s.titre || s.objet || "").slice(0, 80);
+  const am = data.amendement;
 
-  // Liste des votants pour une position (eventuellement filtree par groupe).
   const goVotants = (position: string, groupe?: string, groupeLibelle?: string) =>
     nav.push({ name: "votants", scrutinUid: uid, titre: titreCourt, position, groupe, groupeLibelle });
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }}>
+    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
+      {/* Bandeau résultat */}
       <View
         style={{
-          flexDirection: "row", alignItems: "center", gap: 12,
-          padding: 12, borderRadius: 12, marginBottom: 14,
-          backgroundColor: adopte ? C.loyalHautBg : C.loyalBasBg,
-          borderLeftWidth: 4, borderLeftColor: adopte ? C.loyalHaut : C.loyalBas,
+          flexDirection: "row", alignItems: "center", gap: 12, padding: 13, borderRadius: RADIUS.md,
+          marginBottom: 14, backgroundColor: adopte ? C.adopteBg : C.rejeteBg,
         }}
       >
-        <View
-          style={{
-            width: 36, height: 36, borderRadius: 18,
-            backgroundColor: adopte ? C.loyalHaut : C.loyalBas,
-            alignItems: "center", justifyContent: "center",
-          }}
-        >
-          <Text style={{ color: "#fff", fontSize: 20, fontWeight: "500" }}>{adopte ? "✓" : "✕"}</Text>
+        <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: adopte ? C.pour : C.contre, alignItems: "center", justifyContent: "center" }}>
+          <Feather name={adopte ? "check" : "x"} size={20} color="#fff" />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontSize: 17, fontWeight: "500", color: adopte ? C.loyalHaut : C.loyalBas }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 17, color: adopte ? C.adopteFg : C.rejeteFg }}>
             {adopte ? "Adopté" : "Rejeté"}
           </Text>
-          <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 1 }}>
+          <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 1 }}>
             {s.sort_libelle ?? (adopte ? "L'Assemblée nationale a adopté" : "L'Assemblée nationale n'a pas adopté")}
           </Text>
         </View>
       </View>
 
-      <Text style={{ fontSize: 16, color: C.text, lineHeight: 23 }}>{s.titre || s.objet}</Text>
-      <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 6 }}>
+      <Text style={{ fontFamily: F.bold, fontSize: 16, color: C.text, lineHeight: 22 }}>{s.titre || s.objet}</Text>
+      <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 6 }}>
         {formatDate(s.date)} · scrutin n° {s.numero}
       </Text>
 
-      {data.amendement && (data.amendement.expose || data.amendement.dispositif) && (
-        <View style={{ marginTop: 16, padding: 14, backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.border, borderRadius: 12 }}>
-          <TouchableOpacity
-            onPress={() => setBriefOuvert((o) => !o)}
-            style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}
-          >
+      {/* Exposé d'amendement (pliable) */}
+      {am && (am.expose || am.dispositif) && (
+        <View style={{ marginTop: 16, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+          <TouchableOpacity onPress={() => setBriefOuvert((o) => !o)} style={{ flexDirection: "row", alignItems: "flex-start", gap: 8 }}>
             <View style={{ flex: 1 }}>
-              <Text style={{ fontSize: 13, fontWeight: "500", color: C.text }}>
-                Exposé de l'amendement{data.amendement.numero ? ` n° ${data.amendement.numero}` : ""}
-                {data.amendement.article ? ` · ${data.amendement.article}` : ""}
+              <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text }}>
+                Exposé de l'amendement{am.numero ? ` n° ${am.numero}` : ""}{am.article ? ` · ${am.article}` : ""}
               </Text>
-              {!!data.amendement.auteur && (
-                <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 3 }} numberOfLines={briefOuvert ? 3 : 1}>
-                  {data.amendement.auteur}
+              {!!am.auteur && (
+                <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 3 }} numberOfLines={briefOuvert ? 3 : 1}>
+                  {am.auteur}
                 </Text>
               )}
             </View>
-            <Text style={{ fontSize: 13, color: C.accent, marginTop: 1 }}>
+            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent, marginTop: 1 }}>
               {briefOuvert ? "Replier ▾" : "Lire ▸"}
             </Text>
           </TouchableOpacity>
 
           {briefOuvert ? (
             <>
-              {!!data.amendement.dispositif && (
-                <>
-                  <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
-                    Ce que l'amendement modifie
-                  </Text>
-                  <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.dispositif}</Text>
-                </>
-              )}
-              {!!data.amendement.expose && (
-                <>
-                  <Text style={{ fontSize: 11, color: C.textMuted, fontWeight: "500", marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
-                    Justification de l'auteur
-                  </Text>
-                  <Text style={{ fontSize: 13, color: C.text, lineHeight: 19 }}>{data.amendement.expose}</Text>
-                </>
-              )}
+              {!!am.dispositif && <Bloc titre="Ce que l'amendement modifie" texte={am.dispositif} />}
+              {!!am.expose && <Bloc titre="Justification de l'auteur" texte={am.expose} />}
             </>
           ) : (
-            <Text style={{ fontSize: 12, color: C.textFaint, marginTop: 8 }} numberOfLines={2}>
-              {data.amendement.expose || data.amendement.dispositif}
+            <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textFaint, marginTop: 8 }} numberOfLines={2}>
+              {am.expose || am.dispositif}
             </Text>
           )}
         </View>
       )}
 
-      <View style={{ flexDirection: "row", gap: 8, marginTop: 16, marginBottom: 4 }}>
+      {/* Chiffres */}
+      <View style={{ flexDirection: "row", gap: 9, marginTop: 16 }}>
         <Chiffre label="Pour" valeur={s.pour} color={C.pour} onPress={() => goVotants("pour")} />
         <Chiffre label="Contre" valeur={s.contre} color={C.contre} onPress={() => goVotants("contre")} />
         <Chiffre label="Abst." valeur={s.abstention} color={C.abstention} onPress={() => goVotants("abstention")} />
       </View>
-      <Text style={{ fontSize: 11, color: C.textFaint }}>Touchez un chiffre pour voir qui a voté.</Text>
-
-      <Text style={{ fontSize: 12, color: C.textMuted, fontWeight: "500", marginTop: 18, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
-        Position par groupe
+      <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 7 }}>
+        Touchez un chiffre pour voir qui a voté.
       </Text>
 
-      {data.groupes.map((g) => {
-        const nom = g.abrev ?? g.libelle;
-        return (
-          <View key={g.uid} style={{ paddingVertical: 10, borderTopWidth: 0.5, borderTopColor: C.border }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <Text style={{ fontSize: 14, color: C.text, flex: 1 }} numberOfLines={1}>
-                {nom}
-              </Text>
-              <Text style={{ fontSize: 11, color: C.textMuted }}>
-                consigne : <Text style={{ color: C.text }}>{positionLabel(g.consigne)}</Text>
-              </Text>
+      <Text style={{ fontFamily: F.extra, fontSize: 15, color: C.text, marginTop: 22, marginBottom: 11 }}>Position par groupe</Text>
+
+      <View style={{ gap: 11 }}>
+        {data.groupes.map((g) => {
+          const nom = g.abrev ?? g.libelle;
+          const cells = [
+            { pos: "pour", n: g.pour, label: "Pour", color: C.pour },
+            { pos: "contre", n: g.contre, label: "Contre", color: C.contre },
+            { pos: "abstention", n: g.abstention, label: "Abst.", color: C.abstention },
+            { pos: "nonvotant", n: g.absent, label: "Absent", color: C.textFaint },
+          ];
+          return (
+            <View key={g.uid} style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+              <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 11 }}>
+                <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.text }} numberOfLines={1}>{nom}</Text>
+                <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted }}>
+                  consigne : <Text style={{ fontFamily: F.bold, color: C.text }}>{positionLabel(g.consigne)}</Text>
+                </Text>
+              </View>
+              <View style={{ flexDirection: "row", gap: 7 }}>
+                {cells.map((c) => (
+                  <TouchableOpacity
+                    key={c.pos}
+                    activeOpacity={0.6}
+                    disabled={c.n === 0}
+                    onPress={() => goVotants(c.pos, g.uid, nom)}
+                    style={{ flex: 1, backgroundColor: C.surfaceSunken, borderRadius: 10, paddingVertical: 8, alignItems: "center", opacity: c.n === 0 ? 0.5 : 1 }}
+                  >
+                    <Text style={{ fontFamily: F.extra, fontSize: 16, color: c.color }}>{c.n}</Text>
+                    <Text style={{ fontFamily: F.semibold, fontSize: 10.5, color: C.textMuted, marginTop: 2 }}>{c.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
             </View>
-            <VoteBar pour={g.pour} contre={g.contre} abstention={g.abstention} absent={g.absent} height={7} />
-            <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginTop: 6 }}>
-              <GroupeChip n={g.pour} label="pour" color={C.pour} onPress={() => goVotants("pour", g.uid, nom)} />
-              <GroupeChip n={g.contre} label="contre" color={C.contre} onPress={() => goVotants("contre", g.uid, nom)} />
-              <GroupeChip n={g.abstention} label="abst." color={C.abstention} onPress={() => goVotants("abstention", g.uid, nom)} />
-              <GroupeChip n={g.absent} label="absent" color={C.absent} onPress={() => goVotants("nonvotant", g.uid, nom)} />
-            </View>
-          </View>
-        );
-      })}
+          );
+        })}
+      </View>
     </ScrollView>
   );
 }
 
-function Chiffre({
-  label, valeur, color, onPress,
-}: {
-  label: string;
-  valeur: number;
-  color: string;
-  onPress: () => void;
-}) {
+function Bloc({ titre, texte }: { titre: string; texte: string }) {
+  return (
+    <>
+      <Text style={{ fontFamily: F.bold, fontSize: 10.5, color: C.textMuted, marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }}>
+        {titre}
+      </Text>
+      <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.text, lineHeight: 19 }}>{texte}</Text>
+    </>
+  );
+}
+
+function Chiffre({ label, valeur, color, onPress }: { label: string; valeur: number; color: string; onPress: () => void }) {
   return (
     <TouchableOpacity
       disabled={valeur === 0}
       onPress={onPress}
-      style={{ flex: 1, backgroundColor: C.surfaceAlt, borderRadius: 8, padding: 12, opacity: valeur === 0 ? 0.5 : 1 }}
+      activeOpacity={0.6}
+      style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, opacity: valeur === 0 ? 0.5 : 1, ...shadowCard }}
     >
-      <Text style={{ fontSize: 12, color: C.textMuted }}>{label}</Text>
-      <Text style={{ fontSize: 22, fontWeight: "500", color, marginTop: 2 }}>{valeur}</Text>
-    </TouchableOpacity>
-  );
-}
-
-function GroupeChip({
-  n, label, color, onPress,
-}: {
-  n: number;
-  label: string;
-  color: string;
-  onPress: () => void;
-}) {
-  const actif = n > 0;
-  return (
-    <TouchableOpacity
-      disabled={!actif}
-      onPress={onPress}
-      style={{
-        flexDirection: "row", alignItems: "center", gap: 4,
-        paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8,
-        backgroundColor: C.surfaceAlt, opacity: actif ? 1 : 0.45,
-      }}
-    >
-      <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: color }} />
-      <Text style={{ fontSize: 12, color: C.text }}>
-        {n} {label}
-      </Text>
+      <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted }}>{label}</Text>
+      <Text style={{ fontFamily: F.extra, fontSize: 23, color, marginTop: 2, letterSpacing: -0.5 }}>{valeur}</Text>
     </TouchableOpacity>
   );
 }
