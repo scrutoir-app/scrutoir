@@ -35,6 +35,7 @@ export interface CategorieStats {
   contre: number;
   abstention: number;
   absent: number;
+  nonvotant: number;
   total: number;
   pct_pour_exprimes: number | null;
   loyaute_pct: number | null;

@@ -35,8 +35,10 @@ export function createSchema(db: Database.Database): void {
       groupe_uid   TEXT REFERENCES groupes(uid),
       photo_url    TEXT,
       actif        INTEGER NOT NULL DEFAULT 1,
-      participation_rate REAL,           -- exprimés / scrutins depuis l'entrée au mandat
-      qualite      TEXT                  -- qualité dans le groupe (Président, Membre…)
+      participation_rate REAL,           -- exprimés / scrutins pendant le mandat
+      qualite      TEXT,                 -- qualité dans le groupe (Président, Membre…)
+      mandat_debut TEXT,                 -- début du mandat de siège (ASSEMBLEE)
+      mandat_fin   TEXT                  -- fin du mandat (NULL = en cours)
     );
 
     CREATE TABLE IF NOT EXISTS scrutins (

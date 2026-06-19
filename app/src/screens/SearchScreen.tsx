@@ -69,17 +69,20 @@ export function SearchScreen({ nav }: { nav: Nav }) {
       <View style={{ paddingHorizontal: 18, paddingBottom: 8 }}>
         <View
           style={{
-            flexDirection: "row", alignItems: "center", gap: 9, height: 46,
-            backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 15, ...shadowCard,
+            flexDirection: "row", alignItems: "center", gap: 11, height: 54,
+            backgroundColor: C.surface, borderRadius: RADIUS.md, paddingLeft: 8, paddingRight: 15,
+            borderWidth: 1, borderColor: C.borderStrong, ...shadowCard,
           }}
         >
-          <Feather name="search" size={18} color={C.textFaint} />
+          <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
+            <Feather name="search" size={19} color="#fff" />
+          </View>
           <TextInput
             value={q}
             onChangeText={setQ}
-            placeholder="Un·e député·e, un parti, un scrutin…"
-            placeholderTextColor={C.textFaint}
-            style={{ flex: 1, fontSize: 14.5, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+            placeholder="Rechercher un·e député·e, un parti…"
+            placeholderTextColor={C.textMuted}
+            style={{ flex: 1, fontSize: 15.5, color: C.text, fontFamily: F.semibold, outlineStyle: "none" } as any}
             autoCorrect={false}
           />
           {loading && <ActivityIndicator size="small" color={C.textFaint} />}

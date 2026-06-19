@@ -94,8 +94,9 @@ export interface CategorieStats {
   pour: number;
   contre: number;
   abstention: number;
-  absent: number; // déduit : scrutins du thème (période) où le député n'a pas voté
-  total: number; // scrutins du thème sur la période (= pour+contre+abst+absent)
+  absent: number; // déduit : scrutins du thème où aucune ligne de vote (hors non-votants)
+  nonvotant: number; // enregistré : présent mais n'a pas pris part au vote
+  total: number; // scrutins du thème sur la fenêtre (= pour+contre+abst+nonvotant+absent)
   pct_pour_exprimes: number | null;
   loyaute_pct: number | null;
   base_loyaute: number;
@@ -120,21 +121,25 @@ export function profilDepute(
 ): ProfilDepute | null {
   const depute = db
     .prepare(
-      `SELECT d.uid, d.nom_complet, d.participation_rate, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url
+      `SELECT d.uid, d.nom_complet, d.participation_rate, d.mandat_debut, d.mandat_fin,
+              g.libelle AS groupe, g.abrev, g.couleur, d.photo_url
        FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
        WHERE d.uid = ?`
     )
-    .get(uid) as (DeputeResume & { participation_rate: number | null }) | undefined;
+    .get(uid) as (DeputeResume & { participation_rate: number | null; mandat_debut: string | null; mandat_fin: string | null }) | undefined;
   if (!depute) return null;
 
-  // Fenêtre = depuis la 1re apparition du député (proxy mandat), bornée par la période.
+  // Fenêtre = mandat de siège du député (mandat_debut → mandat_fin), bornée par la
+  // période. Borner aux dates de mandat évite les "absences fantômes" hors mandat.
+  // À défaut de date de début connue, on retombe sur la 1re apparition (proxy).
   const first = (db
     .prepare("SELECT MIN(s.date) d FROM votes v JOIN scrutins s ON s.uid=v.scrutin_uid WHERE v.depute_uid=?")
     .get(uid) as any).d as string | null;
   const borne = bornePeriode(periode);
-  const debut = [first, borne].filter(Boolean).sort().pop() ?? null; // max des deux
+  const debut = [depute.mandat_debut ?? first, borne].filter(Boolean).sort().pop() ?? null; // max
+  const fin = depute.mandat_fin ?? null; // borne haute (NULL = en cours)
   const filtreDate = borne ? "AND s.date >= @borne" : "";
-  const params = { uid, borne, debut };
+  const params = { uid, borne, debut, fin };
 
   // Votes exprimés du député par catégorie (+ loyauté)
   const parCat = db
@@ -143,6 +148,7 @@ export function profilDepute(
          SUM(v.position='pour')       AS pour,
          SUM(v.position='contre')     AS contre,
          SUM(v.position='abstention') AS abstention,
+         SUM(v.position='nonvotant')  AS nonvotant,
          SUM(CASE WHEN (v.position='pour' AND s.sort_code='adopte') OR (v.position='contre' AND s.sort_code='rejete')
                   THEN 1 ELSE 0 END)  AS gagnes,
          SUM(CASE WHEN (v.position='pour' AND s.sort_code='rejete') OR (v.position='contre' AND s.sort_code='adopte')
@@ -163,15 +169,15 @@ export function profilDepute(
     .all(params) as any[];
   const voteMap = new Map<string, any>(parCat.map((r) => [r.id, r]));
 
-  // Périmètre : scrutins de chaque thème tenus pendant la fenêtre du député
-  const filtreDebut = debut ? "WHERE s.date >= @debut" : "";
+  // Périmètre : scrutins de chaque thème tenus pendant la fenêtre du mandat
+  const filtreDebut = debut ? "AND s.date >= @debut" : "";
   const scopes = db
     .prepare(
       `SELECT c.id, c.libelle, c.emoji, c.couleur, c.ordre, COUNT(*) AS scope
        FROM scrutin_categories sc
        JOIN scrutins s   ON s.uid = sc.scrutin_uid
        JOIN categories c ON c.id = sc.categorie_id
-       ${filtreDebut}
+       WHERE (@fin IS NULL OR s.date <= @fin) ${filtreDebut}
        GROUP BY c.id ORDER BY c.ordre`
     )
     .all(params) as any[];
@@ -179,12 +185,14 @@ export function profilDepute(
   const cats: CategorieStats[] = scopes.map((s) => {
     const v = voteMap.get(s.id) ?? {};
     const pour = v.pour ?? 0, contre = v.contre ?? 0, abstention = v.abstention ?? 0;
-    const exprimes = pour + contre + abstention;
-    const absent = Math.max(0, s.scope - exprimes);
+    const nonvotant = v.nonvotant ?? 0;
+    // absent = DÉDUIT (aucune ligne de vote). On exclut les non-votants enregistrés
+    // (présents n'ayant pas pris part) : un silence de données n'est pas un démenti.
+    const absent = Math.max(0, s.scope - pour - contre - abstention - nonvotant);
     const gagnes = v.gagnes ?? 0, perdus = v.perdus ?? 0;
     return {
       id: s.id, libelle: s.libelle, emoji: s.emoji, couleur: s.couleur,
-      pour, contre, abstention, absent, total: s.scope,
+      pour, contre, abstention, absent, nonvotant, total: s.scope,
       pct_pour_exprimes: pour + contre ? Math.round((pour / (pour + contre)) * 100) : null,
       loyaute_pct: v.base_loyaute ? Math.round((v.conformes / v.base_loyaute) * 100) : null,
       base_loyaute: v.base_loyaute ?? 0,
@@ -224,7 +232,9 @@ export function profilDepute(
               WHERE v.depute_uid=@uid AND v.position IN ('pour','contre','abstention') ${filtreDate}`)
     .get(params) as any).n as number;
   const scopePeriode = debut
-    ? (db.prepare("SELECT COUNT(*) n FROM scrutins WHERE date >= ?").get(debut) as any).n
+    ? (db
+        .prepare("SELECT COUNT(*) n FROM scrutins WHERE date >= @debut AND (@fin IS NULL OR date <= @fin)")
+        .get({ debut, fin }) as any).n
     : 0;
   const participation_pct = scopePeriode ? Math.round((exprPeriode / scopePeriode) * 100) : null;
 
@@ -502,23 +512,30 @@ export function votesDeputeCategorie(
 ): any[] {
   const borne = bornePeriode(periode);
 
-  // "absent" = scrutins du thème (depuis l'entrée du député) où il n'a PAS voté.
-  if (position === "absent" || position === "nonvotant") {
+  // "absent" = DÉDUIT : scrutins du thème pendant le mandat où aucune ligne de vote
+  // n'existe (ni pour/contre/abst, ni non-votant enregistré). Borné aux dates de
+  // mandat pour ne pas compter de scrutins hors mandat. ("nonvotant" passe par la
+  // branche générale ci-dessous : ce sont de vraies lignes de vote enregistrées.)
+  if (position === "absent") {
+    const m = db
+      .prepare("SELECT mandat_debut, mandat_fin FROM deputes WHERE uid = ?")
+      .get(deputeUid) as { mandat_debut: string | null; mandat_fin: string | null } | undefined;
     const first = (db
       .prepare("SELECT MIN(s.date) d FROM votes v JOIN scrutins s ON s.uid=v.scrutin_uid WHERE v.depute_uid=?")
       .get(deputeUid) as any).d as string | null;
-    const debut = [first, borne].filter(Boolean).sort().pop() ?? null;
+    const debut = [m?.mandat_debut ?? first, borne].filter(Boolean).sort().pop() ?? null;
+    const fin = m?.mandat_fin ?? null;
     const filtreDebut = debut ? "AND s.date >= @debut" : "";
     return db
       .prepare(
         `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, 'absent' AS position, @cat AS categorie
          FROM scrutin_categories sc
          JOIN scrutins s ON s.uid = sc.scrutin_uid
-         WHERE sc.categorie_id = @cat ${filtreDebut}
+         WHERE sc.categorie_id = @cat AND (@fin IS NULL OR s.date <= @fin) ${filtreDebut}
            AND NOT EXISTS (SELECT 1 FROM votes v WHERE v.scrutin_uid = s.uid AND v.depute_uid = @uid)
          ORDER BY s.date DESC, s.numero DESC`
       )
-      .all({ uid: deputeUid, cat: categorieId, debut }) as any[];
+      .all({ uid: deputeUid, cat: categorieId, debut, fin }) as any[];
   }
 
   const filtreDate = borne ? "AND s.date >= @borne" : "";

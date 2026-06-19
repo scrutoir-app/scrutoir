@@ -20,7 +20,7 @@ export function CategoryVoteCard({
   onCell: (position: string) => void;
 }) {
   const ui = catUI(cat.id);
-  const total = cat.pour + cat.contre + cat.abstention + cat.absent;
+  const total = cat.total;
 
   const cells: Array<{ pos: string; n: number; label: string; color: string }> = [
     { pos: "pour", n: cat.pour, label: "Pour", color: C.pour },
@@ -64,6 +64,14 @@ export function CategoryVoteCard({
           </TouchableOpacity>
         ))}
       </View>
+
+      {cat.nonvotant > 0 && (
+        <TouchableOpacity activeOpacity={0.6} onPress={() => onCell("nonvotant")} style={{ marginTop: 9 }}>
+          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>
+            dont <Text style={{ fontFamily: F.bold, color: C.textMuted }}>{cat.nonvotant} non votant·e·s</Text> · présent·e, n'a pas pris part ›
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 }

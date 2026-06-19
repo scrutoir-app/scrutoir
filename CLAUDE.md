@@ -84,9 +84,18 @@ cd ../app && npm run web                            # app -> http://localhost:80
 
 ## Pièges de données (IMPORTANT)
 - **Scrutins publics nominatifs uniquement** (la plupart des votes sont à main levée, absents).
-- **Les absents n'apparaissent pas** → l'absence est **DÉDUITE** : `scrutins du thème (période) −
-  votes exprimés`. La participation est **basse pour tous** (~25% médian) → affichée en **relatif**.
-  Calcul dans `pipeline/src/participation.ts` (colonne `deputes.participation_rate`).
+- **Les absents n'apparaissent pas** → l'absence est **DÉDUITE** : `scrutins du thème (fenêtre) −
+  pour − contre − abstention − non-votants`. La participation est **basse pour tous** (~25% médian) →
+  affichée en **relatif**. Calcul dans `pipeline/src/participation.ts` (col `deputes.participation_rate`).
+- **Absence bornée au mandat** (reco 5) : le dénominateur est borné aux dates du mandat de siège
+  (`deputes.mandat_debut`/`mandat_fin`, type ASSEMBLEE, extraites dans `parseActeurs.ts`) au lieu du
+  total brut → évite les **absences fantômes** (arrivée par partielle, ex. Barnier 2025-09-28 : 94
+  scrutins écologie au lieu de 350). ⚠️ Dataset AMO10 = **actifs uniquement** → `mandat_fin` toujours
+  NULL (=aujourd'hui, correct pour les actifs) et **ex-députés absents** (fin de mandat réelle =
+  dataset « tous mandats », à faire si on affiche les partants).
+- **Non-votant ≠ absent** (reco 5) : la position `nonvotant` (présent, n'a pas pris part — ex. la
+  **présidence de séance** : Braun-Pivet ~7300) est comptée et **étiquetée « Non votant »**, plus
+  fondue dans l'« absent » déduit. `CategorieStats.nonvotant`, ligne dédiée sur la carte thème.
 - `sort_code` : « **n'a pas adopté** » contient « adopté » → géré (négation) dans `parseScrutins.ts`.
 - **Classification** thématique (12 catégories neutres, `pipeline/src/categories.ts`) : mots-clés en
   **mots entiers** + **propagation** aux amendements. Vocabulaire enrichi → **~10% non classés**
