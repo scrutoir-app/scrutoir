@@ -154,6 +154,21 @@ function Accueil({ nav }: { nav: Nav }) {
         <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.8)" />
       </TouchableOpacity>
 
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => nav.push({ name: "monDepute" })}
+        style={{ marginHorizontal: 18, marginTop: 9, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 12, paddingHorizontal: 15, ...shadowCard }}
+      >
+        <Feather name="map-pin" size={19} color={C.accent} />
+        <View style={{ flex: 1 }}>
+          <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.text }}>Trouver mon·ma député·e</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginTop: 1 }}>
+            Par département et circonscription
+          </Text>
+        </View>
+        <Feather name="chevron-right" size={20} color={C.textFaint} />
+      </TouchableOpacity>
+
       <View style={{ paddingHorizontal: 18, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 22, marginBottom: 12 }}>
         <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3 }}>Derniers grands scrutins</Text>
         <TouchableOpacity onPress={() => nav.push({ name: "grandsScrutins" })}>

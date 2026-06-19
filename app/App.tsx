@@ -25,6 +25,7 @@ import { VotesListeScreen } from "./src/screens/VotesListeScreen";
 import { VotesCategorieScreen } from "./src/screens/VotesCategorieScreen";
 import { VotantsScreen } from "./src/screens/VotantsScreen";
 import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
+import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
@@ -54,6 +55,7 @@ export default function App() {
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
     confrontation: "Confrontation",
+    monDepute: "Mon·ma député·e",
   };
   const showHeader = stack.length > 1;
 
@@ -112,6 +114,7 @@ export default function App() {
           )}
           {current.name === "apropos" && <AProposScreen />}
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} nav={nav} />}
+          {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
         </View>
 
         {/* Barre d'onglets */}

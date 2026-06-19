@@ -38,7 +38,10 @@ export function createSchema(db: Database.Database): void {
       participation_rate REAL,           -- exprimés / scrutins pendant le mandat
       qualite      TEXT,                 -- qualité dans le groupe (Président, Membre…)
       mandat_debut TEXT,                 -- début du mandat de siège (ASSEMBLEE)
-      mandat_fin   TEXT                  -- fin du mandat (NULL = en cours)
+      mandat_fin   TEXT,                 -- fin du mandat (NULL = en cours)
+      departement  TEXT,                 -- nom du département de la circonscription
+      num_departement TEXT,              -- code département (ex: "33", "2A")
+      circo        TEXT                  -- numéro de circonscription
     );
 
     CREATE TABLE IF NOT EXISTS scrutins (

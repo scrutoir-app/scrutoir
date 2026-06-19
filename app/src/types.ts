@@ -5,6 +5,15 @@ export interface DeputeResume {
   abrev: string | null;
   couleur: string | null;
   photo_url: string | null;
+  departement?: string | null;
+  num_departement?: string | null;
+  circo?: string | null;
+}
+
+export interface Departement {
+  num: string;
+  nom: string;
+  circos: number;
 }
 
 export interface ScrutinResume {

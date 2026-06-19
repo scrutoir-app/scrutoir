@@ -5,6 +5,7 @@ import { C, F, RADIUS, shadowCard } from "../theme";
 import { getProfil } from "../api";
 import type { ProfilDepute, Periode } from "../types";
 import { CategoryVoteCard } from "../components/CategoryVoteCard";
+import { useFollow } from "../follows";
 import type { Nav } from "../nav";
 
 const PERIODES: { id: Periode; label: string }[] = [
@@ -36,6 +37,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   if (!profil) return null;
 
   const { depute: d, participation_pct, participation_rang_pct, categories } = profil;
+  const [followed, toggleFollow] = useFollow(uid);
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
@@ -48,8 +50,25 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
             <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: d.couleur ?? C.textFaint }} />
             <Text style={{ fontFamily: F.semibold, fontSize: 12, color: "#4B5159" }}>{d.abrev ?? d.groupe ?? "—"}</Text>
           </View>
+          {!!d.departement && d.circo && (
+            <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 5 }}>
+              {d.departement} · {d.circo}ᵉ circonscription
+            </Text>
+          )}
         </View>
+        <TouchableOpacity
+          onPress={toggleFollow}
+          activeOpacity={0.7}
+          style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: followed ? C.accent : C.surfaceAlt }}
+        >
+          <Feather name="bell" size={18} color={followed ? "#fff" : C.textMuted} />
+        </TouchableOpacity>
       </View>
+      {followed && (
+        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: -8, marginBottom: 14 }}>
+          Suivi·e — notifications de nouveaux votes à l'arrivée de la version en ligne.
+        </Text>
+      )}
 
       {/* Participation (relative) — pas de score de loyauté agrégé (cf. consigne par scrutin) */}
       <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 16, ...shadowCard }}>

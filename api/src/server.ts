@@ -16,6 +16,8 @@ import {
   profilParti,
   partisParCategorie,
   confrontation,
+  departements,
+  deputesParCirco,
   type Periode,
 } from "../../pipeline/src/stats.js";
 
@@ -58,6 +60,17 @@ app.get("/partis/:uid", (req, res) => {
 // Derniers grands scrutins (solennels + motions de censure)
 app.get("/scrutins-recents", (_req, res) => {
   res.json(grandsScrutins(db, 100));
+});
+
+// "Mon député" : liste des départements + députés d'une circonscription
+app.get("/departements", (_req, res) => {
+  res.json(departements(db));
+});
+app.get("/circonscription", (req, res) => {
+  const dept = String(req.query.dept ?? "");
+  const circo = req.query.circo ? String(req.query.circo) : undefined;
+  if (!dept) return res.status(400).json({ error: "département (dept) requis" });
+  res.json(deputesParCirco(db, dept, circo));
 });
 
 // Confrontation de deux deputes (désaccords / accords par thème)

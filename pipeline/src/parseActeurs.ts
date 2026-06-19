@@ -48,13 +48,14 @@ export function chargerGroupes(db: Database.Database): number {
 /** Charge les deputes avec leur groupe politique courant (mandat GP actif). */
 export function chargerDeputes(db: Database.Database): number {
   const insert = db.prepare(
-    `INSERT INTO deputes (uid, civilite, prenom, nom, nom_complet, groupe_uid, photo_url, qualite, mandat_debut, mandat_fin, actif)
-     VALUES (@uid, @civilite, @prenom, @nom, @nom_complet, @groupe_uid, @photo_url, @qualite, @mandat_debut, @mandat_fin, 1)
+    `INSERT INTO deputes (uid, civilite, prenom, nom, nom_complet, groupe_uid, photo_url, qualite, mandat_debut, mandat_fin, departement, num_departement, circo, actif)
+     VALUES (@uid, @civilite, @prenom, @nom, @nom_complet, @groupe_uid, @photo_url, @qualite, @mandat_debut, @mandat_fin, @departement, @num_departement, @circo, 1)
      ON CONFLICT(uid) DO UPDATE SET
        civilite=excluded.civilite, prenom=excluded.prenom, nom=excluded.nom,
        nom_complet=excluded.nom_complet, groupe_uid=excluded.groupe_uid,
        photo_url=excluded.photo_url, qualite=excluded.qualite,
-       mandat_debut=excluded.mandat_debut, mandat_fin=excluded.mandat_fin, actif=1`
+       mandat_debut=excluded.mandat_debut, mandat_fin=excluded.mandat_fin,
+       departement=excluded.departement, num_departement=excluded.num_departement, circo=excluded.circo, actif=1`
   );
   let n = 0;
   const files = fs.readdirSync(ACTEURS_DIR).filter((f) => f.endsWith(".json"));
@@ -87,6 +88,13 @@ export function chargerDeputes(db: Database.Database): number {
       const fins = sieges.map((m: any) => m?.dateFin).filter(Boolean) as string[];
       const mandatFin = enCours || !fins.length ? null : fins.sort().pop()!;
 
+      // Circonscription (du mandat de siège en cours de préférence)
+      const siegeActif = sieges.find((m: any) => !m?.dateFin) ?? sieges[0];
+      const lieu = siegeActif?.election?.lieu ?? {};
+      const departement: string | null = lieu.departement ?? null;
+      const numDepartement: string | null = lieu.numDepartement ?? null;
+      const circo: string | null = lieu.numCirco ?? null;
+
       // Photo officielle AN : id numerique (uid sans le prefixe "PA").
       const idNum = uid.replace(/^PA/, "");
       const photoUrl = `https://www2.assemblee-nationale.fr/static/tribun/17/photos/${idNum}.jpg`;
@@ -102,6 +110,9 @@ export function chargerDeputes(db: Database.Database): number {
         qualite,
         mandat_debut: mandatDebut,
         mandat_fin: mandatFin,
+        departement,
+        num_departement: numDepartement,
+        circo,
       });
       n++;
     }

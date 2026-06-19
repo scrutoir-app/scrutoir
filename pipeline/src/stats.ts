@@ -49,6 +49,7 @@ export function rechercheDeputes(db: Database.Database, q: string, limit = 250):
   return db
     .prepare(
       `SELECT d.uid, d.nom_complet, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url,
+         d.departement, d.num_departement, d.circo,
          CASE WHEN g.abrev = @q COLLATE NOCASE OR (@alias IS NOT NULL AND g.abrev = @alias) THEN 0
               WHEN g.libelle LIKE @like COLLATE NOCASE THEN 1
               ELSE 2 END AS rang
@@ -122,6 +123,7 @@ export function profilDepute(
   const depute = db
     .prepare(
       `SELECT d.uid, d.nom_complet, d.participation_rate, d.mandat_debut, d.mandat_fin,
+              d.departement, d.num_departement, d.circo,
               g.libelle AS groupe, g.abrev, g.couleur, d.photo_url
        FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
        WHERE d.uid = ?`
@@ -725,4 +727,30 @@ export function confrontation(
     accords: totalCommuns - totalDesaccords,
     themes: [...themes.values()].sort((x, y) => x.ordre - y.ordre),
   };
+}
+
+/** Liste des départements (pour le sélecteur "mon député"), avec nb de circonscriptions. */
+export function departements(db: Database.Database) {
+  return db
+    .prepare(
+      `SELECT num_departement AS num, departement AS nom, COUNT(*) AS circos
+       FROM deputes WHERE actif = 1 AND num_departement IS NOT NULL
+       GROUP BY num_departement
+       ORDER BY CAST(num_departement AS INTEGER), num_departement`
+    )
+    .all() as Array<{ num: string; nom: string; circos: number }>;
+}
+
+/** Députés d'un département (optionnellement d'une circonscription précise). */
+export function deputesParCirco(db: Database.Database, numDept: string, circo?: string): DeputeResume[] {
+  const filtreCirco = circo ? "AND d.circo = @circo" : "";
+  return db
+    .prepare(
+      `SELECT d.uid, d.nom_complet, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url,
+              d.departement, d.num_departement, d.circo
+       FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
+       WHERE d.actif = 1 AND d.num_departement = @numDept ${filtreCirco}
+       ORDER BY CAST(d.circo AS INTEGER), d.circo`
+    )
+    .all({ numDept, circo }) as DeputeResume[];
 }
