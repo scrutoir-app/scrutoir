@@ -9,6 +9,7 @@
     "ingest:download": "tsx src/ingest.ts --download",
     "classify": "tsx src/classify.ts",
     "classify:ia": "tsx src/classifyIA.ts",
+    "export:static": "tsx src/exportStatic.ts",
     "link-amendements": "tsx src/linkAmendements.ts",
     "query": "tsx src/query.ts"
   },

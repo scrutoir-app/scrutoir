@@ -1,37 +1,223 @@
-import { Platform } from "react-native";
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
-  PartiResume, ProfilParti, PartiReussiteCategorie, Confrontation, Departement,
+  PartiResume, ProfilParti, Confrontation, Departement,
 } from "./types";
 
 /**
- * URL de l'API. Sur le web (prévisualisation), localhost fonctionne.
- * Pour tester sur un téléphone via Expo Go, remplace par l'IP LAN de ton Mac,
- * ex: "http://192.168.1.20:4000".
+ * Couche données « tout statique » : l'app lit des fichiers JSON pré-générés
+ * (pipeline `export:static`) au lieu d'une API serveur. En dev (Expo web) et en
+ * prod (Cloudflare Pages), ils sont servis en même origine sous /data/. Pour le
+ * natif (plus tard), définir EXPO_PUBLIC_DATA_BASE = URL du CDN.
+ * La confrontation, la recherche et les drill-downs sont calculés côté client à
+ * partir d'index légers (deputes, scrutins) + fichiers par élu / par scrutin.
  */
-export const API_BASE =
-  process.env.EXPO_PUBLIC_API_BASE ??
-  (Platform.OS === "web" ? "http://localhost:4000" : "http://localhost:4000");
+const DATA_BASE = process.env.EXPO_PUBLIC_DATA_BASE ?? "";
 
-async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${API_BASE}${path}`);
-  if (!res.ok) throw new Error(`API ${res.status} sur ${path}`);
-  return res.json() as Promise<T>;
+const cache = new Map<string, Promise<any>>();
+function j<T>(rel: string): Promise<T> {
+  let p = cache.get(rel);
+  if (!p) {
+    p = fetch(`${DATA_BASE}/data/${rel}.json`).then((r) => {
+      if (!r.ok) throw new Error(`data ${r.status} : ${rel}`);
+      return r.json();
+    });
+    cache.set(rel, p);
+  }
+  return p as Promise<T>;
 }
 
-export function getDepartements() {
-  return get<Departement[]>(`/departements`);
+// --- Index (chargés une fois, mis en cache) ---------------------------------
+// `categorie` = catégorie principale (picto, confrontation) ; `cats` = toutes les
+// catégories du scrutin (appartenance à un thème : un scrutin peut en avoir plusieurs).
+type ScrutinIdx = ScrutinResume & { cats?: string[] };
+const deputesIndex = () => j<DeputeResume[]>("deputes");
+const scrutinsIndex = () => j<ScrutinIdx[]>("scrutins");
+let scrMapP: Promise<Map<string, ScrutinIdx>> | null = null;
+function scrutinsMap() {
+  if (!scrMapP) scrMapP = scrutinsIndex().then((l) => new Map(l.map((s) => [s.uid, s])));
+  return scrMapP;
+}
+const inCat = (s: ScrutinIdx, id: string) => (s.cats?.length ? s.cats.includes(id) : s.categorie === id);
+interface DeputeFile {
+  mandat_debut: string | null;
+  mandat_fin: string | null;
+  groupe_uid: string | null;
+  profils: Record<Periode, ProfilDepute>;
+  dissidences: Dissidence[];
+  votes: Record<string, [string, string | null]>; // scrutin_uid -> [position, consigne]
+}
+const depute = (uid: string) => j<DeputeFile>(`depute/${uid}`);
+
+// --- Helpers (portés du backend) --------------------------------------------
+function bornePeriode(p: Periode): string | null {
+  if (p === "all") return null;
+  const d = new Date();
+  d.setMonth(d.getMonth() - (p === "12m" ? 12 : 6));
+  return d.toISOString().slice(0, 10);
+}
+const EXPRIME = (pos: string) => pos === "pour" || pos === "contre" || pos === "abstention";
+
+// Alias usuels de partis -> sigle du groupe (recherche).
+const ALIAS_PARTIS: Record<string, string> = {
+  lr: "DR", "les republicains": "DR", republicains: "DR",
+  renaissance: "EPR", macron: "EPR", ensemble: "EPR",
+  modem: "DEM", democrate: "DEM", democrates: "DEM",
+  ps: "SOC", socialiste: "SOC", socialistes: "SOC",
+  lfi: "LFI-NFP", insoumis: "LFI-NFP", melenchon: "LFI-NFP", nfp: "LFI-NFP", "france insoumise": "LFI-NFP",
+  rn: "RN", "rassemblement national": "RN", "le pen": "RN", bardella: "RN",
+  eelv: "ECOS", verts: "ECOS", ecologiste: "ECOS", ecologistes: "ECOS",
+  pcf: "GDR", communiste: "GDR", communistes: "GDR",
+  horizons: "HOR", philippe: "HOR",
+  liot: "LIOT", udr: "UDDPLR", ciotti: "UDDPLR",
+};
+const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+
+// --- Référentiels directs ---------------------------------------------------
+export const getCategories = () => j<CategorieRef[]>("categories");
+export const getGrandsScrutins = () => j<ScrutinResume[]>("grands");
+export const getPartis = () => j<PartiResume[]>("partis");
+export const getProfil = (uid: string, periode: Periode) => depute(uid).then((d) => d.profils[periode]);
+export const getScrutin = (uid: string) => j<DetailScrutin>(`scrutin/${uid}`);
+export const getDissidences = (uid: string) => depute(uid).then((d) => d.dissidences);
+export const getParti = (uid: string, periode: Periode) =>
+  j<Record<Periode, ProfilParti>>(`parti/${uid}`).then((p) => p[periode]);
+
+// --- Recherche (client) -----------------------------------------------------
+export async function rechercher(q: string): Promise<{ deputes: DeputeResume[]; scrutins: ScrutinResume[] }> {
+  const s = norm(q);
+  if (s.length < 2) return { deputes: [], scrutins: [] };
+  const [deps, scrs] = await Promise.all([deputesIndex(), scrutinsIndex()]);
+  const alias = ALIAS_PARTIS[s] ?? null;
+  const deputes = deps
+    .filter((d) => {
+      const sigle = (d.abrev ?? "").toLowerCase();
+      return (
+        norm(d.nom_complet).includes(s) ||
+        sigle === s ||
+        norm(d.groupe ?? "").includes(s) ||
+        (alias != null && d.abrev === alias)
+      );
+    })
+    .slice(0, 250);
+  const scrutins = scrs.filter((sc) => norm(sc.titre ?? "").includes(s)).slice(0, 15);
+  return { deputes, scrutins };
 }
 
-/**
- * Recherche de commune via l'API Géo officielle (geo.api.gouv.fr) — sert à aider
- * l'utilisateur à partir de ce qu'il connaît (sa ville / son code postal) plutôt
- * que d'un numéro de circonscription. Renvoie le département (la circonscription
- * précise n'est pas exposée par l'API → on amène l'utilisateur à son département).
- */
+// --- Mon député (client) ----------------------------------------------------
+export async function getDepartements(): Promise<Departement[]> {
+  const deps = await deputesIndex();
+  const map = new Map<string, { num: string; nom: string; circos: number }>();
+  for (const d of deps) {
+    if (!d.num_departement) continue;
+    const e = map.get(d.num_departement) ?? { num: d.num_departement, nom: d.departement ?? "", circos: 0 };
+    e.circos++;
+    map.set(d.num_departement, e);
+  }
+  return [...map.values()].sort((a, b) => (parseInt(a.num) || 999) - (parseInt(b.num) || 999) || a.num.localeCompare(b.num));
+}
+export async function getCirconscription(dept: string, circo?: string): Promise<DeputeResume[]> {
+  const deps = await deputesIndex();
+  return deps
+    .filter((d) => d.num_departement === dept && (!circo || d.circo === circo))
+    .sort((a, b) => (parseInt(a.circo ?? "0") || 0) - (parseInt(b.circo ?? "0") || 0));
+}
+
+// --- Drill-downs votes d'un député (client) ---------------------------------
+function voteScrutin(s: ScrutinResume, position: string, consigne: string | null, cat: string): VoteScrutin {
+  return { ...s, categorie: cat, position, consigne };
+}
+export async function getVotesDepute(uid: string, categorie: string, position: string, periode: Periode): Promise<VoteScrutin[]> {
+  const [d, scrMap] = await Promise.all([depute(uid), scrutinsMap()]);
+  const borne = bornePeriode(periode);
+  if (position === "absent") {
+    // Déduit : scrutins du thème dans la fenêtre du mandat, sans ligne de vote.
+    const debut = [d.mandat_debut, borne].filter(Boolean).sort().pop() ?? null;
+    const fin = d.mandat_fin ?? null;
+    const out: VoteScrutin[] = [];
+    for (const s of scrMap.values()) {
+      if (!inCat(s, categorie)) continue;
+      if (debut && (s.date ?? "") < debut) continue;
+      if (fin && (s.date ?? "") > fin) continue;
+      if (d.votes[s.uid]) continue;
+      out.push(voteScrutin(s, "absent", null, categorie));
+    }
+    return out.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+  }
+  const out: VoteScrutin[] = [];
+  for (const [su, [pos, consigne]] of Object.entries(d.votes)) {
+    if (pos !== position) continue;
+    const s = scrMap.get(su);
+    if (!s || !inCat(s, categorie)) continue;
+    if (borne && (s.date ?? "") < borne) continue;
+    out.push(voteScrutin(s, pos, consigne, categorie));
+  }
+  return out.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+}
+export async function getVotesDeputeCategorie(uid: string, categorie: string, periode: Periode): Promise<VoteScrutin[]> {
+  const [d, scrMap] = await Promise.all([depute(uid), scrutinsMap()]);
+  const borne = bornePeriode(periode);
+  const out: VoteScrutin[] = [];
+  for (const [su, [pos, consigne]] of Object.entries(d.votes)) {
+    const s = scrMap.get(su);
+    if (!s || !inCat(s, categorie)) continue;
+    if (borne && (s.date ?? "") < borne) continue;
+    out.push(voteScrutin(s, pos, consigne, categorie));
+  }
+  return out.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+}
+
+// --- Scrutins d'une catégorie (client) --------------------------------------
+export async function getScrutinsCategorie(id: string): Promise<ScrutinResume[]> {
+  const scrs = await scrutinsIndex();
+  return scrs.filter((s) => inCat(s, id)); // déjà triés par date desc
+}
+
+// --- Votants d'un scrutin (client, depuis le fichier scrutin) ---------------
+export async function getVotants(scrutinUid: string, position: string, groupe?: string): Promise<Votant[]> {
+  const detail = await j<any>(`scrutin/${scrutinUid}`);
+  const list: any[] = detail.votants?.[position] ?? [];
+  return (groupe ? list.filter((v) => v.groupe_uid === groupe) : list) as Votant[];
+}
+
+// --- Confrontation (client) -------------------------------------------------
+export async function getConfrontation(aUid: string, bUid: string, periode: Periode): Promise<Confrontation> {
+  const [deps, scrMap, cats, fa, fb] = await Promise.all([
+    deputesIndex(), scrutinsMap(), getCategories(), depute(aUid), depute(bUid),
+  ]);
+  const a = deps.find((d) => d.uid === aUid)!;
+  const b = deps.find((d) => d.uid === bUid)!;
+  const borne = bornePeriode(periode);
+  const themes = new Map<string, any>();
+  cats.forEach((c) => themes.set(c.id, { id: c.id, libelle: c.libelle, ordre: c.ordre, communs: 0, desaccords: [], accords: [] }));
+  let communs = 0, desaccords = 0;
+  for (const [su, [posA]] of Object.entries(fa.votes)) {
+    if (!EXPRIME(posA)) continue;
+    const vb = fb.votes[su];
+    if (!vb || !EXPRIME(vb[0])) continue;
+    const s = scrMap.get(su);
+    if (!s) continue;
+    if (borne && (s.date ?? "") < borne) continue;
+    const t = themes.get(s.categorie ?? "");
+    if (!t) continue;
+    const sc = { uid: s.uid, numero: s.numero, date: s.date, titre: s.titre, objet: null, sort_code: s.sort_code, resume: null, posA, posB: vb[0] };
+    t.communs++; communs++;
+    if (posA === vb[0]) t.accords.push(sc);
+    else { t.desaccords.push(sc); desaccords++; }
+  }
+  for (const t of themes.values()) {
+    t.desaccords.sort((x: any, y: any) => (y.date ?? "").localeCompare(x.date ?? ""));
+    t.accords.sort((x: any, y: any) => (y.date ?? "").localeCompare(x.date ?? ""));
+  }
+  return {
+    a, b, periode, communs, desaccords, accords: communs - desaccords,
+    themes: [...themes.values()].sort((x, y) => x.ordre - y.ordre),
+  };
+}
+
+// --- Recherche de commune (API Géo officielle, reste dynamique côté client) --
 export interface Commune {
   nom: string;
-  code: string; // INSEE
+  code: string;
   codeDepartement: string;
   codesPostaux?: string[];
 }
@@ -45,71 +231,4 @@ export async function rechercheCommunes(q: string): Promise<Commune[]> {
   const res = await fetch(url);
   if (!res.ok) return [];
   return (await res.json()) as Commune[];
-}
-
-export function getCirconscription(dept: string, circo?: string) {
-  const c = circo ? `&circo=${circo}` : "";
-  return get<DeputeResume[]>(`/circonscription?dept=${dept}${c}`);
-}
-
-export function getConfrontation(a: string, b: string, periode: Periode) {
-  return get<Confrontation>(`/confrontation?a=${a}&b=${b}&periode=${periode}`);
-}
-
-export function rechercher(q: string) {
-  return get<{ deputes: DeputeResume[]; scrutins: ScrutinResume[] }>(
-    `/search?q=${encodeURIComponent(q)}`
-  );
-}
-
-export function getProfil(uid: string, periode: Periode) {
-  return get<ProfilDepute>(`/deputes/${uid}?periode=${periode}`);
-}
-
-export function getScrutin(uid: string) {
-  return get<DetailScrutin>(`/scrutins/${uid}`);
-}
-
-export function getGrandsScrutins() {
-  return get<ScrutinResume[]>(`/scrutins-recents`);
-}
-
-export function getCategories() {
-  return get<CategorieRef[]>(`/categories`);
-}
-
-export function getPartis() {
-  return get<PartiResume[]>(`/partis`);
-}
-
-export function getParti(uid: string, periode: Periode) {
-  return get<ProfilParti>(`/partis/${uid}?periode=${periode}`);
-}
-
-export function getScrutinsCategorie(id: string) {
-  return get<ScrutinResume[]>(`/categories/${id}/scrutins`);
-}
-
-export function getPartisParCategorie(id: string) {
-  return get<PartiReussiteCategorie[]>(`/categories/${id}/partis`);
-}
-
-export function getDissidences(uid: string) {
-  return get<Dissidence[]>(`/deputes/${uid}/dissidences`);
-}
-
-export function getVotesDepute(uid: string, categorie: string, position: string, periode: Periode) {
-  return get<VoteScrutin[]>(
-    `/deputes/${uid}/votes?categorie=${categorie}&position=${position}&periode=${periode}`
-  );
-}
-
-// Tous les votes d'un depute dans une categorie (toutes positions confondues).
-export function getVotesDeputeCategorie(uid: string, categorie: string, periode: Periode) {
-  return get<VoteScrutin[]>(`/deputes/${uid}/votes?categorie=${categorie}&periode=${periode}`);
-}
-
-export function getVotants(scrutinUid: string, position: string, groupe?: string) {
-  const g = groupe ? `&groupe=${groupe}` : "";
-  return get<Votant[]>(`/scrutins/${scrutinUid}/votants?position=${position}${g}`);
 }
