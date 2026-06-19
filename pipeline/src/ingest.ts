@@ -4,6 +4,7 @@ import { chargerGroupes, chargerDeputes } from "./parseActeurs.js";
 import { chargerScrutins } from "./parseScrutins.js";
 import { seedCategories, classifierTout } from "./classify.js";
 import { lierAmendements } from "./linkAmendements.js";
+import { calculerParticipation } from "./participation.js";
 
 async function main() {
   const force = process.argv.includes("--download");
@@ -23,6 +24,8 @@ async function main() {
   console.log("3/5  Scrutins + votes nominatifs");
   const { scrutins, votes } = chargerScrutins(db);
   console.log(`     ${scrutins} scrutins, ${votes} votes individuels`);
+  console.log("     · taux de participation par depute");
+  calculerParticipation(db);
 
   console.log("4/5  Categories de reference");
   seedCategories(db);

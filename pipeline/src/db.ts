@@ -34,7 +34,8 @@ export function createSchema(db: Database.Database): void {
       nom_complet  TEXT NOT NULL,
       groupe_uid   TEXT REFERENCES groupes(uid),
       photo_url    TEXT,
-      actif        INTEGER NOT NULL DEFAULT 1
+      actif        INTEGER NOT NULL DEFAULT 1,
+      participation_rate REAL            -- exprimés / scrutins depuis l'entrée au mandat
     );
 
     CREATE TABLE IF NOT EXISTS scrutins (
@@ -105,4 +106,11 @@ export function createSchema(db: Database.Database): void {
     CREATE INDEX IF NOT EXISTS idx_deputes_groupe ON deputes(groupe_uid);
     CREATE INDEX IF NOT EXISTS idx_scrutins_date  ON scrutins(date);
   `);
+
+  // Migrations pour bases existantes (ALTER ignoré si la colonne existe déjà).
+  try {
+    db.exec("ALTER TABLE deputes ADD COLUMN participation_rate REAL");
+  } catch {
+    /* colonne déjà présente */
+  }
 }

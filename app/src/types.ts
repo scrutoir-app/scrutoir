@@ -39,6 +39,8 @@ export interface CategorieStats {
 export interface ProfilDepute {
   depute: DeputeResume;
   loyaute_globale_pct: number | null;
+  participation_pct: number | null;
+  participation_rang_pct: number | null;
   categories: CategorieStats[];
 }
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C, positionLabel } from "../theme";
+import { C, F, positionLabel } from "../theme";
 import { getVotesDepute } from "../api";
 import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
@@ -39,10 +39,12 @@ export function VotesListeScreen({
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
         <View style={{ paddingTop: 12 }}>
-          <Text style={{ fontSize: 18, fontWeight: "500", color: C.text }}>
-            {nom} — a voté « {positionLabel(position)} »
+          <Text style={{ fontFamily: F.bold, fontSize: 18, color: C.text }}>
+            {position === "absent" || position === "nonvotant"
+              ? `${nom} — n'a pas pris part`
+              : `${nom} — a voté « ${positionLabel(position)} »`}
           </Text>
-          <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 4 }}>
+          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 4 }}>
             {scrutins.length} scrutins en {categorieLibelle}
           </Text>
         </View>

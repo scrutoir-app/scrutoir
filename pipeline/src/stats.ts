@@ -68,16 +68,18 @@ export interface CategorieStats {
   pour: number;
   contre: number;
   abstention: number;
-  absent: number;
-  total: number;
+  absent: number; // déduit : scrutins du thème (période) où le député n'a pas voté
+  total: number; // scrutins du thème sur la période (= pour+contre+abst+absent)
   pct_pour_exprimes: number | null;
-  loyaute_pct: number | null; // % de votes conformes a la consigne du groupe
-  base_loyaute: number; // nb de votes exprimes avec consigne connue
+  loyaute_pct: number | null;
+  base_loyaute: number;
 }
 
 export interface ProfilDepute {
   depute: DeputeResume;
   loyaute_globale_pct: number | null;
+  participation_pct: number | null; // exprimés / scrutins de la période
+  participation_rang_pct: number | null; // plus assidu·e que X % des députés
   categories: CategorieStats[];
 }
 
@@ -88,25 +90,29 @@ export function profilDepute(
 ): ProfilDepute | null {
   const depute = db
     .prepare(
-      `SELECT d.uid, d.nom_complet, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url
+      `SELECT d.uid, d.nom_complet, d.participation_rate, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url
        FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
        WHERE d.uid = ?`
     )
-    .get(uid) as DeputeResume | undefined;
+    .get(uid) as (DeputeResume & { participation_rate: number | null }) | undefined;
   if (!depute) return null;
 
+  // Fenêtre = depuis la 1re apparition du député (proxy mandat), bornée par la période.
+  const first = (db
+    .prepare("SELECT MIN(s.date) d FROM votes v JOIN scrutins s ON s.uid=v.scrutin_uid WHERE v.depute_uid=?")
+    .get(uid) as any).d as string | null;
   const borne = bornePeriode(periode);
+  const debut = [first, borne].filter(Boolean).sort().pop() ?? null; // max des deux
   const filtreDate = borne ? "AND s.date >= @borne" : "";
-  const params = { uid, borne };
+  const params = { uid, borne, debut };
 
-  const categories = db
+  // Votes exprimés du député par catégorie (+ loyauté)
+  const parCat = db
     .prepare(
-      `SELECT c.id, c.libelle, c.emoji, c.couleur,
+      `SELECT c.id,
          SUM(v.position='pour')       AS pour,
          SUM(v.position='contre')     AS contre,
          SUM(v.position='abstention') AS abstention,
-         SUM(v.position='nonvotant')  AS absent,
-         COUNT(*)                     AS total,
          SUM(CASE WHEN gp.position IS NOT NULL AND v.position IN ('pour','contre','abstention')
                   THEN 1 ELSE 0 END)  AS base_loyaute,
          SUM(CASE WHEN gp.position IS NOT NULL AND v.position = gp.position
@@ -118,46 +124,79 @@ export function profilDepute(
        LEFT JOIN groupe_positions gp
               ON gp.scrutin_uid = v.scrutin_uid AND gp.groupe_uid = v.groupe_uid
        WHERE v.depute_uid = @uid ${filtreDate}
+       GROUP BY c.id`
+    )
+    .all(params) as any[];
+  const voteMap = new Map<string, any>(parCat.map((r) => [r.id, r]));
+
+  // Périmètre : scrutins de chaque thème tenus pendant la fenêtre du député
+  const filtreDebut = debut ? "WHERE s.date >= @debut" : "";
+  const scopes = db
+    .prepare(
+      `SELECT c.id, c.libelle, c.emoji, c.couleur, c.ordre, COUNT(*) AS scope
+       FROM scrutin_categories sc
+       JOIN scrutins s   ON s.uid = sc.scrutin_uid
+       JOIN categories c ON c.id = sc.categorie_id
+       ${filtreDebut}
        GROUP BY c.id ORDER BY c.ordre`
     )
     .all(params) as any[];
 
-  const cats: CategorieStats[] = categories.map((r) => {
-    const exprimes = r.pour + r.contre;
+  const cats: CategorieStats[] = scopes.map((s) => {
+    const v = voteMap.get(s.id) ?? {};
+    const pour = v.pour ?? 0, contre = v.contre ?? 0, abstention = v.abstention ?? 0;
+    const exprimes = pour + contre + abstention;
+    const absent = Math.max(0, s.scope - exprimes);
     return {
-      id: r.id,
-      libelle: r.libelle,
-      emoji: r.emoji,
-      couleur: r.couleur,
-      pour: r.pour,
-      contre: r.contre,
-      abstention: r.abstention,
-      absent: r.absent,
-      total: r.total,
-      pct_pour_exprimes: exprimes ? Math.round((r.pour / exprimes) * 100) : null,
-      loyaute_pct: r.base_loyaute ? Math.round((r.conformes / r.base_loyaute) * 100) : null,
-      base_loyaute: r.base_loyaute,
+      id: s.id, libelle: s.libelle, emoji: s.emoji, couleur: s.couleur,
+      pour, contre, abstention, absent, total: s.scope,
+      pct_pour_exprimes: pour + contre ? Math.round((pour / (pour + contre)) * 100) : null,
+      loyaute_pct: v.base_loyaute ? Math.round((v.conformes / v.base_loyaute) * 100) : null,
+      base_loyaute: v.base_loyaute ?? 0,
     };
   });
 
+  // Loyauté globale
   const glob = db
     .prepare(
       `SELECT
-         SUM(CASE WHEN gp.position IS NOT NULL AND v.position IN ('pour','contre','abstention')
-                  THEN 1 ELSE 0 END) AS base,
-         SUM(CASE WHEN gp.position IS NOT NULL AND v.position = gp.position
-                  THEN 1 ELSE 0 END) AS conformes
+         SUM(CASE WHEN gp.position IS NOT NULL AND v.position IN ('pour','contre','abstention') THEN 1 ELSE 0 END) AS base,
+         SUM(CASE WHEN gp.position IS NOT NULL AND v.position = gp.position THEN 1 ELSE 0 END) AS conformes
        FROM votes v
        JOIN scrutins s ON s.uid = v.scrutin_uid
-       LEFT JOIN groupe_positions gp
-              ON gp.scrutin_uid = v.scrutin_uid AND gp.groupe_uid = v.groupe_uid
+       LEFT JOIN groupe_positions gp ON gp.scrutin_uid = v.scrutin_uid AND gp.groupe_uid = v.groupe_uid
        WHERE v.depute_uid = @uid ${filtreDate}`
     )
     .get(params) as any;
 
+  // Présence sur la période (exprimés / scrutins tenus)
+  const exprPeriode = (db
+    .prepare(`SELECT COUNT(*) n FROM votes v JOIN scrutins s ON s.uid=v.scrutin_uid
+              WHERE v.depute_uid=@uid AND v.position IN ('pour','contre','abstention') ${filtreDate}`)
+    .get(params) as any).n as number;
+  const scopePeriode = debut
+    ? (db.prepare("SELECT COUNT(*) n FROM scrutins WHERE date >= ?").get(debut) as any).n
+    : 0;
+  const participation_pct = scopePeriode ? Math.round((exprPeriode / scopePeriode) * 100) : null;
+
+  // Rang relatif (sur le taux global pré-calculé)
+  let participation_rang_pct: number | null = null;
+  if (depute.participation_rate != null) {
+    const r = db
+      .prepare(
+        `SELECT
+           (SELECT COUNT(*) FROM deputes WHERE actif=1 AND participation_rate IS NOT NULL AND participation_rate < ?) AS inf,
+           (SELECT COUNT(*) FROM deputes WHERE actif=1 AND participation_rate IS NOT NULL) AS tot`
+      )
+      .get(depute.participation_rate) as any;
+    if (r.tot) participation_rang_pct = Math.round((r.inf / r.tot) * 100);
+  }
+
   return {
     depute,
     loyaute_globale_pct: glob?.base ? Math.round((glob.conformes / glob.base) * 100) : null,
+    participation_pct,
+    participation_rang_pct,
     categories: cats,
   };
 }
@@ -224,6 +263,26 @@ export function votesDeputeCategorie(
   periode: Periode = "all"
 ): any[] {
   const borne = bornePeriode(periode);
+
+  // "absent" = scrutins du thème (depuis l'entrée du député) où il n'a PAS voté.
+  if (position === "absent" || position === "nonvotant") {
+    const first = (db
+      .prepare("SELECT MIN(s.date) d FROM votes v JOIN scrutins s ON s.uid=v.scrutin_uid WHERE v.depute_uid=?")
+      .get(deputeUid) as any).d as string | null;
+    const debut = [first, borne].filter(Boolean).sort().pop() ?? null;
+    const filtreDebut = debut ? "AND s.date >= @debut" : "";
+    return db
+      .prepare(
+        `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, 'absent' AS position
+         FROM scrutin_categories sc
+         JOIN scrutins s ON s.uid = sc.scrutin_uid
+         WHERE sc.categorie_id = @cat ${filtreDebut}
+           AND NOT EXISTS (SELECT 1 FROM votes v WHERE v.scrutin_uid = s.uid AND v.depute_uid = @uid)
+         ORDER BY s.date DESC, s.numero DESC`
+      )
+      .all({ uid: deputeUid, cat: categorieId, debut }) as any[];
+  }
+
   const filtreDate = borne ? "AND s.date >= @borne" : "";
   const filtrePos = position ? "AND v.position = @pos" : "";
   return db

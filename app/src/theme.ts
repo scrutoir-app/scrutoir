@@ -76,7 +76,8 @@ export function positionLabel(p: string | null): string {
     case "pour": return "Pour";
     case "contre": return "Contre";
     case "abstention": return "Abstention";
-    case "nonvotant": return "Absent";
+    case "nonvotant":
+    case "absent": return "Absent";
     default: return "—";
   }
 }
