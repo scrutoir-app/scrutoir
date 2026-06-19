@@ -42,7 +42,10 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (Pour→adopté / Contre→rejeté), global + par thème. Calcul live dans `profilDepute` (via `sort_code`).
 - **Menu Partis** : liste des groupes + fiche parti = **président·e** (col `deputes.qualite`, cliquable),
   **réussite** (par thème, via consigne `positionMajoritaire`), **cohésion** (discipline de vote),
-  **participation moyenne**. API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
+  **participation moyenne**, et **activité parlementaire** : amendements déposés (par groupe via
+  `groupePolitiqueRef`, /élu + ×ratio vs moyenne → signal d'obstruction) et propositions de loi
+  (via initiateur des dossiers). Table `groupe_activite` (peuplée par `linkAmendements` + `activiteGroupes`).
+  API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
 
