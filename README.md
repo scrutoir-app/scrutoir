@@ -113,6 +113,13 @@ streaming sans extraction). Le lien scrutin↔amendement est reconstitué par he
 cd pipeline && npm run link-amendements   # télécharge l'archive si besoin + relie
 ```
 
+## Idées en attente (backlog)
+
+- **Espace « élus »** (distinct de la vue électeur) : un·e député·e y verrait son **taux de
+  réussite** = part de ses votes exprimés où le résultat a suivi son vote (Pour→adopté ou
+  Contre→rejeté), au **global** et **par thème**. Données déjà disponibles (position du
+  député + `sort_code` du scrutin). À faire **après** avoir terminé la vue électeur.
+
 ## Pistes suivantes
 
 - Améliorer la classification (affiner les mots-clés ou brancher Claude API en hybride).
