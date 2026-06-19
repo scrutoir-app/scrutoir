@@ -15,8 +15,20 @@ export function AProposScreen() {
   return (
     <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
       <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>À propos & limites</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, lineHeight: 20, marginTop: 6, marginBottom: 18 }}>
-        Scrutoir montre les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
+
+      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 22, marginTop: 12 }}>
+        À quoi sert Scrutoir ?
+      </Text>
+      <Text style={{ fontFamily: F.medium, fontSize: 13.5, color: C.text, lineHeight: 21, marginTop: 6 }}>
+        Scrutoir aide à comparer le discours des politiques à leurs actes. L'app rend lisibles les
+        votes réels des député·e·s à l'Assemblée : cherchez un·e élu·e et voyez comment il ou elle a
+        voté par thème, ouvrez un scrutin pour comprendre le texte, confrontez deux élu·e·s sur leurs
+        accords et désaccords, ou retrouvez votre député·e par commune. Le tout de façon neutre —
+        aucune couleur de parti n'est mise en avant, seul le vote parle.
+      </Text>
+
+      <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, lineHeight: 20, marginTop: 16, marginBottom: 18 }}>
+        Scrutoir s'appuie sur les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
         les seuls votes attribués nominativement à chaque député·e. Pour rester honnête, voici
         précisément ce que l'app couvre — et ce qu'elle ne couvre pas.
       </Text>
