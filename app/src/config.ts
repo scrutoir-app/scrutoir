@@ -7,3 +7,8 @@
  * votes au lieu d'une position — un échantillon trop faible ne permet pas de conclure.
  */
 export const SEUIL_FIABILITE = 5;
+
+/** URL publique d'un scrutin sur le site de l'Assemblée Nationale (source vérifiable). */
+export function scrutinSourceUrl(numero: number | null | undefined): string | null {
+  return numero ? `https://www.assemblee-nationale.fr/dyn/17/scrutins/${numero}` : null;
+}

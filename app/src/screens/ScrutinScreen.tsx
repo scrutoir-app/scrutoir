@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard, formatDate, positionLabel } from "../theme";
+import { scrutinSourceUrl } from "../config";
 import { getScrutin } from "../api";
 import type { DetailScrutin } from "../types";
 import type { Nav } from "../nav";
@@ -60,6 +61,20 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
       <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 6 }}>
         {formatDate(s.date)} · scrutin n° {s.numero}
       </Text>
+
+      {/* Lien source : page publique du scrutin sur l'Assemblée Nationale */}
+      {scrutinSourceUrl(s.numero) && (
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() => Linking.openURL(scrutinSourceUrl(s.numero)!)}
+          style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10, alignSelf: "flex-start" }}
+        >
+          <Feather name="external-link" size={13} color={C.accent} />
+          <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.accent }}>
+            Voir le scrutin sur assemblee-nationale.fr
+          </Text>
+        </TouchableOpacity>
+      )}
 
       {/* Exposé d'amendement (pliable) */}
       {am && (am.expose || am.dispositif) && (
