@@ -97,6 +97,9 @@ export interface CategorieStats {
   pct_pour_exprimes: number | null;
   loyaute_pct: number | null;
   base_loyaute: number;
+  reussite_pct: number | null; // % de votes exprimés où le résultat a suivi le vote
+  gagnes: number; // votes "gagnés" (Pour→adopté / Contre→rejeté)
+  perdus: number;
 }
 
 export interface ProfilDepute {
@@ -104,6 +107,7 @@ export interface ProfilDepute {
   loyaute_globale_pct: number | null;
   participation_pct: number | null; // exprimés / scrutins de la période
   participation_rang_pct: number | null; // plus assidu·e que X % des députés
+  reussite_globale_pct: number | null; // % de votes exprimés où le résultat a suivi le vote
   categories: CategorieStats[];
 }
 
@@ -137,6 +141,10 @@ export function profilDepute(
          SUM(v.position='pour')       AS pour,
          SUM(v.position='contre')     AS contre,
          SUM(v.position='abstention') AS abstention,
+         SUM(CASE WHEN (v.position='pour' AND s.sort_code='adopte') OR (v.position='contre' AND s.sort_code='rejete')
+                  THEN 1 ELSE 0 END)  AS gagnes,
+         SUM(CASE WHEN (v.position='pour' AND s.sort_code='rejete') OR (v.position='contre' AND s.sort_code='adopte')
+                  THEN 1 ELSE 0 END)  AS perdus,
          SUM(CASE WHEN gp.position IS NOT NULL AND v.position IN ('pour','contre','abstention')
                   THEN 1 ELSE 0 END)  AS base_loyaute,
          SUM(CASE WHEN gp.position IS NOT NULL AND v.position = gp.position
@@ -171,12 +179,15 @@ export function profilDepute(
     const pour = v.pour ?? 0, contre = v.contre ?? 0, abstention = v.abstention ?? 0;
     const exprimes = pour + contre + abstention;
     const absent = Math.max(0, s.scope - exprimes);
+    const gagnes = v.gagnes ?? 0, perdus = v.perdus ?? 0;
     return {
       id: s.id, libelle: s.libelle, emoji: s.emoji, couleur: s.couleur,
       pour, contre, abstention, absent, total: s.scope,
       pct_pour_exprimes: pour + contre ? Math.round((pour / (pour + contre)) * 100) : null,
       loyaute_pct: v.base_loyaute ? Math.round((v.conformes / v.base_loyaute) * 100) : null,
       base_loyaute: v.base_loyaute ?? 0,
+      gagnes, perdus,
+      reussite_pct: gagnes + perdus ? Math.round((gagnes / (gagnes + perdus)) * 100) : null,
     };
   });
 
@@ -192,6 +203,18 @@ export function profilDepute(
        WHERE v.depute_uid = @uid ${filtreDate}`
     )
     .get(params) as any;
+
+  // Réussite globale : le résultat a-t-il suivi le vote ?
+  const reuss = db
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN (v.position='pour' AND s.sort_code='adopte') OR (v.position='contre' AND s.sort_code='rejete') THEN 1 ELSE 0 END) AS gagnes,
+         SUM(CASE WHEN (v.position='pour' AND s.sort_code='rejete') OR (v.position='contre' AND s.sort_code='adopte') THEN 1 ELSE 0 END) AS perdus
+       FROM votes v JOIN scrutins s ON s.uid = v.scrutin_uid
+       WHERE v.depute_uid = @uid ${filtreDate}`
+    )
+    .get(params) as any;
+  const reussiteBase = (reuss?.gagnes ?? 0) + (reuss?.perdus ?? 0);
 
   // Présence sur la période (exprimés / scrutins tenus)
   const exprPeriode = (db
@@ -221,6 +244,7 @@ export function profilDepute(
     loyaute_globale_pct: glob?.base ? Math.round((glob.conformes / glob.base) * 100) : null,
     participation_pct,
     participation_rang_pct,
+    reussite_globale_pct: reussiteBase ? Math.round((reuss.gagnes / reussiteBase) * 100) : null,
     categories: cats,
   };
 }

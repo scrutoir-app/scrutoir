@@ -6,6 +6,7 @@ import { getProfil } from "../api";
 import type { ProfilDepute, Periode } from "../types";
 import { Ring } from "../components/Ring";
 import { CategoryVoteCard } from "../components/CategoryVoteCard";
+import { ReussiteCard } from "../components/ReussiteCard";
 import type { Nav } from "../nav";
 
 const PERIODES: { id: Periode; label: string }[] = [
@@ -16,6 +17,7 @@ const PERIODES: { id: Periode; label: string }[] = [
 
 export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
+  const [lens, setLens] = useState<"positions" | "reussite">("positions");
   const [profil, setProfil] = useState<ProfilDepute | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -36,7 +38,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
     );
   if (!profil) return null;
 
-  const { depute: d, loyaute_globale_pct, participation_pct, participation_rang_pct, categories } = profil;
+  const { depute: d, loyaute_globale_pct, participation_pct, participation_rang_pct, reussite_globale_pct, categories } = profil;
   const loy = couleurLoyaute(loyaute_globale_pct);
 
   return (
@@ -104,19 +106,58 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <Feather name="chevron-right" size={18} color={C.textFaint} />
       </TouchableOpacity>
 
-      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>Votes par thème</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+        <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3 }}>
+          {lens === "positions" ? "Votes par thème" : "Réussite par thème"}
+        </Text>
+        <View style={{ flexDirection: "row", gap: 3, padding: 3, backgroundColor: C.surfaceAlt, borderRadius: 9 }}>
+          {(["positions", "reussite"] as const).map((l) => {
+            const actif = l === lens;
+            return (
+              <TouchableOpacity
+                key={l}
+                onPress={() => setLens(l)}
+                style={{ paddingHorizontal: 11, paddingVertical: 5, borderRadius: 7, backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : {}) }}
+              >
+                <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 11.5, color: actif ? C.text : C.textMuted }}>
+                  {l === "positions" ? "Positions" : "Réussite"}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      </View>
+
+      {lens === "reussite" && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, marginBottom: 12, ...shadowCard }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.accent, letterSpacing: -0.5 }}>
+            {reussite_globale_pct ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textFaint }}>%</Text>
+          </Text>
+          <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 12, color: C.textMuted, lineHeight: 16 }}>
+            de réussite globale — part des votes où le résultat a suivi son vote (Pour→adopté, Contre→rejeté).
+          </Text>
+        </View>
+      )}
 
       <View style={{ gap: 11 }}>
-        {categories.map((c) => (
-          <CategoryVoteCard
-            key={c.id}
-            cat={c}
-            onTitle={() => nav.push({ name: "votesCategorie", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, periode })}
-            onCell={(position) =>
-              nav.push({ name: "votesDepute", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, position })
-            }
-          />
-        ))}
+        {lens === "positions"
+          ? categories.map((c) => (
+              <CategoryVoteCard
+                key={c.id}
+                cat={c}
+                onTitle={() => nav.push({ name: "votesCategorie", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, periode })}
+                onCell={(position) =>
+                  nav.push({ name: "votesDepute", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, position })
+                }
+              />
+            ))
+          : categories.map((c) => (
+              <ReussiteCard
+                key={c.id}
+                cat={c}
+                onPress={() => nav.push({ name: "votesCategorie", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, periode })}
+              />
+            ))}
       </View>
 
       <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>

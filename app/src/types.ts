@@ -34,6 +34,9 @@ export interface CategorieStats {
   pct_pour_exprimes: number | null;
   loyaute_pct: number | null;
   base_loyaute: number;
+  reussite_pct: number | null;
+  gagnes: number;
+  perdus: number;
 }
 
 export interface ProfilDepute {
@@ -41,6 +44,7 @@ export interface ProfilDepute {
   loyaute_globale_pct: number | null;
   participation_pct: number | null;
   participation_rang_pct: number | null;
+  reussite_globale_pct: number | null;
   categories: CategorieStats[];
 }
 

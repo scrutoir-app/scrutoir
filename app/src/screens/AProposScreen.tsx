@@ -57,6 +57,12 @@ export function AProposScreen() {
         l'Assemblée). Les abstentions et absences sont exclues de ce calcul.
       </Bloc>
 
+      <Bloc titre="Taux de réussite">
+        Part des votes exprimés où le résultat a suivi le vote du député (Pour → adopté, Contre →
+        rejeté). Indique s'il/elle se retrouve plutôt dans la majorité ou la minorité, au global et
+        par thème. Les abstentions sont exclues.
+      </Bloc>
+
       <Bloc titre="Exposé des amendements">
         Quand un scrutin porte sur un amendement, on affiche son exposé. Le lien scrutin↔amendement
         est reconstitué automatiquement (date + numéro + auteur) : il aboutit pour ~9 amendements
