@@ -283,6 +283,9 @@ export function listePartis(db: Database.Database): PartiResume[] {
 
 export interface ProfilParti {
   parti: { uid: string; libelle: string; abrev: string | null; couleur: string | null; nb_deputes: number };
+  president: { uid: string; nom_complet: string; photo_url: string | null } | null;
+  cohesion_pct: number | null; // % de votes des membres conformes à la consigne du groupe
+  participation_moy_pct: number | null; // participation moyenne des membres
   reussite_globale_pct: number | null;
   categories: Array<{
     id: string; libelle: string; emoji: string; couleur: string;
@@ -339,8 +342,40 @@ export function profilParti(db: Database.Database, uid: string, periode: Periode
     .get(params) as any;
   const base = (glob?.gagnes ?? 0) + (glob?.perdus ?? 0);
 
+  // Président·e du groupe
+  const president = (db
+    .prepare(
+      `SELECT uid, nom_complet, photo_url FROM deputes
+       WHERE groupe_uid = ? AND actif = 1 AND qualite = 'Président' LIMIT 1`
+    )
+    .get(uid) as any) ?? null;
+
+  // Cohésion : votes des membres conformes à la consigne du groupe
+  const coh = db
+    .prepare(
+      `SELECT
+         SUM(CASE WHEN gp.position IS NOT NULL AND v.position IN ('pour','contre','abstention') THEN 1 ELSE 0 END) AS base,
+         SUM(CASE WHEN gp.position IS NOT NULL AND v.position = gp.position THEN 1 ELSE 0 END) AS conformes
+       FROM votes v
+       JOIN scrutins s ON s.uid = v.scrutin_uid
+       JOIN groupe_positions gp ON gp.scrutin_uid = v.scrutin_uid AND gp.groupe_uid = v.groupe_uid
+       WHERE v.groupe_uid = @uid ${filtreDate}`
+    )
+    .get(params) as any;
+
+  // Participation moyenne des membres actifs
+  const part = db
+    .prepare(
+      `SELECT AVG(participation_rate) AS m FROM deputes
+       WHERE groupe_uid = ? AND actif = 1 AND participation_rate IS NOT NULL`
+    )
+    .get(uid) as any;
+
   return {
     parti,
+    president,
+    cohesion_pct: coh?.base ? Math.round((coh.conformes / coh.base) * 100) : null,
+    participation_moy_pct: part?.m != null ? Math.round(part.m * 100) : null,
     reussite_globale_pct: base ? Math.round((glob.gagnes / base) * 100) : null,
     categories: cats,
   };

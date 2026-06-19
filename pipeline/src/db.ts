@@ -35,7 +35,8 @@ export function createSchema(db: Database.Database): void {
       groupe_uid   TEXT REFERENCES groupes(uid),
       photo_url    TEXT,
       actif        INTEGER NOT NULL DEFAULT 1,
-      participation_rate REAL            -- exprimés / scrutins depuis l'entrée au mandat
+      participation_rate REAL,           -- exprimés / scrutins depuis l'entrée au mandat
+      qualite      TEXT                  -- qualité dans le groupe (Président, Membre…)
     );
 
     CREATE TABLE IF NOT EXISTS scrutins (
@@ -110,6 +111,11 @@ export function createSchema(db: Database.Database): void {
   // Migrations pour bases existantes (ALTER ignoré si la colonne existe déjà).
   try {
     db.exec("ALTER TABLE deputes ADD COLUMN participation_rate REAL");
+  } catch {
+    /* colonne déjà présente */
+  }
+  try {
+    db.exec("ALTER TABLE deputes ADD COLUMN qualite TEXT");
   } catch {
     /* colonne déjà présente */
   }

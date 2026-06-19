@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
 import { getParti } from "../api";
 import type { ProfilParti, Periode } from "../types";
@@ -47,14 +48,27 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </View>
       </View>
 
-      {/* Réussite globale */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 16, ...shadowCard }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 28, color: C.accent, letterSpacing: -0.6 }}>
-          {data.reussite_globale_pct ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 14, color: C.textFaint }}>%</Text>
-        </Text>
-        <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, lineHeight: 17 }}>
-          de réussite — part des scrutins où la ligne du groupe a suivi le résultat (Pour→adopté, Contre→rejeté).
-        </Text>
+      {/* Président·e du groupe */}
+      {data.president && (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => nav.push({ name: "depute", uid: data.president!.uid })}
+          style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, marginBottom: 12, ...shadowCard }}
+        >
+          <Image source={{ uri: data.president.photo_url ?? undefined }} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }}>Président·e du groupe</Text>
+            <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, marginTop: 1 }}>{data.president.nom_complet}</Text>
+          </View>
+          <Feather name="chevron-right" size={18} color={C.textFaint} />
+        </TouchableOpacity>
+      )}
+
+      {/* 3 stats */}
+      <View style={{ flexDirection: "row", gap: 9, marginBottom: 16 }}>
+        <MiniStat valeur={data.reussite_globale_pct} label="Réussite" />
+        <MiniStat valeur={data.cohesion_pct} label="Cohésion" />
+        <MiniStat valeur={data.participation_moy_pct} label="Participation" />
       </View>
 
       {/* Période */}
@@ -77,9 +91,21 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       </View>
 
       <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>
-        Réussite calculée sur la consigne de vote du groupe (position majoritaire fournie par l'Assemblée),
-        scrutins publics 17ᵉ législature. Les abstentions sont exclues.
+        Réussite = la ligne du groupe a suivi le résultat (Pour→adopté, Contre→rejeté). Cohésion = part
+        des votes des membres conformes à la consigne. Participation = moyenne des membres. Scrutins
+        publics 17ᵉ législature ; abstentions exclues.
       </Text>
     </ScrollView>
+  );
+}
+
+function MiniStat({ valeur, label }: { valeur: number | null; label: string }) {
+  return (
+    <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, alignItems: "center", ...shadowCard }}>
+      <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.accent, letterSpacing: -0.5 }}>
+        {valeur ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 12, color: C.textFaint }}>%</Text>
+      </Text>
+      <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.textMuted, marginTop: 4 }}>{label}</Text>
+    </View>
   );
 }

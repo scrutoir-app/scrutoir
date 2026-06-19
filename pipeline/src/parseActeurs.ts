@@ -48,12 +48,12 @@ export function chargerGroupes(db: Database.Database): number {
 /** Charge les deputes avec leur groupe politique courant (mandat GP actif). */
 export function chargerDeputes(db: Database.Database): number {
   const insert = db.prepare(
-    `INSERT INTO deputes (uid, civilite, prenom, nom, nom_complet, groupe_uid, photo_url, actif)
-     VALUES (@uid, @civilite, @prenom, @nom, @nom_complet, @groupe_uid, @photo_url, 1)
+    `INSERT INTO deputes (uid, civilite, prenom, nom, nom_complet, groupe_uid, photo_url, qualite, actif)
+     VALUES (@uid, @civilite, @prenom, @nom, @nom_complet, @groupe_uid, @photo_url, @qualite, 1)
      ON CONFLICT(uid) DO UPDATE SET
        civilite=excluded.civilite, prenom=excluded.prenom, nom=excluded.nom,
        nom_complet=excluded.nom_complet, groupe_uid=excluded.groupe_uid,
-       photo_url=excluded.photo_url, actif=1`
+       photo_url=excluded.photo_url, qualite=excluded.qualite, actif=1`
   );
   let n = 0;
   const files = fs.readdirSync(ACTEURS_DIR).filter((f) => f.endsWith(".json"));
@@ -66,14 +66,15 @@ export function chargerDeputes(db: Database.Database): number {
       const prenom = ident.prenom ?? "";
       const nom = ident.nom ?? "";
 
-      // Groupe politique courant : mandat GP dont la date de fin est nulle.
-      let groupeUid: string | null = null;
-      for (const m of asArray(a.mandats?.mandat)) {
-        if (m?.typeOrgane === "GP" && !m?.dateFin) {
-          groupeUid = m?.organes?.organeRef ?? null;
-          break;
-        }
-      }
+      // Groupe politique courant : mandats GP dont la date de fin est nulle.
+      // On privilégie le mandat "Président" si présent (un·e député·e peut avoir
+      // plusieurs mandats GP actifs ; le premier n'est pas toujours la présidence).
+      const gpActifs = asArray(a.mandats?.mandat).filter(
+        (m: any) => m?.typeOrgane === "GP" && !m?.dateFin
+      );
+      const principal = gpActifs.find((m: any) => m?.infosQualite?.codeQualite === "Président") ?? gpActifs[0];
+      const groupeUid: string | null = principal?.organes?.organeRef ?? null;
+      const qualite: string | null = principal?.infosQualite?.codeQualite ?? null;
 
       // Photo officielle AN : id numerique (uid sans le prefixe "PA").
       const idNum = uid.replace(/^PA/, "");
@@ -87,6 +88,7 @@ export function chargerDeputes(db: Database.Database): number {
         nom_complet: `${prenom} ${nom}`.trim(),
         groupe_uid: groupeUid,
         photo_url: photoUrl,
+        qualite,
       });
       n++;
     }

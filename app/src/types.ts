@@ -136,6 +136,9 @@ export interface PartiCategorie {
 
 export interface ProfilParti {
   parti: { uid: string; libelle: string; abrev: string | null; couleur: string | null; nb_deputes: number };
+  president: { uid: string; nom_complet: string; photo_url: string | null } | null;
+  cohesion_pct: number | null;
+  participation_moy_pct: number | null;
   reussite_globale_pct: number | null;
   categories: PartiCategorie[];
 }
