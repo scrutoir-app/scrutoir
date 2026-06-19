@@ -136,13 +136,15 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
 /* ------------------------------------------------------------------ Résultats */
 
 function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; depA: DeputeResume; depB: DeputeResume; periode: Periode; nav: Nav }) {
-  const fiables = data.themes.filter((t) => t.communs >= SEUIL_FIABILITE);
-  const desaccordsThemes = fiables.filter((t) => t.desaccords.length > 0);
-  const accordsThemes = fiables.filter((t) => t.accords.length > 0);
+  // Spectre : thèmes assez couverts, triés du plus divergent au plus convergent.
+  const fiables = data.themes
+    .filter((t) => t.communs >= SEUIL_FIABILITE)
+    .sort((a, b) => b.desaccords.length / b.communs - a.desaccords.length / a.communs);
   // Non couverts = aucun scrutin commun ; insuffisants = trop peu pour conclure.
   const nonCouverts = data.themes.filter((t) => t.communs === 0);
   const insuffisants = data.themes.filter((t) => t.communs > 0 && t.communs < SEUIL_FIABILITE);
   const periodeLabel = PERIODES.find((p) => p.v === periode)?.label ?? "";
+  const tauxAccord = data.communs ? Math.round((data.accords / data.communs) * 100) : null;
 
   return (
     <View style={{ marginTop: 18 }}>
@@ -151,8 +153,14 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
         <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
           <Synthese n={data.desaccords} label="Désaccords" color={C.contre} />
           <Synthese n={data.accords} label="Accords" color={C.pour} />
-          <Synthese n={data.communs} label="Scrutins comparés" color={C.text} />
+          <Synthese n={tauxAccord != null ? `${tauxAccord}%` : "—"} label="Taux d'accord" color={C.text} />
         </View>
+        {data.communs > 0 && (
+          <View style={{ flexDirection: "row", height: 8, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken, marginTop: 12 }}>
+            <View style={{ flex: data.accords || 0.0001, backgroundColor: C.pour }} />
+            <View style={{ flex: data.desaccords || 0.0001, backgroundColor: C.contre }} />
+          </View>
+        )}
         <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint, marginTop: 11, textAlign: "center", lineHeight: 15 }}>
           {periodeLabel} · scrutins publics nominatifs (17ᵉ législature){"\n"}où {depA.nom_complet} et {depB.nom_complet} ont tous deux voté
         </Text>
@@ -164,20 +172,18 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
         </Text>
       )}
 
-      {desaccordsThemes.length > 0 && (
-        <Section titre="Désaccords" sousTitre="positions opposées" couleur={C.contre}>
-          {desaccordsThemes.map((t) => (
-            <ThemeBloc key={t.id} theme={t} scrutins={t.desaccords} depA={depA} depB={depB} nav={nav} />
-          ))}
-        </Section>
-      )}
-
-      {accordsThemes.length > 0 && (
-        <Section titre="Accords" sousTitre="même position" couleur={C.pour}>
-          {accordsThemes.map((t) => (
-            <ThemeBloc key={t.id} theme={t} scrutins={t.accords} depA={depA} depB={depB} nav={nav} />
-          ))}
-        </Section>
+      {fiables.length > 0 && (
+        <View style={{ marginTop: 22 }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 16, color: C.text }}>Accord par thème</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 2, marginBottom: 11 }}>
+            Du plus divergent au plus convergent. Touchez un thème pour le détail.
+          </Text>
+          <View style={{ gap: 9 }}>
+            {fiables.map((t) => (
+              <ThemeSpectrumRow key={t.id} theme={t} nav={nav} />
+            ))}
+          </View>
+        </View>
       )}
 
       {(nonCouverts.length > 0 || insuffisants.length > 0) && (
@@ -200,7 +206,7 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
   );
 }
 
-function Synthese({ n, label, color }: { n: number; label: string; color: string }) {
+function Synthese({ n, label, color }: { n: number | string; label: string; color: string }) {
   return (
     <View style={{ alignItems: "center" }}>
       <Text style={{ fontFamily: F.extra, fontSize: 24, color, letterSpacing: -0.5 }}>{n}</Text>
@@ -209,40 +215,48 @@ function Synthese({ n, label, color }: { n: number; label: string; color: string
   );
 }
 
-function Section({ titre, sousTitre, couleur, children }: { titre: string; sousTitre: string; couleur: string; children: React.ReactNode }) {
-  return (
-    <View style={{ marginTop: 22 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginBottom: 11 }}>
-        <View style={{ width: 9, height: 9, borderRadius: 5, backgroundColor: couleur }} />
-        <Text style={{ fontFamily: F.extra, fontSize: 16, color: C.text }}>{titre}</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textFaint }}>· {sousTitre}</Text>
-      </View>
-      <View style={{ gap: 11 }}>{children}</View>
-    </View>
-  );
-}
-
-function ThemeBloc({ theme, scrutins, depA, depB, nav }: { theme: ConfrontationTheme; scrutins: ConfrontationScrutin[]; depA: DeputeResume; depB: DeputeResume; nav: Nav }) {
+/** Ligne de spectre : thème + barre accord/désaccord, dépliable vers le détail. */
+function ThemeSpectrumRow({ theme, nav }: { theme: ConfrontationTheme; nav: Nav }) {
+  const [open, setOpen] = useState(false);
   const ui = catUI(theme.id);
+  const d = theme.desaccords.length;
+  const a = theme.accords.length;
+  const pctDesaccord = Math.round((d / theme.communs) * 100);
+
   return (
-    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 10 }}>
-        <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
-          <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
+    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, overflow: "hidden", ...shadowCard }}>
+      <TouchableOpacity activeOpacity={0.6} onPress={() => setOpen((o) => !o)} style={{ padding: 13 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 9 }}>
+          <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
+            <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
+          </View>
+          <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }} numberOfLines={1}>{theme.libelle}</Text>
+          <Text style={{ fontFamily: F.extra, fontSize: 14, color: pctDesaccord >= 50 ? C.contre : C.text }}>{pctDesaccord}%</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>désac.</Text>
+          <Feather name={open ? "chevron-up" : "chevron-down"} size={17} color={C.textFaint} />
         </View>
-        <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>{theme.libelle}</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>{theme.communs} comparés</Text>
-      </View>
-      <View style={{ gap: 9 }}>
-        {scrutins.map((sc) => (
-          <ScrutinLigne key={sc.uid} sc={sc} nav={nav} />
-        ))}
-      </View>
+        <View style={{ flexDirection: "row", height: 8, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken }}>
+          <View style={{ flex: a || 0.0001, backgroundColor: C.pour }} />
+          <View style={{ flex: d || 0.0001, backgroundColor: C.contre }} />
+        </View>
+        <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint, marginTop: 6 }}>
+          {d} désaccord{d > 1 ? "s" : ""} · {a} accord{a > 1 ? "s" : ""} sur {theme.communs} comparés
+        </Text>
+      </TouchableOpacity>
+
+      {open && (
+        <View style={{ paddingHorizontal: 13, paddingBottom: 13, gap: 9 }}>
+          {[...theme.desaccords, ...theme.accords].map((sc) => (
+            <ScrutinLigne key={sc.uid} sc={sc} nav={nav} />
+          ))}
+        </View>
+      )}
     </View>
   );
 }
 
 function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
+  const [voirTexte, setVoirTexte] = useState(false);
   const resume = (sc.resume || sc.objet || "").trim();
   const url = scrutinSourceUrl(sc.numero);
   return (
@@ -252,11 +266,6 @@ function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
           {sc.titre || sc.objet}
         </Text>
       </TouchableOpacity>
-      {!!resume && (
-        <Text style={{ fontFamily: F.regular, fontSize: 11.5, color: C.textMuted, marginTop: 3, lineHeight: 16 }} numberOfLines={2}>
-          {resume}
-        </Text>
-      )}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 7 }}>
         <PosChip pos={sc.posA} />
         <PosChip pos={sc.posB} />
@@ -269,6 +278,21 @@ function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
           </TouchableOpacity>
         )}
       </View>
+      {/* Résumé du texte : caché par défaut, à la demande (reco confrontation) */}
+      {!!resume && (
+        <>
+          <TouchableOpacity onPress={() => setVoirTexte((v) => !v)} style={{ marginTop: 7 }} hitSlop={6}>
+            <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.accent }}>
+              {voirTexte ? "Masquer le texte ▴" : "Voir le texte ▾"}
+            </Text>
+          </TouchableOpacity>
+          {voirTexte && (
+            <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.textMuted, marginTop: 5, lineHeight: 17 }}>
+              {resume}
+            </Text>
+          )}
+        </>
+      )}
     </View>
   );
 }
