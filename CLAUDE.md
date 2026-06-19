@@ -48,8 +48,10 @@ cd ../app && npm run web                            # app -> http://localhost:80
   API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
-- Accueil : fil « Derniers grands scrutins » raccourci à 3 + « Tout voir » → écran
+- Accueil : fil « Derniers grands scrutins » raccourci à 2 + « Tout voir » → écran
   `GrandsScrutinsScreen` (route `grandsScrutins`), pour que les thèmes soient visibles vite.
+- **Croisé thème × parti** : sur un écran de thème, classement des partis par réussite sur ce
+  thème (API `/categories/:id/partis`, `partisParCategorie`, base ≥ 5 scrutins), cliquable → parti.
 - **Picto de catégorie** sur chaque scrutin (ScrutinCard/ScrutinRow ; API renvoie `categorie`
   principale par sous-requête). **Code couleur** sur le nombre d'amendements d'un parti (orange si
   > moyenne, rouge si ×≥1.5 → signal d'anomalie/obstruction).
