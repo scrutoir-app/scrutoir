@@ -143,16 +143,16 @@ function Accueil({ nav }: { nav: Nav }) {
           </TouchableOpacity>
         </View>
         <View style={{ gap: 11 }}>
-          {grands.slice(0, 3).map((s) => (
+          {grands.slice(0, 2).map((s) => (
             <ScrutinCard key={s.uid} scrutin={s} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} />
           ))}
-          {grands.length > 3 && (
+          {grands.length > 2 && (
             <TouchableOpacity
               onPress={() => nav.push({ name: "grandsScrutins" })}
               style={{ alignItems: "center", paddingVertical: 11, backgroundColor: C.surface, borderRadius: RADIUS.md, ...shadowCard }}
             >
               <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.accent }}>
-                Voir les {grands.length - 3} autres  ···
+                Voir les {grands.length - 2} autres  ···
               </Text>
             </TouchableOpacity>
           )}
