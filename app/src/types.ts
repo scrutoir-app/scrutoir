@@ -15,6 +15,7 @@ export interface ScrutinResume {
   objet: string | null;
   sort_code: string | null;
   sort_libelle: string | null;
+  categorie?: string | null; // catégorie principale (picto)
   // Présents sur certains endpoints (grands scrutins, scrutins par thème)
   pour?: number;
   contre?: number;

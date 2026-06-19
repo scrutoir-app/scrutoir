@@ -75,7 +75,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>Activité parlementaire</Text>
       <View style={{ flexDirection: "row", gap: 11, marginBottom: 6 }}>
         <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 22, color: amdColor(data.amendements_ratio), letterSpacing: -0.5 }}>
             {data.amendements.toLocaleString("fr-FR")}
           </Text>
           <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted, marginTop: 2 }}>Amendements déposés</Text>
@@ -83,8 +83,8 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}>
               <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint }}>{data.amendements_par_elu}/élu</Text>
               {data.amendements_ratio != null && (
-                <View style={{ backgroundColor: C.surfaceAlt, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 }}>
-                  <Text style={{ fontFamily: F.bold, fontSize: 11, color: data.amendements_ratio >= 1.3 ? C.loyalMoyen : C.textMuted }}>
+                <View style={{ backgroundColor: amdBg(data.amendements_ratio), paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 }}>
+                  <Text style={{ fontFamily: F.bold, fontSize: 11, color: amdColor(data.amendements_ratio) }}>
                     ×{data.amendements_ratio} vs moy.
                   </Text>
                 </View>
@@ -130,6 +130,20 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       </Text>
     </ScrollView>
   );
+}
+
+// Couleur du nombre d'amendements selon l'écart à la moyenne (signal d'anomalie).
+function amdColor(ratio: number | null): string {
+  if (ratio == null) return C.text;
+  if (ratio >= 1.5) return C.loyalBas; // rouge : anomalie forte
+  if (ratio > 1.0) return C.loyalMoyen; // orange : au-dessus de la moyenne
+  return C.text;
+}
+function amdBg(ratio: number | null): string {
+  if (ratio == null) return C.surfaceAlt;
+  if (ratio >= 1.5) return C.loyalBasBg;
+  if (ratio > 1.0) return C.loyalMoyenBg;
+  return C.surfaceAlt;
 }
 
 function MiniStat({ valeur, label }: { valeur: number | null; label: string }) {

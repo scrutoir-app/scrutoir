@@ -71,15 +71,17 @@ export interface ScrutinResume {
   objet: string | null;
   sort_code: string | null;
   sort_libelle: string | null;
+  categorie?: string | null; // catégorie principale (pour le picto)
 }
 
 export function rechercheScrutins(db: Database.Database, q: string, limit = 15): ScrutinResume[] {
   return db
     .prepare(
-      `SELECT uid, numero, date, titre, objet, sort_code, sort_libelle
-       FROM scrutins
-       WHERE titre LIKE ? COLLATE NOCASE OR objet LIKE ? COLLATE NOCASE
-       ORDER BY date DESC LIMIT ?`
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle,
+         (SELECT sc.categorie_id FROM scrutin_categories sc WHERE sc.scrutin_uid = s.uid ORDER BY sc.confiance DESC LIMIT 1) AS categorie
+       FROM scrutins s
+       WHERE s.titre LIKE ? COLLATE NOCASE OR s.objet LIKE ? COLLATE NOCASE
+       ORDER BY s.date DESC LIMIT ?`
     )
     .all(`%${q}%`, `%${q}%`, limit) as ScrutinResume[];
 }
@@ -407,11 +409,12 @@ export function profilParti(db: Database.Database, uid: string, periode: Periode
 export function grandsScrutins(db: Database.Database, limit = 30): ScrutinResume[] {
   return db
     .prepare(
-      `SELECT uid, numero, date, titre, objet, type_vote, sort_code, sort_libelle,
-              pour, contre, abstention
-       FROM scrutins
-       WHERE type_vote IN ('scrutin public solennel', 'motion de censure')
-       ORDER BY date DESC, numero DESC
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.type_vote, s.sort_code, s.sort_libelle,
+              s.pour, s.contre, s.abstention,
+              (SELECT sc.categorie_id FROM scrutin_categories sc WHERE sc.scrutin_uid = s.uid ORDER BY sc.confiance DESC LIMIT 1) AS categorie
+       FROM scrutins s
+       WHERE s.type_vote IN ('scrutin public solennel', 'motion de censure')
+       ORDER BY s.date DESC, s.numero DESC
        LIMIT ?`
     )
     .all(limit) as any[];
@@ -422,22 +425,23 @@ export function scrutinsParCategorie(db: Database.Database, categorieId: string,
   return db
     .prepare(
       `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle,
-              s.pour, s.contre, s.abstention
+              s.pour, s.contre, s.abstention, ? AS categorie
        FROM scrutins s
        JOIN scrutin_categories sc ON sc.scrutin_uid = s.uid
        WHERE sc.categorie_id = ?
        ORDER BY s.date DESC, s.numero DESC
        LIMIT ?`
     )
-    .all(categorieId, limit) as any[];
+    .all(categorieId, categorieId, limit) as any[];
 }
 
 /** Dissidences : scrutins ou le depute a vote contre la consigne de son groupe. */
 export function dissidences(db: Database.Database, deputeUid: string, limit = 100) {
   return db
     .prepare(
-      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_libelle,
-              v.position, gp.position AS consigne
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle,
+              v.position, gp.position AS consigne,
+              (SELECT sc.categorie_id FROM scrutin_categories sc WHERE sc.scrutin_uid = s.uid ORDER BY sc.confiance DESC LIMIT 1) AS categorie
        FROM votes v
        JOIN scrutins s ON s.uid = v.scrutin_uid
        JOIN groupe_positions gp
@@ -475,7 +479,7 @@ export function votesDeputeCategorie(
     const filtreDebut = debut ? "AND s.date >= @debut" : "";
     return db
       .prepare(
-        `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, 'absent' AS position
+        `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, 'absent' AS position, @cat AS categorie
          FROM scrutin_categories sc
          JOIN scrutins s ON s.uid = sc.scrutin_uid
          WHERE sc.categorie_id = @cat ${filtreDebut}
@@ -489,7 +493,7 @@ export function votesDeputeCategorie(
   const filtrePos = position ? "AND v.position = @pos" : "";
   return db
     .prepare(
-      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, v.position
+      `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.sort_code, s.sort_libelle, v.position, @cat AS categorie
        FROM votes v
        JOIN scrutins s            ON s.uid = v.scrutin_uid
        JOIN scrutin_categories sc ON sc.scrutin_uid = v.scrutin_uid
