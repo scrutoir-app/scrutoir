@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C, positionLabel } from "../theme";
+import { C, F, positionLabel } from "../theme";
 import { getVotesDeputeCategorie } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
@@ -55,9 +55,9 @@ export function VotesCategorieScreen({
       keyExtractor={(it, i) => (it.kind === "section" ? `s-${it.pos}` : `v-${it.data.uid}-${i}`)}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
-        <View style={{ paddingTop: 12 }}>
-          <Text style={{ fontSize: 18, fontWeight: "500", color: C.text }}>{categorieLibelle}</Text>
-          <Text style={{ fontSize: 13, color: C.textMuted, marginTop: 2, marginBottom: 2 }}>
+        <View style={{ paddingTop: 14 }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 19, color: C.text, letterSpacing: -0.3 }}>{categorieLibelle}</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 2, marginBottom: 2 }}>
             {nom} · {votes.length} scrutins
           </Text>
         </View>
@@ -71,10 +71,8 @@ export function VotesCategorieScreen({
         item.kind === "section" ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 18, marginBottom: 4 }}>
             <View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: item.color }} />
-            <Text style={{ fontSize: 13, fontWeight: "500", color: C.text }}>
-              {positionLabel(item.pos)}
-            </Text>
-            <Text style={{ fontSize: 13, color: C.textMuted }}>· {item.count}</Text>
+            <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text }}>{positionLabel(item.pos)}</Text>
+            <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted }}>· {item.count}</Text>
           </View>
         ) : (
           <ScrutinRow scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />

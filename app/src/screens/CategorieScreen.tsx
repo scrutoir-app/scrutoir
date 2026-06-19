@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C } from "../theme";
+import { C, F } from "../theme";
 import { getScrutinsCategorie } from "../api";
 import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
@@ -29,12 +29,12 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
-        <View style={{ paddingTop: 12 }}>
-          <Text style={{ fontSize: 20, fontWeight: "500", color: C.text }}>{libelle}</Text>
-          <Text style={{ fontSize: 12, color: C.textMuted, marginTop: 4, marginBottom: 4 }}>
+        <View style={{ paddingTop: 14 }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>{libelle}</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 4, marginBottom: 4 }}>
             {scrutins.length} scrutins classés dans ce thème (les plus récents d'abord)
           </Text>
-          <Text style={{ fontSize: 11, color: C.textFaint, marginBottom: 4, lineHeight: 16 }}>
+          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginBottom: 4, lineHeight: 16 }}>
             Classement automatique et approximatif à partir de l'intitulé du scrutin.
           </Text>
         </View>
