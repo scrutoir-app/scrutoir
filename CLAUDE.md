@@ -48,6 +48,9 @@ cd ../app && npm run web                            # app -> http://localhost:80
   API `/partis` et `/partis/:uid` (`listePartis`/`profilParti`).
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
+- **Picto de catégorie** sur chaque scrutin (ScrutinCard/ScrutinRow ; API renvoie `categorie`
+  principale par sous-requête). **Code couleur** sur le nombre d'amendements d'un parti (orange si
+  > moyenne, rouge si ×≥1.5 → signal d'anomalie/obstruction).
 
 ## Design system (refonte « app moderne » faite)
 - `app/src/theme.ts` : palette **neutre** (encre `#171A1F` + gris froid `#F2F4F7`), accent ardoise
