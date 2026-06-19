@@ -1,6 +1,7 @@
 export type Route =
   | { name: "search" }
   | { name: "themes" }
+  | { name: "grandsScrutins" }
   | { name: "partis" }
   | { name: "parti"; uid: string }
   | { name: "depute"; uid: string }

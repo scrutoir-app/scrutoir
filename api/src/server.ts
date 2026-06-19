@@ -55,7 +55,7 @@ app.get("/partis/:uid", (req, res) => {
 
 // Derniers grands scrutins (solennels + motions de censure)
 app.get("/scrutins-recents", (_req, res) => {
-  res.json(grandsScrutins(db, 30));
+  res.json(grandsScrutins(db, 100));
 });
 
 // Scrutins d'une categorie

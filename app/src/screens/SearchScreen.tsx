@@ -136,11 +136,26 @@ function Accueil({ nav }: { nav: Nav }) {
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
       <View style={{ paddingHorizontal: 18 }}>
-        <SectionTitle titre="Derniers grands scrutins" />
+        <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 22, marginBottom: 12 }}>
+          <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3 }}>Derniers grands scrutins</Text>
+          <TouchableOpacity onPress={() => nav.push({ name: "grandsScrutins" })}>
+            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Tout voir ›</Text>
+          </TouchableOpacity>
+        </View>
         <View style={{ gap: 11 }}>
-          {grands.slice(0, 8).map((s) => (
+          {grands.slice(0, 3).map((s) => (
             <ScrutinCard key={s.uid} scrutin={s} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} />
           ))}
+          {grands.length > 3 && (
+            <TouchableOpacity
+              onPress={() => nav.push({ name: "grandsScrutins" })}
+              style={{ alignItems: "center", paddingVertical: 11, backgroundColor: C.surface, borderRadius: RADIUS.md, ...shadowCard }}
+            >
+              <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.accent }}>
+                Voir les {grands.length - 3} autres  ···
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         <SectionTitle titre="Explorer par thème" />

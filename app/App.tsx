@@ -13,6 +13,7 @@ import { C, F, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { ThemesScreen } from "./src/screens/ThemesScreen";
+import { GrandsScrutinsScreen } from "./src/screens/GrandsScrutinsScreen";
 import { PartisScreen } from "./src/screens/PartisScreen";
 import { PartiScreen } from "./src/screens/PartiScreen";
 import { DeputeScreen } from "./src/screens/DeputeScreen";
@@ -47,7 +48,7 @@ export default function App() {
 
   const titres: Record<Route["name"], string> = {
     search: "", themes: "", apropos: "", partis: "",
-    parti: "Parti",
+    grandsScrutins: "Grands scrutins", parti: "Parti",
     depute: "Député·e", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
@@ -91,6 +92,7 @@ export default function App() {
         <View style={{ flex: 1 }}>
           {current.name === "search" && <SearchScreen nav={nav} />}
           {current.name === "themes" && <ThemesScreen nav={nav} />}
+          {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
           {current.name === "parti" && <PartiScreen uid={current.uid} nav={nav} />}
           {current.name === "depute" && <DeputeScreen uid={current.uid} nav={nav} />}
