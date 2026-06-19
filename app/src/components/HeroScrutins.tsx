@@ -117,7 +117,10 @@ export function HeroScrutins({
   const { width: winW } = useWindowDimensions();
   const [boxW, setBoxW] = useState(0);
   const [index, setIndex] = useState(0);
-  const cardW = boxW - SIDE * 2; // aligné sur la largeur des autres composants
+  // Largeur effective : la mesure si dispo, sinon repli sur la fenêtre (bornée) pour
+  // rendre tout de suite — évite un hero effondré si `onLayout` tarde au 1er rendu.
+  const effW = boxW > 0 ? boxW : Math.min(winW, 560);
+  const cardW = effW - SIDE * 2; // aligné sur la largeur des autres composants
   const interval = cardW + GAP;
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -129,8 +132,6 @@ export function HeroScrutins({
     const w = e.nativeEvent.layout.width;
     if (w && w !== boxW) setBoxW(w);
   };
-
-  if (boxW <= 0) return <View key={winW} onLayout={onLayout} style={{ height: 1 }} />;
 
   return (
     <View key={winW} onLayout={onLayout}>

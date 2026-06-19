@@ -9,7 +9,7 @@ import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { HeroScrutins } from "../components/HeroScrutins";
-import { CategoryTile } from "../components/CategoryTile";
+import { CategoryGrid } from "../components/CategoryGrid";
 import { HemicycleMark } from "../components/HemicycleMark";
 
 type Item =
@@ -150,13 +150,7 @@ function Accueil({ nav }: { nav: Nav }) {
 
       <View style={{ paddingHorizontal: 18 }}>
         <SectionTitle titre="Explorer par thème" />
-        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 11 }}>
-          {cats.map((c) => (
-            <View key={c.id} style={{ width: "48.5%" }}>
-              <CategoryTile id={c.id} libelle={c.libelle} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
-            </View>
-          ))}
-        </View>
+        <CategoryGrid cats={cats} onOpen={(c) => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
       </View>
     </ScrollView>
   );

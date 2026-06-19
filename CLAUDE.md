@@ -60,7 +60,12 @@ cd ../app && npm run web                            # app -> http://localhost:80
   branché), kicker (Projet/Proposition de loi / Motion de censure dérivé du libellé), badge
   Adopté/Rejeté, barre de votes. « Tout voir » → `GrandsScrutinsScreen` (route `grandsScrutins`).
   ⚠️ Largeur alignée sur les autres composants via **mesure `onLayout`** (pas `useWindowDimensions`,
-  qui ≠ largeur du contenu centré) + remontage `key={winW}` pour reflow au resize web.
+  qui ≠ largeur du contenu centré) + remontage `key={winW}` pour reflow au resize web. Largeur de
+  repli (`effW = boxW || min(winW,560)`) pour rendre tout de suite (sinon hero effondré si `onLayout`
+  tarde au 1er rendu).
+- Accueil, « Explorer par thème » : **grille fixe de tuiles photo** (`components/CategoryGrid.tsx`,
+  4 colonnes × 3 lignes, 12 thèmes visibles sans défiler, pas de swipe). Même langage que le hero
+  (photo `catPhoto(id, id)` + voile + libellé blanc). Libellés courts via `categoryUI.court`.
   ⚠️ **Porteur non encore branché** : les grands scrutins portent sur des lois entières (0/75 ont un
   `auteur` dans la table `amendements`) → la photo du porteur exige d'extraire auteur/rapporteur du
   dataset **Dossiers législatifs** puis de le relier à un `depute.uid` (chantier pipeline à faire).
