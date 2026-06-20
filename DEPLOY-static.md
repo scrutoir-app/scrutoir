@@ -3,7 +3,7 @@
 Scrutoir est servi en **statique** : la base SQLite est pré-générée en ~8 000 fichiers
 JSON, et l'app web (PWA) + ces JSON sont déposés sur **Cloudflare Pages** (gratuit,
 egress gratuit, pas de serveur always-on). **Aucun Worker / D1 / R2.** L'API Express
-(`api/`) devient **dev-only** (cf. `DEPLOY.md` et `render.yaml`, désormais **obsolètes**).
+(`api/`) est **dev-only** (développement local uniquement, non déployée).
 
 ## Vue d'ensemble du pipeline de déploiement
 

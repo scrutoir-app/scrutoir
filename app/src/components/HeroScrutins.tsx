@@ -80,7 +80,7 @@ function HeroCard({ s, width, onPress }: { s: ScrutinResume; width: number; onPr
           {/* Bas : titre + répartition des votes */}
           <View>
             <Text style={{ fontFamily: F.semibold, fontSize: 16.5, color: "#fff", lineHeight: 21, letterSpacing: -0.3, ...SHADOW_TEXT }} numberOfLines={2}>
-              {s.titre || s.objet}
+              {s.dossier_titre || s.titre || s.objet}
             </Text>
             {tot > 0 && (
               <View style={{ marginTop: 11 }}>

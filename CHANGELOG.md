@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.2 — 2026-06-20
+- Accueil : les cartes de grands scrutins affichent l'**intitulé officiel** de la loi
+  (titre du dossier législatif) au lieu du libellé brut « l'ensemble de la proposition… ».
+- Interne : API Express marquée dev-only, fichiers de déploiement obsolètes supprimés.
+
 ## 1.0.1 — 2026-06-20
 - Photos d'illustration des thèmes **hébergées en local** (plus d'appel externe à
   Unsplash) : fiabilité, vie privée (aucune IP utilisateur envoyée à un tiers),

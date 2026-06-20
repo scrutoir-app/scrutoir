@@ -1,3 +1,7 @@
+// ⚠️ DEV-ONLY. En production, Scrutoir est 100 % statique (JSON pré-générés servis sur
+// Cloudflare Pages, cf. DEPLOY-static.md) : cette API Express n'est PAS déployée.
+// Elle reste utile en développement local (port 4000) et comme référence de la logique
+// de lecture, qui est aussi reflétée dans pipeline/src/exportStatic.ts + app/src/api.ts.
 import express from "express";
 import cors from "cors";
 import fs from "node:fs";

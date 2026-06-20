@@ -454,7 +454,7 @@ export function grandsScrutins(db: Database.Database, limit = 30): ScrutinResume
   return db
     .prepare(
       `SELECT s.uid, s.numero, s.date, s.titre, s.objet, s.type_vote, s.sort_code, s.sort_libelle,
-              s.pour, s.contre, s.abstention,
+              s.pour, s.contre, s.abstention, s.dossier_titre,
               (SELECT sc.categorie_id FROM scrutin_categories sc WHERE sc.scrutin_uid = s.uid ORDER BY sc.confiance DESC LIMIT 1) AS categorie
        FROM scrutins s
        WHERE s.type_vote IN ('scrutin public solennel', 'motion de censure')
