@@ -33,8 +33,23 @@ const SW_SCRIPT = `
     <!-- ${MARKER}-sw -->
     <script>
       if ("serviceWorker" in navigator) {
+        // Mise à jour automatique : pas de réinstallation manuelle pour les utilisateurs.
+        // Quand un nouveau service worker prend le contrôle, on recharge une seule fois.
+        var hadController = !!navigator.serviceWorker.controller;
+        var refreshing = false;
+        navigator.serviceWorker.addEventListener("controllerchange", function () {
+          if (refreshing) return;
+          if (!hadController) { hadController = true; return; } // 1ʳᵉ visite : ne pas recharger
+          refreshing = true;
+          window.location.reload();
+        });
         window.addEventListener("load", function () {
-          navigator.serviceWorker.register("/sw.js").catch(function (e) {
+          navigator.serviceWorker.register("/sw.js").then(function (reg) {
+            reg.update(); // vérifie une nouvelle version au lancement
+            document.addEventListener("visibilitychange", function () {
+              if (document.visibilityState === "visible") reg.update(); // … et à chaque réouverture
+            });
+          }).catch(function (e) {
             console.warn("SW registration failed", e);
           });
         });

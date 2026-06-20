@@ -1,6 +1,7 @@
 import React from "react";
 import { View, Text, ScrollView } from "react-native";
 import { C, F, RADIUS } from "../theme";
+import { APP_VERSION } from "../config";
 
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
@@ -87,6 +88,15 @@ export function AProposScreen() {
         Open Data de l'Assemblée Nationale (licence Etalab, mise à jour quotidienne), 17ᵉ
         législature (depuis juin 2024). Données non officielles, à titre informatif.
       </Bloc>
+
+      <View style={{ marginTop: 6, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.accentSoft }}>
+        <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.textMuted }}>
+          Scrutoir · version {APP_VERSION}
+        </Text>
+        <Text style={{ fontFamily: F.regular, fontSize: 11.5, color: C.textFaint, marginTop: 2 }}>
+          Indiquez ce numéro avec vos retours pour situer la version concernée.
+        </Text>
+      </View>
     </ScrollView>
   );
 }

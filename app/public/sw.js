@@ -12,11 +12,16 @@
  *     parti, categories)                rafraîchis quotidiennement).
  *   - /data/version.json + /index.html: network-first (détection de nouveau déploiement).
  *
- * Bump CACHE_VERSION pour invalider tous les caches au prochain déploiement.
+ * Versions de cache SÉPARÉES :
+ *   - SHELL_VERSION : coquille (index, bundle, polices, icônes) — petite. À bumper à
+ *     chaque déploiement pour purger proprement l'ancienne coquille.
+ *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
+ *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const CACHE_VERSION = "v2";
-const SHELL_CACHE = `scrutoir-shell-${CACHE_VERSION}`;
-const DATA_CACHE = `scrutoir-data-${CACHE_VERSION}`;
+const SHELL_VERSION = "v3";
+const DATA_VERSION = "v2";
+const SHELL_CACHE = `scrutoir-shell-${SHELL_VERSION}`;
+const DATA_CACHE = `scrutoir-data-${DATA_VERSION}`;
 const OFFLINE_URL = "/index.html";
 
 // Pré-cache minimal : la coquille de navigation + le manifest + les icônes.

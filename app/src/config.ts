@@ -1,6 +1,16 @@
 // Réglages produit, ajustables côté code.
 
 /**
+ * Version publique de l'app (semver MAJEUR.MINEUR.CORRECTIF). Affichée dans l'écran
+ * Infos pour que les retours utilisateurs soient rattachables à une version précise.
+ * À incrémenter à chaque déploiement (+ entrée dans CHANGELOG.md) :
+ *   - CORRECTIF (1.0.x) : corrections, petits ajustements.
+ *   - MINEUR   (1.x.0) : nouvelle fonctionnalité visible.
+ *   - MAJEUR   (x.0.0) : refonte importante.
+ */
+export const APP_VERSION = "1.0.0";
+
+/**
  * Seuil minimal de votes nominatifs exprimés (pour + contre + abstention) pour
  * qu'une position thématique (case élu × thème) soit considérée fiable et affichée
  * comme une position. En dessous, la case est grisée et on montre le nombre de
