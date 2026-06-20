@@ -103,8 +103,9 @@ cd ../app && npm run web                            # app -> http://localhost:80
 **🟢 EN LIGNE — https://scrutoir.fr (+ https://scrutoir.pages.dev)**
 - Domaine **scrutoir.fr** (acheté chez Gandi) branché via Cloudflare : NS délégués à Cloudflare
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
-  Gandi reste le registrar/facturation. HTTPS auto OK. (À faire éventuellement : `www.scrutoir.fr` → redir.)
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.1**.
+  Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
+  Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.2**.
 - Mises à jour auto (plus de réinstall) : SW vérifie au lancement + à chaque réouverture, recharge à la prise
   de contrôle (script dans `patch-pwa.mjs`). Caches SW séparés SHELL (bump/release) / DATA (stable).
 - **Refresh quotidien ACTIF** (GitHub Actions) : dépôt **public** `github.com/scrutoir-app/scrutoir`,
@@ -134,18 +135,21 @@ cd ../app && npm run web                            # app -> http://localhost:80
   texte » pour les votes sans amendement (lois entières, motions). L'exposé des motifs **complet** (paragraphe)
   n'est pas dans les Dossiers (dataset *Documents/textes*, plus lourd) → enhancement futur possible.
 
-**RESTE À FAIRE (idées « pour plus tard », par priorité) :**
-- `www.scrutoir.fr` → redirection vers `scrutoir.fr` (Cloudflare Pages Custom domains, 5 min).
-- Afficher `dossier_titre` sur les cartes/hero de l'accueil (plus parlant que l'objet brut).
-- **Exposé des motifs complet** des lois (paragraphe) : nécessite le dataset *Documents/textes* de l'AN
-  (plus lourd) + lien texte→scrutin. Aujourd'hui on a l'intitulé officiel seulement.
-- Recherche par **code postal** → circonscription (table de correspondance à ajouter).
-- **Photo de l'auteur/rapporteur** sur le hero (via Dossiers législatifs).
-- **Étape 6 — Nettoyage** : API Express → dev-only ; supprimer `render.yaml`/`DEPLOY.md` (obsolètes,
-  remplacés par `DEPLOY-static.md`). `app/dist` déjà hors git.
-- Repoussé : apps natives iOS/Android (stores) + push ; classification IA des ~10 % non classés.
+**RESTE À FAIRE (idées « pour plus tard ») — plusieurs investiguées et reportées sciemment :**
+- **Exposé des motifs complet** des lois (paragraphe) : REPORTÉ — dataset *Documents/textes* AN ≈ plusieurs
+  Go (alourdit le robot) pour valeur marginale vs l'intitulé officiel déjà affiché. Chemin du dataset non
+  trouvé (probes 404). Rouvrir seulement si vraiment voulu.
+- **Photo de l'auteur/rapporteur** sur le hero : REPORTÉ — couverture faible (17/75 grands ont un député
+  avec photo via `initiateur.acteurs.acteur.acteurRef`) + risque de **biais** (un visage sur une loi
+  collective) contraire à la neutralité. Le picto catégorie reste préférable.
+- **Recherche par code postal** → circonscription : REPORTÉ — pas de table fiable (villes = plusieurs circos
+  par code postal) ; le parcours département→circo existant suffit.
+- `www` : raffinable en **redirection** canonique www→apex (Cloudflare Redirect Rules) au lieu des 2 qui
+  servent l'app. Optionnel.
+- Repoussé (décisions projet) : apps natives iOS/Android (stores) + push ; classification IA des ~10 % non
+  classés (clé Anthropic, `npm run classify:ia`).
 - Hors-code : dépôt marque **INPI** (cl. 9 & 42).
-- Dév local classique : `api` (:4000) + `app` `npm run web` (:8081, navigateur du Mac).
+- Dév local classique : `api` (:4000, dev-only) + `app` `npm run web` (:8081, navigateur du Mac).
 
 ## Source de données (data.assemblee-nationale.fr, licence Etalab)
 - Scrutins : `repository/17/loi/scrutins/Scrutins.json.zip` (position nominative par député).
