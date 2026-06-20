@@ -62,6 +62,42 @@ export function useFollow(uid: string): [boolean, () => void] {
   return [isFollowed(uid), () => toggleFollow(uid)];
 }
 
+/** Hook React : liste réactive des élu·e·s suivi·e·s (pour l'écran Suivis). */
+export function useFollows(): string[] {
+  const [, force] = useState(0);
+  useEffect(() => {
+    const l = () => force((n) => n + 1);
+    listeners.add(l);
+    return () => { listeners.delete(l); };
+  }, []);
+  return getFollows();
+}
+
+// Date (YYYY-MM-DD) de la dernière consultation de l'onglet Suivis : sert à marquer
+// « nouveau » les votes plus récents. Stockée en localStorage (web), sinon mémoire.
+const SEEN_KEY = "scrutoir.suivis.lastSeen";
+let seenCache: string | null = null;
+
+export function getLastSeen(): string {
+  if (seenCache !== null) return seenCache;
+  try {
+    seenCache = (typeof localStorage !== "undefined" ? localStorage.getItem(SEEN_KEY) : null) || "";
+  } catch {
+    seenCache = "";
+  }
+  return seenCache;
+}
+
+export function markSeen(): void {
+  const today = new Date().toISOString().slice(0, 10);
+  seenCache = today;
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(SEEN_KEY, today);
+  } catch {
+    /* fallback mémoire */
+  }
+}
+
 /**
  * STUB (à implémenter côté serveur après mise en ligne) : pour chaque élu·e suivi·e,
  * détecter les scrutins postérieurs à la dernière consultation et déclencher une

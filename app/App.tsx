@@ -26,11 +26,13 @@ import { VotesCategorieScreen } from "./src/screens/VotesCategorieScreen";
 import { VotantsScreen } from "./src/screens/VotantsScreen";
 import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
 import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
+import { SuivisScreen } from "./src/screens/SuivisScreen";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
   { root: "themes", label: "Thèmes", icon: "grid" },
   { root: "partis", label: "Partis", icon: "users" },
+  { root: "suivis", label: "Suivis", icon: "bell" },
   { root: "apropos", label: "Infos", icon: "info" },
 ];
 
@@ -49,7 +51,7 @@ export default function App() {
   const goTab = (name: Route["name"]) => setStack([{ name } as Route]);
 
   const titres: Record<Route["name"], string> = {
-    search: "", themes: "", apropos: "", partis: "",
+    search: "", themes: "", apropos: "", partis: "", suivis: "",
     grandsScrutins: "Grands scrutins", parti: "Parti",
     depute: "Député·e", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
@@ -115,6 +117,7 @@ export default function App() {
           {current.name === "apropos" && <AProposScreen />}
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} nav={nav} />}
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
+          {current.name === "suivis" && <SuivisScreen nav={nav} />}
         </View>
 
         {/* Barre d'onglets */}

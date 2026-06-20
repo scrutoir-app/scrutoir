@@ -121,6 +121,22 @@ export interface VoteScrutin extends ScrutinResume {
   consigne?: string | null; // consigne du groupe sur ce scrutin (pour lire l'écart)
 }
 
+// Un vote d'un·e élu·e suivi·e (feed de l'onglet Suivis).
+export interface VoteSuivi {
+  deputeUid: string;
+  nom: string;
+  photo: string | null;
+  abrev: string | null;
+  couleur: string | null;
+  scrutinUid: string;
+  titre: string | null;
+  date: string | null;
+  numero: number | null;
+  position: string;
+  sort_code: string | null;
+  categorie?: string | null;
+}
+
 export interface Votant {
   uid: string;
   nom_complet: string;

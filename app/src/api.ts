@@ -1,6 +1,6 @@
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
-  PartiResume, ProfilParti, Confrontation, Departement,
+  PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi,
 } from "./types";
 
 /**
@@ -104,6 +104,44 @@ export async function rechercher(q: string): Promise<{ deputes: DeputeResume[]; 
 }
 
 // --- Mon député (client) ----------------------------------------------------
+/**
+ * Feed de l'onglet Suivis : pour les élu·e·s suivi·e·s, leurs votes nominatifs
+ * (pour/contre/abstention/nonvotant) les plus récents, fusionnés et triés par date.
+ * Tout est calculé côté client depuis les fichiers statiques (aucun serveur).
+ */
+export async function getVotesSuivis(uids: string[], limit = 80): Promise<VoteSuivi[]> {
+  if (!uids.length) return [];
+  const [deps, scrMap] = await Promise.all([deputesIndex(), scrutinsMap()]);
+  const depByUid = new Map(deps.map((d) => [d.uid, d]));
+  const profils = await Promise.all(uids.map((u) => depute(u).catch(() => null)));
+  const items: VoteSuivi[] = [];
+  uids.forEach((u, i) => {
+    const prof = profils[i];
+    if (!prof) return;
+    const dep = depByUid.get(u);
+    for (const [scrUid, tuple] of Object.entries(prof.votes || {})) {
+      const sc = scrMap.get(scrUid);
+      if (!sc) continue;
+      items.push({
+        deputeUid: u,
+        nom: dep?.nom_complet ?? "",
+        photo: dep?.photo_url ?? null,
+        abrev: dep?.abrev ?? null,
+        couleur: dep?.couleur ?? null,
+        scrutinUid: scrUid,
+        titre: sc.titre ?? null,
+        date: sc.date ?? null,
+        numero: sc.numero ?? null,
+        position: Array.isArray(tuple) ? tuple[0] : (tuple as unknown as string),
+        sort_code: sc.sort_code ?? null,
+        categorie: sc.categorie ?? null,
+      });
+    }
+  });
+  items.sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.numero ?? 0) - (a.numero ?? 0));
+  return items.slice(0, limit);
+}
+
 export async function getDepartements(): Promise<Departement[]> {
   const deps = await deputesIndex();
   const map = new Map<string, { num: string; nom: string; circos: number }>();

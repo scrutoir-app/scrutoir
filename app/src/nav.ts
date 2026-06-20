@@ -34,7 +34,8 @@ export type Route =
     }
   | { name: "apropos" }
   | { name: "confrontation"; a?: string; b?: string }
-  | { name: "monDepute" };
+  | { name: "monDepute" }
+  | { name: "suivis" };
 
 export interface Nav {
   push: (route: Route) => void;

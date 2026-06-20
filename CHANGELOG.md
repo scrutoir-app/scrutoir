@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.3 — 2026-06-20
+- Nouvel onglet **Suivis** : retrouvez les **derniers votes** des élu·e·s que vous suivez
+  (bouton cloche sur une fiche élu), avec un badge **« Nouveau »** sur les votes depuis
+  votre dernière visite. 100 % côté app, sans serveur (les vraies notifications push,
+  qui font vibrer le téléphone, restent une évolution future nécessitant un serveur).
+
 ## 1.0.2 — 2026-06-20
 - Accueil : les cartes de grands scrutins affichent l'**intitulé officiel** de la loi
   (titre du dossier législatif) au lieu du libellé brut « l'ensemble de la proposition… ».
