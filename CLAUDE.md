@@ -31,8 +31,42 @@ cd ../app && npm run web                            # app -> http://localhost:80
   /tmp/cloudflared tunnel --url http://localhost:4000        # → URL publique *.trycloudflare.com
   ```
   ⚠️ Lien **temporaire** (change à chaque lancement, vit tant que le Mac + les 2 process tournent).
-  Pour du **permanent** sans Mac allumé → déploiement (cf. `DEPLOY.md`, `render.yaml` : service
-  mono-origine, base ~174 Mo téléchargée au boot via `DB_URL`).
+
+## 🚧 MIGRATION EN COURS — ARCHITECTURE CIBLE : TOUT STATIQUE (Cloudflare Pages)
+**Décisions actées (non négociables), coût d'usage ≈ 0 € :**
+- **Abandon du serveur Express en prod** (l'API Express devient dev-only). La donnée (lecture seule,
+  par lots) est **pré-générée en JSON** et servie en **statique sur Cloudflare Pages** (gratuit, egress
+  gratuit, requêtes d'assets non plafonnées). Pas de Worker/D1/R2 (inutile : tout se résout en statique).
+- **Dépôt public**, **refresh quotidien** par GitHub Action, démarrage sur **`scrutoir.pages.dev`**
+  (domaine `scrutoir.fr` plus tard). **v1 = PWA installable** ; apps natives iOS/Android **repoussées**
+  (donc pas de prérequis stores pour l'instant). Push repoussé.
+- ⚠️ NE PAS reconduire le piège « base 174 Mo téléchargée au boot » (archi Render/`DEPLOY.md` obsolète).
+
+**FAIT (étapes 1-2, commit `Archi statique (étapes 1-2)`), vérifié en local :**
+- `pipeline/src/exportStatic.ts` (+ `npm run export:static`) → ~8000 fichiers JSON dans `app/public/data/`
+  (git-ignoré) : `deputes.json`, `scrutins.json` (index léger + `cats[]` = toutes les catégories),
+  `categories/partis/grands.json`, `parti/<uid>.json`, `depute/<uid>.json` (profils 3 périodes +
+  dissidences + carte de votes `{scrutin:[position,consigne]}`), `scrutin/<uid>.json` (détail + votants).
+  Réutilise `stats.ts` → données identiques à l'API.
+- `app/src/api.ts` réécrit en **couche données statique** (mêmes signatures → écrans inchangés) : lit
+  `/data/...` (base `EXPO_PUBLIC_DATA_BASE`, défaut "" = même origine ; Expo web sert `public/` en dev et
+  copie dans `dist/` à l'export). Recherche / drill-downs / confrontation **calculés côté client** depuis
+  les index. Multi-catégorie géré via `cats[]` (cartes profil == drill-down == confrontation, vérifié).
+
+**RESTE À FAIRE (reprendre ici) :**
+- **Étape 3 — PWA installable** : `app.json` web (manifest `display: standalone`, theme/background, icône
+  **maskable**) + **service worker** (Workbox : cache assets + données à la demande, offline). Expo n'ajoute
+  pas de SW par défaut.
+- **Étape 4 — Refresh quotidien** : `.github/workflows/refresh.yml` (cron) → `ingest` + `expo export -p web`
+  + `export:static` + `wrangler pages deploy app/dist`. Secrets : `CLOUDFLARE_API_TOKEN` + account id.
+  L'AN publie un **dump complet** → ré-ingestion idempotente (capte les nouveaux scrutins, pas de diff).
+  Optim : téléchargement conditionnel (ETag) du gros `Amendements.json.zip` (~270 Mo). Cache-busting des
+  fichiers **mutables** (index + `depute/*`) via `version.json` ; fichiers **scrutin** quasi immuables.
+- **Étape 5 — Déploiement Pages** (passe par les comptes Cloudflare + GitHub de l'utilisateur ; tout
+  préparer côté code, le guider). `app/public/data` (369 Mo, 8016 fichiers < 20 000 = limite Pages) déployé
+  avec `dist`. 
+- **Étape 6 — Nettoyage** : API Express marquée dev-only ; remplacer `render.yaml`/`DEPLOY.md` par
+  `DEPLOY-static.md`. Optionnel : sortir `app/dist` de git (artefact).
 - Dév local classique : `api` (:4000) + `app` `npm run web` (:8081, navigateur du Mac).
 
 ## Source de données (data.assemblee-nationale.fr, licence Etalab)
