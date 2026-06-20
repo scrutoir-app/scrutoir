@@ -104,9 +104,21 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - Domaine **scrutoir.fr** (acheté chez Gandi) branché via Cloudflare : NS délégués à Cloudflare
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. (À faire éventuellement : `www.scrutoir.fr` → redir.)
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.0**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.1**.
 - Mises à jour auto (plus de réinstall) : SW vérifie au lancement + à chaque réouverture, recharge à la prise
   de contrôle (script dans `patch-pwa.mjs`). Caches SW séparés SHELL (bump/release) / DATA (stable).
+- **Refresh quotidien ACTIF** (GitHub Actions) : dépôt **public** `github.com/scrutoir-app/scrutoir`,
+  workflow `refresh.yml` (cron 05:10 UTC + `workflow_dispatch`), secrets `CLOUDFLARE_API_TOKEN` (jeton custom
+  Pages:Edit) + `CLOUDFLARE_ACCOUNT_ID` posés. 1ʳᵉ exécution manuelle vérifiée OK (4 min, déploie sur Pages).
+  Compte GitHub **scrutoir-app**. `gh` installé en `~/.local/bin/gh` (binaire, hors PATH système) ; helper git
+  configuré (`git config credential.https://github.com.helper "!~/.local/bin/gh auth git-credential"`).
+  ⚠️ Workflow : pousser le code sur GitHub (`git push origin main`) pour que le robot prenne les nouveautés.
+  Déclencher à la main : `gh run watch` / `gh workflow run refresh.yml --repo scrutoir-app/scrutoir`.
+- **Photos thèmes self-hébergées** (`app/public/hero/<id>.jpg`, 35 images Unsplash licence libre, ~4 Mo,
+  committées) → plus d'appel externe (vie privée + hors-ligne). `categoryUI.ts ph()` → `/hero/<id>.jpg`.
+  Régénérables : `app/scripts/gen-hero.sh`.
+- Déploiement manuel (hors robot) : `cd app && export CLOUDFLARE_ACCOUNT_ID=627984d2dd614e139df12342e9f2469a &&
+  npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true`.
 
 - Projet Cloudflare Pages `scrutoir` créé (Direct Upload), compte **anthony@seedger.com**, account id
   `627984d2dd614e139df12342e9f2469a`. Déploiement local : `cd app && export CLOUDFLARE_ACCOUNT_ID=… &&
@@ -122,16 +134,17 @@ cd ../app && npm run web                            # app -> http://localhost:80
   texte » pour les votes sans amendement (lois entières, motions). L'exposé des motifs **complet** (paragraphe)
   n'est pas dans les Dossiers (dataset *Documents/textes*, plus lourd) → enhancement futur possible.
 
-**RESTE À FAIRE :**
-- **Brancher le domaine `scrutoir.fr`** (acheté chez **Gandi**). Recommandé : déléguer les nameservers à
-  Cloudflare (le domaine reste facturé chez Gandi) → Pages > projet `scrutoir` > Custom domains > `scrutoir.fr`.
-  Passe par les comptes de l'utilisateur ; le guider.
-- **Étape 4 (CI) pas encore activée en réel** : workflow prêt mais secrets GitHub non créés (déploiements
-  faits à la main en local jusqu'ici). À activer si on veut le refresh quotidien auto : créer
-  `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` en secrets du dépôt GitHub (dépôt pas encore poussé).
+**RESTE À FAIRE (idées « pour plus tard », par priorité) :**
+- `www.scrutoir.fr` → redirection vers `scrutoir.fr` (Cloudflare Pages Custom domains, 5 min).
+- Afficher `dossier_titre` sur les cartes/hero de l'accueil (plus parlant que l'objet brut).
+- **Exposé des motifs complet** des lois (paragraphe) : nécessite le dataset *Documents/textes* de l'AN
+  (plus lourd) + lien texte→scrutin. Aujourd'hui on a l'intitulé officiel seulement.
+- Recherche par **code postal** → circonscription (table de correspondance à ajouter).
+- **Photo de l'auteur/rapporteur** sur le hero (via Dossiers législatifs).
 - **Étape 6 — Nettoyage** : API Express → dev-only ; supprimer `render.yaml`/`DEPLOY.md` (obsolètes,
-  remplacés par `DEPLOY-static.md`). `app/dist` **déjà sorti de git** (commit `94a326f`).
-- Idée UX : afficher aussi `dossier_titre` sur les cartes/hero de l'accueil (plus parlant que l'objet brut).
+  remplacés par `DEPLOY-static.md`). `app/dist` déjà hors git.
+- Repoussé : apps natives iOS/Android (stores) + push ; classification IA des ~10 % non classés.
+- Hors-code : dépôt marque **INPI** (cl. 9 & 42).
 - Dév local classique : `api` (:4000) + `app` `npm run web` (:8081, navigateur du Mac).
 
 ## Source de données (data.assemblee-nationale.fr, licence Etalab)
