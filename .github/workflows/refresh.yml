@@ -1,0 +1,68 @@
+name: Refresh quotidien → Cloudflare Pages
+
+# Ré-ingère l'Open Data AN, régénère les JSON statiques, rebuild la PWA web et
+# déploie sur Cloudflare Pages. L'AN publie un dump complet → ré-ingestion idempotente.
+on:
+  schedule:
+    # 05:10 UTC ≈ 06:10/07:10 Paris (après publication AN). Cron en UTC.
+    - cron: "10 5 * * *"
+  workflow_dispatch: {} # lancement manuel depuis l'onglet Actions
+
+# Une seule exécution à la fois ; on n'annule pas un déploiement en cours.
+concurrency:
+  group: refresh
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # Persiste data/raw (zips + sidecars .etag) entre exécutions → le gros
+      # Amendements.json.zip (~270 Mo) n'est re-téléchargé que s'il a changé (ETag 304).
+      # Clé unique par run pour toujours sauvegarder ; restore-keys récupère le dernier cache.
+      - name: Cache des données brutes AN (data/raw)
+        uses: actions/cache@v4
+        with:
+          path: data/raw
+          key: raw-${{ github.run_id }}
+          restore-keys: |
+            raw-
+
+      - name: Installer les dépendances (pipeline)
+        working-directory: pipeline
+        run: npm ci
+
+      - name: Ré-ingestion (téléchargement conditionnel ETag)
+        working-directory: pipeline
+        run: npm run ingest:refresh
+
+      - name: Export statique (JSON → app/public/data + version.json)
+        working-directory: pipeline
+        run: npm run export:static
+
+      - name: Installer les dépendances (app)
+        working-directory: app
+        run: npm ci
+
+      - name: Build web + patch PWA (manifest/SW dans dist)
+        working-directory: app
+        run: npm run build:web
+
+      - name: Déployer sur Cloudflare Pages
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy app/dist --project-name=scrutoir --branch=main

@@ -53,20 +53,62 @@ cd ../app && npm run web                            # app -> http://localhost:80
   copie dans `dist/` à l'export). Recherche / drill-downs / confrontation **calculés côté client** depuis
   les index. Multi-catégorie géré via `cats[]` (cartes profil == drill-down == confrontation, vérifié).
 
+**FAIT (étape 3 — PWA installable), vérifié en local (build `dist` servi sur :8099) :**
+- **Choix d'archi** : Expo SDK 56 = Metro web **sans Expo Router** → pas de `+html.tsx`, l'`index.html`
+  est généré sans hook. Donc PWA câblée par des fichiers statiques dans `app/public/` (copiés tels quels
+  dans `dist/` à l'export) + un **patch post-export** de l'`index.html`. **SW vanilla, PAS Workbox**
+  (pas de build step ni dépendance CDN ; offline immédiat ; stratégies alignées sur le cache-busting).
+- `app/public/manifest.json` : `display: standalone`, `theme_color #3C4654`, `background_color #F2F4F7`,
+  icônes 192/512 `any` + 192/512 `maskable`, `start_url /?source=pwa`, `lang fr`.
+- `app/public/icons/*` : générées par **`sips` (natif macOS)** depuis `assets/icon.png` 1024 →
+  `app/scripts/gen-icons.sh` (maskable = réduit à 80% + pad fond `#F2F4F7` pour la safe zone). Committées
+  (assets de marque, pas régénérées en CI).
+- `app/public/sw.js` : SW vanilla. Stratégies : navigation **network-first** (repli `index.html` offline) ;
+  bundle `/_expo/static/**` **cache-first** (hashé) ; `/data/scrutin/**` **cache-first** (immuable) ;
+  autres `/data/**` (index, depute, parti, categories) **stale-while-revalidate** ; `/data/version.json`
+  **network-first** (détection de déploiement). `CACHE_VERSION` à bumper pour invalider. Écoute
+  `postMessage('SKIP_WAITING')` (prêt pour un futur bandeau « mise à jour dispo »).
+- `app/scripts/patch-pwa.mjs` : post-export, **idempotent** (marqueur `SCRUTOIR_PWA`). Met `lang="fr"`,
+  injecte manifest + `theme-color` + meta apple + description, et l'enregistrement du SW (`/sw.js`, scope `/`).
+- Script npm **`build:web`** = `expo export -p web && node scripts/patch-pwa.mjs` (à utiliser en CI étape 4).
+- Vérifié : manifest 200 (application/json), sw.js 200 (text/javascript), SW actif & `controller` =
+  scope racine, caches `scrutoir-shell-v1` (index, `/`, bundle JS, fonts, icônes, manifest) + `scrutoir-data-v1`
+  (JSON chargés) peuplés, app rend sans erreur console. Config preview `scrutoir-dist` ajoutée dans
+  `Brain/.claude/launch.json` (python3 `http.server` sur `dist/`, port 8099).
+- ⚠️ Le test offline « serveur coupé + reload » n'est pas faisable via l'outil preview (couper le serveur
+  ferme la session navigateur) ; prouvé par le contenu des caches + revue des handlers. À retester
+  manuellement (DevTools → Network → Offline) avant mise en ligne.
+
+**FAIT (étape 4 — refresh quotidien), code prêt (déploiement réel = étape 5, à valider) :**
+- `pipeline/src/exportStatic.ts` génère désormais **`data/version.json`** (`generatedAt`, compteurs) →
+  cache-busting / détection de déploiement. Vérifié (`npm run export:static` OK : 577 députés, 7422 scrutins).
+- **Téléchargement conditionnel ETag** : `download.ts` gagne un mode `refresh` (`telechargerConditionnel`,
+  sidecar `data/raw/*.etag`, `If-None-Match`, 304 → garde le local). Nouveau flag `--refresh` +
+  script **`npm run ingest:refresh`** (CI). Les modes `force`/défaut sont inchangés (dev local). Signatures
+  `assurer*` passées de `(force)` à `({force, refresh})` ; call sites à jour (ingest.ts, linkAmendements.ts).
+  ⚠️ Typecheck : 3 erreurs **préexistantes** restantes sur `propagees` (classify.ts/ingest.ts), sans rapport
+  (tsx ne typecheck pas → runtime OK) — à corriger à part.
+- **`.github/workflows/refresh.yml`** : cron 05:10 UTC + `workflow_dispatch`. Steps : checkout → node 24 →
+  cache `data/raw` (clé `raw-<run_id>` + restore-keys `raw-` → profite du 304 sur Amendements 270 Mo) →
+  `npm ci` (pipeline) → `ingest:refresh` → `export:static` → `npm ci` (app) → `build:web` →
+  `cloudflare/wrangler-action@v3 pages deploy app/dist --project-name=scrutoir`. Secrets attendus :
+  `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`.
+- **Cloudflare Pages** : `app/public/_headers` (cache CDN : immuable `/_expo/static/*` + `/data/scrutin/*` ;
+  revalidation coquille/SW/données mutables ; `version.json` no-cache) + `app/public/_redirects`
+  (`/* /index.html 200`, fallback SPA défensif ; le routing est **en mémoire** dans App.tsx → l'URL reste à
+  `/`, donc surtout préventif). Tous deux copiés dans `dist/` à l'export (vérifié).
+- Build complet vérifié : `npm run build:web` → `dist/` contient `_headers`, `_redirects`, `manifest.json`,
+  `sw.js`, `icons/`, `data/version.json`. Ordre `export:static` → `build:web` respecté dans le workflow.
+
 **RESTE À FAIRE (reprendre ici) :**
-- **Étape 3 — PWA installable** : `app.json` web (manifest `display: standalone`, theme/background, icône
-  **maskable**) + **service worker** (Workbox : cache assets + données à la demande, offline). Expo n'ajoute
-  pas de SW par défaut.
-- **Étape 4 — Refresh quotidien** : `.github/workflows/refresh.yml` (cron) → `ingest` + `expo export -p web`
-  + `export:static` + `wrangler pages deploy app/dist`. Secrets : `CLOUDFLARE_API_TOKEN` + account id.
-  L'AN publie un **dump complet** → ré-ingestion idempotente (capte les nouveaux scrutins, pas de diff).
-  Optim : téléchargement conditionnel (ETag) du gros `Amendements.json.zip` (~270 Mo). Cache-busting des
-  fichiers **mutables** (index + `depute/*`) via `version.json` ; fichiers **scrutin** quasi immuables.
-- **Étape 5 — Déploiement Pages** (passe par les comptes Cloudflare + GitHub de l'utilisateur ; tout
-  préparer côté code, le guider). `app/public/data` (369 Mo, 8016 fichiers < 20 000 = limite Pages) déployé
-  avec `dist`. 
-- **Étape 6 — Nettoyage** : API Express marquée dev-only ; remplacer `render.yaml`/`DEPLOY.md` par
-  `DEPLOY-static.md`. Optionnel : sortir `app/dist` de git (artefact).
+- **Étape 5 — Déploiement Pages (passe par TES comptes Cloudflare + GitHub)** : tout est préparé côté code.
+  Guide pas-à-pas dans **`DEPLOY-static.md`** : (1) créer le projet Pages `scrutoir` (Direct Upload),
+  (2) récupérer Account ID + API Token, (3) ajouter les secrets GitHub, (4) 1er déploiement via l'onglet
+  Actions (Run workflow) ou `npx wrangler pages deploy dist --project-name=scrutoir` en local. ⚠️ Ne rien
+  déployer sans validation de l'utilisateur. `app/public/data` (~370 Mo, ~8000 fichiers < 20 000 = limite
+  Pages) déployé avec `dist`.
+- **Étape 6 — Nettoyage** : API Express marquée dev-only ; `render.yaml`/`DEPLOY.md` **obsolètes**
+  (remplacés par `DEPLOY-static.md`, à supprimer en étape 6). Optionnel : sortir `app/dist` de git (artefact).
 - Dév local classique : `api` (:4000) + `app` `npm run web` (:8081, navigateur du Mac).
 
 ## Source de données (data.assemblee-nationale.fr, licence Etalab)

@@ -194,7 +194,10 @@ export async function lierAmendements(db: Database.Database): Promise<{ lies: nu
 // Execution directe : telecharge si besoin + relie.
 if (import.meta.url === `file://${process.argv[1]}`) {
   (async () => {
-    await assurerAmendementsZip(process.argv.includes("--download"));
+    await assurerAmendementsZip({
+      force: process.argv.includes("--download"),
+      refresh: process.argv.includes("--refresh"),
+    });
     const db = openDb();
     createSchema(db);
     console.log("Liaison des amendements (lecture du zip, ~1-2 min)...");

@@ -125,4 +125,13 @@ for (const { uid } of allScrutinUids) {
   if (++ns % 1000 === 0) console.log(`  scrutins ${ns}/${allScrutinUids.length}`);
 }
 
+// 7) version.json : cache-busting / détection de nouveau déploiement (lu par le SW
+// en network-first, et exploitable côté app pour un futur bandeau « mise à jour »).
+write("version.json", {
+  generatedAt: new Date().toISOString(),
+  deputes: deputes.length,
+  scrutins: ns,
+  partis: partis.length,
+});
+
 console.log(`✅ Export statique terminé : ${deputes.length} députés, ${ns} scrutins, ${partis.length} partis → ${OUT}`);

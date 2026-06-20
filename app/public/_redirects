@@ -1,0 +1,4 @@
+# Fallback SPA défensif : toute URL non-asset boot l'app (routing en mémoire, l'URL
+# reste à /). Les assets statiques (/_expo/*, /data/*, /icons/*) priment et sont
+# servis directement ; cette règle ne s'applique qu'aux chemins sans fichier.
+/*  /index.html  200

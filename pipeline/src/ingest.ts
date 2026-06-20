@@ -9,10 +9,12 @@ import { calculerPropositions } from "./activiteGroupes.js";
 
 async function main() {
   const force = process.argv.includes("--download");
+  const refresh = process.argv.includes("--refresh");
+  const dl = { force, refresh };
   const t0 = Date.now();
 
   console.log("1/5  Donnees brutes AN (telechargement/extraction)");
-  await assurerDonneesBrutes(force);
+  await assurerDonneesBrutes(dl);
 
   const db = openDb();
   createSchema(db);
@@ -36,12 +38,12 @@ async function main() {
   console.log(`     ${lignes} par mots-cles, ${propagees} propagees aux amendements, ${nonClasses} non classes`);
 
   console.log("6/6  Exposés des amendements + activité des groupes");
-  const okZip = await assurerAmendementsZip(force);
+  const okZip = await assurerAmendementsZip(dl);
   if (okZip) {
     const { lies, total } = await lierAmendements(db);
     console.log(`     ${lies}/${total} scrutins sur amendement reliés (+ amendements/groupe)`);
   }
-  const okDoss = await assurerDossiersZip(force);
+  const okDoss = await assurerDossiersZip(dl);
   if (okDoss) {
     const n = await calculerPropositions(db);
     console.log(`     propositions de loi comptées pour ${n} groupes`);

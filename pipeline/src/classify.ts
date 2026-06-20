@@ -23,7 +23,7 @@ export function seedCategories(db: Database.Database): void {
  * (utile apres ajustement de la taxonomie). Ne touche pas aux lignes
  * source='valide' (validation humaine), qui sont prioritaires.
  */
-export function classifierTout(db: Database.Database, reset = false): { lignes: number; nonClasses: number } {
+export function classifierTout(db: Database.Database, reset = false): { lignes: number; propagees: number; nonClasses: number } {
   if (reset) db.prepare("DELETE FROM scrutin_categories WHERE source != 'valide'").run();
 
   const scrutins = db.prepare("SELECT uid, titre, objet FROM scrutins").all() as Array<{

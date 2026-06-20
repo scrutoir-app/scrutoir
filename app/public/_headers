@@ -1,0 +1,32 @@
+# En-têtes de cache Cloudflare Pages (1ère visite + visiteurs non-PWA ; le SW gère
+# les visites répétées en PWA). Règle plus spécifique en dernier = elle l'emporte.
+
+# Données mutables (index, depute/*, parti/*, categories) : toujours revalider.
+/data/*
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Détail des scrutins : immuable une fois publié.
+/data/scrutin/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# version.json : jamais en cache (sert à détecter un nouveau déploiement).
+/data/version.json
+  Cache-Control: no-cache
+
+# Bundle JS/CSS au nom hashé : immuable.
+/_expo/static/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# Icônes PWA (stables, mais pas hashées) : une semaine.
+/icons/*
+  Cache-Control: public, max-age=604800
+
+# Coquille + métadonnées PWA : toujours revalider pour capter les déploiements.
+/
+  Cache-Control: no-cache
+/index.html
+  Cache-Control: no-cache
+/sw.js
+  Cache-Control: no-cache
+/manifest.json
+  Cache-Control: no-cache
