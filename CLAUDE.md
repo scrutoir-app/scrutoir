@@ -100,7 +100,14 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - Build complet vérifié : `npm run build:web` → `dist/` contient `_headers`, `_redirects`, `manifest.json`,
   `sw.js`, `icons/`, `data/version.json`. Ordre `export:static` → `build:web` respecté dans le workflow.
 
-**🟢 EN LIGNE (étape 5 faite) — https://scrutoir.pages.dev**
+**🟢 EN LIGNE — https://scrutoir.fr (+ https://scrutoir.pages.dev)**
+- Domaine **scrutoir.fr** (acheté chez Gandi) branché via Cloudflare : NS délégués à Cloudflare
+  (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
+  Gandi reste le registrar/facturation. HTTPS auto OK. (À faire éventuellement : `www.scrutoir.fr` → redir.)
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.0**.
+- Mises à jour auto (plus de réinstall) : SW vérifie au lancement + à chaque réouverture, recharge à la prise
+  de contrôle (script dans `patch-pwa.mjs`). Caches SW séparés SHELL (bump/release) / DATA (stable).
+
 - Projet Cloudflare Pages `scrutoir` créé (Direct Upload), compte **anthony@seedger.com**, account id
   `627984d2dd614e139df12342e9f2469a`. Déploiement local : `cd app && export CLOUDFLARE_ACCOUNT_ID=… &&
   npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true`
