@@ -6,14 +6,14 @@ export interface CatUI {
   bg: string;
   fg: string;
   court?: string; // libellé court (grilles étroites)
-  photos?: string[]; // images d'illustration (fond carrousel) — placeholders Unsplash, on en fait tourner 2-3
+  photos?: string[]; // images d'illustration (fond carrousel), on en fait tourner 2-3
 }
 
-// Photos d'illustration par thème — PLACEHOLDERS Unsplash (libres) pour prototype.
-// 2-3 par thème, on en fait tourner une selon le scrutin (cf. catPhoto).
-// À remplacer par des visuels définitifs sous licence avant mise en ligne.
-const UNSPLASH = "?w=800&q=70&auto=format&fit=crop";
-const ph = (...ids: string[]) => ids.map((id) => `https://images.unsplash.com/${id}${UNSPLASH}`);
+// Photos d'illustration par thème — HÉBERGÉES EN LOCAL (app/public/hero/<id>.jpg),
+// issues d'Unsplash (licence Unsplash : usage libre y compris commercial). Self-hostées
+// pour fiabilité + vie privée (pas d'appel externe) + fonctionnement hors-ligne.
+// Régénérables via scripts/gen-hero.sh. 2-3 par thème, rotation selon le scrutin (cf. catPhoto).
+const ph = (...ids: string[]) => ids.map((id) => `/hero/${id}.jpg`);
 
 const FALLBACK: CatUI = { icon: "vote-outline", bg: "#ECEEF1", fg: "#5B6675" };
 
