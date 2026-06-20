@@ -100,15 +100,31 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - Build complet vérifié : `npm run build:web` → `dist/` contient `_headers`, `_redirects`, `manifest.json`,
   `sw.js`, `icons/`, `data/version.json`. Ordre `export:static` → `build:web` respecté dans le workflow.
 
-**RESTE À FAIRE (reprendre ici) :**
-- **Étape 5 — Déploiement Pages (passe par TES comptes Cloudflare + GitHub)** : tout est préparé côté code.
-  Guide pas-à-pas dans **`DEPLOY-static.md`** : (1) créer le projet Pages `scrutoir` (Direct Upload),
-  (2) récupérer Account ID + API Token, (3) ajouter les secrets GitHub, (4) 1er déploiement via l'onglet
-  Actions (Run workflow) ou `npx wrangler pages deploy dist --project-name=scrutoir` en local. ⚠️ Ne rien
-  déployer sans validation de l'utilisateur. `app/public/data` (~370 Mo, ~8000 fichiers < 20 000 = limite
-  Pages) déployé avec `dist`.
-- **Étape 6 — Nettoyage** : API Express marquée dev-only ; `render.yaml`/`DEPLOY.md` **obsolètes**
-  (remplacés par `DEPLOY-static.md`, à supprimer en étape 6). Optionnel : sortir `app/dist` de git (artefact).
+**🟢 EN LIGNE (étape 5 faite) — https://scrutoir.pages.dev**
+- Projet Cloudflare Pages `scrutoir` créé (Direct Upload), compte **anthony@seedger.com**, account id
+  `627984d2dd614e139df12342e9f2469a`. Déploiement local : `cd app && export CLOUDFLARE_ACCOUNT_ID=… &&
+  npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true`
+  (wrangler déjà connecté via `wrangler login`). Vérifié en prod (page, manifest, sw, data 200).
+- ⚠️ **PIÈGE Cloudflare Pages corrigé** : Pages **ignore les dossiers `node_modules`** à l'upload → les
+  polices d'icônes Expo (`dist/assets/node_modules/…`) n'étaient pas déployées → **icônes en carrés vides**.
+  Fix permanent dans `patch-pwa.mjs` (`fixVendorFonts`) : renomme `assets/node_modules` → `assets/vendor`
+  et réécrit les refs dans le bundle. **Ne jamais remettre de `node_modules` dans le contenu déployé.**
+- **Résumés officiels des lois** (demandé : officiel, pas d'IA) : `scrutins.dossier_titre` rempli par
+  `lierDossiers()` (`activiteGroupes.ts`) via le lien fiable `voteRefs.voteRef` des Dossiers AN →
+  `titreDossier.titre`. 229 scrutins reliés (63/75 grands). `ScrutinScreen` affiche un bloc « Objet du
+  texte » pour les votes sans amendement (lois entières, motions). L'exposé des motifs **complet** (paragraphe)
+  n'est pas dans les Dossiers (dataset *Documents/textes*, plus lourd) → enhancement futur possible.
+
+**RESTE À FAIRE :**
+- **Brancher le domaine `scrutoir.fr`** (acheté chez **Gandi**). Recommandé : déléguer les nameservers à
+  Cloudflare (le domaine reste facturé chez Gandi) → Pages > projet `scrutoir` > Custom domains > `scrutoir.fr`.
+  Passe par les comptes de l'utilisateur ; le guider.
+- **Étape 4 (CI) pas encore activée en réel** : workflow prêt mais secrets GitHub non créés (déploiements
+  faits à la main en local jusqu'ici). À activer si on veut le refresh quotidien auto : créer
+  `CLOUDFLARE_API_TOKEN` + `CLOUDFLARE_ACCOUNT_ID` en secrets du dépôt GitHub (dépôt pas encore poussé).
+- **Étape 6 — Nettoyage** : API Express → dev-only ; supprimer `render.yaml`/`DEPLOY.md` (obsolètes,
+  remplacés par `DEPLOY-static.md`). `app/dist` **déjà sorti de git** (commit `94a326f`).
+- Idée UX : afficher aussi `dossier_titre` sur les cartes/hero de l'accueil (plus parlant que l'objet brut).
 - Dév local classique : `api` (:4000) + `app` `npm run web` (:8081, navigateur du Mac).
 
 ## Source de données (data.assemblee-nationale.fr, licence Etalab)
