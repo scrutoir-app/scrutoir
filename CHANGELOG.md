@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.4 — 2026-06-20
+- Écran Infos : ajout de la note « Pourquoi Scrutoir ? » (origine du nom).
+
 ## 1.0.3 — 2026-06-20
 - Nouvel onglet **Suivis** : retrouvez les **derniers votes** des élu·e·s que vous suivez
   (bouton cloche sur une fiche élu), avec un badge **« Nouveau »** sur les votes depuis

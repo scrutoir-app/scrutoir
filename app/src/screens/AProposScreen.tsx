@@ -28,6 +28,16 @@ export function AProposScreen() {
         aucune couleur de parti n'est mise en avant, seul le vote parle.
       </Text>
 
+      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 22, marginTop: 18 }}>
+        Pourquoi Scrutoir ?
+      </Text>
+      <Text style={{ fontFamily: F.medium, fontSize: 13.5, color: C.text, lineHeight: 21, marginTop: 6 }}>
+        C'est un vieux mot français. L'escritoire était un bureau d'écriture, un meuble où l'on
+        consignait, archivait, gardait trace. Le mot a disparu au XVIIIᵉ siècle. On l'a repris parce
+        qu'il porte deux choses à la fois : la racine de scrutin, et l'idée d'un endroit où l'on
+        regarde de près. C'est exactement ce que fait l'app.
+      </Text>
+
       <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, lineHeight: 20, marginTop: 16, marginBottom: 18 }}>
         Scrutoir s'appuie sur les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
         les seuls votes attribués nominativement à chaque député·e. Pour rester honnête, voici
