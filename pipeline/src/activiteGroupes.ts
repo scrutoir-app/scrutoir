@@ -48,3 +48,40 @@ export async function calculerPropositions(db: Database.Database): Promise<numbe
   })();
   return parGroupe.size;
 }
+
+/**
+ * Rattache à chaque scrutin l'intitulé officiel de son dossier législatif
+ * (`titreDossier.titre`), via le lien EXPLICITE et fiable `voteRefs.voteRef` présent
+ * dans les actes du dossier. Sert de "résumé officiel" pour les votes sur loi entière
+ * et motions (les scrutins sur amendement ont déjà leur exposé). Aucune IA, aucune
+ * heuristique de titre. Écrit dans scrutins.dossier_titre.
+ */
+export async function lierDossiers(db: Database.Database): Promise<number> {
+  if (!fs.existsSync(DOSSIERS_ZIP)) {
+    console.log("  ⚠ Archive dossiers absente, titres officiels ignorés.");
+    return 0;
+  }
+  const zip = new (StreamZip as any).async({ file: DOSSIERS_ZIP });
+  const noms = Object.keys(await zip.entries()).filter((n) => n.endsWith(".json"));
+
+  // scrutin uid -> titre officiel du dossier qui le référence
+  const titreParScrutin = new Map<string, string>();
+  for (const nom of noms) {
+    const raw = (await zip.entryData(nom)).toString("utf8");
+    if (!raw.includes("VTANR")) continue; // dossier sans vote nominatif
+    const d = JSON.parse(raw).dossierParlementaire;
+    const titre = d?.titreDossier?.titre;
+    if (!titre) continue;
+    for (const m of raw.matchAll(/VTANR[A-Z0-9]+/g)) {
+      if (!titreParScrutin.has(m[0])) titreParScrutin.set(m[0], titre);
+    }
+  }
+  await zip.close();
+
+  const upd = db.prepare("UPDATE scrutins SET dossier_titre = ? WHERE uid = ?");
+  let n = 0;
+  db.transaction(() => {
+    for (const [uid, titre] of titreParScrutin) n += upd.run(titre, uid).changes;
+  })();
+  return n;
+}

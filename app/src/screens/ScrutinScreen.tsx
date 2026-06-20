@@ -108,6 +108,20 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </View>
       )}
 
+      {/* Intitulé officiel du dossier législatif (loi entière, motion…) quand il n'y a
+          pas d'amendement à exposer. Source : titreDossier.titre de l'Open Data AN. */}
+      {!(am && (am.expose || am.dispositif)) && !!s.dossier_titre && (
+        <View style={{ marginTop: 16, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+          <Text style={{ fontFamily: F.bold, fontSize: 13.5, color: C.text }}>Objet du texte</Text>
+          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 2 }}>
+            Intitulé officiel du dossier législatif
+          </Text>
+          <Text style={{ fontFamily: F.regular, fontSize: 13.5, color: C.text, lineHeight: 20, marginTop: 9 }}>
+            {s.dossier_titre}
+          </Text>
+        </View>
+      )}
+
       {/* Chiffres */}
       <View style={{ flexDirection: "row", gap: 9, marginTop: 16 }}>
         <Chiffre label="Pour" valeur={s.pour} color={C.pour} onPress={() => goVotants("pour")} />

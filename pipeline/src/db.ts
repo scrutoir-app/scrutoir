@@ -58,7 +58,8 @@ export function createSchema(db: Database.Database): void {
       pour         INTEGER DEFAULT 0,
       contre       INTEGER DEFAULT 0,
       abstention   INTEGER DEFAULT 0,
-      nonvotant    INTEGER DEFAULT 0
+      nonvotant    INTEGER DEFAULT 0,
+      dossier_titre TEXT                  -- intitulé officiel du dossier législatif (titreDossier.titre)
     );
 
     CREATE TABLE IF NOT EXISTS votes (
@@ -130,6 +131,11 @@ export function createSchema(db: Database.Database): void {
   }
   try {
     db.exec("ALTER TABLE deputes ADD COLUMN qualite TEXT");
+  } catch {
+    /* colonne déjà présente */
+  }
+  try {
+    db.exec("ALTER TABLE scrutins ADD COLUMN dossier_titre TEXT");
   } catch {
     /* colonne déjà présente */
   }

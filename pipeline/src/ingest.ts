@@ -5,7 +5,7 @@ import { chargerScrutins } from "./parseScrutins.js";
 import { seedCategories, classifierTout } from "./classify.js";
 import { lierAmendements } from "./linkAmendements.js";
 import { calculerParticipation } from "./participation.js";
-import { calculerPropositions } from "./activiteGroupes.js";
+import { calculerPropositions, lierDossiers } from "./activiteGroupes.js";
 
 async function main() {
   const force = process.argv.includes("--download");
@@ -47,6 +47,8 @@ async function main() {
   if (okDoss) {
     const n = await calculerPropositions(db);
     console.log(`     propositions de loi comptées pour ${n} groupes`);
+    const t = await lierDossiers(db);
+    console.log(`     ${t} scrutins reliés à l'intitulé officiel de leur dossier`);
   }
 
   db.close();

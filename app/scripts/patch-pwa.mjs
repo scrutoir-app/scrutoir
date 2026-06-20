@@ -9,12 +9,13 @@
  * Ajoute : lang="fr", manifest, theme-color, meta apple, description, et
  * l'enregistrement du service worker (/sw.js, scope racine).
  */
-import { readFile, writeFile, access } from "node:fs/promises";
+import { readFile, writeFile, access, rename, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const distHtml = join(__dirname, "..", "dist", "index.html");
+const distDir = join(__dirname, "..", "dist");
+const distHtml = join(distDir, "index.html");
 const MARKER = "SCRUTOIR_PWA";
 
 const HEAD_TAGS = `
@@ -40,6 +41,50 @@ const SW_SCRIPT = `
       }
     </script>`;
 
+/*
+ * ⚠️ Cloudflare Pages IGNORE les dossiers `node_modules` à l'upload. Or Expo range
+ * les polices d'icônes (@expo/vector-icons) et Manrope dans `dist/assets/node_modules/…`
+ * → non déployées → icônes en carrés vides. Correctif : renommer ce dossier en
+ * `assets/vendor` et réécrire les références `assets/node_modules` → `assets/vendor`
+ * dans le bundle JS (les 26 occurrences sont uniquement ces chemins de polices).
+ */
+async function fixVendorFonts() {
+  const oldDir = join(distDir, "assets", "node_modules");
+  const newDir = join(distDir, "assets", "vendor");
+  let renamed = false;
+  try {
+    await access(oldDir);
+    await rename(oldDir, newDir);
+    renamed = true;
+  } catch {
+    /* déjà renommé ou absent → rien à faire */
+  }
+
+  // Réécrit les références dans les fichiers texte (js/css/html) sous dist.
+  let patched = 0;
+  async function walk(dir) {
+    for (const e of await readdir(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) {
+        await walk(p);
+      } else if (/\.(js|css|html)$/.test(e.name)) {
+        const txt = await readFile(p, "utf8");
+        if (txt.includes("assets/node_modules")) {
+          await writeFile(p, txt.split("assets/node_modules").join("assets/vendor"), "utf8");
+          patched++;
+        }
+      }
+    }
+  }
+  await walk(distDir);
+
+  if (renamed || patched) {
+    console.log(`[patch-pwa] polices vendor déplacées hors de node_modules (dossier renommé: ${renamed}, fichiers réécrits: ${patched}).`);
+  } else {
+    console.log("[patch-pwa] polices vendor : déjà OK, rien à faire.");
+  }
+}
+
 async function main() {
   try {
     await access(distHtml);
@@ -48,10 +93,13 @@ async function main() {
     process.exit(1);
   }
 
+  // Correctif polices (indépendant du marqueur : doit tourner à chaque build).
+  await fixVendorFonts();
+
   let html = await readFile(distHtml, "utf8");
 
   if (html.includes(MARKER)) {
-    console.log("[patch-pwa] déjà patché, rien à faire.");
+    console.log("[patch-pwa] index.html déjà patché, rien à faire.");
     return;
   }
 

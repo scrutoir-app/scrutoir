@@ -14,7 +14,7 @@
  *
  * Bump CACHE_VERSION pour invalider tous les caches au prochain déploiement.
  */
-const CACHE_VERSION = "v1";
+const CACHE_VERSION = "v2";
 const SHELL_CACHE = `scrutoir-shell-${CACHE_VERSION}`;
 const DATA_CACHE = `scrutoir-data-${CACHE_VERSION}`;
 const OFFLINE_URL = "/index.html";

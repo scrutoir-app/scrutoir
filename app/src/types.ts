@@ -90,6 +90,7 @@ export interface DetailScrutin {
     contre: number;
     abstention: number;
     nonvotant: number;
+    dossier_titre: string | null; // intitulé officiel du dossier législatif (Open Data AN)
   };
   groupes: GroupeVentilation[];
   amendement: Amendement | null;
