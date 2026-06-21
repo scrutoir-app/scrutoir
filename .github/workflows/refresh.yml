@@ -72,7 +72,7 @@ jobs:
       # on ouvre une issue GitHub. Rien n'a été déployé → l'app en ligne reste intacte.
       - name: Alerte si échec
         if: failure()
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
         with:
           script: |
             const jour = new Date().toISOString().slice(0, 10);
