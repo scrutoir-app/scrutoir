@@ -3,9 +3,9 @@ import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } fr
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
 import { catUI } from "../categoryUI";
-import { getVotesSuivis } from "../api";
+import { getVotesSuivis, getPartis } from "../api";
 import { useFollows, getLastSeen, markSeen } from "../follows";
-import type { VoteSuivi } from "../types";
+import type { VoteSuivi, PartiResume } from "../types";
 import type { Nav } from "../nav";
 
 function Avatar({ uri, couleur, size = 34 }: { uri: string | null; couleur: string | null; size?: number }) {
@@ -30,16 +30,24 @@ function PositionPill({ position }: { position: string }) {
 
 export function SuivisScreen({ nav }: { nav: Nav }) {
   const follows = useFollows();
+  const deputeUids = follows.filter((u) => u.startsWith("PA"));
+  const partiUids = follows.filter((u) => u.startsWith("PO"));
   const [items, setItems] = useState<VoteSuivi[] | null>(null);
+  const [partis, setPartis] = useState<PartiResume[]>([]);
   // Date de la dernière visite, capturée une fois (pour le marquage « nouveau »).
   const lastSeen = useRef(getLastSeen());
 
   useEffect(() => {
     let alive = true;
     setItems(null);
-    getVotesSuivis(follows).then((r) => {
+    getVotesSuivis(deputeUids).then((r) => {
       if (alive) setItems(r);
     });
+    if (partiUids.length) {
+      getPartis().then((all) => { if (alive) setPartis(all.filter((p) => partiUids.includes(p.uid))); });
+    } else {
+      setPartis([]);
+    }
     return () => { alive = false; };
     // re-charge si la liste des suivis change
   }, [follows.join(",")]);
@@ -55,6 +63,26 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
       <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 4 }}>
         Les derniers votes des élu·e·s que vous suivez.
       </Text>
+
+      {/* Partis suivis (raccourci vers leur fiche) */}
+      {partis.length > 0 && (
+        <View style={{ marginTop: 16 }}>
+          <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text, marginBottom: 10 }}>Partis suivis</Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 9, paddingRight: 8 }}>
+            {partis.map((p) => (
+              <TouchableOpacity
+                key={p.uid}
+                activeOpacity={0.7}
+                onPress={() => nav.push({ name: "parti", uid: p.uid })}
+                style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.surface, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, ...shadowCard }}
+              >
+                <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: p.couleur ?? C.accent }} />
+                <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.text }}>{p.abrev ?? p.libelle}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+      )}
 
       {/* Aucun suivi */}
       {follows.length === 0 && (

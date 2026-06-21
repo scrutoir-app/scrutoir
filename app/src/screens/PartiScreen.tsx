@@ -4,6 +4,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
 import { getParti } from "../api";
+import { useFollow } from "../follows";
 import type { ProfilParti, PartiCategorie, Periode } from "../types";
 import type { Nav } from "../nav";
 
@@ -17,6 +18,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
   const [data, setData] = useState<ProfilParti | null>(null);
   const [loading, setLoading] = useState(true);
+  const [followed, toggleFollow] = useFollow(uid);
 
   useEffect(() => {
     let vivant = true;
@@ -46,6 +48,13 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
             {p.libelle} · {p.nb_deputes} élus
           </Text>
         </View>
+        <TouchableOpacity
+          onPress={toggleFollow}
+          activeOpacity={0.7}
+          style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: followed ? C.accent : C.surfaceAlt }}
+        >
+          <Feather name="bell" size={18} color={followed ? "#fff" : C.textMuted} />
+        </TouchableOpacity>
       </View>
 
       {/* Président·e du groupe */}
