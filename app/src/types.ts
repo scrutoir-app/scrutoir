@@ -121,11 +121,6 @@ export interface VoteScrutin extends ScrutinResume {
   consigne?: string | null; // consigne du groupe sur ce scrutin (pour lire l'écart)
 }
 
-// Tendances publiques (agrégées, anonymes) affichées sur l'accueil.
-export interface TrendDuel { a: DeputeResume; b: DeputeResume; n: number; }
-export interface TrendDepute { depute: DeputeResume; n: number; }
-export interface Trends { duels: TrendDuel[]; suivis: TrendDepute[]; deputes: TrendDepute[]; }
-
 // Un vote d'un·e élu·e suivi·e (feed de l'onglet Suivis).
 export interface VoteSuivi {
   deputeUid: string;

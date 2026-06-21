@@ -7,10 +7,10 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
-## 1.0.7 — 2026-06-21
-- Accueil : nouvelle section **Tendances** (publique) — duels populaires et élu·e·s les
-  plus suivi·e·s, à partir des données d'usage agrégées et anonymes. Se masque tant qu'il
-  n'y a pas assez de données réelles.
+## 1.0.8 — 2026-06-21
+- Accueil : section **« Mes élu·e·s suivi·e·s »** — accès rapide aux député·e·s que vous
+  suivez (privé, sur votre appareil), avec raccourci vers leurs votes. (Remplace la section
+  Tendances publique, retirée : les statistiques d'usage restent privées.)
 
 ## 1.0.6 — 2026-06-21
 - Interne : mesure aussi les recherches, les clics « source officielle » et les

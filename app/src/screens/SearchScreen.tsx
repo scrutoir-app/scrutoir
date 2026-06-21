@@ -12,7 +12,7 @@ import { ScrutinCard } from "../components/ScrutinCard";
 import { HeroScrutins } from "../components/HeroScrutins";
 import { CategoryGrid } from "../components/CategoryGrid";
 import { ScrutoirMark } from "../components/ScrutoirMark";
-import { Tendances } from "../components/Tendances";
+import { MesSuivis } from "../components/MesSuivis";
 
 type Item =
   | { kind: "header"; label: string }
@@ -190,7 +190,7 @@ function Accueil({ nav }: { nav: Nav }) {
         <CategoryGrid cats={cats} onOpen={(c) => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
       </View>
 
-      <Tendances nav={nav} />
+      <MesSuivis nav={nav} />
     </ScrollView>
   );
 }
