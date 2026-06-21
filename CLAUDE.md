@@ -105,7 +105,15 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.3**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.5**.
+- **Analytics privacy-first** (sans cookie/IP/identifiant, RGPD, pas de bandeau) : Worker `analytics/`
+  (`scrutoir-analytics`, déployé sur `scrutoir-analytics.anthony-627.workers.dev`) → `POST /collect` écrit
+  dans **Analytics Engine** (dataset `scrutoir_events`) ; `GET /stats?key=…` = tableau de bord privé
+  (duels, suivis nets, députés/scrutins/écrans/thèmes consultés, recherches). App : `src/analytics.ts`
+  `track()` (sendBeacon, URL figée en dur), hooks dans App.tsx (écran/entité), ConfrontationScreen (duels),
+  follows.ts (suivis). Secrets Worker (NON committés, dépôt public) : `DASH_KEY` (mdp dashboard, communiqué
+  à l'utilisateur en privé) + `CF_API_TOKEN` (Account Analytics:Read, pour la lecture SQL). Déploiement
+  worker : `cd analytics && wrangler deploy`. ⚠️ Analytics Engine doit être activé sur le compte (fait).
 - **Onglet Suivis** (5e onglet, cloche) : `SuivisScreen.tsx` + `getVotesSuivis()` (api.ts) → feed des votes
   des élu·e·s suivi·e·s (follows.ts), badge « Nouveau » via `getLastSeen`/`markSeen` (localStorage). 100 %
   client-side. ⚠️ Le **push réel** (notif hors-app) reste à faire (nécessite un serveur ; `notifierNouveauxVotes`
