@@ -51,7 +51,12 @@ export function toggleFollow(uid: string) {
   const cur = read();
   const wasFollowed = cur.includes(uid);
   write(wasFollowed ? cur.filter((u) => u !== uid) : [...cur, uid]);
-  track(wasFollowed ? "unfollow" : "follow", uid);
+  // Analytics : on distingue parti (uid PO…) et député (PA…) pour des classements nets.
+  const isParti = uid.startsWith("PO");
+  track(
+    wasFollowed ? (isParti ? "unfollow_parti" : "unfollow") : (isParti ? "follow_parti" : "follow"),
+    uid
+  );
 }
 
 /** Hook React : suit l'état de suivi d'un·e élu·e (re-render au changement). */

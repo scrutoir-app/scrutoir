@@ -25,7 +25,8 @@ interface Env {
 
 const EVENTS = new Set([
   "screen", "depute", "scrutin", "parti", "theme",
-  "confront", "follow", "unfollow", "search", "search_empty", "source", "install",
+  "confront", "follow", "unfollow", "follow_parti", "unfollow_parti",
+  "search", "search_empty", "source", "install",
 ]);
 
 function corsHeaders(origin: string | null, allowed: string[]): Record<string, string> {
@@ -115,8 +116,10 @@ const META: Record<string, { i: string; l: string }> = {
   parti: { i: "🏛️", l: "Fiches parti" },
   theme: { i: "📚", l: "Thèmes" },
   confront: { i: "🔥", l: "Duels" },
-  follow: { i: "⭐", l: "Suivis +" },
-  unfollow: { i: "➖", l: "Suivis −" },
+  follow: { i: "⭐", l: "Suivis député +" },
+  unfollow: { i: "➖", l: "Suivis député −" },
+  follow_parti: { i: "🏳️", l: "Suivis parti +" },
+  unfollow_parti: { i: "➖", l: "Suivis parti −" },
   search: { i: "🔎", l: "Recherches" },
   search_empty: { i: "🔍", l: "Recherches vides" },
   source: { i: "🔗", l: "Clics source AN" },
@@ -129,14 +132,16 @@ async function dashboard(env: Env, days: number): Promise<string> {
   const key = env.DASH_KEY;
   const esc = (s: string) => (s || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!));
 
-  const [deps, scrs, cats] = await Promise.all([
+  const [deps, scrs, cats, prts] = await Promise.all([
     fetchJson("https://scrutoir.fr/data/deputes.json"),
     fetchJson("https://scrutoir.fr/data/scrutins.json"),
     fetchJson("https://scrutoir.fr/data/categories.json"),
+    fetchJson("https://scrutoir.fr/data/partis.json"),
   ]);
   const depName = new Map<string, string>((deps || []).map((d: any) => [d.uid, d.nom_complet]));
   const scrTitre = new Map<string, string>((scrs || []).map((s: any) => [s.uid, s.titre]));
   const catName = new Map<string, string>((cats || []).map((c: any) => [c.id, c.libelle]));
+  const partiName = new Map<string, string>((prts || []).map((p: any) => [p.uid, p.abrev || p.libelle]));
 
   const byType = await q(env, `SELECT blob1 AS k, sum(_sample_interval) AS n FROM ${ds} WHERE timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY k ORDER BY n DESC`);
   const total = byType.reduce((s, r) => s + Number(r.n), 0);
@@ -144,7 +149,7 @@ async function dashboard(env: Env, days: number): Promise<string> {
   const activity = await q(env, `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, sum(_sample_interval) AS n FROM ${ds} WHERE timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY d ORDER BY d`);
 
   // Sections « jolies » (résolution de noms). Tout le reste devient générique.
-  const [confronts, follows, unfollows, deputes, scrutins, screens, themes, searches] = await Promise.all([
+  const [confronts, follows, unfollows, deputes, scrutins, screens, themes, searches, partisVus, folP, unfP] = await Promise.all([
     q(env, topSql(ds, "confront", days)),
     q(env, topSql(ds, "follow", days, 60)),
     q(env, topSql(ds, "unfollow", days, 60)),
@@ -153,17 +158,24 @@ async function dashboard(env: Env, days: number): Promise<string> {
     q(env, topSql(ds, "screen", days)),
     q(env, topSql(ds, "theme", days)),
     q(env, topSql(ds, "search", days)),
+    q(env, topSql(ds, "parti", days)),
+    q(env, topSql(ds, "follow_parti", days, 60)),
+    q(env, topSql(ds, "unfollow_parti", days, 60)),
   ]);
 
-  const net = new Map<string, number>();
-  for (const r of follows) net.set(r.k, (net.get(r.k) || 0) + Number(r.n));
-  for (const r of unfollows) net.set(r.k, (net.get(r.k) || 0) - Number(r.n));
-  const followsNet = [...net.entries()].map(([k, n]) => ({ k, n })).filter((r) => r.n > 0).sort((a, b) => b.n - a.n).slice(0, 15);
+  const netOf = (fol: any[], unf: any[]) => {
+    const m = new Map<string, number>();
+    for (const r of fol) m.set(r.k, (m.get(r.k) || 0) + Number(r.n));
+    for (const r of unf) m.set(r.k, (m.get(r.k) || 0) - Number(r.n));
+    return [...m.entries()].map(([k, n]) => ({ k, n })).filter((r) => r.n > 0).sort((a, b) => b.n - a.n).slice(0, 15);
+  };
+  const followsNet = netOf(follows, unfollows);
+  const partisNet = netOf(folP, unfP);
 
   const duelLabel = (k: string) => { const [a, b] = k.split("|"); return `${depName.get(a) || a}  ✕  ${depName.get(b) || b}`; };
 
   // Auto-sections : tout type d'événement présent et NON déjà couvert ci-dessus.
-  const covered = new Set(["confront", "follow", "unfollow", "depute", "scrutin", "screen", "theme", "search", "search_empty", "source", "install"]);
+  const covered = new Set(["confront", "follow", "unfollow", "follow_parti", "unfollow_parti", "depute", "parti", "scrutin", "screen", "theme", "search", "search_empty", "source", "install"]);
   const extraTypes = byType.map((r) => r.k).filter((t: string) => !covered.has(t));
   const extras = await Promise.all(extraTypes.map((t: string) => q(env, topSql(ds, t, days)).then((rows) => ({ t, rows }))));
 
@@ -253,7 +265,9 @@ async function dashboard(env: Env, days: number): Promise<string> {
     <div class="grid" style="margin-top:14px">
       ${card("🔥 Duels les plus regardés", confronts, duelLabel)}
       ${card("⭐ Députés les plus suivis", followsNet, (k) => depName.get(k) || k)}
+      ${card("🏳️ Partis les plus suivis", partisNet, (k) => partiName.get(k) || k)}
       ${card("👤 Députés les plus consultés", deputes, (k) => depName.get(k) || k)}
+      ${card("🏛️ Partis les plus consultés", partisVus, (k) => partiName.get(k) || k)}
       ${card("🗳️ Scrutins les plus consultés", scrutins, (k) => scrTitre.get(k) || k)}
       ${card("📚 Thèmes les plus explorés", themes, (k) => catName.get(k) || k)}
       ${card("🔎 Recherches les plus fréquentes", searches, (k) => k)}
