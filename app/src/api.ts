@@ -1,6 +1,6 @@
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
-  PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi,
+  PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi, Trends,
 } from "./types";
 
 /**
@@ -140,6 +140,37 @@ export async function getVotesSuivis(uids: string[], limit = 80): Promise<VoteSu
   });
   items.sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.numero ?? 0) - (a.numero ?? 0));
   return items.slice(0, limit);
+}
+
+/**
+ * Tendances publiques (agrégées, anonymes) depuis le Worker analytics. Renvoie null
+ * en cas d'indisponibilité (la section se masque alors simplement). Les noms sont
+ * résolus côté app via l'index des députés.
+ */
+const TRENDS_URL =
+  process.env.EXPO_PUBLIC_TRENDS_URL ||
+  "https://scrutoir-analytics.anthony-627.workers.dev/trends";
+
+export async function getTrends(): Promise<Trends | null> {
+  try {
+    const raw = await fetch(TRENDS_URL).then((r) => (r.ok ? r.json() : null));
+    if (!raw) return null;
+    const deps = await deputesIndex();
+    const byUid = new Map(deps.map((d) => [d.uid, d]));
+    const duels = (raw.duels || [])
+      .map((d: any) => ({ a: byUid.get(d.a), b: byUid.get(d.b), n: d.n }))
+      .filter((d: any) => d.a && d.b);
+    const suivis = (raw.suivis || [])
+      .map((s: any) => ({ depute: byUid.get(s.uid), n: s.n }))
+      .filter((s: any) => s.depute);
+    const deputes = (raw.deputes || [])
+      .map((s: any) => ({ depute: byUid.get(s.uid), n: s.n }))
+      .filter((s: any) => s.depute);
+    if (!duels.length && !suivis.length && !deputes.length) return null;
+    return { duels, suivis, deputes };
+  } catch {
+    return null;
+  }
 }
 
 export async function getDepartements(): Promise<Departement[]> {

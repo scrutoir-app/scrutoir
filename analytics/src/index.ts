@@ -69,6 +69,25 @@ export default {
       return new Response(null, { status: 204, headers: cors });
     }
 
+    // --- Tendances PUBLIQUES (agrégées, anonymes) : alimente la section "Tendances"
+    //     de l'app. Mises en cache 1 h pour limiter les requêtes SQL. CORS ouvert. ---
+    if (url.pathname === "/trends" && request.method === "GET") {
+      const cache = (caches as any).default;
+      const cacheKey = new Request(new URL("/trends", url).toString());
+      const hit = await cache.match(cacheKey);
+      if (hit) return hit;
+      const data = await trends(env);
+      const resp = new Response(JSON.stringify(data), {
+        headers: {
+          "Content-Type": "application/json",
+          "Cache-Control": "public, max-age=3600",
+          "Access-Control-Allow-Origin": "*",
+        },
+      });
+      await cache.put(cacheKey, resp.clone());
+      return resp;
+    }
+
     if (url.pathname === "/stats" && request.method === "GET") {
       if (!env.DASH_KEY || url.searchParams.get("key") !== env.DASH_KEY) {
         return new Response("Accès refusé.", { status: 401 });
@@ -105,6 +124,41 @@ const topSql = (ds: string, type: string, days: number, limit = 15) =>
 async function fetchJson(u: string): Promise<any> {
   try { const r = await fetch(u, { cf: { cacheTtl: 3600 } as any }); return r.ok ? await r.json() : null; }
   catch { return null; }
+}
+
+/**
+ * Tendances PUBLIQUES agrégées (anonymes) sur 90 jours : duels les plus regardés,
+ * élus les plus suivis (net), élus les plus consultés. Seuil MIN pour ne montrer que
+ * ce qui a une vraie traction (pas de tendance issue de 1-2 vues). L'app résout les
+ * noms elle-même (elle a déjà l'index des députés).
+ */
+async function trends(env: Env): Promise<any> {
+  const ds = env.DATASET;
+  const days = 90;
+  const MIN = 3;
+  const [conf, fol, unf, dep] = await Promise.all([
+    q(env, topSql(ds, "confront", days, 8)),
+    q(env, topSql(ds, "follow", days, 80)),
+    q(env, topSql(ds, "unfollow", days, 80)),
+    q(env, topSql(ds, "depute", days, 8)),
+  ]);
+  const duels = conf
+    .filter((r) => Number(r.n) >= MIN)
+    .slice(0, 5)
+    .map((r) => { const [a, b] = String(r.k).split("|"); return { a, b, n: Number(r.n) }; });
+  const net = new Map<string, number>();
+  for (const r of fol) net.set(r.k, (net.get(r.k) || 0) + Number(r.n));
+  for (const r of unf) net.set(r.k, (net.get(r.k) || 0) - Number(r.n));
+  const suivis = [...net.entries()]
+    .map(([uid, n]) => ({ uid, n }))
+    .filter((r) => r.n >= MIN)
+    .sort((a, b) => b.n - a.n)
+    .slice(0, 5);
+  const deputes = dep
+    .filter((r) => Number(r.n) >= MIN)
+    .slice(0, 5)
+    .map((r) => ({ uid: String(r.k), n: Number(r.n) }));
+  return { duels, suivis, deputes };
 }
 
 // Icône + libellé par type d'événement (les types inconnus tombent sur un générique).

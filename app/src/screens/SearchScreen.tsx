@@ -12,6 +12,7 @@ import { ScrutinCard } from "../components/ScrutinCard";
 import { HeroScrutins } from "../components/HeroScrutins";
 import { CategoryGrid } from "../components/CategoryGrid";
 import { ScrutoirMark } from "../components/ScrutoirMark";
+import { Tendances } from "../components/Tendances";
 
 type Item =
   | { kind: "header"; label: string }
@@ -188,6 +189,8 @@ function Accueil({ nav }: { nav: Nav }) {
         <SectionTitle titre="Explorer par thème" />
         <CategoryGrid cats={cats} onOpen={(c) => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
       </View>
+
+      <Tendances nav={nav} />
     </ScrollView>
   );
 }
