@@ -1,14 +1,17 @@
 /**
  * scrutoir-analytics — analytics « maison », privacy-first.
  *
- * - POST /collect : reçoit un événement anonyme et l'écrit dans Cloudflare Analytics
- *   Engine. AUCUN cookie, AUCUNE IP stockée, AUCUN identifiant utilisateur → RGPD clean,
- *   pas de bandeau. On ne stocke QUE : type d'événement + entité (uid/écran) + extra.
- * - GET /stats?key=… : tableau de bord privé (mot de passe) qui interroge Analytics
- *   Engine (SQL API) et affiche les classements (pages, députés, scrutins, duels, suivis…).
+ * - POST /collect : reçoit un événement anonyme → Cloudflare Analytics Engine.
+ *   AUCUN cookie, AUCUNE IP stockée, AUCUN identifiant. On ne stocke que :
+ *   type d'événement + entité (uid/écran) + extra.
+ * - GET /stats?key=… : tableau de bord privé (mot de passe).
+ *
+ * AUTO-ÉVOLUTIF : le dashboard lit les données en direct et s'adapte tout seul.
+ * Tout NOUVEL événement envoyé via track("<type>", …) apparaît automatiquement
+ * (carte KPI + section classement générique). Pour un libellé/icône joli ou une
+ * résolution de noms, ajouter une entrée dans META / NAMED ci-dessous.
  *
  * Secrets (wrangler secret put) : CF_API_TOKEN (Account Analytics:Read), DASH_KEY (mdp).
- * Vars (wrangler.toml) : CF_ACCOUNT_ID, DATASET, ALLOWED_ORIGINS.
  */
 
 interface Env {
@@ -20,7 +23,6 @@ interface Env {
   DASH_KEY: string;
 }
 
-// Types d'événements acceptés (tout le reste est ignoré).
 const EVENTS = new Set([
   "screen", "depute", "scrutin", "parti", "theme",
   "confront", "follow", "unfollow", "search", "search_empty", "source", "install",
@@ -49,71 +51,84 @@ export default {
       return new Response(null, { status: 204, headers: corsHeaders(origin, allowed) });
     }
 
-    // --- Réception d'un événement ---
     if (url.pathname === "/collect" && request.method === "POST") {
       const cors = corsHeaders(origin, allowed);
       try {
-        const raw = await request.text();
-        const ev = JSON.parse(raw || "{}");
+        const ev = JSON.parse((await request.text()) || "{}");
         const type = clip(ev.t, 24);
-        if (!EVENTS.has(type)) return new Response(null, { status: 204, headers: cors });
-        const entity = clip(ev.e, 80);
-        const extra = clip(ev.x, 40);
-        env.AE.writeDataPoint({
-          indexes: [type],          // 1 index (regroupement/échantillonnage)
-          blobs: [type, entity, extra],
-          doubles: [1],
-        });
+        if (EVENTS.has(type)) {
+          env.AE.writeDataPoint({
+            indexes: [type],
+            blobs: [type, clip(ev.e, 80), clip(ev.x, 40)],
+            doubles: [1],
+          });
+        }
       } catch {
-        /* corps invalide → on ignore silencieusement */
+        /* corps invalide → ignoré */
       }
       return new Response(null, { status: 204, headers: cors });
     }
 
-    // --- Tableau de bord privé ---
     if (url.pathname === "/stats" && request.method === "GET") {
       if (!env.DASH_KEY || url.searchParams.get("key") !== env.DASH_KEY) {
         return new Response("Accès refusé.", { status: 401 });
       }
       const days = Math.min(365, Math.max(1, parseInt(url.searchParams.get("days") || "30", 10) || 30));
-      try {
-        const html = await dashboard(env, days);
-        return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
-      } catch (e) {
-        return new Response("Erreur dashboard : " + (e as Error).message, { status: 500 });
-      }
+      const html = await dashboard(env, days);
+      return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
     }
 
     return new Response("scrutoir-analytics ok", { status: 200 });
   },
 };
 
-// --- Requêtes Analytics Engine (SQL API) ---
-async function query(env: Env, sql: string): Promise<any[]> {
-  const res = await fetch(
-    `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/analytics_engine/sql`,
-    { method: "POST", headers: { Authorization: `Bearer ${env.CF_API_TOKEN}` }, body: sql }
-  );
-  if (!res.ok) throw new Error(`SQL ${res.status}: ${(await res.text()).slice(0, 200)}`);
-  const json = (await res.json()) as { data?: any[] };
-  return json.data || [];
+// --- Analytics Engine (SQL API), résilient : [] en cas d'erreur (ne casse pas la page) ---
+async function q(env: Env, sql: string): Promise<any[]> {
+  try {
+    const res = await fetch(
+      `https://api.cloudflare.com/client/v4/accounts/${env.CF_ACCOUNT_ID}/analytics_engine/sql`,
+      { method: "POST", headers: { Authorization: `Bearer ${env.CF_API_TOKEN}` }, body: sql }
+    );
+    if (!res.ok) return [];
+    const json = (await res.json()) as { data?: any[] };
+    return json.data || [];
+  } catch {
+    return [];
+  }
 }
 
-// Top entités pour un type d'événement donné.
-function topSql(dataset: string, type: string, days: number, limit = 20): string {
-  return `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${dataset}
-          WHERE blob1 = '${type}' AND timestamp > NOW() - INTERVAL '${days}' DAY
-          GROUP BY k ORDER BY n DESC LIMIT ${limit}`;
-}
+const topSql = (ds: string, type: string, days: number, limit = 15) =>
+  `SELECT blob2 AS k, sum(_sample_interval) AS n FROM ${ds}
+   WHERE blob1 = '${type}' AND timestamp > NOW() - INTERVAL '${days}' DAY
+   GROUP BY k ORDER BY n DESC LIMIT ${limit}`;
 
 async function fetchJson(u: string): Promise<any> {
   try { const r = await fetch(u, { cf: { cacheTtl: 3600 } as any }); return r.ok ? await r.json() : null; }
   catch { return null; }
 }
 
+// Icône + libellé par type d'événement (les types inconnus tombent sur un générique).
+const META: Record<string, { i: string; l: string }> = {
+  screen: { i: "🧭", l: "Écrans vus" },
+  depute: { i: "👤", l: "Fiches député" },
+  scrutin: { i: "🗳️", l: "Fiches scrutin" },
+  parti: { i: "🏛️", l: "Fiches parti" },
+  theme: { i: "📚", l: "Thèmes" },
+  confront: { i: "🔥", l: "Duels" },
+  follow: { i: "⭐", l: "Suivis +" },
+  unfollow: { i: "➖", l: "Suivis −" },
+  search: { i: "🔎", l: "Recherches" },
+  search_empty: { i: "🔍", l: "Recherches vides" },
+  source: { i: "🔗", l: "Clics source AN" },
+  install: { i: "📲", l: "Installations" },
+};
+const meta = (t: string) => META[t] || { i: "•", l: t };
+
 async function dashboard(env: Env, days: number): Promise<string> {
   const ds = env.DATASET;
-  // Référentiels pour afficher des noms lisibles (pas seulement des uid).
+  const key = env.DASH_KEY;
+  const esc = (s: string) => (s || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!));
+
   const [deps, scrs, cats] = await Promise.all([
     fetchJson("https://scrutoir.fr/data/deputes.json"),
     fetchJson("https://scrutoir.fr/data/scrutins.json"),
@@ -123,82 +138,129 @@ async function dashboard(env: Env, days: number): Promise<string> {
   const scrTitre = new Map<string, string>((scrs || []).map((s: any) => [s.uid, s.titre]));
   const catName = new Map<string, string>((cats || []).map((c: any) => [c.id, c.libelle]));
 
-  // Lancement des requêtes en parallèle.
-  const [byType, screens, deputes, scrutins, confronts, follows, unfollows, themes, searches] = await Promise.all([
-    query(env, `SELECT blob1 AS k, sum(_sample_interval) AS n FROM ${ds} WHERE timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY k ORDER BY n DESC`),
-    query(env, topSql(ds, "screen", days)),
-    query(env, topSql(ds, "depute", days)),
-    query(env, topSql(ds, "scrutin", days)),
-    query(env, topSql(ds, "confront", days)),
-    query(env, topSql(ds, "follow", days, 50)),
-    query(env, topSql(ds, "unfollow", days, 50)),
-    query(env, topSql(ds, "theme", days)),
-    query(env, topSql(ds, "search", days)),
+  const byType = await q(env, `SELECT blob1 AS k, sum(_sample_interval) AS n FROM ${ds} WHERE timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY k ORDER BY n DESC`);
+  const total = byType.reduce((s, r) => s + Number(r.n), 0);
+
+  const activity = await q(env, `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, sum(_sample_interval) AS n FROM ${ds} WHERE timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY d ORDER BY d`);
+
+  // Sections « jolies » (résolution de noms). Tout le reste devient générique.
+  const [confronts, follows, unfollows, deputes, scrutins, screens, themes, searches] = await Promise.all([
+    q(env, topSql(ds, "confront", days)),
+    q(env, topSql(ds, "follow", days, 60)),
+    q(env, topSql(ds, "unfollow", days, 60)),
+    q(env, topSql(ds, "depute", days)),
+    q(env, topSql(ds, "scrutin", days)),
+    q(env, topSql(ds, "screen", days)),
+    q(env, topSql(ds, "theme", days)),
+    q(env, topSql(ds, "search", days)),
   ]);
 
-  // Suivis nets = follow − unfollow par député.
   const net = new Map<string, number>();
   for (const r of follows) net.set(r.k, (net.get(r.k) || 0) + Number(r.n));
   for (const r of unfollows) net.set(r.k, (net.get(r.k) || 0) - Number(r.n));
-  const followsNet = [...net.entries()].map(([k, n]) => ({ k, n })).filter((r) => r.n > 0).sort((a, b) => b.n - a.n).slice(0, 20);
+  const followsNet = [...net.entries()].map(([k, n]) => ({ k, n })).filter((r) => r.n > 0).sort((a, b) => b.n - a.n).slice(0, 15);
 
-  const total = byType.reduce((s, r) => s + Number(r.n), 0);
-  const esc = (s: string) => (s || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!));
+  const duelLabel = (k: string) => { const [a, b] = k.split("|"); return `${depName.get(a) || a}  ✕  ${depName.get(b) || b}`; };
 
-  const rows = (arr: any[], label: (k: string) => string) =>
-    arr.length
-      ? arr.map((r) => `<tr><td>${esc(label(r.k))}</td><td class="n">${Number(r.n).toLocaleString("fr-FR")}</td></tr>`).join("")
-      : `<tr><td colspan="2" class="empty">—</td></tr>`;
+  // Auto-sections : tout type d'événement présent et NON déjà couvert ci-dessus.
+  const covered = new Set(["confront", "follow", "unfollow", "depute", "scrutin", "screen", "theme", "search", "search_empty", "source", "install"]);
+  const extraTypes = byType.map((r) => r.k).filter((t: string) => !covered.has(t));
+  const extras = await Promise.all(extraTypes.map((t: string) => q(env, topSql(ds, t, days)).then((rows) => ({ t, rows }))));
 
-  const duelLabel = (k: string) => {
-    const [a, b] = k.split("|");
-    return `${depName.get(a) || a} ✕ ${depName.get(b) || b}`;
+  // --- Rendu ---
+  const bars = (arr: any[], label: (k: string) => string) => {
+    if (!arr.length) return `<div class="empty">Aucune donnée sur la période</div>`;
+    const max = Math.max(...arr.map((r) => Number(r.n)));
+    return arr.map((r) => {
+      const n = Number(r.n);
+      const w = Math.max(4, Math.round((n / max) * 100));
+      return `<div class="row"><div class="lbl" title="${esc(label(r.k))}">${esc(label(r.k))}</div><div class="track"><span style="width:${w}%"></span></div><div class="val">${n.toLocaleString("fr-FR")}</div></div>`;
+    }).join("");
   };
+  const card = (title: string, arr: any[], label: (k: string) => string) =>
+    `<section><h2>${title}</h2>${bars(arr, label)}</section>`;
 
-  const section = (titre: string, arr: any[], label: (k: string) => string) => `
-    <section>
-      <h2>${titre}</h2>
-      <table><tbody>${rows(arr, label)}</tbody></table>
-    </section>`;
+  // Courbe d'activité (CSS), masquée si la requête n'est pas dispo.
+  let chart = "";
+  if (activity.length) {
+    const max = Math.max(...activity.map((r) => Number(r.n)));
+    const cols = activity.map((r) => {
+      const h = Math.max(3, Math.round((Number(r.n) / max) * 100));
+      const day = String(r.d || "").slice(8, 10);
+      return `<div class="col"><div class="cbar" style="height:${h}%" title="${esc(String(r.d))} : ${Number(r.n)}"></div><div class="cd">${day}</div></div>`;
+    }).join("");
+    chart = `<section><h2>📈 Activité (${activity.length} jours)</h2><div class="chart">${cols}</div></section>`;
+  }
 
-  const typeLabels: Record<string, string> = {
-    screen: "Écrans", depute: "Fiches député", scrutin: "Fiches scrutin", parti: "Fiches parti",
-    theme: "Thèmes", confront: "Confrontations", follow: "Suivis ajoutés", unfollow: "Suivis retirés",
-    search: "Recherches", search_empty: "Recherches sans résultat", source: "Clics source AN", install: "Installations app",
-  };
+  const kpis = byType.map((r) => {
+    const m = meta(r.k);
+    return `<div class="kpi"><div class="i">${m.i}</div><div class="v">${Number(r.n).toLocaleString("fr-FR")}</div><div class="l">${m.l}</div></div>`;
+  }).join("") || `<div class="empty">Aucun événement encore. Reviens après quelques visites de l'app 🙂</div>`;
+
+  const period = (d: number, lbl: string) =>
+    `<a class="${d === days ? "on" : ""}" href="?key=${esc(key)}&days=${d}">${lbl}</a>`;
+
+  // Logo Scrutoir (hémicycle) en blanc.
+  const logo = `<svg viewBox="0 0 200 144" width="34" height="24" aria-hidden="true">${
+    [[188,120.96],[182.69,90.86],[167.41,64.39],[144,44.75],[115.28,34.3],[84.72,34.3],[56,44.75],[32.59,64.39],[17.31,90.86],[12,120.96],[162,120.96],[155.86,94.06],[138.66,72.49],[113.8,60.51],[86.2,60.51],[61.34,72.49],[44.14,94.06],[38,120.96]]
+      .map(([x, y]) => `<circle cx="${x}" cy="${y}" r="9.2" fill="#fff"/>`).join("") +
+    `<circle cx="100" cy="120.96" r="20" fill="#fff" opacity="0.85"/>`
+  }</svg>`;
 
   return `<!doctype html><html lang="fr"><head><meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1"><title>Scrutoir · Analytics</title>
   <style>
-    :root{--ink:#171A1F;--muted:#6B727E;--bg:#F2F4F7;--card:#fff;--accent:#3C4654;--line:#EAEDF1}
-    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;padding:20px;max-width:780px;margin:0 auto}
-    h1{font-size:22px;margin:0 0 2px} .sub{color:var(--muted);font-size:13px;margin-bottom:18px}
-    .periods a{display:inline-block;margin-right:8px;font-size:13px;color:var(--accent);text-decoration:none;padding:4px 10px;border:1px solid var(--line);border-radius:999px;background:#fff}
-    .kpis{display:flex;flex-wrap:wrap;gap:10px;margin:16px 0}
-    .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;min-width:120px}
-    .kpi .v{font-size:20px;font-weight:700} .kpi .l{font-size:11.5px;color:var(--muted)}
-    section{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:14px}
-    h2{font-size:14px;margin:0 0 8px} table{width:100%;border-collapse:collapse;font-size:13.5px}
-    td{padding:6px 0;border-bottom:1px solid var(--line)} tr:last-child td{border-bottom:0}
-    td.n{text-align:right;font-variant-numeric:tabular-nums;color:var(--muted);width:90px}
-    td.empty{color:var(--muted);text-align:center}
-  </style></head><body>
-    <h1>Scrutoir · Analytics</h1>
-    <div class="sub">Données anonymes, ${days} derniers jours · ${total.toLocaleString("fr-FR")} événements</div>
-    <div class="periods">Période :
-      <a href="?key=${esc(env.DASH_KEY)}&days=7">7 j</a>
-      <a href="?key=${esc(env.DASH_KEY)}&days=30">30 j</a>
-      <a href="?key=${esc(env.DASH_KEY)}&days=90">90 j</a>
+    :root{--ink:#171A1F;--muted:#6B727E;--faint:#A0A6B0;--bg:#F2F4F7;--card:#fff;--accent:#3C4654;--line:#EAEDF1}
+    *{box-sizing:border-box}
+    body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,sans-serif;-webkit-font-smoothing:antialiased}
+    .wrap{max-width:860px;margin:0 auto;padding:0 16px 48px}
+    header{background:linear-gradient(135deg,#171A1F,#3C4654);color:#fff;border-radius:0 0 22px 22px;padding:22px 22px 24px;margin:0 -16px 18px;box-shadow:0 10px 30px rgba(23,26,31,.12)}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand h1{font-size:18px;margin:0;font-weight:800;letter-spacing:-.3px}
+    .brand .tag{margin-left:auto;font-size:11px;background:rgba(255,255,255,.16);padding:3px 9px;border-radius:999px}
+    .hl{font-size:30px;font-weight:800;margin:14px 0 0;letter-spacing:-.5px}
+    .hl small{font-size:13px;font-weight:500;opacity:.8;letter-spacing:0}
+    .periods{margin-top:14px;display:flex;gap:7px}
+    .periods a{font-size:12.5px;color:#fff;text-decoration:none;padding:5px 12px;border-radius:999px;background:rgba(255,255,255,.14)}
+    .periods a.on{background:#fff;color:var(--accent);font-weight:700}
+    .kpis{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px;margin-bottom:16px}
+    .kpi{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 13px}
+    .kpi .i{font-size:16px} .kpi .v{font-size:21px;font-weight:800;letter-spacing:-.4px;margin-top:2px} .kpi .l{font-size:11px;color:var(--muted);margin-top:1px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(330px,1fr));gap:14px}
+    section{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 17px}
+    h2{font-size:14px;margin:0 0 12px;letter-spacing:-.2px}
+    .row{display:flex;align-items:center;gap:10px;margin:7px 0}
+    .lbl{flex:0 0 42%;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .track{flex:1;height:8px;background:#EEF0F3;border-radius:999px;overflow:hidden}
+    .track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#3C4654,#5B6675)}
+    .val{flex:0 0 auto;font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums;min-width:42px;text-align:right}
+    .empty{color:var(--faint);font-size:12.5px;padding:6px 0}
+    .chart{display:flex;align-items:flex-end;gap:3px;height:90px}
+    .chart .col{flex:1;display:flex;flex-direction:column;align-items:center;height:100%;justify-content:flex-end;gap:4px}
+    .chart .cbar{width:100%;max-width:18px;background:linear-gradient(180deg,#5B6675,#3C4654);border-radius:4px 4px 0 0;min-height:3px}
+    .chart .cd{font-size:9px;color:var(--faint)}
+    footer{color:var(--faint);font-size:11.5px;text-align:center;margin-top:22px;line-height:1.5}
+  </style></head><body><div class="wrap">
+    <header>
+      <div class="brand">${logo}<h1>Scrutoir · Analytics</h1><span class="tag">privé</span></div>
+      <div class="hl">${total.toLocaleString("fr-FR")} <small>événements · ${days} derniers jours</small></div>
+      <div class="periods">${period(7, "7 jours")}${period(30, "30 jours")}${period(90, "90 jours")}</div>
+    </header>
+
+    <div class="kpis">${kpis}</div>
+    ${chart}
+
+    <div class="grid" style="margin-top:14px">
+      ${card("🔥 Duels les plus regardés", confronts, duelLabel)}
+      ${card("⭐ Députés les plus suivis", followsNet, (k) => depName.get(k) || k)}
+      ${card("👤 Députés les plus consultés", deputes, (k) => depName.get(k) || k)}
+      ${card("🗳️ Scrutins les plus consultés", scrutins, (k) => scrTitre.get(k) || k)}
+      ${card("📚 Thèmes les plus explorés", themes, (k) => catName.get(k) || k)}
+      ${card("🔎 Recherches les plus fréquentes", searches, (k) => k)}
+      ${card("🧭 Écrans les plus vus", screens, (k) => k)}
+      ${extras.map((e) => card(`${meta(e.t).i} ${meta(e.t).l}`, e.rows, (k) => k)).join("")}
     </div>
-    <div class="kpis">
-      ${byType.map((r) => `<div class="kpi"><div class="v">${Number(r.n).toLocaleString("fr-FR")}</div><div class="l">${typeLabels[r.k] || r.k}</div></div>`).join("")}
-    </div>
-    ${section("🔥 Duels les plus regardés", confronts, duelLabel)}
-    ${section("⭐ Députés les plus suivis (net)", followsNet, (k) => depName.get(k) || k)}
-    ${section("👤 Députés les plus consultés", deputes, (k) => depName.get(k) || k)}
-    ${section("🗳️ Scrutins les plus consultés", scrutins, (k) => scrTitre.get(k) || k)}
-    ${section("🧭 Écrans les plus vus", screens, (k) => k)}
-    ${section("📚 Thèmes les plus explorés", themes, (k) => catName.get(k) || k)}
-    ${section("🔎 Recherches les plus fréquentes", searches, (k) => k)}
-  </body></html>`;
+
+    <footer>Données 100 % anonymes — sans cookie, sans IP, sans identité.<br>Mises à jour en direct à chaque chargement.</footer>
+  </div></body></html>`;
 }

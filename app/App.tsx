@@ -62,6 +62,14 @@ export default function App() {
     else track("screen", c.name);
   }, [current]);
 
+  // Analytics : installation de la PWA (ajout à l'écran d'accueil).
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const onInstalled = () => track("install");
+    window.addEventListener("appinstalled", onInstalled);
+    return () => window.removeEventListener("appinstalled", onInstalled);
+  }, []);
+
   const titres: Record<Route["name"], string> = {
     search: "", themes: "", apropos: "", partis: "", suivis: "",
     grandsScrutins: "Grands scrutins", parti: "Parti",

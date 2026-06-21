@@ -5,6 +5,7 @@ import {
 import { Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
 import { rechercher, getGrandsScrutins, getCategories } from "../api";
+import { track } from "../analytics";
 import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
@@ -44,6 +45,8 @@ export function SearchScreen({ nav }: { nav: Nav }) {
           r.scrutins.forEach((s) => next.push({ kind: "scrutin", data: s }));
         }
         setItems(next);
+        const hits = r.deputes.length + r.scrutins.length;
+        track(hits ? "search" : "search_empty", q.trim().toLowerCase().slice(0, 40));
       } catch {
         setItems([]);
       } finally {

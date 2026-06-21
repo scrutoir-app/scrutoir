@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.6 — 2026-06-21
+- Interne : mesure aussi les recherches, les clics « source officielle » et les
+  installations de l'app. Tableau de bord analytics redesigné (KPI, classements,
+  courbe d'activité) et auto-évolutif.
+
 ## 1.0.5 — 2026-06-21
 - Interne : mesure d'audience **privacy-first** (sans cookie, sans IP, anonyme) via un
   Worker Cloudflare + Analytics Engine. Trace de façon agrégée : écrans/contenus

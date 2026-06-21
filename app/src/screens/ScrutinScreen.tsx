@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard, formatDate, positionLabel } from "../theme";
 import { scrutinSourceUrl } from "../config";
 import { getScrutin } from "../api";
+import { track } from "../analytics";
 import type { DetailScrutin } from "../types";
 import type { Nav } from "../nav";
 
@@ -66,7 +67,7 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
       {scrutinSourceUrl(s.numero) && (
         <TouchableOpacity
           activeOpacity={0.6}
-          onPress={() => Linking.openURL(scrutinSourceUrl(s.numero)!)}
+          onPress={() => { track("source", String(s.numero ?? "")); Linking.openURL(scrutinSourceUrl(s.numero)!); }}
           style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 10, alignSelf: "flex-start" }}
         >
           <Feather name="external-link" size={13} color={C.accent} />
