@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.12 — 2026-06-21
+- Fiabilité : **garde-fou** sur le rafraîchissement quotidien — refuse de publier des
+  données vides/cassées (l'app en ligne reste intacte) + alerte automatique en cas d'échec.
+- Sécurité : **en-têtes durcis** (CSP, anti-clickjacking, Referrer-Policy…) + Dependabot.
+- Vie privée : **photos des député·e·s auto-hébergées** — plus aucun appel aux serveurs
+  de l'Assemblée côté utilisateur (fiabilité + hors-ligne).
+
 ## 1.0.11 — 2026-06-21
 - Écran Infos : notice **« Mesure d'audience »** (transparence sur la mesure anonyme) +
   section **« Concrètement »** (sans cookie/IP, compteurs agrégés, liste de suivis locale).

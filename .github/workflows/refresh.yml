@@ -15,6 +15,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write # pour ouvrir une issue d'alerte si le refresh échoue
 
 jobs:
   refresh:
@@ -66,3 +67,20 @@ jobs:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           command: pages deploy app/dist --project-name=scrutoir --branch=main
+
+      # Alerte : si une étape a échoué (garde-fou, téléchargement, build, déploiement),
+      # on ouvre une issue GitHub. Rien n'a été déployé → l'app en ligne reste intacte.
+      - name: Alerte si échec
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const jour = new Date().toISOString().slice(0, 10);
+            await github.rest.issues.create({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              title: `⚠️ Refresh quotidien en échec — ${jour}`,
+              body: `Le rafraîchissement automatique a échoué (run #${context.runId}).\n\n`
+                + `Les données **n'ont pas été déployées** : l'application en ligne reste sur la dernière version saine.\n\n`
+                + `👉 Logs : ${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`,
+            });

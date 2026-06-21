@@ -6,6 +6,7 @@ import { seedCategories, classifierTout } from "./classify.js";
 import { lierAmendements } from "./linkAmendements.js";
 import { calculerParticipation } from "./participation.js";
 import { calculerPropositions, lierDossiers } from "./activiteGroupes.js";
+import { localiserPhotos } from "./photos.js";
 
 async function main() {
   const force = process.argv.includes("--download");
@@ -23,6 +24,9 @@ async function main() {
   const nGroupes = chargerGroupes(db);
   const nDeputes = chargerDeputes(db);
   console.log(`     ${nGroupes} groupes, ${nDeputes} deputes actifs`);
+  console.log("     · photos des députés (rapatriement local)");
+  const ph = await localiserPhotos(db);
+  console.log(`       ${ph.local} photos locales${ph.manquantes ? `, ${ph.manquantes} manquantes (URL distante gardée)` : ""}`);
 
   console.log("3/5  Scrutins + votes nominatifs");
   const { scrutins, votes } = chargerScrutins(db);

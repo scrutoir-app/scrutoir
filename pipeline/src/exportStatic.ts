@@ -33,6 +33,27 @@ function write(rel: string, data: unknown) {
 }
 
 const db = openDb();
+
+// GARDE-FOU : refuse d'exporter (donc de déployer) si les données semblent cassées
+// — ex. l'AN a changé un chemin, un téléchargement a échoué. Sans ça, un refresh
+// quotidien raté écraserait les bonnes données en ligne par du vide. On vérifie AVANT
+// d'écrire le moindre fichier ; en cas d'anomalie on sort en erreur → la CI s'arrête,
+// le déploiement précédent reste en ligne.
+{
+  const nbDep = (db.prepare("SELECT COUNT(*) AS c FROM deputes WHERE actif = 1").get() as any).c as number;
+  const nbScr = (db.prepare("SELECT COUNT(*) AS c FROM scrutins").get() as any).c as number;
+  const nbPar = (db.prepare("SELECT COUNT(*) AS c FROM groupes").get() as any).c as number;
+  const MIN_DEP = 400, MIN_SCR = 1000, MIN_PAR = 5;
+  if (nbDep < MIN_DEP || nbScr < MIN_SCR || nbPar < MIN_PAR) {
+    console.error(
+      `❌ GARDE-FOU : données suspectes (${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes).\n` +
+      `   Seuils minimaux : ${MIN_DEP}/${MIN_SCR}/${MIN_PAR}. Export ANNULÉ pour ne pas écraser les données en ligne.`
+    );
+    process.exit(1);
+  }
+  console.log(`Garde-fou OK : ${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes.`);
+}
+
 fs.mkdirSync(OUT, { recursive: true });
 
 // 1) Index des députés (recherche, listes par département, "mon député")
