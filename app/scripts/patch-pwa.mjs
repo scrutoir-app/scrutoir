@@ -27,7 +27,21 @@ const HEAD_TAGS = `
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-    <meta name="apple-mobile-web-app-title" content="Scrutoir" />`;
+    <meta name="apple-mobile-web-app-title" content="Scrutoir" />
+    <!-- Open Graph / Twitter : aperçu propre quand on partage le lien (réseaux, presse, messageries) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Scrutoir" />
+    <meta property="og:title" content="Scrutoir — ce que votent vraiment les députés" />
+    <meta property="og:description" content="Les votes réels des députés français, à partir de l'Open Data de l'Assemblée nationale. Neutre, gratuit, sans pub." />
+    <meta property="og:url" content="https://scrutoir.fr/" />
+    <meta property="og:image" content="https://scrutoir.fr/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:locale" content="fr_FR" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Scrutoir — ce que votent vraiment les députés" />
+    <meta name="twitter:description" content="Les votes réels des députés français (Open Data Assemblée nationale). Neutre, gratuit, sans pub." />
+    <meta name="twitter:image" content="https://scrutoir.fr/og.png" />`;
 
 const SW_SCRIPT = `
     <!-- ${MARKER}-sw -->

@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.13 — 2026-06-21
+- Partage : **aperçus de lien soignés** (Open Graph / Twitter) quand on partage
+  scrutoir.fr sur les réseaux, la presse ou une messagerie — image + titre + description.
+- Sécurité : en-tête **HSTS** (HTTPS strict).
+
 ## 1.0.12 — 2026-06-21
 - Fiabilité : **garde-fou** sur le rafraîchissement quotidien — refuse de publier des
   données vides/cassées (l'app en ligne reste intacte) + alerte automatique en cas d'échec.

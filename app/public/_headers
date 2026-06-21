@@ -3,6 +3,7 @@
 # photos AN (fallback) + le self-hosting ; connect-src autorise l'envoi d'événements
 # analytics. frame-ancestors 'none' = pas d'iframe (anti-clickjacking).
 /*
+  Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
