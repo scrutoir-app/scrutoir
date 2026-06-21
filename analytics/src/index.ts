@@ -54,25 +54,42 @@ export default {
 
     if (url.pathname === "/collect" && request.method === "POST") {
       const cors = corsHeaders(origin, allowed);
-      try {
-        const ev = JSON.parse((await request.text()) || "{}");
-        const type = clip(ev.t, 24);
-        if (EVENTS.has(type)) {
-          env.AE.writeDataPoint({
-            indexes: [type],
-            blobs: [type, clip(ev.e, 80), clip(ev.x, 40)],
-            doubles: [1],
-          });
+      // Anti-spam : on n'enregistre que les événements émis depuis NOS origines
+      // (notre app). Bloque le spam d'autres sites / scripts. Réponse 204 dans tous
+      // les cas (on ne révèle rien). L'Origin reste falsifiable hors navigateur, mais
+      // ça élève la barre sans infra.
+      const fromUs = !!origin && allowed.includes(origin);
+      if (fromUs) {
+        try {
+          const ev = JSON.parse((await request.text()) || "{}");
+          const type = clip(ev.t, 24);
+          if (EVENTS.has(type)) {
+            env.AE.writeDataPoint({
+              indexes: [type],
+              blobs: [type, clip(ev.e, 80), clip(ev.x, 40)],
+              doubles: [1],
+            });
+          }
+        } catch {
+          /* corps invalide → ignoré */
         }
-      } catch {
-        /* corps invalide → ignoré */
       }
       return new Response(null, { status: 204, headers: cors });
     }
 
     if (url.pathname === "/stats" && request.method === "GET") {
-      if (!env.DASH_KEY || url.searchParams.get("key") !== env.DASH_KEY) {
-        return new Response("Accès refusé.", { status: 401 });
+      // Auth HTTP Basic : le navigateur demande le mot de passe (= DASH_KEY) ; rien
+      // dans l'URL (pas de fuite via historique/referer). Le nom d'utilisateur est ignoré.
+      const auth = request.headers.get("Authorization") || "";
+      let pass = "";
+      if (auth.startsWith("Basic ")) {
+        try { pass = atob(auth.slice(6)).split(":").slice(1).join(":"); } catch { /* ignore */ }
+      }
+      if (!env.DASH_KEY || pass !== env.DASH_KEY) {
+        return new Response("Authentification requise.", {
+          status: 401,
+          headers: { "WWW-Authenticate": 'Basic realm="Scrutoir Analytics", charset="UTF-8"' },
+        });
       }
       const days = Math.min(365, Math.max(1, parseInt(url.searchParams.get("days") || "30", 10) || 30));
       const html = await dashboard(env, days);
@@ -129,7 +146,6 @@ const meta = (t: string) => META[t] || { i: "•", l: t };
 
 async function dashboard(env: Env, days: number): Promise<string> {
   const ds = env.DATASET;
-  const key = env.DASH_KEY;
   const esc = (s: string) => (s || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!));
 
   const [deps, scrs, cats, prts] = await Promise.all([
@@ -210,7 +226,7 @@ async function dashboard(env: Env, days: number): Promise<string> {
   }).join("") || `<div class="empty">Aucun événement encore. Reviens après quelques visites de l'app 🙂</div>`;
 
   const period = (d: number, lbl: string) =>
-    `<a class="${d === days ? "on" : ""}" href="?key=${esc(key)}&days=${d}">${lbl}</a>`;
+    `<a class="${d === days ? "on" : ""}" href="?days=${d}">${lbl}</a>`;
 
   // Logo Scrutoir (hémicycle) en blanc.
   const logo = `<svg viewBox="0 0 200 144" width="34" height="24" aria-hidden="true">${
