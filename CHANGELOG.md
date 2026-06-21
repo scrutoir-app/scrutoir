@@ -7,6 +7,10 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.11 — 2026-06-21
+- Écran Infos : notice **« Mesure d'audience »** (transparence sur la mesure anonyme) +
+  section **« Concrètement »** (sans cookie/IP, compteurs agrégés, liste de suivis locale).
+
 ## 1.0.10 — 2026-06-21
 - Interne : les suivis de partis sont mesurés séparément des suivis de députés →
   classements analytics dédiés (« Partis les plus suivis / consultés ») avec les sigles.

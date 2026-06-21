@@ -99,6 +99,22 @@ export function AProposScreen() {
         législature (depuis juin 2024). Données non officielles, à titre informatif.
       </Bloc>
 
+      <Bloc titre="Mesure d'audience">
+        Scrutoir mesure de façon anonyme ce qui est consulté sur l'application (élus, duels,
+        partis, thèmes), afin d'améliorer le service et de dégager des tendances d'intérêt
+        agrégées. Aucune donnée ne permet de vous identifier individuellement. Nous ne
+        profilons personne et nous ne vendons aucune donnée d'usage à des partis ou à des
+        candidats. Aucun compte n'est nécessaire pour utiliser Scrutoir.
+      </Bloc>
+
+      <Bloc titre="Concrètement">
+        Pas de cookie ni de traceur publicitaire. Aucune adresse IP ni identifiant n'est
+        conservé. Les mesures se limitent à des compteurs agrégés — « combien de fois tel
+        contenu est consulté ou suivi » — jamais reliés à une personne. Et la liste des
+        élu·e·s et partis que vous suivez, elle, reste sur votre appareil : elle n'est
+        envoyée à personne.
+      </Bloc>
+
       <View style={{ marginTop: 6, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.accentSoft }}>
         <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.textMuted }}>
           Scrutoir · version {APP_VERSION}
