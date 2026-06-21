@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, ScrollView } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { C, F, RADIUS } from "../theme";
 import { APP_VERSION } from "../config";
+import type { Nav } from "../nav";
 
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
@@ -12,7 +13,7 @@ function Bloc({ titre, children }: { titre: string; children: React.ReactNode })
   );
 }
 
-export function AProposScreen() {
+export function AProposScreen({ nav }: { nav: Nav }) {
   return (
     <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
       <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>À propos & limites</Text>
@@ -114,6 +115,15 @@ export function AProposScreen() {
         élu·e·s et partis que vous suivez, elle, reste sur votre appareil : elle n'est
         envoyée à personne.
       </Bloc>
+
+      <TouchableOpacity
+        activeOpacity={0.6}
+        onPress={() => nav.push({ name: "mentions" })}
+        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.accentSoft }}
+      >
+        <Text style={{ fontFamily: F.bold, fontSize: 13.5, color: C.accent }}>Mentions légales & confidentialité</Text>
+        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.accent }}>›</Text>
+      </TouchableOpacity>
 
       <View style={{ marginTop: 6, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.accentSoft }}>
         <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.textMuted }}>

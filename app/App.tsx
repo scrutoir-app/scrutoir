@@ -27,6 +27,7 @@ import { VotantsScreen } from "./src/screens/VotantsScreen";
 import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
 import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
+import { MentionsScreen } from "./src/screens/MentionsScreen";
 import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
@@ -78,6 +79,7 @@ export default function App() {
     votesDepute: "Détail des votes", votants: "Votants",
     confrontation: "Confrontation",
     monDepute: "Mon·ma député·e",
+    mentions: "Mentions légales",
   };
   const showHeader = stack.length > 1;
 
@@ -134,7 +136,8 @@ export default function App() {
           {current.name === "votants" && (
             <VotantsScreen scrutinUid={current.scrutinUid} titre={current.titre} position={current.position} groupe={current.groupe} groupeLibelle={current.groupeLibelle} nav={nav} />
           )}
-          {current.name === "apropos" && <AProposScreen />}
+          {current.name === "apropos" && <AProposScreen nav={nav} />}
+          {current.name === "mentions" && <MentionsScreen />}
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} nav={nav} />}
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
