@@ -1,0 +1,17 @@
+name = "scrutoir-analytics"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+workers_dev = true
+
+# Base de données analytics (gratuite). Le dataset est créé au 1er écrit.
+[[analytics_engine_datasets]]
+binding = "AE"
+dataset = "scrutoir_events"
+
+# Variables NON secrètes (les secrets — CF_API_TOKEN, DASH_KEY — sont posés via
+# `wrangler secret put`). CF_ACCOUNT_ID n'est pas sensible.
+[vars]
+CF_ACCOUNT_ID = "627984d2dd614e139df12342e9f2469a"
+DATASET = "scrutoir_events"
+# Origines autorisées à envoyer des événements (CORS).
+ALLOWED_ORIGINS = "https://scrutoir.fr,https://www.scrutoir.fr,https://scrutoir.pages.dev,http://localhost:8099,http://localhost:8081"

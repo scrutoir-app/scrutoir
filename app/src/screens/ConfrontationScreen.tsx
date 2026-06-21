@@ -7,6 +7,7 @@ import { C, F, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } 
 import { SEUIL_FIABILITE, scrutinSourceUrl } from "../config";
 import { catUI } from "../categoryUI";
 import { rechercher, getConfrontation } from "../api";
+import { track } from "../analytics";
 import type { DeputeResume, Confrontation, ConfrontationScrutin, ConfrontationTheme, Periode } from "../types";
 import type { Nav } from "../nav";
 
@@ -36,6 +37,11 @@ export function ConfrontationScreen({ a, b, nav }: { a?: string; b?: string; nav
       .then(setData)
       .finally(() => setLoading(false));
   }, [depA?.uid, depB?.uid, periode]);
+
+  // Analytics : un duel regardé (paire triée, une fois par paire).
+  useEffect(() => {
+    if (depA && depB) track("confront", [depA.uid, depB.uid].sort().join("|"));
+  }, [depA?.uid, depB?.uid]);
 
   const pret = depA && depB;
 

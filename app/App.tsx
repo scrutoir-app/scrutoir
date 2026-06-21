@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Platform, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import {
@@ -27,6 +27,7 @@ import { VotantsScreen } from "./src/screens/VotantsScreen";
 import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
 import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
+import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
@@ -49,6 +50,17 @@ export default function App() {
     pop: useCallback(() => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)), []),
   };
   const goTab = (name: Route["name"]) => setStack([{ name } as Route]);
+
+  // Analytics anonyme : un événement par écran/entité consulté (les duels sont tracés
+  // dans ConfrontationScreen). Ne casse jamais l'app (track() est protégé).
+  useEffect(() => {
+    const c = current;
+    if (c.name === "depute") track("depute", c.uid);
+    else if (c.name === "scrutin") track("scrutin", c.uid);
+    else if (c.name === "parti") track("parti", c.uid);
+    else if (c.name === "categorie") track("theme", c.id);
+    else track("screen", c.name);
+  }, [current]);
 
   const titres: Record<Route["name"], string> = {
     search: "", themes: "", apropos: "", partis: "", suivis: "",

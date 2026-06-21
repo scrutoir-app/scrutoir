@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { track } from "./analytics";
 
 /**
  * Brique « Mon député + notifications » (reco 10).
@@ -48,7 +49,9 @@ export function isFollowed(uid: string): boolean {
 
 export function toggleFollow(uid: string) {
   const cur = read();
-  write(cur.includes(uid) ? cur.filter((u) => u !== uid) : [...cur, uid]);
+  const wasFollowed = cur.includes(uid);
+  write(wasFollowed ? cur.filter((u) => u !== uid) : [...cur, uid]);
+  track(wasFollowed ? "unfollow" : "follow", uid);
 }
 
 /** Hook React : suit l'état de suivi d'un·e élu·e (re-render au changement). */

@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.5 — 2026-06-21
+- Interne : mesure d'audience **privacy-first** (sans cookie, sans IP, anonyme) via un
+  Worker Cloudflare + Analytics Engine. Trace de façon agrégée : écrans/contenus
+  consultés, duels regardés, suivis, recherches. Tableau de bord privé séparé.
+
 ## 1.0.4 — 2026-06-20
 - Écran Infos : ajout de la note « Pourquoi Scrutoir ? » (origine du nom).
 
