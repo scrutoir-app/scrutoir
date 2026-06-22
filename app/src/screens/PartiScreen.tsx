@@ -4,6 +4,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
 import { PositionCells } from "../components/PositionCells";
+import { BarreDivergente } from "../components/BarreDivergente";
 import { getParti } from "../api";
 import { useFollow } from "../follows";
 import type { ProfilParti, PartiCategorie, Periode } from "../types";
@@ -213,8 +214,6 @@ function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; l
 /** Ligne thème repliable : barre (toujours visible) + dépli avec Pour/Contre/Abstention cliquables. */
 function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: { cat: PartiCategorie; ouvert: boolean; onToggle: () => void; onOpenTheme: () => void; onOpenPosition: (position: string) => void }) {
   const ui = catUI(cat.id);
-  const tot = (cat.pour + cat.contre + cat.abstention) || 1;
-  const seg = (v: number, col: string) => (v ? <View key={col} style={{ flex: v / tot, backgroundColor: col }} /> : null);
   return (
     <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
       <TouchableOpacity activeOpacity={0.7} onPress={onToggle} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -225,10 +224,10 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: {
         <Feather name={ouvert ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
       </TouchableOpacity>
 
-      <View style={{ flexDirection: "row", height: 7, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken, marginTop: 10 }}>
-        {seg(cat.pour, C.pour)}
-        {seg(cat.contre, C.contre)}
-        {seg(cat.abstention, C.abstention)}
+      {/* Barre divergente : Pour part du centre vers la gauche, Contre vers la droite
+          (part relative aux exprimés). Axe central aligné d'une carte à l'autre. */}
+      <View style={{ marginTop: 10 }}>
+        <BarreDivergente pour={cat.pour} contre={cat.contre} abstention={cat.abstention} />
       </View>
 
       {!ouvert ? (
