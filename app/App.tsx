@@ -160,8 +160,8 @@ export default function App() {
         {/* Bandeau d'installation PWA, en bas de l'Accueil uniquement */}
         {root === "search" && <InstallPrompt />}
 
-        {/* Barre d'onglets (marge basse = home indicator iOS via safe-area sur le web) */}
-        <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: (Platform.OS === "web" ? ("calc(10px + env(safe-area-inset-bottom))" as any) : 10) }}>
+        {/* Barre d'onglets : hauteur FIXE, identique sur tous les onglets. */}
+        <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
           {TABS.map((t) => {
             const actif = root === t.root;
             return (

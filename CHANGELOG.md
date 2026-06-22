@@ -7,11 +7,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.26 — 2026-06-22
+- Barre d'onglets : **hauteur fixe restaurée** (identique sur tous les onglets). Retrait
+  de `viewport-fit=cover` et de la marge safe-area qui la rendaient trop haute sur iPhone.
+
 ## 1.0.25 — 2026-06-22
 - Fiche élu : les **thèmes sont désormais repliés par défaut** (comme la fiche parti) ;
   au dépli, les gros boutons Pour / Contre / Abst. / Absent + « tous les votes du thème ».
 - Correctif iOS : la **barre d'onglets** ne passe plus sous la barre d'outils de Safari
-  (racine en `100dvh` + `viewport-fit=cover` + marge basse safe-area) — plus facile à taper.
+  (racine en `100dvh`) — plus facile à taper.
 
 ## 1.0.24 — 2026-06-22
 - Fiche parti : au dépli d'un thème, on voit désormais les **mêmes gros boutons
