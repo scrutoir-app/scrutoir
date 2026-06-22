@@ -64,9 +64,11 @@ export default {
           const ev = JSON.parse((await request.text()) || "{}");
           const type = clip(ev.t, 24);
           if (EVENTS.has(type)) {
+            // blob4 = catégorie d'appareil (mobile/tablet/desktop), dérivée du viewport
+            // côté app. Agrégé/anonyme ; vide pour les anciens événements.
             env.AE.writeDataPoint({
               indexes: [type],
-              blobs: [type, clip(ev.e, 80), clip(ev.x, 40)],
+              blobs: [type, clip(ev.e, 80), clip(ev.x, 40), clip(ev.d, 12)],
               doubles: [1],
             });
           }
@@ -163,6 +165,10 @@ async function dashboard(env: Env, days: number): Promise<string> {
   const total = byType.reduce((s, r) => s + Number(r.n), 0);
 
   const activity = await q(env, `SELECT toStartOfInterval(timestamp, INTERVAL '1' DAY) AS d, sum(_sample_interval) AS n FROM ${ds} WHERE timestamp > NOW() - INTERVAL '${days}' DAY GROUP BY d ORDER BY d`);
+
+  // Répartition par type d'appareil (blob4 = mobile/tablet/desktop ; vide = anciens événements).
+  const devices = await q(env, `SELECT blob4 AS k, sum(_sample_interval) AS n FROM ${ds} WHERE timestamp > NOW() - INTERVAL '${days}' DAY AND blob4 != '' GROUP BY k ORDER BY n DESC`);
+  const deviceLabel = (k: string) => ({ mobile: "📱 Mobile", tablet: "💻 Tablette", desktop: "🖥️ Desktop" }[k] || k);
 
   // Sections « jolies » (résolution de noms). Tout le reste devient générique.
   const [confronts, follows, unfollows, deputes, scrutins, screens, themes, searches, partisVus, folP, unfP] = await Promise.all([
@@ -279,6 +285,7 @@ async function dashboard(env: Env, days: number): Promise<string> {
     ${chart}
 
     <div class="grid" style="margin-top:14px">
+      ${card("📱 Répartition par appareil", devices, deviceLabel)}
       ${card("🔥 Duels les plus regardés", confronts, duelLabel)}
       ${card("⭐ Députés les plus suivis", followsNet, (k) => depName.get(k) || k)}
       ${card("🏳️ Partis les plus suivis", partisNet, (k) => partiName.get(k) || k)}

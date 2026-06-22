@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.16 — 2026-06-22
+- Interne : la mesure d'audience distingue désormais le **type d'appareil**
+  (mobile / tablette / desktop), dérivé de la largeur de viewport (anonyme,
+  agrégé). Nouveau bloc « Répartition par appareil » dans le tableau de bord.
+
 ## 1.0.15 — 2026-06-22
 - Écran de lancement animé : l'**hémicycle se remplit siège par siège** (le logo
   comme barre de chargement) sous le mot « Scrutoir », puis se fond dès que l'app
