@@ -28,6 +28,7 @@ import { VotesListeScreen } from "./src/screens/VotesListeScreen";
 import { VotesCategorieScreen } from "./src/screens/VotesCategorieScreen";
 import { VotantsScreen } from "./src/screens/VotantsScreen";
 import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
+import { ConfrontationListeScreen } from "./src/screens/ConfrontationListeScreen";
 import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
@@ -96,6 +97,7 @@ export default function App() {
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
     confrontation: "Confrontation",
+    confrontationListe: "Confrontation",
     monDepute: "Mon député",
     mentions: "Mentions légales",
   };
@@ -188,6 +190,9 @@ export default function App() {
           {current.name === "apropos" && <AProposScreen nav={nav} />}
           {current.name === "mentions" && <MentionsScreen />}
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} nav={nav} />}
+          {current.name === "confrontationListe" && (
+            <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} nav={nav} />
+          )}
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
             </>

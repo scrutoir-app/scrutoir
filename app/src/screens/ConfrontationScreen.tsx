@@ -7,6 +7,8 @@ import { C, F, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } 
 import { SEUIL_FIABILITE, scrutinSourceUrl } from "../config";
 import { catUI } from "../categoryUI";
 import { rechercher, getConfrontation } from "../api";
+import { BarreDivergente } from "../components/BarreDivergente";
+import { PositionCells } from "../components/PositionCells";
 import { track } from "../analytics";
 import type { DeputeResume, Confrontation, ConfrontationScrutin, ConfrontationTheme, Periode } from "../types";
 import type { Nav } from "../nav";
@@ -186,7 +188,7 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
           </Text>
           <View style={{ gap: 9 }}>
             {fiables.map((t) => (
-              <ThemeSpectrumRow key={t.id} theme={t} nav={nav} />
+              <ThemeSpectrumRow key={t.id} theme={t} sousTitre={`${depA.nom_complet} vs ${depB.nom_complet}`} nav={nav} />
             ))}
           </View>
         </View>
@@ -221,47 +223,65 @@ function Synthese({ n, label, color }: { n: number | string; label: string; colo
   );
 }
 
-/** Ligne de spectre : thème + barre accord/désaccord, dépliable vers le détail. */
-function ThemeSpectrumRow({ theme, nav }: { theme: ConfrontationTheme; nav: Nav }) {
+/** Ligne de spectre : thème + barre divergente accords/désaccords, dépliable. */
+function ThemeSpectrumRow({ theme, sousTitre, nav }: { theme: ConfrontationTheme; sousTitre: string; nav: Nav }) {
   const [open, setOpen] = useState(false);
   const ui = catUI(theme.id);
   const d = theme.desaccords.length;
   const a = theme.accords.length;
-  const pctDesaccord = Math.round((d / theme.communs) * 100);
+
+  // Ouvre la liste filtrée sur une page dédiée (avec filtres année/mois).
+  const ouvrir = (kind: "accord" | "desaccord") =>
+    nav.push({
+      name: "confrontationListe",
+      kind,
+      themeLibelle: theme.libelle,
+      sousTitre,
+      scrutins: kind === "accord" ? theme.accords : theme.desaccords,
+    });
 
   return (
     <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, overflow: "hidden", ...shadowCard }}>
       <TouchableOpacity activeOpacity={0.6} onPress={() => setOpen((o) => !o)} style={{ padding: 13 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 9 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
             <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
           </View>
           <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }} numberOfLines={1}>{theme.libelle}</Text>
-          <Text style={{ fontFamily: F.extra, fontSize: 14, color: pctDesaccord >= 50 ? C.contre : C.text }}>{pctDesaccord}%</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>désac.</Text>
-          <Feather name={open ? "chevron-up" : "chevron-down"} size={17} color={C.textFaint} />
+          <Feather name={open ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
         </View>
-        <View style={{ flexDirection: "row", height: 8, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken }}>
-          <View style={{ flex: a || 0.0001, backgroundColor: C.pour }} />
-          <View style={{ flex: d || 0.0001, backgroundColor: C.contre }} />
+
+        {/* Répartition accords / désaccords, axe central partagé (comme la fiche parti) :
+            accords (vert) partent du centre vers la gauche, désaccords (rouge) vers la droite. */}
+        <View style={{ marginTop: 10 }}>
+          <BarreDivergente pour={a} contre={d} />
         </View>
-        <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint, marginTop: 6 }}>
-          {d} désaccord{d > 1 ? "s" : ""} · {a} accord{a > 1 ? "s" : ""} sur {theme.communs} comparés
+
+        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textMuted, marginTop: 6 }}>
+          <Text style={{ fontFamily: F.bold, color: C.pour }}>{a} accord{a > 1 ? "s" : ""}</Text>
+          {" · "}
+          <Text style={{ fontFamily: F.bold, color: C.contre }}>{d} désaccord{d > 1 ? "s" : ""}</Text>
+          {" sur "}{theme.communs} comparés
         </Text>
       </TouchableOpacity>
 
       {open && (
-        <View style={{ paddingHorizontal: 13, paddingBottom: 13, gap: 9 }}>
-          {[...theme.desaccords, ...theme.accords].map((sc) => (
-            <ScrutinLigne key={sc.uid} sc={sc} nav={nav} />
-          ))}
+        <View style={{ paddingHorizontal: 13, paddingBottom: 13 }}>
+          {/* Mêmes boutons que Pour / Contre : Accord / Désaccord → page liste dédiée */}
+          <PositionCells
+            cells={[
+              { pos: "accord", n: a, label: "Accord", color: C.pour },
+              { pos: "desaccord", n: d, label: "Désaccord", color: C.contre },
+            ]}
+            onCell={(pos) => ouvrir(pos as "accord" | "desaccord")}
+          />
         </View>
       )}
     </View>
   );
 }
 
-function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
+export function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
   const [voirTexte, setVoirTexte] = useState(false);
   const expose = (sc.resume || "").trim();
   const resume = expose || (sc.objet || "").trim();
