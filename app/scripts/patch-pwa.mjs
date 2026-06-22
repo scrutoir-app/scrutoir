@@ -54,12 +54,6 @@ const HEAD_TAGS = `
       @keyframes ss-fill{0%{opacity:.16}12%{opacity:1}82%{opacity:1}100%{opacity:.16}}
       @keyframes ss-pulse{0%,100%{opacity:.5}40%{opacity:1}}
       @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat{opacity:1;animation:none}#scrutoir-splash .ss-focal{animation:none}}
-      /* iOS Safari : la racine suit le viewport VISIBLE (dvh) pour que la barre d'onglets
-         ne passe pas sous la barre d'outils du navigateur (sans changer sa hauteur).
-         Repli height:100% si dvh non supporté. Pas de viewport-fit=cover : on ne veut pas
-         étendre sous le home indicator (ça gonflait la barre). */
-      html, body { height: 100%; }
-      #root { height: 100vh; height: 100dvh; }
     </style>`;
 
 const SPLASH_BODY = `

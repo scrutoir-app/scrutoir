@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.27 — 2026-06-22
+- Barre d'onglets : retour **exact au comportement d'origine** (retrait du `100dvh` qui,
+  en app installée, étendait la racine sous le home indicator et **coupait les libellés**).
+  Hauteur fixe, libellés visibles, identique sur tous les onglets.
+
 ## 1.0.26 — 2026-06-22
 - Barre d'onglets : **hauteur fixe restaurée** (identique sur tous les onglets). Retrait
   de `viewport-fit=cover` et de la marge safe-area qui la rendaient trop haute sur iPhone.
