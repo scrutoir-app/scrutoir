@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.33 — 2026-06-22
+- Correctif important : **« Trouver mon député » remarchait** (recherche par commune /
+  code postal). La politique de sécurité (CSP) bloquait l'API Géo officielle
+  `geo.api.gouv.fr` (absente de `connect-src`) → aucune commune trouvée. Autorisée.
+
 ## 1.0.32 — 2026-06-22
 - **Écriture inclusive retirée** partout (député, élus, citoyen… plus de points médians).
 - Recherche : placeholder « Rechercher député, parti, scrutin » + taille de texte réduite

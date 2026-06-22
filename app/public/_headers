@@ -1,14 +1,15 @@
 # En-têtes de SÉCURITÉ (toutes les pages). CSP pragmatique : 'unsafe-inline' nécessaire
 # pour le bundle Expo + react-native-web (styles/scripts inline). img-src autorise les
 # photos AN (fallback) + le self-hosting ; connect-src autorise l'envoi d'événements
-# analytics. frame-ancestors 'none' = pas d'iframe (anti-clickjacking).
+# analytics + l'API Géo officielle (geo.api.gouv.fr) pour « Trouver mon député » par
+# commune/code postal. frame-ancestors 'none' = pas d'iframe (anti-clickjacking).
 /*
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
-  Content-Security-Policy: default-src 'self'; img-src 'self' https://www2.assemblee-nationale.fr data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://scrutoir-analytics.anthony-627.workers.dev; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; img-src 'self' https://www2.assemblee-nationale.fr data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline'; connect-src 'self' https://scrutoir-analytics.anthony-627.workers.dev https://geo.api.gouv.fr; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 # En-têtes de cache Cloudflare Pages (1ère visite + visiteurs non-PWA ; le SW gère
 # les visites répétées en PWA). Règle plus spécifique en dernier = elle l'emporte.
