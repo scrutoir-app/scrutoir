@@ -82,19 +82,17 @@ export function InstallPrompt() {
         <Text style={{ fontFamily: F.regular, fontSize: 11.5, color: C.textMuted, marginTop: 1 }}>
           {mode === "android"
             ? "Accès en un tap, hors-ligne, sans passer par un store."
-            : "Appuyez sur « Partager », puis « Sur l'écran d'accueil »."}
+            : "Ouvrez « Partager » via le menu « ⋯ » du navigateur, puis « + Sur l'écran d'accueil »."}
         </Text>
       </View>
 
-      {mode === "android" ? (
+      {mode === "android" && (
         <TouchableOpacity
           onPress={install}
           style={{ backgroundColor: C.accent, paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.pill }}
         >
           <Text style={{ color: "#fff", fontFamily: F.semibold, fontSize: 13 }}>Installer</Text>
         </TouchableOpacity>
-      ) : (
-        <Feather name="share" size={19} color={C.accent} style={{ marginRight: 2 }} />
       )}
 
       <TouchableOpacity onPress={close} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ padding: 4 }}>

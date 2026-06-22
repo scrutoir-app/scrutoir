@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.18 — 2026-06-22
+- Bandeau d'installation sur iPhone : notice clarifiée (« Ouvrez Partager via le
+  menu ⋯ du navigateur, puis + Sur l'écran d'accueil ») et retrait de l'icône
+  Partage qui laissait croire, à tort, que le bandeau était cliquable.
+
 ## 1.0.17 — 2026-06-22
 - Accueil : **bandeau « Installer Scrutoir »** en bas de l'écran. Sur Android/Chrome,
   un bouton déclenche la **vraie pop-up d'installation** ; sur iPhone (Safari), une
