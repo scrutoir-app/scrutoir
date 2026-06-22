@@ -5,6 +5,7 @@ import { getVotesDepute } from "../api";
 import type { VoteScrutin } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinRow } from "../components/ScrutinRow";
+import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 
 export function VotesListeScreen({
   uid, nom, categorie, categorieLibelle, position, nav,
@@ -18,6 +19,7 @@ export function VotesListeScreen({
 }) {
   const [scrutins, setScrutins] = useState<VoteScrutin[]>([]);
   const [loading, setLoading] = useState(true);
+  const { filtered, Bar } = useScrutinDateFilter(scrutins);
   const voteExprime = position === "pour" || position === "contre" || position === "abstention";
 
   useEffect(() => {
@@ -35,7 +37,7 @@ export function VotesListeScreen({
 
   return (
     <FlatList
-      data={scrutins}
+      data={filtered}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
@@ -45,9 +47,10 @@ export function VotesListeScreen({
               ? `${nom} — n'a pas pris part`
               : `${nom} — a voté « ${positionLabel(position)} »`}
           </Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 4 }}>
-            {scrutins.length} scrutins en {categorieLibelle}
+          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 10 }}>
+            {filtered.length} scrutins en {categorieLibelle}
           </Text>
+          {Bar}
         </View>
       }
       ListEmptyComponent={

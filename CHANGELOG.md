@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.34 — 2026-06-22
+- Lisibilité : **titres de scrutins agrandis** (cartes et listes) et libellés de la grille
+  de thèmes un peu plus grands ; meilleure hiérarchie (placeholder ≠ titre).
+- Listes denses : **filtre par année puis par mois** (thèmes, grands scrutins, votes d'un
+  élu, votes d'un groupe) — barre de chips au-dessus de la liste.
+
 ## 1.0.33 — 2026-06-22
 - Correctif important : **« Trouver mon député » remarchait** (recherche par commune /
   code postal). La politique de sécurité (CSP) bloquait l'API Géo officielle

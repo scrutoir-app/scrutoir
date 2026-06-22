@@ -38,7 +38,7 @@ export function ScrutinCard({ scrutin, onPress }: { scrutin: ScrutinResume; onPr
         <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textFaint }}>{formatDate(scrutin.date)}</Text>
       </View>
 
-      <Text style={{ fontFamily: F.semibold, fontSize: 14.5, color: C.text, lineHeight: 19 }} numberOfLines={3}>
+      <Text style={{ fontFamily: F.bold, fontSize: 15.5, color: C.text, lineHeight: 21 }} numberOfLines={3}>
         {scrutin.titre || scrutin.objet}
       </Text>
 

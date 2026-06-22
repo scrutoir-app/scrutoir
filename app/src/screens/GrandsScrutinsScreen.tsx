@@ -5,9 +5,11 @@ import { getGrandsScrutins } from "../api";
 import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
+import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 
 export function GrandsScrutinsScreen({ nav }: { nav: Nav }) {
   const [scrutins, setScrutins] = useState<ScrutinResume[] | null>(null);
+  const { filtered, Bar } = useScrutinDateFilter(scrutins ?? []);
 
   useEffect(() => {
     getGrandsScrutins().then(setScrutins);
@@ -22,16 +24,17 @@ export function GrandsScrutinsScreen({ nav }: { nav: Nav }) {
 
   return (
     <FlatList
-      data={scrutins}
+      data={filtered}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
       ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
       ListHeaderComponent={
         <View style={{ paddingBottom: 14 }}>
           <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>Grands scrutins</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1 }}>
-            Scrutins solennels et motions de censure ({scrutins.length})
+          <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1, marginBottom: 12 }}>
+            Scrutins solennels et motions de censure ({filtered.length})
           </Text>
+          {Bar}
         </View>
       }
       renderItem={({ item }) => (

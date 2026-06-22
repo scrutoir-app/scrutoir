@@ -12,14 +12,14 @@ function Tile({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
-      style={{ width: "23.5%", aspectRatio: 0.82, borderRadius: RADIUS.md, backgroundColor: C.surface, padding: 9, justifyContent: "space-between", ...shadowCard }}
+      style={{ width: "23.5%", aspectRatio: 0.95, borderRadius: RADIUS.md, backgroundColor: C.surface, padding: 9, justifyContent: "space-between", ...shadowCard }}
     >
       <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
         <MaterialCommunityIcons name={ui.icon as any} size={17} color={ui.fg} />
       </View>
       <View>
         <Text
-          style={{ fontFamily: F.bold, fontSize: 10.5, color: C.text, lineHeight: 12.5, letterSpacing: -0.2 }}
+          style={{ fontFamily: F.bold, fontSize: 11.5, color: C.text, lineHeight: 13.5, letterSpacing: -0.2 }}
           numberOfLines={2}
           adjustsFontSizeToFit
           minimumFontScale={0.85}

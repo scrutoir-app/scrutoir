@@ -5,10 +5,12 @@ import { getScrutinsCategorie } from "../api";
 import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinRow } from "../components/ScrutinRow";
+import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 
 export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: string; nav: Nav }) {
   const [scrutins, setScrutins] = useState<ScrutinResume[]>([]);
   const [loading, setLoading] = useState(true);
+  const { filtered, Bar } = useScrutinDateFilter(scrutins);
 
   useEffect(() => {
     getScrutinsCategorie(id)
@@ -25,7 +27,7 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
 
   return (
     <FlatList
-      data={scrutins}
+      data={filtered}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
@@ -33,11 +35,12 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
           <Text style={{ fontFamily: F.extra, fontSize: 21, color: C.text, letterSpacing: -0.4 }}>{libelle}</Text>
 
           <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text, marginTop: 18, marginBottom: 2 }}>
-            Scrutins ({scrutins.length})
+            Scrutins ({filtered.length})
           </Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginBottom: 2, lineHeight: 16 }}>
+          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginBottom: 10, lineHeight: 16 }}>
             Les plus récents d'abord. Classement automatique à partir de l'intitulé.
           </Text>
+          {Bar}
         </View>
       }
       ListEmptyComponent={

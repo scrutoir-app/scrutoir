@@ -5,6 +5,7 @@ import { getVotesParti } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinRow } from "../components/ScrutinRow";
+import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 
 /** Scrutins où le groupe a tenu une position donnée sur un thème (drill-down fiche parti). */
 export function VotesPartiScreen({
@@ -20,6 +21,7 @@ export function VotesPartiScreen({
 }) {
   const [scrutins, setScrutins] = useState<VoteScrutin[]>([]);
   const [loading, setLoading] = useState(true);
+  const { filtered, Bar } = useScrutinDateFilter(scrutins);
 
   useEffect(() => {
     getVotesParti(uid, categorie, position, periode)
@@ -36,7 +38,7 @@ export function VotesPartiScreen({
 
   return (
     <FlatList
-      data={scrutins}
+      data={filtered}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
@@ -44,9 +46,10 @@ export function VotesPartiScreen({
           <Text style={{ fontFamily: F.bold, fontSize: 18, color: C.text }}>
             {libelle} — consigne « {positionLabel(position)} »
           </Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 4 }}>
-            {scrutins.length} scrutins en {categorieLibelle}
+          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 10 }}>
+            {filtered.length} scrutins en {categorieLibelle}
           </Text>
+          {Bar}
         </View>
       }
       ListEmptyComponent={

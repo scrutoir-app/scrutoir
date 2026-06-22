@@ -27,7 +27,7 @@ export function ScrutinRow({
         </View>
       )}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.text, lineHeight: 19 }} numberOfLines={2}>
+        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 20 }} numberOfLines={2}>
           {scrutin.titre || scrutin.objet}
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 }}>
