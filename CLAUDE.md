@@ -105,15 +105,17 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.5**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.14**.
 - **Analytics privacy-first** (sans cookie/IP/identifiant, RGPD, pas de bandeau) : Worker `analytics/`
   (`scrutoir-analytics`, déployé sur `scrutoir-analytics.anthony-627.workers.dev`) → `POST /collect` écrit
-  dans **Analytics Engine** (dataset `scrutoir_events`) ; `GET /stats?key=…` = tableau de bord privé
-  (duels, suivis nets, députés/scrutins/écrans/thèmes consultés, recherches). App : `src/analytics.ts`
-  `track()` (sendBeacon, URL figée en dur), hooks dans App.tsx (écran/entité), ConfrontationScreen (duels),
-  follows.ts (suivis). Secrets Worker (NON committés, dépôt public) : `DASH_KEY` (mdp dashboard, communiqué
-  à l'utilisateur en privé) + `CF_API_TOKEN` (Account Analytics:Read, pour la lecture SQL). Déploiement
-  worker : `cd analytics && wrangler deploy`. ⚠️ Analytics Engine doit être activé sur le compte (fait).
+  dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;
+  `GET /stats` = tableau de bord privé en **HTTP Basic Auth** (mot de passe = `DASH_KEY`, plus de clé dans l'URL).
+  Classements : duels, **partis** suivis/consultés (event `follow_parti`/`parti`), députés suivis/consultés,
+  scrutins, écrans, thèmes, recherches. App : `src/analytics.ts track()` (sendBeacon, URL figée), hooks dans
+  App.tsx (écran/entité/install), ConfrontationScreen (duels), follows.ts (follow/unfollow + follow_parti),
+  SearchScreen (recherches), ScrutinScreen (clic source). Secrets Worker (NON committés) : `DASH_KEY` +
+  `CF_API_TOKEN` (Account Analytics:Read). Déploiement : `cd analytics && wrangler deploy`. (Endpoint public
+  `/trends` créé puis RETIRÉ — pas de tendances publiques.) Détail/lien/mdp : voir mémoire brain `scrutoir-analytics-dashboard`.
 - **Onglet Suivis** (5e onglet, cloche) : `SuivisScreen.tsx` + `getVotesSuivis()` (api.ts) → feed des votes
   des élu·e·s suivi·e·s (follows.ts), badge « Nouveau » via `getLastSeen`/`markSeen` (localStorage). 100 %
   client-side. ⚠️ Le **push réel** (notif hors-app) reste à faire (nécessite un serveur ; `notifierNouveauxVotes`
@@ -146,8 +148,32 @@ cd ../app && npm run web                            # app -> http://localhost:80
   `titreDossier.titre`. 229 scrutins reliés (63/75 grands). `ScrutinScreen` affiche un bloc « Objet du
   texte » pour les votes sans amendement (lois entières, motions). L'exposé des motifs **complet** (paragraphe)
   n'est pas dans les Dossiers (dataset *Documents/textes*, plus lourd) → enhancement futur possible.
+- **`dossier_titre` aussi sur l'accueil** : `grandsScrutins()` l'expose → `grands.json` ; `HeroScrutins` affiche
+  l'intitulé officiel au lieu du libellé brut (`ScrutinResume.dossier_titre`).
+- **Onglet Suivis = partis aussi** : on peut **suivre un parti** (cloche `PartiScreen`, `useFollow`). Stockés dans
+  la même liste de suivis, distingués par préfixe d'uid (`PA…` député / `PO…` parti). Onglet Suivis : rangée
+  « Partis suivis » + feed des votes des députés. Accueil : section **« Mes suivis »** (`components/MesSuivis.tsx`,
+  partis + députés). `api.getDeputesByUids()`.
+- **Photos des députés auto-hébergées** : `pipeline/src/photos.ts` (`localiserPhotos`, hook dans ingest) télécharge
+  dans `app/public/photos/<id>.jpg` (577 committées) et réécrit `deputes.photo_url` → `/photos/…`. Plus aucun
+  appel aux serveurs AN côté utilisateur (vie privée + hors-ligne).
+- **Fiabilité** : garde-fou dans `exportStatic.ts` (refuse d'exporter si < 400 députés / 1000 scrutins / 5 groupes)
+  + étape « Alerte si échec » (issue GitHub) dans `refresh.yml` (permission `issues: write`).
+- **Sécurité** : `_headers` durci (CSP, HSTS, X-Frame-Options DENY, Referrer-Policy, Permissions-Policy ; CSP testée
+  OK avec Expo/RN web) + `.github/dependabot.yml` (app, pipeline, github-actions).
+- **Partage** : Open Graph / Twitter Card (balises dans `patch-pwa.mjs`, image `app/public/og.png` 1200×630).
+- **Écran Infos** : note « Pourquoi Scrutoir ? » + notices « Mesure d'audience » / « Concrètement » (transparence
+  RGPD) + lien vers **page Mentions légales & confidentialité** (`MentionsScreen.tsx`, route `mentions`) — éditeur
+  **Seedger**, hébergeur Cloudflare, contact **contact@scrutoir.fr**.
+- **Email contact@scrutoir.fr** : réception OK (Cloudflare Email Routing → anthony@seedger.com). Répondre « depuis »
+  l'adresse = EN COURS (Brevo SMTP + Gmail), bloqué sur un réglage admin Google Workspace → voir mémoire brain
+  `scrutoir-email-contact`.
+- **Logos** : `votes-deputes/brand/` (SVG fond clair + blanc + PNG) pour Canva/partage.
 
 **RESTE À FAIRE (idées « pour plus tard ») — plusieurs investiguées et reportées sciemment :**
+- **EN COURS — finir l'envoi email** « répondre depuis contact@scrutoir.fr » : tout est prêt (Brevo + DNS), il
+  manque que l'**admin Google Workspace seedger.com** active « passerelles sortantes par utilisateur », puis
+  ajouter l'adresse dans Gmail (SMTP Brevo). Étapes exactes : mémoire brain `scrutoir-email-contact`. + DKIM email (optionnel).
 - **Exposé des motifs complet** des lois (paragraphe) : REPORTÉ — dataset *Documents/textes* AN ≈ plusieurs
   Go (alourdit le robot) pour valeur marginale vs l'intitulé officiel déjà affiché. Chemin du dataset non
   trouvé (probes 404). Rouvrir seulement si vraiment voulu.
