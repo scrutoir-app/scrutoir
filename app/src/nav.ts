@@ -1,3 +1,5 @@
+import type { ConfrontationScrutin } from "./types";
+
 export type Route =
   | { name: "search" }
   | { name: "themes" }
@@ -44,6 +46,13 @@ export type Route =
     }
   | { name: "apropos" }
   | { name: "confrontation"; a?: string; b?: string }
+  | {
+      name: "confrontationListe";
+      kind: "accord" | "desaccord";
+      themeLibelle: string;
+      sousTitre: string;
+      scrutins: ConfrontationScrutin[];
+    }
   | { name: "monDepute" }
   | { name: "suivis" }
   | { name: "mentions" };
