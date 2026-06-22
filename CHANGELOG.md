@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.15 — 2026-06-22
+- Écran de lancement animé : l'**hémicycle se remplit siège par siège** (le logo
+  comme barre de chargement) sous le mot « Scrutoir », puis se fond dès que l'app
+  est prête. Affiché avant même le chargement du bundle, plancher de visibilité
+  1,2 s, respecte « réduire les animations » (accessibilité).
+
 ## 1.0.14 — 2026-06-21
 - Page **Mentions légales & confidentialité** (éditeur Seedger, hébergeur, source des
   données, vie privée), accessible depuis l'écran Infos. Contact : contact@scrutoir.fr.

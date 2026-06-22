@@ -71,6 +71,13 @@ export default function App() {
     return () => window.removeEventListener("appinstalled", onInstalled);
   }, []);
 
+  // Masque le splash de chargement (hémicycle qui se remplit) dès que l'app est prête.
+  useEffect(() => {
+    if ((fontsLoaded || fontError) && typeof window !== "undefined") {
+      (window as any).__scrutoirReady?.();
+    }
+  }, [fontsLoaded, fontError]);
+
   const titres: Record<Route["name"], string> = {
     search: "", themes: "", apropos: "", partis: "", suivis: "",
     grandsScrutins: "Grands scrutins", parti: "Parti",

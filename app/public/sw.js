@@ -18,7 +18,7 @@
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const SHELL_VERSION = "v3";
+const SHELL_VERSION = "v4";
 const DATA_VERSION = "v2";
 const SHELL_CACHE = `scrutoir-shell-${SHELL_VERSION}`;
 const DATA_CACHE = `scrutoir-data-${DATA_VERSION}`;

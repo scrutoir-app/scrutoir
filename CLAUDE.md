@@ -69,7 +69,9 @@ cd ../app && npm run web                            # app -> http://localhost:80
   **network-first** (détection de déploiement). `CACHE_VERSION` à bumper pour invalider. Écoute
   `postMessage('SKIP_WAITING')` (prêt pour un futur bandeau « mise à jour dispo »).
 - `app/scripts/patch-pwa.mjs` : post-export, **idempotent** (marqueur `SCRUTOIR_PWA`). Met `lang="fr"`,
-  injecte manifest + `theme-color` + meta apple + description, et l'enregistrement du SW (`/sw.js`, scope `/`).
+  injecte manifest + `theme-color` + meta apple + description, l'enregistrement du SW (`/sw.js`, scope `/`),
+  et le **splash de lancement** (hémicycle qui se remplit siège par siège, juste après `<body>`) masqué par
+  `window.__scrutoirReady()` appelé depuis `App.tsx` (polices prêtes ; plancher 1,2 s ; `prefers-reduced-motion`).
 - Script npm **`build:web`** = `expo export -p web && node scripts/patch-pwa.mjs` (à utiliser en CI étape 4).
 - Vérifié : manifest 200 (application/json), sw.js 200 (text/javascript), SW actif & `controller` =
   scope racine, caches `scrutoir-shell-v1` (index, `/`, bundle JS, fonts, icônes, manifest) + `scrutoir-data-v1`
@@ -105,7 +107,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.14**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.15**.
 - **Analytics privacy-first** (sans cookie/IP/identifiant, RGPD, pas de bandeau) : Worker `analytics/`
   (`scrutoir-analytics`, déployé sur `scrutoir-analytics.anthony-627.workers.dev`) → `POST /collect` écrit
   dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;
