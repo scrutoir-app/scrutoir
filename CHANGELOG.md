@@ -7,6 +7,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.42 — 2026-06-22
+- **Fiche parti — positions par thème en barre divergente** : Pour part du centre vers la
+  gauche, Contre vers la droite (part relative aux exprimés), axe central aligné d'un thème
+  à l'autre. Lecture immédiate de l'orientation du groupe.
+- **Confrontation de deux élus** : par thème, **barre divergente accords / désaccords** (même
+  langage visuel que la fiche parti), triée du plus divergent au plus convergent. Au dépli,
+  deux boutons **Accord / Désaccord** (style Pour/Contre) ouvrent une **page dédiée** listant
+  les scrutins, avec **filtres année/mois**.
+
 ## 1.0.41 — 2026-06-22
 - Recherche : placeholder « Recherche député, parti, loi… » (Accueil + onglets).
 

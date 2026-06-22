@@ -107,7 +107,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.41**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.42**.
 - **Analytics privacy-first** (sans cookie/IP/identifiant, RGPD, pas de bandeau) : Worker `analytics/`
   (`scrutoir-analytics`, déployé sur `scrutoir-analytics.anthony-627.workers.dev`) → `POST /collect` écrit
   dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;
@@ -211,13 +211,19 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - **Détail scrutin** : bandeau Adopté/Rejeté, **exposé d'amendement** (résumé visible par défaut, reco 9),
   position par groupe (cases cliquables → votants), **lien `assemblee-nationale.fr/dyn/17/scrutins/{n°}`**.
 - **Confrontation de deux élus** (reco 1, `ConfrontationScreen` + `/confrontation`) : 2 sélecteurs
-  symétriques + période, désaccords puis accords par thème (seuil reco 3), thèmes « non couvert »
-  listés à part (silence ≠ désaccord), résumé + lien source par scrutin, synthèse honnête. CTA accueil.
+  symétriques + période, thèmes triés du plus divergent au plus convergent (seuil reco 3), thèmes
+  « non couvert » listés à part (silence ≠ désaccord), synthèse honnête. CTA accueil.
+  **(v1.0.42)** par thème, **barre divergente accords (vert, gauche) / désaccords (rouge, droite)**
+  (`components/BarreDivergente.tsx`, partagée avec la fiche parti) ; au dépli, **boutons Accord /
+  Désaccord** (`PositionCells`) → **page dédiée** `ConfrontationListeScreen` (route `confrontationListe`)
+  listant les scrutins (résumé + lien source AN) avec **filtres année/mois** (`useScrutinDateFilter`).
 - **Mon·ma député·e** (reco 10, `MonDeputeScreen` + `/departements`, `/circonscription`) : département →
   circonscription → élu. CTA accueil. (Code postal → circo = référentiel à ajouter ; push = backend.)
 - **Menu Partis** : liste des groupes (nb élus) + fiche parti = **président·e**, **cohésion**,
   **participation moyenne**, **activité parlementaire** (amendements + propositions, signal d'obstruction),
-  et **positions par thème** (répartition pour/contre/abst — plus de réussite). API `/partis`, `/partis/:uid`.
+  et **positions par thème** — **(v1.0.42) barre divergente** Pour (centre→gauche) / Contre (centre→droite),
+  part relative aux exprimés, axe central aligné (`components/BarreDivergente.tsx`) ; dépli → boutons
+  Pour/Contre/Abst (`PositionCells`) → scrutins du groupe. API `/partis`, `/partis/:uid`.
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
 - Accueil : **carrousel hero swipeable** des derniers grands scrutins (`components/HeroScrutins.tsx`,
