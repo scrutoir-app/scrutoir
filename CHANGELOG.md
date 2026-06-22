@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.23 — 2026-06-22
+- Correctif d'exploitation : un asset manquant pendant la propagation d'un déploiement
+  ne renvoie plus le fallback HTML (qui pouvait être mis en cache « immutable » sous
+  l'URL du bundle et casser le site) mais un **404 propre**. Page 404 ajoutée.
+
 ## 1.0.22 — 2026-06-22
 - Fiche parti : au dépli d'un thème, **Pour / Contre / Abstention sont cliquables** et
   mènent à la liste des scrutins où le groupe a tenu cette position sur ce thème (même
