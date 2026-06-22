@@ -3,6 +3,7 @@ import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } fr
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
+import { PositionCells } from "../components/PositionCells";
 import { getParti } from "../api";
 import { useFollow } from "../follows";
 import type { ProfilParti, PartiCategorie, Periode } from "../types";
@@ -214,18 +215,6 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: {
   const ui = catUI(cat.id);
   const tot = (cat.pour + cat.contre + cat.abstention) || 1;
   const seg = (v: number, col: string) => (v ? <View key={col} style={{ flex: v / tot, backgroundColor: col }} /> : null);
-  const ligne = (col: string, lib: string, n: number, position: string) => (
-    <TouchableOpacity
-      activeOpacity={n ? 0.6 : 1}
-      onPress={n ? () => onOpenPosition(position) : undefined}
-      style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 9, borderTopWidth: 1, borderTopColor: C.border }}
-    >
-      <View style={{ width: 9, height: 9, borderRadius: 3, backgroundColor: col }} />
-      <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 13, color: C.text }}>{lib}</Text>
-      <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textMuted }}>{n}</Text>
-      {n ? <Feather name="chevron-right" size={16} color={C.textFaint} /> : <View style={{ width: 16 }} />}
-    </TouchableOpacity>
-  );
   return (
     <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
       <TouchableOpacity activeOpacity={0.7} onPress={onToggle} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
@@ -247,12 +236,17 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: {
           {cat.pour} pour · {cat.contre} contre · {cat.abstention} abst.
         </Text>
       ) : (
-        <View style={{ marginTop: 8 }}>
-          {ligne(C.pour, "Pour", cat.pour, "pour")}
-          {ligne(C.contre, "Contre", cat.contre, "contre")}
-          {ligne(C.abstention, "Abstention", cat.abstention, "abstention")}
-          <TouchableOpacity onPress={onOpenTheme} style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 10 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Voir les scrutins du thème</Text>
+        <View style={{ marginTop: 11 }}>
+          <PositionCells
+            cells={[
+              { pos: "pour", n: cat.pour, label: "Pour", color: C.pour },
+              { pos: "contre", n: cat.contre, label: "Contre", color: C.contre },
+              { pos: "abstention", n: cat.abstention, label: "Abst.", color: C.abstention },
+            ]}
+            onCell={onOpenPosition}
+          />
+          <TouchableOpacity onPress={onOpenTheme} style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 11 }}>
+            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Voir tous les scrutins du thème</Text>
             <Feather name="chevron-right" size={15} color={C.accent} />
           </TouchableOpacity>
         </View>

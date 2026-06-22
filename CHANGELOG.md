@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.24 — 2026-06-22
+- Fiche parti : au dépli d'un thème, on voit désormais les **mêmes gros boutons
+  Pour / Contre / Abst.** que sur la fiche d'un·e élu·e (composant `PositionCells`
+  partagé), au lieu de simples lignes. Cohérence visuelle élu ↔ parti.
+
 ## 1.0.23 — 2026-06-22
 - Correctif d'exploitation (incident du jour) : un asset manquant pendant la propagation
   d'un déploiement ne renvoie plus un fallback HTML 200 (qui pouvait être mis en cache

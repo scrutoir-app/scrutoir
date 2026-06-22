@@ -4,6 +4,7 @@ import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
 import { SEUIL_FIABILITE } from "../config";
+import { PositionCells } from "./PositionCells";
 import type { CategorieStats } from "../types";
 
 /**
@@ -55,23 +56,7 @@ export function CategoryVoteCard({
       </TouchableOpacity>
 
       {fiable ? (
-        <View style={{ flexDirection: "row", gap: 7 }}>
-          {cells.map((c) => (
-            <TouchableOpacity
-              key={c.pos}
-              activeOpacity={0.6}
-              disabled={c.n === 0}
-              onPress={() => onCell(c.pos)}
-              style={{
-                flex: 1, backgroundColor: C.surfaceSunken, borderRadius: 11,
-                paddingVertical: 9, alignItems: "center", opacity: c.n === 0 ? 0.5 : 1,
-              }}
-            >
-              <Text style={{ fontFamily: F.extra, fontSize: 18, color: c.color, letterSpacing: -0.3 }}>{c.n}</Text>
-              <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.textMuted, marginTop: 3 }}>{c.label}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+        <PositionCells cells={cells} onCell={onCell} />
       ) : (
         <TouchableOpacity
           activeOpacity={0.6}
