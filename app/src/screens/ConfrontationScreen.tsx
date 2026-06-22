@@ -122,7 +122,7 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
           onChangeText={setQ}
           placeholder="Un élu…"
           placeholderTextColor={C.textFaint}
-          style={{ flex: 1, fontSize: 13, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+          style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
           autoCorrect={false}
         />
       </View>

@@ -115,7 +115,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
               onChangeText={setQ}
               placeholder="Votre commune ou code postal…"
               placeholderTextColor={C.textFaint}
-              style={{ flex: 1, fontSize: 14.5, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+              style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
               autoCorrect={false}
             />
             {chercheCommune && <ActivityIndicator size="small" color={C.textFaint} />}

@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.35 — 2026-06-22
+- Correctif iOS : les **champs de recherche passent à 16 px** pour empêcher le **zoom
+  automatique** d'iOS au focus (sous 16 px, iOS zoome). Ce zoom décalait aussi le menu
+  du bas (safe-area gonflée). Règle l'un et l'autre.
+
 ## 1.0.34 — 2026-06-22
 - Lisibilité : **titres de scrutins agrandis** (cartes et listes) et libellés de la grille
   de thèmes un peu plus grands ; meilleure hiérarchie (placeholder ≠ titre).

@@ -86,7 +86,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
             onChangeText={setQ}
             placeholder="Rechercher député, parti, scrutin"
             placeholderTextColor={C.textMuted}
-            style={{ flex: 1, fontSize: 14, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+            style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
             autoCorrect={false}
           />
           {loading && <ActivityIndicator size="small" color={C.textFaint} />}
