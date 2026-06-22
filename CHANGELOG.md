@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.38 — 2026-06-22
+- Barre d'onglets : **retour au positionnement d'origine** (avant v1.0.25), `paddingBottom`
+  fixe, sans `viewport-fit=cover` ni safe-area (qui la déréglaient en app installée).
+  Le correctif anti-zoom (champs à 16 px) est conservé.
+
 ## 1.0.37 — 2026-06-22
 - Barre d'onglets encore descendue (marge ≈ 10 px), quasi collée au bas de l'écran.
 

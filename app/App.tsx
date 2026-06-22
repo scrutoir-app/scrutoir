@@ -162,10 +162,11 @@ export default function App() {
         {/* Bandeau d'installation PWA, en bas de l'Accueil (masqué si clavier ouvert) */}
         {root === "search" && !keyboardOpen && <InstallPrompt />}
 
-        {/* Barre d'onglets : hauteur FIXE, identique sur tous les onglets. Masquée quand
-            le clavier est ouvert (sinon il la recouvre à moitié → petite et dure à taper). */}
+        {/* Barre d'onglets : positionnement d'origine (avant v1.0.25), paddingBottom fixe.
+            Pas de viewport-fit=cover/safe-area (déréglait la position en app installée).
+            Masquée quand le clavier est ouvert (sinon il la recouvre à moitié). */}
         {!keyboardOpen && (
-          <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: (Platform.OS === "web" ? ("max(4px, calc(env(safe-area-inset-bottom) - 24px))" as any) : 10) }}>
+          <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
             {TABS.map((t) => {
               const actif = root === t.root;
               return (
