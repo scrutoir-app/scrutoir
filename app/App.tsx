@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
-import { View, Text, TouchableOpacity, SafeAreaView, StatusBar, Platform, ActivityIndicator } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, Platform, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import {
   useFonts,
@@ -12,7 +12,7 @@ import {
 import { C, F, RADIUS, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
-import { RechercheScreen } from "./src/screens/RechercheScreen";
+import { SearchResultsList } from "./src/components/SearchResultsList";
 import { ThemesScreen } from "./src/screens/ThemesScreen";
 import { GrandsScrutinsScreen } from "./src/screens/GrandsScrutinsScreen";
 import { PartisScreen } from "./src/screens/PartisScreen";
@@ -51,6 +51,11 @@ export default function App() {
   const current = stack[stack.length - 1];
   const root = stack[0].name;
   const keyboardOpen = useKeyboardOpen(); // masque la barre d'onglets quand le clavier est ouvert
+  // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
+  const [gq, setGq] = useState("");
+  const ongletAvecRecherche = ["themes", "partis", "suivis", "apropos"].includes(root);
+  const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
+  useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
 
   const nav: Nav = {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
@@ -85,7 +90,7 @@ export default function App() {
   }, [fontsLoaded, fontError]);
 
   const titres: Record<Route["name"], string> = {
-    search: "", themes: "", apropos: "", partis: "", suivis: "", recherche: "Recherche",
+    search: "", themes: "", apropos: "", partis: "", suivis: "",
     grandsScrutins: "Grands scrutins", parti: "Parti", membresParti: "Élus du groupe", votesParti: "Votes du groupe",
     depute: "Député", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
@@ -130,22 +135,35 @@ export default function App() {
           </View>
         )}
 
-        {/* Recherche accessible depuis les onglets de navigation (sauf l'Accueil, qui
-            a déjà sa recherche intégrée) : barre cliquable qui ouvre l'écran de recherche. */}
-        {stack.length === 1 && ["themes", "partis", "suivis", "apropos"].includes(root) && (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => nav.push({ name: "recherche" })}
-            style={{ flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 16, marginTop: 12, height: 44, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 12, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
+        {/* Recherche EN LIGNE depuis les onglets de navigation (l'Accueil a déjà la sienne) :
+            vrai champ de saisie ; on tape directement, les résultats remplacent le contenu. */}
+        {stack.length === 1 && ongletAvecRecherche && (
+          <View
+            style={{ flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 16, marginTop: 12, marginBottom: 4, height: 46, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 12, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
           >
             <Feather name="search" size={17} color={C.textMuted} />
-            <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 14, color: C.textMuted }}>Rechercher député, parti, scrutin</Text>
-          </TouchableOpacity>
+            <TextInput
+              value={gq}
+              onChangeText={setGq}
+              placeholder="Rechercher député, parti, scrutin"
+              placeholderTextColor={C.textMuted}
+              style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+              autoCorrect={false}
+            />
+            {gq.length > 0 && (
+              <TouchableOpacity onPress={() => setGq("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <Feather name="x" size={18} color={C.textFaint} />
+              </TouchableOpacity>
+            )}
+          </View>
         )}
 
         <View style={{ flex: 1 }}>
+          {enRechercheGlobale ? (
+            <SearchResultsList q={gq} nav={nav} />
+          ) : (
+            <>
           {current.name === "search" && <SearchScreen nav={nav} />}
-          {current.name === "recherche" && <RechercheScreen nav={nav} />}
           {current.name === "themes" && <ThemesScreen nav={nav} />}
           {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
@@ -172,6 +190,8 @@ export default function App() {
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} nav={nav} />}
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
+            </>
+          )}
         </View>
 
         {/* Bandeau d'installation PWA, en bas de l'Accueil (masqué si clavier ouvert) */}

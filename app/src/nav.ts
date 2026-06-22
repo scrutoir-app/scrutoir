@@ -1,6 +1,5 @@
 export type Route =
   | { name: "search" }
-  | { name: "recherche" }
   | { name: "themes" }
   | { name: "grandsScrutins" }
   | { name: "partis" }
