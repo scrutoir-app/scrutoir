@@ -80,7 +80,7 @@ export function CategoryVoteCard({
           {fiable && cat.nonvotant > 0 && (
             <TouchableOpacity activeOpacity={0.6} onPress={() => onCell("nonvotant")} style={{ marginTop: 9 }}>
               <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>
-                dont <Text style={{ fontFamily: F.bold, color: C.textMuted }}>{cat.nonvotant} non votant·e·s</Text> · présent·e, n'a pas pris part ›
+                dont <Text style={{ fontFamily: F.bold, color: C.textMuted }}>{cat.nonvotant} non votants</Text> · présent, n'a pas pris part ›
               </Text>
             </TouchableOpacity>
           )}

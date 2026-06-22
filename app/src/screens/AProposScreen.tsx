@@ -23,9 +23,9 @@ export function AProposScreen({ nav }: { nav: Nav }) {
       </Text>
       <Text style={{ fontFamily: F.medium, fontSize: 13.5, color: C.text, lineHeight: 21, marginTop: 6 }}>
         Scrutoir aide à comparer le discours des politiques à leurs actes. L'app rend lisibles les
-        votes réels des député·e·s à l'Assemblée : cherchez un·e élu·e et voyez comment il ou elle a
-        voté par thème, ouvrez un scrutin pour comprendre le texte, confrontez deux élu·e·s sur leurs
-        accords et désaccords, ou retrouvez votre député·e par commune. Le tout de façon neutre —
+        votes réels des députés à l'Assemblée : cherchez un élu et voyez comment il ou elle a
+        voté par thème, ouvrez un scrutin pour comprendre le texte, confrontez deux élus sur leurs
+        accords et désaccords, ou retrouvez votre député par commune. Le tout de façon neutre —
         aucune couleur de parti n'est mise en avant, seul le vote parle.
       </Text>
 
@@ -41,13 +41,13 @@ export function AProposScreen({ nav }: { nav: Nav }) {
 
       <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, lineHeight: 20, marginTop: 16, marginBottom: 18 }}>
         Scrutoir s'appuie sur les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
-        les seuls votes attribués nominativement à chaque député·e. Pour rester honnête, voici
+        les seuls votes attribués nominativement à chaque député. Pour rester honnête, voici
         précisément ce que l'app couvre — et ce qu'elle ne couvre pas.
       </Text>
 
       <View style={{ backgroundColor: C.loyalMoyenBg, borderRadius: RADIUS.md, padding: 13, marginBottom: 20 }}>
         <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.loyalMoyen, lineHeight: 19 }}>
-          ⚠️ Les chiffres ne reflètent qu'une partie de l'activité d'un·e député·e. À lire avec
+          ⚠️ Les chiffres ne reflètent qu'une partie de l'activité d'un député. À lire avec
           nuance, sans en tirer de conclusion hâtive.
         </Text>
       </View>
@@ -59,11 +59,11 @@ export function AProposScreen({ nav }: { nav: Nav }) {
       </Bloc>
 
       <Bloc titre="« Absent », « Non votant » et participation">
-        Un·e député·e absent·e n'apparaît pas dans un scrutin : l'absence est déduite (scrutins d'un
+        Un député absent n'apparaît pas dans un scrutin : l'absence est déduite (scrutins d'un
         thème moins les votes), et bornée aux dates réelles du mandat (pas d'absences « fantômes »
-        avant l'entrée en fonction). « Non votant » = présent·e mais n'ayant pas pris part (ex. la
+        avant l'entrée en fonction). « Non votant » = présent mais n'ayant pas pris part (ex. la
         présidence de séance) — distinct d'« Absent ». Le taux de participation est montré en relatif
-        (« plus assidu·e que X % ») car il est bas pour tout le monde.
+        (« plus assidu que X % ») car il est bas pour tout le monde.
       </Bloc>
 
       <Bloc titre="Classification thématique approximative">
@@ -83,8 +83,8 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         les écarts sont listés dans les « dissidences ». À vous de lire l'écart.
       </Bloc>
 
-      <Bloc titre="Confronter deux élu·e·s">
-        On compare deux député·e·s sur les seuls scrutins nominatifs où les deux ont voté. Un thème
+      <Bloc titre="Confronter deux élus">
+        On compare deux députés sur les seuls scrutins nominatifs où les deux ont voté. Un thème
         sans scrutin commun est « non couvert » (invérifiable) — un silence de données n'est pas un
         désaccord.
       </Bloc>
@@ -112,7 +112,7 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         Pas de cookie ni de traceur publicitaire. Aucune adresse IP ni identifiant n'est
         conservé. Les mesures se limitent à des compteurs agrégés — « combien de fois tel
         contenu est consulté ou suivi » — jamais reliés à une personne. Et la liste des
-        élu·e·s et partis que vous suivez, elle, reste sur votre appareil : elle n'est
+        élus et partis que vous suivez, elle, reste sur votre appareil : elle n'est
         envoyée à personne.
       </Bloc>
 

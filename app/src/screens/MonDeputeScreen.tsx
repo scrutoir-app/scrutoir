@@ -61,7 +61,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-      <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>Mon·ma député·e</Text>
+      <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>Mon député</Text>
       <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4, lineHeight: 18 }}>
         Cherchez votre commune ou votre code postal — on vous amène à votre département.
       </Text>

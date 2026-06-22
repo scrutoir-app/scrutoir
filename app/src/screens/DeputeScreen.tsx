@@ -67,7 +67,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
       </View>
       {followed && (
         <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: -8, marginBottom: 14 }}>
-          Suivi·e — notifications de nouveaux votes à l'arrivée de la version en ligne.
+          Suivi — notifications de nouveaux votes à l'arrivée de la version en ligne.
         </Text>
       )}
 
@@ -83,7 +83,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
           <View style={{ width: `${participation_rang_pct ?? 0}%`, height: "100%", backgroundColor: C.accent }} />
         </View>
         <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 7, lineHeight: 15 }}>
-          {participation_rang_pct != null ? `Plus assidu·e que ${participation_rang_pct} % des députés (scrutins nominatifs)` : "scrutins publics nominatifs votés"}
+          {participation_rang_pct != null ? `Plus assidu que ${participation_rang_pct} % des députés (scrutins nominatifs)` : "scrutins publics nominatifs votés"}
         </Text>
       </View>
 
@@ -135,7 +135,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
       <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>
         Scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) — la majorité des votes
         se tiennent à main levée et n'apparaissent pas ici. « Absent » = aucune trace de vote sur le
-        scrutin (déduit) ; « Non votant » = présent·e sans prendre part. La consigne du groupe est
+        scrutin (déduit) ; « Non votant » = présent sans prendre part. La consigne du groupe est
         indiquée sur chaque scrutin (voir les dissidences pour les écarts).
       </Text>
     </ScrollView>

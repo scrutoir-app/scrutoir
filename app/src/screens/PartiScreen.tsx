@@ -59,7 +59,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </TouchableOpacity>
       </View>
 
-      {/* Président·e du groupe */}
+      {/* Président du groupe */}
       {data.president && (
         <TouchableOpacity
           activeOpacity={0.7}
@@ -68,7 +68,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         >
           <Image source={{ uri: data.president.photo_url ?? undefined }} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }}>Président·e du groupe</Text>
+            <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }}>Président du groupe</Text>
             <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, marginTop: 1 }}>{data.president.nom_complet}</Text>
           </View>
           <Feather name="chevron-right" size={18} color={C.textFaint} />
@@ -84,7 +84,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
           <Feather name="users" size={18} color={C.accent} />
         </View>
-        <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>Voir les {p.nb_deputes} élu·e·s du groupe</Text>
+        <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>Voir les {p.nb_deputes} élus du groupe</Text>
         <Feather name="chevron-right" size={18} color={C.textFaint} />
       </TouchableOpacity>
 

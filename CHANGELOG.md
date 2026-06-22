@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.32 — 2026-06-22
+- **Écriture inclusive retirée** partout (député, élus, citoyen… plus de points médians).
+- Recherche : placeholder « Rechercher député, parti, scrutin » + taille de texte réduite
+  (ne fait plus la taille d'un titre).
+- **Slider des grands scrutins : flèches de navigation** sur desktop (le swipe souris
+  n'existe pas) — précédent/suivant.
+
 ## 1.0.31 — 2026-06-22
 - Barre d'onglets : descendue d'environ 8 px (marge basse `env(safe-area-inset-bottom) - 8px`)
   pour réduire l'espace sous les libellés, tout en restant au-dessus du home indicator.

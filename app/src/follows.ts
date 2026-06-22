@@ -4,13 +4,13 @@ import { track } from "./analytics";
 /**
  * Brique « Mon député + notifications » (reco 10).
  *
- * Côté client, on mémorise les élu·e·s suivi·e·s. Persistance via localStorage sur
+ * Côté client, on mémorise les élus suivis. Persistance via localStorage sur
  * le web ; fallback mémoire ailleurs (le branchement AsyncStorage natif est un TODO
  * volontairement non câblé pour ne pas ajouter de dépendance avant la mise en ligne).
  *
  * La NOTIFICATION « ton élu a voté sur tel scrutin » est posée comme brique mais ne
  * peut fonctionner qu'avec le backend en ligne : un job serveur compare, à chaque
- * nouvel ingest, les scrutins des élu·e·s suivi·e·s depuis la dernière vue, puis
+ * nouvel ingest, les scrutins des élus suivis depuis la dernière vue, puis
  * pousse via expo-notifications. Voir `notifierNouveauxVotes()` (stub) plus bas.
  */
 
@@ -59,7 +59,7 @@ export function toggleFollow(uid: string) {
   );
 }
 
-/** Hook React : suit l'état de suivi d'un·e élu·e (re-render au changement). */
+/** Hook React : suit l'état de suivi d'un élu (re-render au changement). */
 export function useFollow(uid: string): [boolean, () => void] {
   const [, force] = useState(0);
   useEffect(() => {
@@ -70,7 +70,7 @@ export function useFollow(uid: string): [boolean, () => void] {
   return [isFollowed(uid), () => toggleFollow(uid)];
 }
 
-/** Hook React : liste réactive des élu·e·s suivi·e·s (pour l'écran Suivis). */
+/** Hook React : liste réactive des élus suivis (pour l'écran Suivis). */
 export function useFollows(): string[] {
   const [, force] = useState(0);
   useEffect(() => {
@@ -107,7 +107,7 @@ export function markSeen(): void {
 }
 
 /**
- * STUB (à implémenter côté serveur après mise en ligne) : pour chaque élu·e suivi·e,
+ * STUB (à implémenter côté serveur après mise en ligne) : pour chaque élu suivi,
  * détecter les scrutins postérieurs à la dernière consultation et déclencher une
  * notification push « {nom} a voté sur {scrutin} ». Nécessite un backend + tokens push.
  */

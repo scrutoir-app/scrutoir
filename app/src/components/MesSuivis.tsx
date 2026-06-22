@@ -7,7 +7,7 @@ import type { DeputeResume, PartiResume } from "../types";
 import type { Nav } from "../nav";
 
 /**
- * Section d'accueil « Mes suivis » : accès rapide aux député·e·s ET partis que
+ * Section d'accueil « Mes suivis » : accès rapide aux députés ET partis que
  * L'UTILISATEUR suit (privé, sur son appareil). Distinction par préfixe d'uid
  * (PA… = député, PO… = parti). Se masque si rien n'est suivi.
  */

@@ -61,7 +61,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
       <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Suivis</Text>
       <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 4 }}>
-        Les derniers votes des élu·e·s que vous suivez.
+        Les derniers votes des élus que vous suivez.
       </Text>
 
       {/* Partis suivis (raccourci vers leur fiche) */}
@@ -92,7 +92,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
             Vous ne suivez personne pour l'instant
           </Text>
           <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.textMuted, marginTop: 6, textAlign: "center", lineHeight: 19 }}>
-            Ouvrez la fiche d'un·e député·e et touchez la cloche « Suivre ».
+            Ouvrez la fiche d'un député et touchez la cloche « Suivre ».
             Ses derniers votes apparaîtront ici.
           </Text>
         </View>
@@ -106,7 +106,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
       {/* Feed */}
       {follows.length > 0 && items !== null && items.length === 0 && (
         <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 24, textAlign: "center" }}>
-          Aucun vote nominatif récent pour ces élu·e·s.
+          Aucun vote nominatif récent pour ces élus.
         </Text>
       )}
 

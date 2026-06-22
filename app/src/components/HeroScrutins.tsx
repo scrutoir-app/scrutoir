@@ -1,9 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import {
   View, Text, TouchableOpacity, Image, ImageBackground, FlatList,
-  LayoutChangeEvent, NativeSyntheticEvent, NativeScrollEvent, useWindowDimensions,
+  LayoutChangeEvent, NativeSyntheticEvent, NativeScrollEvent, useWindowDimensions, Platform,
 } from "react-native";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard, formatDate } from "../theme";
 import { catUI, catPhoto } from "../categoryUI";
 import type { ScrutinResume } from "../types";
@@ -122,6 +122,14 @@ export function HeroScrutins({
   const effW = boxW > 0 ? boxW : Math.min(winW, 560);
   const cardW = effW - SIDE * 2; // aligné sur la largeur des autres composants
   const interval = cardW + GAP;
+  const listRef = useRef<FlatList>(null);
+
+  // Navigation par flèches (desktop : pas de swipe possible à la souris).
+  const go = (dir: number) => {
+    const ni = Math.max(0, Math.min(scrutins.length - 1, index + dir));
+    listRef.current?.scrollToOffset({ offset: ni * interval, animated: true });
+    setIndex(ni);
+  };
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
     const i = Math.round(e.nativeEvent.contentOffset.x / interval);
@@ -136,6 +144,7 @@ export function HeroScrutins({
   return (
     <View key={winW} onLayout={onLayout}>
       <FlatList
+        ref={listRef}
         data={scrutins}
         keyExtractor={(s) => s.uid}
         horizontal
@@ -152,6 +161,26 @@ export function HeroScrutins({
           <HeroCard s={item} width={cardW} onPress={() => onOpen(item.uid)} />
         )}
       />
+
+      {/* Flèches de navigation (desktop / web : pas de swipe à la souris) */}
+      {Platform.OS === "web" && scrutins.length > 1 && index > 0 && (
+        <TouchableOpacity
+          accessibilityLabel="Scrutin précédent"
+          onPress={() => go(-1)}
+          style={{ position: "absolute", top: 87, left: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.92)", alignItems: "center", justifyContent: "center", ...shadowCard }}
+        >
+          <Feather name="chevron-left" size={22} color={C.text} />
+        </TouchableOpacity>
+      )}
+      {Platform.OS === "web" && scrutins.length > 1 && index < scrutins.length - 1 && (
+        <TouchableOpacity
+          accessibilityLabel="Scrutin suivant"
+          onPress={() => go(1)}
+          style={{ position: "absolute", top: 87, right: 24, width: 36, height: 36, borderRadius: 18, backgroundColor: "rgba(255,255,255,0.92)", alignItems: "center", justifyContent: "center", ...shadowCard }}
+        >
+          <Feather name="chevron-right" size={22} color={C.text} />
+        </TouchableOpacity>
+      )}
 
       {/* Pagination (points) */}
       {scrutins.length > 1 && (

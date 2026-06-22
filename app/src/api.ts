@@ -105,7 +105,7 @@ export async function rechercher(q: string): Promise<{ deputes: DeputeResume[]; 
 
 // --- Mon député (client) ----------------------------------------------------
 /**
- * Feed de l'onglet Suivis : pour les élu·e·s suivi·e·s, leurs votes nominatifs
+ * Feed de l'onglet Suivis : pour les élus suivis, leurs votes nominatifs
  * (pour/contre/abstention/nonvotant) les plus récents, fusionnés et triés par date.
  * Tout est calculé côté client depuis les fichiers statiques (aucun serveur).
  */
@@ -142,7 +142,7 @@ export async function getVotesSuivis(uids: string[], limit = 80): Promise<VoteSu
   return items.slice(0, limit);
 }
 
-/** Tous les élu·e·s actifs d'un groupe (pour la liste « élus du parti »), triés par nom. */
+/** Tous les élus actifs d'un groupe (pour la liste « élus du parti »), triés par nom. */
 export async function getDeputesParti(groupeUid: string): Promise<DeputeResume[]> {
   const deps = await deputesIndex();
   return deps

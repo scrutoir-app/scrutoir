@@ -6,7 +6,7 @@ import { getDeputesParti } from "../api";
 import type { DeputeResume } from "../types";
 import type { Nav } from "../nav";
 
-/** Liste de tous les élu·e·s actifs d'un groupe, depuis la fiche parti. */
+/** Liste de tous les élus actifs d'un groupe, depuis la fiche parti. */
 export function MembresPartiScreen({ uid, libelle, nav }: { uid: string; libelle: string; nav: Nav }) {
   const [deps, setDeps] = useState<DeputeResume[]>([]);
   const [loading, setLoading] = useState(true);
@@ -19,7 +19,7 @@ export function MembresPartiScreen({ uid, libelle, nav }: { uid: string; libelle
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
       <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>{libelle}</Text>
       <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1, marginBottom: 14 }}>
-        {loading ? "…" : `${deps.length} élu·e·s`}
+        {loading ? "…" : `${deps.length} élus`}
       </Text>
       {loading ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />

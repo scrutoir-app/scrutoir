@@ -43,13 +43,13 @@ export function VotantsScreen({
             Ont voté « {positionLabel(position)} »{groupeLibelle ? ` — ${groupeLibelle}` : ""}
           </Text>
           <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3 }} numberOfLines={2}>
-            {votants.length} député·e·s · {titre}
+            {votants.length} députés · {titre}
           </Text>
         </View>
       }
       ListEmptyComponent={
         <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 32 }}>
-          Aucun·e député·e.
+          Aucun député.
         </Text>
       }
       renderItem={({ item }) => (

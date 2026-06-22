@@ -84,9 +84,9 @@ export function SearchScreen({ nav }: { nav: Nav }) {
           <TextInput
             value={q}
             onChangeText={setQ}
-            placeholder="Rechercher un·e député·e, un parti…"
+            placeholder="Rechercher député, parti, scrutin"
             placeholderTextColor={C.textMuted}
-            style={{ flex: 1, fontSize: 15.5, color: C.text, fontFamily: F.semibold, outlineStyle: "none" } as any}
+            style={{ flex: 1, fontSize: 14, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
             autoCorrect={false}
           />
           {loading && <ActivityIndicator size="small" color={C.textFaint} />}
@@ -150,7 +150,7 @@ function Accueil({ nav }: { nav: Nav }) {
       >
         <Feather name="git-pull-request" size={20} color="#fff" />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 14.5, color: "#fff" }}>Confronter deux élu·e·s</Text>
+          <Text style={{ fontFamily: F.bold, fontSize: 14.5, color: "#fff" }}>Confronter deux élus</Text>
           <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: "rgba(255,255,255,0.8)", marginTop: 1 }}>
             Leurs votes côte à côte, accords et désaccords
           </Text>
@@ -165,7 +165,7 @@ function Accueil({ nav }: { nav: Nav }) {
       >
         <Feather name="map-pin" size={19} color={C.accent} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.text }}>Trouver mon·ma député·e</Text>
+          <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.text }}>Trouver mon député</Text>
           <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginTop: 1 }}>
             Par département et circonscription
           </Text>

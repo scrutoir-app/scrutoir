@@ -47,7 +47,7 @@ export function ConfrontationScreen({ a, b, nav }: { a?: string; b?: string; nav
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>Confronter deux élu·e·s</Text>
+      <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>Confronter deux élus</Text>
       <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4, lineHeight: 18 }}>
         Sur les seuls scrutins publics nominatifs où les deux ont voté. Un silence de données n'est pas un désaccord.
       </Text>
@@ -74,7 +74,7 @@ export function ConfrontationScreen({ a, b, nav }: { a?: string; b?: string; nav
 
       {!pret && (
         <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textFaint, marginTop: 28, textAlign: "center" }}>
-          Choisissez deux élu·e·s pour comparer leurs votes.
+          Choisissez deux élus pour comparer leurs votes.
         </Text>
       )}
 
@@ -120,7 +120,7 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
         <TextInput
           value={q}
           onChangeText={setQ}
-          placeholder="Un·e élu·e…"
+          placeholder="Un élu…"
           placeholderTextColor={C.textFaint}
           style={{ flex: 1, fontSize: 13, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
           autoCorrect={false}
