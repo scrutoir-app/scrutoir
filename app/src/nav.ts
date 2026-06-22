@@ -5,6 +5,15 @@ export type Route =
   | { name: "partis" }
   | { name: "parti"; uid: string }
   | { name: "membresParti"; uid: string; libelle: string }
+  | {
+      name: "votesParti";
+      uid: string;
+      libelle: string;
+      categorie: string;
+      categorieLibelle: string;
+      position: string;
+      periode: "all" | "12m" | "6m";
+    }
   | { name: "depute"; uid: string }
   | { name: "scrutin"; uid: string }
   | { name: "categorie"; id: string; libelle: string }

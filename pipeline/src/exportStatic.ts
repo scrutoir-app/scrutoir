@@ -124,6 +124,15 @@ for (const per of PERIODES) {
 }
 for (const pp of profilsParParti) write(`parti/${pp.uid}.json`, pp.profils);
 
+// Positions du groupe par scrutin : { scrutin_uid: position } — pour le drill-down
+// « scrutins du groupe par thème × position » (clic Pour/Contre/Abstention sur la fiche parti).
+const gpStmt = db.prepare("SELECT scrutin_uid, position FROM groupe_positions WHERE groupe_uid = ? AND position IS NOT NULL");
+for (const p of partis) {
+  const map: Record<string, string> = {};
+  for (const r of gpStmt.all(p.uid) as any[]) map[r.scrutin_uid] = r.position;
+  write(`groupe/${p.uid}.json`, map);
+}
+
 // 5) Députés : profil (3 périodes) + dissidences + carte des votes (position + consigne)
 const votesStmt = db.prepare(
   `SELECT v.scrutin_uid, v.position, gp.position AS consigne

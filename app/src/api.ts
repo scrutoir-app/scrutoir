@@ -207,6 +207,24 @@ export async function getVotesDepute(uid: string, categorie: string, position: s
   }
   return out.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
 }
+// Positions d'un groupe par scrutin : { scrutin_uid: position }.
+const groupePositions = (uid: string) => j<Record<string, string>>(`groupe/${uid}`);
+
+/** Scrutins où le GROUPE a tenu une position donnée sur un thème (drill-down fiche parti). */
+export async function getVotesParti(groupeUid: string, categorie: string, position: string, periode: Periode): Promise<VoteScrutin[]> {
+  const [pos, scrMap] = await Promise.all([groupePositions(groupeUid), scrutinsMap()]);
+  const borne = bornePeriode(periode);
+  const out: VoteScrutin[] = [];
+  for (const [su, p] of Object.entries(pos)) {
+    if (p !== position) continue;
+    const s = scrMap.get(su);
+    if (!s || !inCat(s, categorie)) continue;
+    if (borne && (s.date ?? "") < borne) continue;
+    out.push(voteScrutin(s, position, null, categorie));
+  }
+  return out.sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""));
+}
+
 export async function getVotesDeputeCategorie(uid: string, categorie: string, periode: Periode): Promise<VoteScrutin[]> {
   const [d, scrMap] = await Promise.all([depute(uid), scrutinsMap()]);
   const borne = bornePeriode(periode);

@@ -17,6 +17,7 @@ import { GrandsScrutinsScreen } from "./src/screens/GrandsScrutinsScreen";
 import { PartisScreen } from "./src/screens/PartisScreen";
 import { PartiScreen } from "./src/screens/PartiScreen";
 import { MembresPartiScreen } from "./src/screens/MembresPartiScreen";
+import { VotesPartiScreen } from "./src/screens/VotesPartiScreen";
 import { DeputeScreen } from "./src/screens/DeputeScreen";
 import { ScrutinScreen } from "./src/screens/ScrutinScreen";
 import { CategorieScreen } from "./src/screens/CategorieScreen";
@@ -82,7 +83,7 @@ export default function App() {
 
   const titres: Record<Route["name"], string> = {
     search: "", themes: "", apropos: "", partis: "", suivis: "",
-    grandsScrutins: "Grands scrutins", parti: "Parti", membresParti: "Élu·e·s du groupe",
+    grandsScrutins: "Grands scrutins", parti: "Parti", membresParti: "Élu·e·s du groupe", votesParti: "Votes du groupe",
     depute: "Député·e", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
@@ -133,6 +134,9 @@ export default function App() {
           {current.name === "partis" && <PartisScreen nav={nav} />}
           {current.name === "parti" && <PartiScreen uid={current.uid} nav={nav} />}
           {current.name === "membresParti" && <MembresPartiScreen uid={current.uid} libelle={current.libelle} nav={nav} />}
+          {current.name === "votesParti" && (
+            <VotesPartiScreen uid={current.uid} libelle={current.libelle} categorie={current.categorie} categorieLibelle={current.categorieLibelle} position={current.position} periode={current.periode} nav={nav} />
+          )}
           {current.name === "depute" && <DeputeScreen uid={current.uid} nav={nav} />}
           {current.name === "scrutin" && <ScrutinScreen uid={current.uid} nav={nav} />}
           {current.name === "categorie" && <CategorieScreen id={current.id} libelle={current.libelle} nav={nav} />}

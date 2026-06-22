@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.22 — 2026-06-22
+- Fiche parti : au dépli d'un thème, **Pour / Contre / Abstention sont cliquables** et
+  mènent à la liste des scrutins où le groupe a tenu cette position sur ce thème (même
+  pattern que la fiche député). Données : positions du groupe par scrutin (`groupe/<uid>.json`).
+
 ## 1.0.21 — 2026-06-22
 - Fiche parti revue. **Cohésion** et **Participation** sont expliquées en clair, avec
   un repère « moyenne des groupes » (↑/↓) et une ⓘ pour la définition. L'**activité

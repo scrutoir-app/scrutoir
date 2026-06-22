@@ -135,6 +135,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
             ouvert={!!expanded[c.id]}
             onToggle={() => setExpanded((e) => ({ ...e, [c.id]: !e[c.id] }))}
             onOpenTheme={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
+            onOpenPosition={(position) => nav.push({ name: "votesParti", uid: p.uid, libelle: p.abrev ?? p.libelle, categorie: c.id, categorieLibelle: c.libelle, position, periode })}
           />
         ))}
       </View>
@@ -208,17 +209,22 @@ function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; l
   );
 }
 
-/** Ligne thème repliable : barre (toujours visible) + dépli avec Pour/Contre/Abstention. */
-function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme }: { cat: PartiCategorie; ouvert: boolean; onToggle: () => void; onOpenTheme: () => void }) {
+/** Ligne thème repliable : barre (toujours visible) + dépli avec Pour/Contre/Abstention cliquables. */
+function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: { cat: PartiCategorie; ouvert: boolean; onToggle: () => void; onOpenTheme: () => void; onOpenPosition: (position: string) => void }) {
   const ui = catUI(cat.id);
   const tot = (cat.pour + cat.contre + cat.abstention) || 1;
   const seg = (v: number, col: string) => (v ? <View key={col} style={{ flex: v / tot, backgroundColor: col }} /> : null);
-  const ligne = (col: string, lib: string, n: number) => (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.border }}>
+  const ligne = (col: string, lib: string, n: number, position: string) => (
+    <TouchableOpacity
+      activeOpacity={n ? 0.6 : 1}
+      onPress={n ? () => onOpenPosition(position) : undefined}
+      style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 9, borderTopWidth: 1, borderTopColor: C.border }}
+    >
       <View style={{ width: 9, height: 9, borderRadius: 3, backgroundColor: col }} />
       <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 13, color: C.text }}>{lib}</Text>
       <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textMuted }}>{n}</Text>
-    </View>
+      {n ? <Feather name="chevron-right" size={16} color={C.textFaint} /> : <View style={{ width: 16 }} />}
+    </TouchableOpacity>
   );
   return (
     <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
@@ -242,9 +248,9 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme }: { cat: PartiCateg
         </Text>
       ) : (
         <View style={{ marginTop: 8 }}>
-          {ligne(C.pour, "Pour", cat.pour)}
-          {ligne(C.contre, "Contre", cat.contre)}
-          {ligne(C.abstention, "Abstention", cat.abstention)}
+          {ligne(C.pour, "Pour", cat.pour, "pour")}
+          {ligne(C.contre, "Contre", cat.contre, "contre")}
+          {ligne(C.abstention, "Abstention", cat.abstention, "abstention")}
           <TouchableOpacity onPress={onOpenTheme} style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 10 }}>
             <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Voir les scrutins du thème</Text>
             <Feather name="chevron-right" size={15} color={C.accent} />
