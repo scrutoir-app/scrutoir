@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.20 — 2026-06-22
+- Thèmes repensés. **Accueil** : la grille « Explorer par thème » affiche le **nombre
+  de scrutins** par sujet (une raison de cliquer, tout reste visible d'un coup d'œil).
+  **Onglet Thèmes** : passage en **lignes informatives** (nombre de scrutins, date du
+  dernier, intitulé du dernier vote) — bien plus lisible et utile au pouce qu'une grille
+  de tuiles muettes. Données enrichies dans `categories.json` (pipeline).
+
 ## 1.0.19 — 2026-06-22
 - Bandeau d'installation iPhone : la notice précise désormais qu'il faut **faire
   défiler** la feuille de partage (au besoin « Voir plus ») pour atteindre

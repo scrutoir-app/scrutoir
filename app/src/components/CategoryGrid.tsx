@@ -17,14 +17,21 @@ function Tile({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
       <View style={{ width: 30, height: 30, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
         <MaterialCommunityIcons name={ui.icon as any} size={17} color={ui.fg} />
       </View>
-      <Text
-        style={{ fontFamily: F.bold, fontSize: 10.5, color: C.text, lineHeight: 12.5, letterSpacing: -0.2 }}
-        numberOfLines={2}
-        adjustsFontSizeToFit
-        minimumFontScale={0.85}
-      >
-        {ui.court ?? c.libelle}
-      </Text>
+      <View>
+        <Text
+          style={{ fontFamily: F.bold, fontSize: 10.5, color: C.text, lineHeight: 12.5, letterSpacing: -0.2 }}
+          numberOfLines={2}
+          adjustsFontSizeToFit
+          minimumFontScale={0.85}
+        >
+          {ui.court ?? c.libelle}
+        </Text>
+        {c.nb_scrutins != null && (
+          <Text style={{ fontFamily: F.semibold, fontSize: 9.5, color: C.textFaint, marginTop: 2 }}>
+            {c.nb_scrutins} scrutins
+          </Text>
+        )}
+      </View>
     </TouchableOpacity>
   );
 }

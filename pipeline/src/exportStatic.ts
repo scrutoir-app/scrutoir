@@ -84,7 +84,22 @@ const scrutins = scrutinsRaw.map((s) => ({ ...s, cats: s.cats ? String(s.cats).s
 write("scrutins.json", scrutins);
 
 // 3) Référentiels
-write("categories.json", db.prepare("SELECT * FROM categories ORDER BY ordre").all());
+// Par thème : nb de scrutins + date et intitulé du dernier (pour donner du contexte
+// dans l'accueil et l'onglet Thèmes — un scrutin compte dans chacune de ses catégories).
+write(
+  "categories.json",
+  db
+    .prepare(
+      `SELECT c.*,
+         (SELECT COUNT(DISTINCT sc.scrutin_uid) FROM scrutin_categories sc WHERE sc.categorie_id = c.id) AS nb_scrutins,
+         (SELECT s.date FROM scrutin_categories sc JOIN scrutins s ON s.uid = sc.scrutin_uid
+          WHERE sc.categorie_id = c.id ORDER BY s.date DESC, s.numero DESC LIMIT 1) AS derniere_date,
+         (SELECT COALESCE(s.dossier_titre, s.titre) FROM scrutin_categories sc JOIN scrutins s ON s.uid = sc.scrutin_uid
+          WHERE sc.categorie_id = c.id ORDER BY s.date DESC, s.numero DESC LIMIT 1) AS dernier_titre
+       FROM categories c ORDER BY c.ordre`
+    )
+    .all()
+);
 write("grands.json", grandsScrutins(db, 100));
 
 // 4) Partis (liste + profil par période)

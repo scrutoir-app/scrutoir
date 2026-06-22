@@ -103,6 +103,9 @@ export interface CategorieRef {
   emoji: string;
   couleur: string;
   ordre: number;
+  nb_scrutins?: number;
+  derniere_date?: string | null;
+  dernier_titre?: string | null;
 }
 
 export interface Dissidence {

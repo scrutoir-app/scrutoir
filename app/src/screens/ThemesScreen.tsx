@@ -1,10 +1,45 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator } from "react-native";
-import { C, F } from "../theme";
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
+import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
+import { C, F, RADIUS, shadowCard, formatDate } from "../theme";
 import { getCategories } from "../api";
+import { catUI } from "../categoryUI";
 import type { CategorieRef } from "../types";
 import type { Nav } from "../nav";
-import { CategoryTile } from "../components/CategoryTile";
+
+/** Ligne de thème : picto + libellé + contexte (nb de scrutins, dernier) + chevron. */
+function ThemeRow({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
+  const ui = catUI(c.id);
+  const meta: string[] = [];
+  if (c.nb_scrutins != null) meta.push(`${c.nb_scrutins} scrutins`);
+  if (c.derniere_date) meta.push(`dernier le ${formatDate(c.derniere_date)}`);
+
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, marginBottom: 9, ...shadowCard }}
+    >
+      <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
+        <MaterialCommunityIcons name={ui.icon as any} size={22} color={ui.fg} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={{ fontFamily: F.bold, fontSize: 14.5, color: C.text }}>{c.libelle}</Text>
+        {meta.length > 0 && (
+          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginTop: 2 }}>
+            {meta.join(" · ")}
+          </Text>
+        )}
+        {c.dernier_titre && (
+          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 3 }} numberOfLines={1}>
+            Dernier : {c.dernier_titre}
+          </Text>
+        )}
+      </View>
+      <Feather name="chevron-right" size={20} color={C.textFaint} />
+    </TouchableOpacity>
+  );
+}
 
 export function ThemesScreen({ nav }: { nav: Nav }) {
   const [cats, setCats] = useState<CategorieRef[]>([]);
@@ -23,13 +58,9 @@ export function ThemesScreen({ nav }: { nav: Nav }) {
       {loading ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
       ) : (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", rowGap: 11 }}>
-          {cats.map((c) => (
-            <View key={c.id} style={{ width: "48.5%" }}>
-              <CategoryTile id={c.id} libelle={c.libelle} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
-            </View>
-          ))}
-        </View>
+        cats.map((c) => (
+          <ThemeRow key={c.id} c={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
+        ))
       )}
     </ScrollView>
   );
