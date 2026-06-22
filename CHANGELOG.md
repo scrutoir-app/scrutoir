@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.19 — 2026-06-22
+- Bandeau d'installation iPhone : la notice précise désormais qu'il faut **faire
+  défiler** la feuille de partage (au besoin « Voir plus ») pour atteindre
+  « + Sur l'écran d'accueil », souvent sous la ligne de flottaison.
+
 ## 1.0.18 — 2026-06-22
 - Bandeau d'installation sur iPhone : notice clarifiée (« Ouvrez Partager via le
   menu ⋯ du navigateur, puis + Sur l'écran d'accueil ») et retrait de l'icône

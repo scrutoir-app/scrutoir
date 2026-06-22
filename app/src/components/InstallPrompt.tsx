@@ -82,7 +82,7 @@ export function InstallPrompt() {
         <Text style={{ fontFamily: F.regular, fontSize: 11.5, color: C.textMuted, marginTop: 1 }}>
           {mode === "android"
             ? "Accès en un tap, hors-ligne, sans passer par un store."
-            : "Ouvrez « Partager » via le menu « ⋯ » du navigateur, puis « + Sur l'écran d'accueil »."}
+            : "Ouvrez « Partager » (menu « ⋯ »), faites défiler — au besoin « Voir plus » — jusqu'à « + Sur l'écran d'accueil »."}
         </Text>
       </View>
 
