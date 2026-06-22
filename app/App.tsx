@@ -145,7 +145,7 @@ export default function App() {
             <TextInput
               value={gq}
               onChangeText={setGq}
-              placeholder="Rechercher député, parti, scrutin"
+              placeholder="Recherche député, parti, loi…"
               placeholderTextColor={C.textMuted}
               style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
               autoCorrect={false}

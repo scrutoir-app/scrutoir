@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.41 — 2026-06-22
+- Recherche : placeholder « Recherche député, parti, loi… » (Accueil + onglets).
+
 ## 1.0.40 — 2026-06-22
 - Recherche depuis les onglets : on **tape directement dans la barre** (résultats en
   ligne), au lieu d'ouvrir une page séparée. Croix pour effacer.

@@ -84,7 +84,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
           <TextInput
             value={q}
             onChangeText={setQ}
-            placeholder="Rechercher député, parti, scrutin"
+            placeholder="Recherche député, parti, loi…"
             placeholderTextColor={C.textMuted}
             style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
             autoCorrect={false}
