@@ -305,6 +305,11 @@ export interface ProfilParti {
   propositions: number; // propositions de loi déposées
   amendements_par_elu: number | null;
   amendements_ratio: number | null; // x fois la moyenne (par élu)
+  propositions_par_elu: number | null;
+  propositions_ratio: number | null; // x fois la moyenne (par élu)
+  // Repères « moyenne des groupes » (injectés par exportStatic, par période)
+  cohesion_moy?: number | null;
+  participation_moy?: number | null;
   categories: Array<{
     id: string; libelle: string; emoji: string; couleur: string;
     pour: number; contre: number; abstention: number;
@@ -395,11 +400,16 @@ export function profilParti(db: Database.Database, uid: string, periode: Periode
   const propositions = act.propositions ?? 0;
   const nb = parti.nb_deputes || 0;
   const amendements_par_elu = nb ? amendements / nb : null;
+  const propositions_par_elu = nb ? propositions / nb : null;
+  // Moyennes par élu, tous groupes confondus (pour l'écart à la moyenne).
   const moy = db
     .prepare(
-      `SELECT CAST(SUM(a.amendements) AS REAL) /
-              NULLIF(SUM((SELECT COUNT(*) FROM deputes d WHERE d.groupe_uid = a.groupe_uid AND d.actif = 1)), 0) AS m
-       FROM groupe_activite a`
+      `SELECT
+         CAST(SUM(a.amendements) AS REAL) / NULLIF(SUM(nbm.n), 0) AS ma,
+         CAST(SUM(a.propositions) AS REAL) / NULLIF(SUM(nbm.n), 0) AS mp
+       FROM groupe_activite a
+       JOIN (SELECT groupe_uid, COUNT(*) AS n FROM deputes WHERE actif = 1 GROUP BY groupe_uid) nbm
+         ON nbm.groupe_uid = a.groupe_uid`
     )
     .get() as any;
 
@@ -412,7 +422,9 @@ export function profilParti(db: Database.Database, uid: string, periode: Periode
     amendements,
     propositions,
     amendements_par_elu: amendements_par_elu != null ? Math.round(amendements_par_elu) : null,
-    amendements_ratio: amendements_par_elu != null && moy?.m ? Math.round((amendements_par_elu / moy.m) * 10) / 10 : null,
+    amendements_ratio: amendements_par_elu != null && moy?.ma ? Math.round((amendements_par_elu / moy.ma) * 10) / 10 : null,
+    propositions_par_elu: propositions_par_elu != null ? Math.round(propositions_par_elu * 10) / 10 : null,
+    propositions_ratio: propositions_par_elu != null && moy?.mp ? Math.round((propositions_par_elu / moy.mp) * 10) / 10 : null,
     categories: cats,
   };
 }

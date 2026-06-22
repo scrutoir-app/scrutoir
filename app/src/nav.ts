@@ -4,6 +4,7 @@ export type Route =
   | { name: "grandsScrutins" }
   | { name: "partis" }
   | { name: "parti"; uid: string }
+  | { name: "membresParti"; uid: string; libelle: string }
   | { name: "depute"; uid: string }
   | { name: "scrutin"; uid: string }
   | { name: "categorie"; id: string; libelle: string }

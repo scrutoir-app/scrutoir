@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.21 — 2026-06-22
+- Fiche parti revue. **Cohésion** et **Participation** sont expliquées en clair, avec
+  un repère « moyenne des groupes » (↑/↓) et une ⓘ pour la définition. L'**activité
+  parlementaire** affiche toujours l'écart à la moyenne (amendements ET propositions),
+  même en-dessous. Les **thèmes sont dépliables** (Pour/Contre/Abstention au détail).
+  Nouveau : accès à la **liste complète des élu·e·s du groupe**.
+
 ## 1.0.20 — 2026-06-22
 - Thèmes repensés. **Accueil** : la grille « Explorer par thème » affiche le **nombre
   de scrutins** par sujet (une raison de cliquer, tout reste visible d'un coup d'œil).

@@ -59,7 +59,7 @@ fs.mkdirSync(OUT, { recursive: true });
 // 1) Index des députés (recherche, listes par département, "mon député")
 const deputes = db
   .prepare(
-    `SELECT d.uid, d.nom_complet, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url,
+    `SELECT d.uid, d.nom_complet, d.groupe_uid, g.libelle AS groupe, g.abrev, g.couleur, d.photo_url,
             d.departement, d.num_departement, d.circo
      FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid
      WHERE d.actif = 1 ORDER BY d.nom`
@@ -105,11 +105,24 @@ write("grands.json", grandsScrutins(db, 100));
 // 4) Partis (liste + profil par période)
 const partis = listePartis(db);
 write("partis.json", partis);
-for (const p of partis) {
-  const profils: Record<string, unknown> = {};
+// On calcule tous les profils d'abord, puis on injecte la « moyenne des groupes »
+// (cohésion + participation), par période, comme repère affiché sur la fiche parti.
+const profilsParParti = partis.map((p) => {
+  const profils: Record<string, any> = {};
   for (const per of PERIODES) profils[per] = profilParti(db, p.uid, per);
-  write(`parti/${p.uid}.json`, profils);
+  return { uid: p.uid, profils };
+});
+const moyenne = (xs: number[]) => (xs.length ? Math.round(xs.reduce((a, b) => a + b, 0) / xs.length) : null);
+for (const per of PERIODES) {
+  const vals = profilsParParti.map((pp) => pp.profils[per]).filter(Boolean);
+  const cohMoy = moyenne(vals.map((v) => v.cohesion_pct).filter((x) => x != null));
+  const partMoy = moyenne(vals.map((v) => v.participation_moy_pct).filter((x) => x != null));
+  for (const v of vals) {
+    v.cohesion_moy = cohMoy;
+    v.participation_moy = partMoy;
+  }
 }
+for (const pp of profilsParParti) write(`parti/${pp.uid}.json`, pp.profils);
 
 // 5) Députés : profil (3 périodes) + dissidences + carte des votes (position + consigne)
 const votesStmt = db.prepare(

@@ -18,6 +18,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
   const [data, setData] = useState<ProfilParti | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [followed, toggleFollow] = useFollow(uid);
 
   useEffect(() => {
@@ -62,7 +63,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <TouchableOpacity
           activeOpacity={0.7}
           onPress={() => nav.push({ name: "depute", uid: data.president!.uid })}
-          style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, marginBottom: 12, ...shadowCard }}
+          style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, marginBottom: 9, ...shadowCard }}
         >
           <Image source={{ uri: data.president.photo_url ?? undefined }} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
           <View style={{ flex: 1 }}>
@@ -73,43 +74,43 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </TouchableOpacity>
       )}
 
-      {/* 2 stats (réussite retirée : récompensait l'appartenance à la majorité) */}
-      <View style={{ flexDirection: "row", gap: 9, marginBottom: 16 }}>
-        <MiniStat valeur={data.cohesion_pct} label="Cohésion" />
-        <MiniStat valeur={data.participation_moy_pct} label="Participation" />
-      </View>
+      {/* Accès à tous les élus du groupe */}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => nav.push({ name: "membresParti", uid: p.uid, libelle: p.abrev ?? p.libelle })}
+        style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, marginBottom: 16, ...shadowCard }}
+      >
+        <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
+          <Feather name="users" size={18} color={C.accent} />
+        </View>
+        <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>Voir les {p.nb_deputes} élu·e·s du groupe</Text>
+        <Feather name="chevron-right" size={18} color={C.textFaint} />
+      </TouchableOpacity>
+
+      {/* Cohésion & participation, expliquées + repère moyenne des groupes */}
+      <StatRow
+        valeur={data.cohesion_pct}
+        moy={data.cohesion_moy ?? null}
+        label="Cohésion du groupe"
+        phrase={data.cohesion_pct != null ? `Les élus du groupe votent dans le même sens ${data.cohesion_pct} % du temps.` : "Pas assez de votes pour mesurer la cohésion."}
+        detail="Part des votes des membres conformes à la consigne du groupe. Élevée = groupe très uni / discipliné ; basse = votes plus libres ou divisions internes."
+      />
+      <StatRow
+        valeur={data.participation_moy_pct}
+        moy={data.participation_moy ?? null}
+        label="Participation aux votes"
+        phrase="Présence moyenne des élus du groupe aux scrutins publics nominatifs."
+        detail="Moyenne des taux de participation des membres. Seuls les scrutins publics nominatifs sont comptés : les votes à main levée ne sont pas disponibles."
+      />
 
       {/* Activité parlementaire */}
-      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>Activité parlementaire</Text>
+      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginTop: 6, marginBottom: 12 }}>Activité parlementaire</Text>
       <View style={{ flexDirection: "row", gap: 11, marginBottom: 6 }}>
-        <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 22, color: amdColor(data.amendements_ratio), letterSpacing: -0.5 }}>
-            {data.amendements.toLocaleString("fr-FR")}
-          </Text>
-          <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted, marginTop: 2 }}>Amendements déposés</Text>
-          {data.amendements_par_elu != null && (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 8 }}>
-              <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint }}>{data.amendements_par_elu}/élu</Text>
-              {data.amendements_ratio != null && (
-                <View style={{ backgroundColor: amdBg(data.amendements_ratio), paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 }}>
-                  <Text style={{ fontFamily: F.bold, fontSize: 11, color: amdColor(data.amendements_ratio) }}>
-                    ×{data.amendements_ratio} vs moy.
-                  </Text>
-                </View>
-              )}
-            </View>
-          )}
-        </View>
-        <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.text, letterSpacing: -0.5 }}>
-            {data.propositions.toLocaleString("fr-FR")}
-          </Text>
-          <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted, marginTop: 2 }}>Propositions de loi</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 8 }}>déposées par le groupe</Text>
-        </View>
+        <ActiviteCard total={data.amendements} label="Amendements déposés" parElu={data.amendements_par_elu} ratio={data.amendements_ratio} unite="amendement" />
+        <ActiviteCard total={data.propositions} label="Propositions de loi" parElu={data.propositions_par_elu} ratio={data.propositions_ratio} unite="proposition" />
       </View>
       <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginBottom: 16, lineHeight: 15 }}>
-        Un nombre d'amendements/élu très supérieur à la moyenne peut signaler une activité intense… ou de l'obstruction.
+        L'écart à la moyenne des groupes est toujours indiqué. Très au-dessus = activité intense… ou obstruction ; en-dessous = le groupe dépose peu.
       </Text>
 
       {/* Période */}
@@ -124,69 +125,132 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         })}
       </View>
 
-      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 12 }}>Positions par thème</Text>
-      <View style={{ gap: 11 }}>
+      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 4 }}>Positions par thème</Text>
+      <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginBottom: 12 }}>Touchez un thème pour le détail des votes du groupe</Text>
+      <View style={{ gap: 9 }}>
         {data.categories.map((c) => (
-          <PartiThemeRow key={c.id} cat={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
+          <PartiThemeRow
+            key={c.id}
+            cat={c}
+            ouvert={!!expanded[c.id]}
+            onToggle={() => setExpanded((e) => ({ ...e, [c.id]: !e[c.id] }))}
+            onOpenTheme={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
+          />
         ))}
       </View>
 
       <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>
-        Cohésion = part des votes des membres conformes à la consigne du groupe. Participation = moyenne
-        des membres. Positions = répartition des votes du groupe par thème. Scrutins publics nominatifs,
-        17ᵉ législature.
+        Positions = répartition des votes du groupe par thème. Scrutins publics nominatifs, 17ᵉ législature.
       </Text>
     </ScrollView>
   );
 }
 
-// Couleur du nombre d'amendements selon l'écart à la moyenne (signal d'anomalie).
-function amdColor(ratio: number | null): string {
-  if (ratio == null) return C.text;
-  if (ratio >= 1.5) return C.loyalBas; // rouge : anomalie forte
-  if (ratio > 1.0) return C.loyalMoyen; // orange : au-dessus de la moyenne
-  return C.text;
-}
-function amdBg(ratio: number | null): string {
-  if (ratio == null) return C.surfaceAlt;
-  if (ratio >= 1.5) return C.loyalBasBg;
-  if (ratio > 1.0) return C.loyalMoyenBg;
-  return C.surfaceAlt;
+/** Carte stat (cohésion / participation) : chiffre + phrase en clair + repère moyenne + ⓘ. */
+function StatRow({ valeur, moy, label, phrase, detail }: { valeur: number | null; moy: number | null; label: string; phrase: string; detail: string }) {
+  const [open, setOpen] = useState(false);
+  const above = valeur != null && moy != null && valeur >= moy;
+  return (
+    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 9, ...shadowCard }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <Text style={{ fontFamily: F.semibold, fontSize: 12.5, color: C.textMuted }}>{label}</Text>
+        <TouchableOpacity onPress={() => setOpen((o) => !o)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+          <Feather name="info" size={15} color={C.textFaint} />
+        </TouchableOpacity>
+      </View>
+      <Text style={{ fontFamily: F.extra, fontSize: 26, color: C.accent, letterSpacing: -0.6, marginTop: 2 }}>
+        {valeur ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textFaint }}>%</Text>
+      </Text>
+      <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 3, lineHeight: 16 }}>{phrase}</Text>
+      {moy != null && (
+        <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 4, marginTop: 9, backgroundColor: C.surfaceAlt, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 }}>
+          <Feather name={above ? "arrow-up-right" : "arrow-down-right"} size={13} color={C.textMuted} />
+          <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.textMuted }}>moyenne des groupes : {moy} %</Text>
+        </View>
+      )}
+      {open && (
+        <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 10, lineHeight: 16 }}>{detail}</Text>
+      )}
+    </View>
+  );
 }
 
-/** Ligne thème (neutre) : répartition des votes du groupe pour/contre/abstention. */
-function PartiThemeRow({ cat, onPress }: { cat: PartiCategorie; onPress: () => void }) {
+/** Chip d'écart à la moyenne, TOUJOURS affiché (au-dessus, autour, en-dessous). */
+function EcartChip({ ratio }: { ratio: number | null }) {
+  if (ratio == null) return null;
+  let fg = C.textMuted, bg = C.surfaceAlt, txt: string;
+  if (ratio >= 1.5) { fg = C.loyalBas; bg = C.loyalBasBg; txt = `×${fmt(ratio)} vs moy.`; }
+  else if (ratio > 1.1) { fg = C.loyalMoyen; bg = C.loyalMoyenBg; txt = `×${fmt(ratio)} vs moy.`; }
+  else if (ratio >= 0.9) { txt = "≈ moyenne"; }
+  else { txt = `×${fmt(ratio)} vs moy.`; }
+  return (
+    <View style={{ backgroundColor: bg, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 }}>
+      <Text style={{ fontFamily: F.bold, fontSize: 11, color: fg }}>{txt}</Text>
+    </View>
+  );
+}
+const fmt = (n: number) => n.toLocaleString("fr-FR");
+
+/** Carte d'activité (amendements / propositions) avec /élu + écart toujours montré. */
+function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; label: string; parElu: number | null; ratio: number | null; unite: string }) {
+  const color = ratio == null ? C.text : ratio >= 1.5 ? C.loyalBas : ratio > 1.1 ? C.loyalMoyen : C.text;
+  return (
+    <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+      <Text style={{ fontFamily: F.extra, fontSize: 22, color, letterSpacing: -0.5 }}>{total.toLocaleString("fr-FR")}</Text>
+      <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted, marginTop: 2 }}>{label}</Text>
+      {parElu != null && (
+        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
+          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint }}>{fmt(parElu)}/élu</Text>
+          <EcartChip ratio={ratio} />
+        </View>
+      )}
+    </View>
+  );
+}
+
+/** Ligne thème repliable : barre (toujours visible) + dépli avec Pour/Contre/Abstention. */
+function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme }: { cat: PartiCategorie; ouvert: boolean; onToggle: () => void; onOpenTheme: () => void }) {
   const ui = catUI(cat.id);
   const tot = (cat.pour + cat.contre + cat.abstention) || 1;
   const seg = (v: number, col: string) => (v ? <View key={col} style={{ flex: v / tot, backgroundColor: col }} /> : null);
+  const ligne = (col: string, lib: string, n: number) => (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 8, borderTopWidth: 1, borderTopColor: C.border }}>
+      <View style={{ width: 9, height: 9, borderRadius: 3, backgroundColor: col }} />
+      <Text style={{ flex: 1, fontFamily: F.semibold, fontSize: 13, color: C.text }}>{lib}</Text>
+      <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textMuted }}>{n}</Text>
+    </View>
+  );
   return (
-    <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10 }}>
+    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+      <TouchableOpacity activeOpacity={0.7} onPress={onToggle} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
           <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
         </View>
         <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>{cat.libelle}</Text>
-        <Feather name="chevron-right" size={18} color={C.textFaint} />
-      </View>
-      <View style={{ flexDirection: "row", height: 7, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken }}>
+        <Feather name={ouvert ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
+      </TouchableOpacity>
+
+      <View style={{ flexDirection: "row", height: 7, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken, marginTop: 10 }}>
         {seg(cat.pour, C.pour)}
         {seg(cat.contre, C.contre)}
         {seg(cat.abstention, C.abstention)}
       </View>
-      <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textMuted, marginTop: 6 }}>
-        {cat.pour} pour · {cat.contre} contre · {cat.abstention} abst.
-      </Text>
-    </TouchableOpacity>
-  );
-}
 
-function MiniStat({ valeur, label }: { valeur: number | null; label: string }) {
-  return (
-    <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, alignItems: "center", ...shadowCard }}>
-      <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.accent, letterSpacing: -0.5 }}>
-        {valeur ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 12, color: C.textFaint }}>%</Text>
-      </Text>
-      <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.textMuted, marginTop: 4 }}>{label}</Text>
+      {!ouvert ? (
+        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textMuted, marginTop: 6 }}>
+          {cat.pour} pour · {cat.contre} contre · {cat.abstention} abst.
+        </Text>
+      ) : (
+        <View style={{ marginTop: 8 }}>
+          {ligne(C.pour, "Pour", cat.pour)}
+          {ligne(C.contre, "Contre", cat.contre)}
+          {ligne(C.abstention, "Abstention", cat.abstention)}
+          <TouchableOpacity onPress={onOpenTheme} style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 10 }}>
+            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Voir les scrutins du thème</Text>
+            <Feather name="chevron-right" size={15} color={C.accent} />
+          </TouchableOpacity>
+        </View>
+      )}
     </View>
   );
 }

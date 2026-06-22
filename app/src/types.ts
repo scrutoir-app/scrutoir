@@ -2,6 +2,7 @@ export interface DeputeResume {
   uid: string;
   nom_complet: string;
   groupe: string | null;
+  groupe_uid?: string | null;
   abrev: string | null;
   couleur: string | null;
   photo_url: string | null;
@@ -181,6 +182,10 @@ export interface ProfilParti {
   propositions: number;
   amendements_par_elu: number | null;
   amendements_ratio: number | null;
+  propositions_par_elu: number | null;
+  propositions_ratio: number | null;
+  cohesion_moy?: number | null;
+  participation_moy?: number | null;
   categories: PartiCategorie[];
 }
 

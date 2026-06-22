@@ -142,6 +142,14 @@ export async function getVotesSuivis(uids: string[], limit = 80): Promise<VoteSu
   return items.slice(0, limit);
 }
 
+/** Tous les élu·e·s actifs d'un groupe (pour la liste « élus du parti »), triés par nom. */
+export async function getDeputesParti(groupeUid: string): Promise<DeputeResume[]> {
+  const deps = await deputesIndex();
+  return deps
+    .filter((d) => d.groupe_uid === groupeUid)
+    .sort((a, b) => a.nom_complet.localeCompare(b.nom_complet, "fr"));
+}
+
 /** Résout des fiches-résumé de députés à partir d'une liste d'uids (élus suivis). */
 export async function getDeputesByUids(uids: string[]): Promise<DeputeResume[]> {
   if (!uids.length) return [];
