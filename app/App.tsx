@@ -28,6 +28,7 @@ import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
 import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
+import { InstallPrompt } from "./src/components/InstallPrompt";
 import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
@@ -149,6 +150,9 @@ export default function App() {
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
         </View>
+
+        {/* Bandeau d'installation PWA, en bas de l'Accueil uniquement */}
+        {root === "search" && <InstallPrompt />}
 
         {/* Barre d'onglets */}
         <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
