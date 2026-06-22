@@ -8,10 +8,10 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
 ## 1.0.23 — 2026-06-22
-- Correctif d'exploitation : un asset manquant pendant la propagation d'un déploiement
-  ne renvoie plus le fallback HTML 200 (qui pouvait être mis en cache « immutable » sous
-  l'URL du bundle et casser le site) mais un **404** (`/_expo/*` et `/data/*` exclus du
-  fallback SPA). La navigation classique continue de booter l'app.
+- Correctif d'exploitation (incident du jour) : un asset manquant pendant la propagation
+  d'un déploiement ne renvoie plus un fallback HTML 200 (qui pouvait être mis en cache
+  « immutable » sous l'URL du bundle et casser le site) mais un **vrai 404** (`/_expo/*`
+  et `/data/*` → page 404). L'app garde toujours l'URL « / », donc aucun impact usage.
 
 ## 1.0.22 — 2026-06-22
 - Fiche parti : au dépli d'un thème, **Pour / Contre / Abstention sont cliquables** et
