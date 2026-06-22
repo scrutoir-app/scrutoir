@@ -29,6 +29,8 @@ export function CategoryVoteCard({
   const total = cat.total;
   const exprimes = cat.pour + cat.contre + cat.abstention; // base de fiabilité
   const fiable = exprimes >= SEUIL_FIABILITE;
+  const segTot = exprimes || 1;
+  const seg = (v: number, col: string) => (v ? <View key={col} style={{ flex: v / segTot, backgroundColor: col }} /> : null);
 
   const cells = [
     { pos: "pour", n: cat.pour, label: "Pour", color: C.pour },
@@ -55,6 +57,13 @@ export function CategoryVoteCard({
         </View>
         <Feather name={ouvert ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
       </TouchableOpacity>
+
+      {/* Barre de ventilation des votes exprimés (toujours visible, comme la fiche parti) */}
+      <View style={{ flexDirection: "row", height: 7, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken, marginTop: 11 }}>
+        {seg(cat.pour, C.pour)}
+        {seg(cat.contre, C.contre)}
+        {seg(cat.abstention, C.abstention)}
+      </View>
 
       {ouvert && (
         <View style={{ marginTop: 12, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border }}>

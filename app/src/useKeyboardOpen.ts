@@ -2,26 +2,37 @@ import { useEffect, useState } from "react";
 import { Platform } from "react-native";
 
 /**
- * Détecte l'ouverture du clavier virtuel sur le web (mobile) via l'API VisualViewport.
- * Quand le clavier s'ouvre, le viewport visible rétrécit nettement par rapport à la
- * fenêtre. Sert à masquer la barre d'onglets (sinon le clavier la recouvre à moitié →
- * petite et difficile à taper). Comportement standard des apps natives.
+ * Détecte l'ouverture probable du clavier virtuel (web mobile) pour masquer la barre
+ * d'onglets — sinon le clavier la recouvre à moitié (petite, difficile à taper).
+ *
+ * Détection par le FOCUS d'un champ texte (événements DOM `focusin`/`focusout`), fiable
+ * partout y compris en PWA installée iOS — contrairement à l'API VisualViewport, dont le
+ * redimensionnement n'est pas garanti en mode standalone. Limité aux écrans tactiles
+ * (`pointer: coarse`) pour ne pas masquer la barre sur desktop quand on tape dans un champ.
  */
 export function useKeyboardOpen(): boolean {
   const [open, setOpen] = useState(false);
 
   useEffect(() => {
-    if (Platform.OS !== "web" || typeof window === "undefined") return;
-    const vv = (window as any).visualViewport;
-    if (!vv) return;
-    const onResize = () => {
-      // Marge de 150 px : un clavier fait toujours plus que ça ; évite les faux positifs
-      // (barres d'outils du navigateur qui changent de quelques dizaines de px).
-      setOpen(window.innerHeight - vv.height > 150);
+    if (Platform.OS !== "web" || typeof document === "undefined") return;
+    const coarse = typeof window !== "undefined" && window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
+    if (!coarse) return;
+
+    const isField = (el: any) =>
+      !!el && (el.tagName === "INPUT" || el.tagName === "TEXTAREA" || el.isContentEditable);
+
+    const onFocusIn = (e: any) => { if (isField(e.target)) setOpen(true); };
+    const onFocusOut = () => {
+      // Délai 0 : laisse le focus se déplacer (champ → champ) avant de décider.
+      setTimeout(() => setOpen(isField(document.activeElement)), 0);
     };
-    vv.addEventListener("resize", onResize);
-    onResize();
-    return () => vv.removeEventListener("resize", onResize);
+
+    document.addEventListener("focusin", onFocusIn);
+    document.addEventListener("focusout", onFocusOut);
+    return () => {
+      document.removeEventListener("focusin", onFocusIn);
+      document.removeEventListener("focusout", onFocusOut);
+    };
   }, []);
 
   return open;

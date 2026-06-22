@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.29 — 2026-06-22
+- Fiche élu : la **barre de ventilation des votes** (Pour/Contre/Abst.) s'affiche aussi
+  sur la carte de thème **repliée**, comme sur la fiche parti.
+- Masquage de la barre d'onglets au clavier : détection plus fiable (focus du champ),
+  pour fonctionner aussi en **app installée iOS** (où VisualViewport n'était pas fiable).
+
 ## 1.0.28 — 2026-06-22
 - Correctif : la **barre d'onglets se masque quand le clavier est ouvert** (recherche).
   Avant, le clavier la recouvrait à moitié → petite et difficile à taper. Elle réapparaît
