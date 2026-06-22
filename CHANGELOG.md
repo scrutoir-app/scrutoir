@@ -11,7 +11,8 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 - Écran de lancement animé : l'**hémicycle se remplit siège par siège** (le logo
   comme barre de chargement) sous le mot « Scrutoir », puis se fond dès que l'app
   est prête. Affiché avant même le chargement du bundle, plancher de visibilité
-  1,2 s, respecte « réduire les animations » (accessibilité).
+  1,6 s (le temps que l'hémicycle finisse de se remplir), respecte « réduire les
+  animations » (accessibilité).
 
 ## 1.0.14 — 2026-06-21
 - Page **Mentions légales & confidentialité** (éditeur Seedger, hébergeur, source des

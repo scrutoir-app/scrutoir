@@ -89,7 +89,7 @@ const SPLASH_BODY = `
           f.setAttribute("fill","#3C4654");f.setAttribute("class","ss-focal");
           svg.appendChild(f);
         }
-        var t0=Date.now(),MIN=1200,hidden=false; // plancher : l'anim reste visible >= 1,2 s
+        var t0=Date.now(),MIN=1600,hidden=false; // plancher : l'anim reste visible >= 1,6 s (le temps que l'hémicycle finisse de se remplir)
         function reallyHide(){
           var el=document.getElementById("scrutoir-splash");
           if(!el)return;

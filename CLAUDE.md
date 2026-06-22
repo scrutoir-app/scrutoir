@@ -71,7 +71,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - `app/scripts/patch-pwa.mjs` : post-export, **idempotent** (marqueur `SCRUTOIR_PWA`). Met `lang="fr"`,
   injecte manifest + `theme-color` + meta apple + description, l'enregistrement du SW (`/sw.js`, scope `/`),
   et le **splash de lancement** (hémicycle qui se remplit siège par siège, juste après `<body>`) masqué par
-  `window.__scrutoirReady()` appelé depuis `App.tsx` (polices prêtes ; plancher 1,2 s ; `prefers-reduced-motion`).
+  `window.__scrutoirReady()` appelé depuis `App.tsx` (polices prêtes ; plancher 1,6 s ; `prefers-reduced-motion`).
 - Script npm **`build:web`** = `expo export -p web && node scripts/patch-pwa.mjs` (à utiliser en CI étape 4).
 - Vérifié : manifest 200 (application/json), sw.js 200 (text/javascript), SW actif & `controller` =
   scope racine, caches `scrutoir-shell-v1` (index, `/`, bundle JS, fonts, icônes, manifest) + `scrutoir-data-v1`
