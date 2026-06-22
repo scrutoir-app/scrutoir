@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.39 — 2026-06-22
+- **Recherche accessible depuis tous les onglets** : une barre de recherche en haut des
+  onglets Thèmes / Partis / Suivis / Infos ouvre un écran de recherche dédié (champ
+  auto-focus + résultats). L'Accueil garde sa recherche intégrée.
+- Écriture inclusive : correction des titres d'en-tête oubliés (Député, Élus du groupe,
+  Mon député).
+
 ## 1.0.38 — 2026-06-22
 - Barre d'onglets : **retour au positionnement d'origine** (avant v1.0.25), `paddingBottom`
   fixe, sans `viewport-fit=cover` ni safe-area (qui la déréglaient en app installée).

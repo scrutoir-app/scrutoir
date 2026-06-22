@@ -9,9 +9,10 @@ import {
   Manrope_700Bold,
   Manrope_800ExtraBold,
 } from "@expo-google-fonts/manrope";
-import { C, F, shadowCard } from "./src/theme";
+import { C, F, RADIUS, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
+import { RechercheScreen } from "./src/screens/RechercheScreen";
 import { ThemesScreen } from "./src/screens/ThemesScreen";
 import { GrandsScrutinsScreen } from "./src/screens/GrandsScrutinsScreen";
 import { PartisScreen } from "./src/screens/PartisScreen";
@@ -84,13 +85,13 @@ export default function App() {
   }, [fontsLoaded, fontError]);
 
   const titres: Record<Route["name"], string> = {
-    search: "", themes: "", apropos: "", partis: "", suivis: "",
-    grandsScrutins: "Grands scrutins", parti: "Parti", membresParti: "Élu·e·s du groupe", votesParti: "Votes du groupe",
-    depute: "Député·e", scrutin: "Scrutin", categorie: "Thème",
+    search: "", themes: "", apropos: "", partis: "", suivis: "", recherche: "Recherche",
+    grandsScrutins: "Grands scrutins", parti: "Parti", membresParti: "Élus du groupe", votesParti: "Votes du groupe",
+    depute: "Député", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
     confrontation: "Confrontation",
-    monDepute: "Mon·ma député·e",
+    monDepute: "Mon député",
     mentions: "Mentions légales",
   };
   const showHeader = stack.length > 1;
@@ -129,8 +130,22 @@ export default function App() {
           </View>
         )}
 
+        {/* Recherche accessible depuis les onglets de navigation (sauf l'Accueil, qui
+            a déjà sa recherche intégrée) : barre cliquable qui ouvre l'écran de recherche. */}
+        {stack.length === 1 && ["themes", "partis", "suivis", "apropos"].includes(root) && (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => nav.push({ name: "recherche" })}
+            style={{ flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 16, marginTop: 12, height: 44, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 12, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
+          >
+            <Feather name="search" size={17} color={C.textMuted} />
+            <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 14, color: C.textMuted }}>Rechercher député, parti, scrutin</Text>
+          </TouchableOpacity>
+        )}
+
         <View style={{ flex: 1 }}>
           {current.name === "search" && <SearchScreen nav={nav} />}
+          {current.name === "recherche" && <RechercheScreen nav={nav} />}
           {current.name === "themes" && <ThemesScreen nav={nav} />}
           {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
