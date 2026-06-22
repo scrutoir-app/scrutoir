@@ -31,6 +31,7 @@ import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
 import { InstallPrompt } from "./src/components/InstallPrompt";
+import { useKeyboardOpen } from "./src/useKeyboardOpen";
 import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
@@ -48,6 +49,7 @@ export default function App() {
   const [stack, setStack] = useState<Route[]>([{ name: "search" }]);
   const current = stack[stack.length - 1];
   const root = stack[0].name;
+  const keyboardOpen = useKeyboardOpen(); // masque la barre d'onglets quand le clavier est ouvert
 
   const nav: Nav = {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
@@ -157,21 +159,24 @@ export default function App() {
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
         </View>
 
-        {/* Bandeau d'installation PWA, en bas de l'Accueil uniquement */}
-        {root === "search" && <InstallPrompt />}
+        {/* Bandeau d'installation PWA, en bas de l'Accueil (masqué si clavier ouvert) */}
+        {root === "search" && !keyboardOpen && <InstallPrompt />}
 
-        {/* Barre d'onglets : hauteur FIXE, identique sur tous les onglets. */}
-        <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
-          {TABS.map((t) => {
-            const actif = root === t.root;
-            return (
-              <TouchableOpacity key={t.root} onPress={() => goTab(t.root)} style={{ flex: 1, alignItems: "center", gap: 3 }}>
-                <Feather name={t.icon} size={21} color={actif ? C.text : C.textFaint} />
-                <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 10.5, color: actif ? C.text : C.textFaint }}>{t.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+        {/* Barre d'onglets : hauteur FIXE, identique sur tous les onglets. Masquée quand
+            le clavier est ouvert (sinon il la recouvre à moitié → petite et dure à taper). */}
+        {!keyboardOpen && (
+          <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
+            {TABS.map((t) => {
+              const actif = root === t.root;
+              return (
+                <TouchableOpacity key={t.root} onPress={() => goTab(t.root)} style={{ flex: 1, alignItems: "center", gap: 3 }}>
+                  <Feather name={t.icon} size={21} color={actif ? C.text : C.textFaint} />
+                  <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 10.5, color: actif ? C.text : C.textFaint }}>{t.label}</Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        )}
       </View>
     </SafeAreaView>
   );

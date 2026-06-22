@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.28 — 2026-06-22
+- Correctif : la **barre d'onglets se masque quand le clavier est ouvert** (recherche).
+  Avant, le clavier la recouvrait à moitié → petite et difficile à taper. Elle réapparaît
+  dès que le clavier se ferme. Détection via l'API VisualViewport.
+
 ## 1.0.27 — 2026-06-22
 - Barre d'onglets : retour **exact au comportement d'origine** (retrait du `100dvh` qui,
   en app installée, étendait la racine sous le home indicator et **coupait les libellés**).
