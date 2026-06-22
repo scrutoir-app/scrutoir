@@ -197,6 +197,15 @@ async function main() {
   // lang="fr" (Expo génère lang="en")
   html = html.replace(/<html\s+lang="[^"]*"/i, '<html lang="fr"');
 
+  // viewport-fit=cover : nécessaire pour que env(safe-area-inset-bottom) soit non nul en
+  // app installée (sinon les libellés de la barre d'onglets sont rognés par le home indicator).
+  if (!/viewport-fit/.test(html)) {
+    html = html.replace(
+      /(<meta name="viewport" content="[^"]*)("\s*\/?>)/i,
+      "$1, viewport-fit=cover$2"
+    );
+  }
+
   // Balises <head> avant </head>
   html = html.replace("</head>", `${HEAD_TAGS}\n  </head>`);
 

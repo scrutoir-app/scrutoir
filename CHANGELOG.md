@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.30 — 2026-06-22
+- Correctif (app installée iOS) : les **libellés de la barre d'onglets** (Accueil/Thèmes/…)
+  n'étaient plus visibles, rognés par le home indicator. Réservation de la safe-area avec
+  le bon dosage : `max(10px, env(safe-area-inset-bottom))` (et non additif → plus de barre
+  trop haute). Hauteur identique sur tous les onglets.
+
 ## 1.0.29 — 2026-06-22
 - Fiche élu : la **barre de ventilation des votes** (Pour/Contre/Abst.) s'affiche aussi
   sur la carte de thème **repliée**, comme sur la fiche parti.

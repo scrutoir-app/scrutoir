@@ -165,7 +165,7 @@ export default function App() {
         {/* Barre d'onglets : hauteur FIXE, identique sur tous les onglets. Masquée quand
             le clavier est ouvert (sinon il la recouvre à moitié → petite et dure à taper). */}
         {!keyboardOpen && (
-          <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
+          <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: (Platform.OS === "web" ? ("max(10px, env(safe-area-inset-bottom))" as any) : 10) }}>
             {TABS.map((t) => {
               const actif = root === t.root;
               return (
