@@ -54,6 +54,10 @@ const HEAD_TAGS = `
       @keyframes ss-fill{0%{opacity:.16}12%{opacity:1}82%{opacity:1}100%{opacity:.16}}
       @keyframes ss-pulse{0%,100%{opacity:.5}40%{opacity:1}}
       @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat{opacity:1;animation:none}#scrutoir-splash .ss-focal{animation:none}}
+      /* iOS Safari : la racine suit le viewport VISIBLE (dvh) pour que la barre d'onglets
+         ne passe pas sous la barre d'outils du navigateur. Repli height:100% si pas de dvh. */
+      html, body { height: 100%; }
+      #root { height: 100vh; height: 100dvh; }
     </style>`;
 
 const SPLASH_BODY = `
@@ -196,6 +200,14 @@ async function main() {
 
   // lang="fr" (Expo génère lang="en")
   html = html.replace(/<html\s+lang="[^"]*"/i, '<html lang="fr"');
+
+  // viewport-fit=cover : requis pour 100dvh + env(safe-area-inset-*) sur iOS (barre d'onglets).
+  if (!/viewport-fit/.test(html)) {
+    html = html.replace(
+      /(<meta name="viewport" content="[^"]*)("\s*\/?>)/i,
+      "$1, viewport-fit=cover$2"
+    );
+  }
 
   // Balises <head> avant </head>
   html = html.replace("</head>", `${HEAD_TAGS}\n  </head>`);

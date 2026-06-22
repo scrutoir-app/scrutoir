@@ -18,6 +18,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
   const [profil, setProfil] = useState<ProfilDepute | null>(null);
   const [loading, setLoading] = useState(true);
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [followed, toggleFollow] = useFollow(uid);
 
   useEffect(() => {
@@ -121,6 +122,8 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
           <CategoryVoteCard
             key={c.id}
             cat={c}
+            ouvert={!!expanded[c.id]}
+            onToggle={() => setExpanded((e) => ({ ...e, [c.id]: !e[c.id] }))}
             onTitle={() => nav.push({ name: "votesCategorie", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, periode })}
             onCell={(position) =>
               nav.push({ name: "votesDepute", uid: d.uid, nom: d.nom_complet, categorie: c.id, categorieLibelle: c.libelle, position })
