@@ -1,8 +1,9 @@
 # Les assets existants priment toujours (servis directement, avant ces règles).
-# Pour les chemins d'ASSET sans fichier (fenêtre de propagation d'un déploiement),
-# on renvoie un 404 propre — JAMAIS le fallback HTML, qui sinon serait mis en cache
-# « immutable » sous l'URL du bundle et casserait le site (incident du 22/06).
-/_expo/*  /404.html  404
-/data/*   /404.html  404
+# Un chemin d'ASSET sans fichier (fenêtre de propagation d'un déploiement) renvoie un
+# 404 — JAMAIS un 200 HTML, qui sinon serait mis en cache « immutable » sous l'URL du
+# bundle et casserait le site (incident du 22/06). Pas de fichier 404.html (sinon
+# Cloudflare l'utilise pour TOUT chemin non trouvé et casse le fallback SPA ci-dessous).
+/_expo/*  /index.html  404
+/data/*   /index.html  404
 # Fallback SPA pour les autres chemins : boot l'app (routing en mémoire, l'URL reste à /).
 /*  /index.html  200
