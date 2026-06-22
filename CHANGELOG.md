@@ -7,6 +7,10 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.31 — 2026-06-22
+- Barre d'onglets : descendue d'environ 8 px (marge basse `env(safe-area-inset-bottom) - 8px`)
+  pour réduire l'espace sous les libellés, tout en restant au-dessus du home indicator.
+
 ## 1.0.30 — 2026-06-22
 - Correctif (app installée iOS) : les **libellés de la barre d'onglets** (Accueil/Thèmes/…)
   n'étaient plus visibles, rognés par le home indicator. Réservation de la safe-area avec
