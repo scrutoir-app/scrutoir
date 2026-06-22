@@ -107,7 +107,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.42**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.43**.
 - **Analytics privacy-first** (sans cookie/IP/identifiant, RGPD, pas de bandeau) : Worker `analytics/`
   (`scrutoir-analytics`, déployé sur `scrutoir-analytics.anthony-627.workers.dev`) → `POST /collect` écrit
   dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;
@@ -217,6 +217,10 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`components/BarreDivergente.tsx`, partagée avec la fiche parti) ; au dépli, **boutons Accord /
   Désaccord** (`PositionCells`) → **page dédiée** `ConfrontationListeScreen` (route `confrontationListe`)
   listant les scrutins (résumé + lien source AN) avec **filtres année/mois** (`useScrutinDateFilter`).
+  **(v1.0.43)** la sélection du duel (2 élus + période) est **persistée dans la route** via `nav.replace`
+  (ajouté à l'interface `Nav`/`App.tsx`) : au retour depuis la liste détaillée, l'écran remonté restaure
+  le duel (via `hydrate`) au lieu d'une page vide. ⚠️ Rappel archi : `App.tsx` ne rend QUE l'écran au sommet
+  de la pile → un écran avec état local (non porté par la route) le perd en naviguant ; persister dans la route.
 - **Mon·ma député·e** (reco 10, `MonDeputeScreen` + `/departements`, `/circonscription`) : département →
   circonscription → élu. CTA accueil. (Code postal → circo = référentiel à ajouter ; push = backend.)
 - **Menu Partis** : liste des groupes (nb élus) + fiche parti = **président·e**, **cohésion**,

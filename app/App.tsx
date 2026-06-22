@@ -61,6 +61,7 @@ export default function App() {
   const nav: Nav = {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
     pop: useCallback(() => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)), []),
+    replace: useCallback((route: Route) => setStack((s) => [...s.slice(0, -1), route]), []),
   };
   const goTab = (name: Route["name"]) => setStack([{ name } as Route]);
 
@@ -189,7 +190,7 @@ export default function App() {
           )}
           {current.name === "apropos" && <AProposScreen nav={nav} />}
           {current.name === "mentions" && <MentionsScreen />}
-          {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} nav={nav} />}
+          {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} periode={current.periode} nav={nav} />}
           {current.name === "confrontationListe" && (
             <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} nav={nav} />
           )}

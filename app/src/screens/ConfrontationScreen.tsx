@@ -19,10 +19,10 @@ const PERIODES: { v: Periode; label: string }[] = [
   { v: "6m", label: "6 mois" },
 ];
 
-export function ConfrontationScreen({ a, b, nav }: { a?: string; b?: string; nav: Nav }) {
+export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: string; b?: string; periode?: Periode; nav: Nav }) {
   const [depA, setDepA] = useState<DeputeResume | null>(null);
   const [depB, setDepB] = useState<DeputeResume | null>(null);
-  const [periode, setPeriode] = useState<Periode>("all");
+  const [periode, setPeriode] = useState<Periode>(periodeInit ?? "all");
   const [data, setData] = useState<Confrontation | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -31,6 +31,13 @@ export function ConfrontationScreen({ a, b, nav }: { a?: string; b?: string; nav
     if (a && !depA) hydrate(a, setDepA);
     if (b && !depB) hydrate(b, setDepB);
   }, []);
+
+  // Persiste le duel dans la route : en naviguant vers la liste détaillée puis en
+  // revenant, l'écran est démonté/remonté ; les uids dans la route le restaurent
+  // (via `hydrate` ci-dessus) au lieu de repartir d'une page vide.
+  useEffect(() => {
+    if (depA && depB) nav.replace({ name: "confrontation", a: depA.uid, b: depB.uid, periode });
+  }, [depA?.uid, depB?.uid, periode]);
 
   useEffect(() => {
     if (!depA || !depB) { setData(null); return; }

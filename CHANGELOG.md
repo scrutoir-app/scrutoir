@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.43 — 2026-06-22
+- **Confrontation — contexte du duel conservé** : en ouvrant la liste détaillée des accords/
+  désaccords puis en revenant en arrière, les **2 élus sélectionnés** (et la période) sont
+  restaurés au lieu de repartir d'une page vide. La sélection est persistée dans la route.
+
 ## 1.0.42 — 2026-06-22
 - **Fiche parti — positions par thème en barre divergente** : Pour part du centre vers la
   gauche, Contre vers la droite (part relative aux exprimés), axe central aligné d'un thème

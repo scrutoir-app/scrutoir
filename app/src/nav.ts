@@ -45,7 +45,7 @@ export type Route =
       groupeLibelle?: string;
     }
   | { name: "apropos" }
-  | { name: "confrontation"; a?: string; b?: string }
+  | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m" }
   | {
       name: "confrontationListe";
       kind: "accord" | "desaccord";
@@ -60,4 +60,7 @@ export type Route =
 export interface Nav {
   push: (route: Route) => void;
   pop: () => void;
+  /** Remplace la route au sommet de la pile (sans empiler) — sert à persister un
+   *  contexte d'écran (ex. la sélection d'un duel) pour le retrouver au retour. */
+  replace: (route: Route) => void;
 }
