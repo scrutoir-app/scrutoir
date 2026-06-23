@@ -7,6 +7,17 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.46 — 2026-06-23
+- **Nouveau logo Scrutoir** : picto hémicycle redessiné (siège blanc contour encre, jumeau
+  du point du « i ») + logotype vectorisé (Manrope ExtraBold, indépendant du chargement de
+  la police), réunis dans un lockup `ScrutoirLogo` (`app/src/components/brand/`). Affiché
+  dans le masthead de l'Accueil.
+- **En-têtes d'onglets cohérents** : sur Thèmes, Partis, Suivis et Infos, le titre et sa
+  baseline sont désormais **fixes** (extraits du `ScrollView`) — même traitement que le
+  masthead Accueil ; ils ne défilent plus avec le contenu.
+- **Barre de recherche unifiée** : la barre des onglets reprend le design exact de l'Accueil
+  (carré accent + loupe blanche, hauteur 54) au lieu de l'ancienne loupe grise simple.
+
 ## 1.0.45 — 2026-06-23
 - **Mode sombre** : nouveau réglage d'apparence **Clair / Sombre / Auto** (« Auto » suit le
   système). Accessible via l'icône **⚙️ en haut de l'Accueil → écran Paramètres**. Le choix
