@@ -10,7 +10,7 @@ import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { HeroScrutins } from "../components/HeroScrutins";
-import { CategoryGrid } from "../components/CategoryGrid";
+import { ThemePicker } from "../components/ThemePicker";
 import { ScrutoirMark } from "../components/ScrutoirMark";
 import { MesSuivis } from "../components/MesSuivis";
 
@@ -202,7 +202,7 @@ function Accueil({ nav }: { nav: Nav }) {
 
       <View style={{ paddingHorizontal: 18 }}>
         <SectionTitle titre="Explorer par thème" />
-        <CategoryGrid cats={cats} onOpen={(c) => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
+        <ThemePicker cats={cats} onOpen={(c) => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
       </View>
 
       <MesSuivis nav={nav} />
