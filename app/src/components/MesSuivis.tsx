@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
-import { C, F } from "../theme";
+import { C, F, T } from "../theme";
 import { getDeputesByUids, getPartis } from "../api";
 import { useFollows } from "../follows";
 import type { DeputeResume, PartiResume } from "../types";
@@ -35,9 +35,9 @@ export function MesSuivis({ nav }: { nav: Nav }) {
   return (
     <View style={{ paddingHorizontal: 18, marginTop: 22 }}>
       <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3 }}>Mes suivis</Text>
+        <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Mes suivis</Text>
         <TouchableOpacity onPress={() => nav.push({ name: "suivis" })}>
-          <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Leurs votes ›</Text>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Leurs votes ›</Text>
         </TouchableOpacity>
       </View>
 
@@ -50,9 +50,9 @@ export function MesSuivis({ nav }: { nav: Nav }) {
             style={{ alignItems: "center", width: 64 }}
           >
             <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: p.couleur ?? C.accent, alignItems: "center", justifyContent: "center" }}>
-              <Text style={{ fontFamily: F.extra, fontSize: 13, color: "#fff" }}>{p.abrev ?? "?"}</Text>
+              <Text style={[T.small, { fontFamily: F.extra, color: "#fff" }]}>{p.abrev ?? "?"}</Text>
             </View>
-            <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.text, marginTop: 5, textAlign: "center" }} numberOfLines={2}>
+            <Text style={[T.micro, { fontFamily: F.medium, color: C.text, marginTop: 5, textAlign: "center" }]} numberOfLines={2}>
               {p.abrev ?? p.libelle}
             </Text>
           </TouchableOpacity>
@@ -68,7 +68,7 @@ export function MesSuivis({ nav }: { nav: Nav }) {
               source={{ uri: d.photo_url ?? undefined }}
               style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: C.surfaceAlt }}
             />
-            <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.text, marginTop: 5, textAlign: "center" }} numberOfLines={2}>
+            <Text style={[T.micro, { fontFamily: F.medium, color: C.text, marginTop: 5, textAlign: "center" }]} numberOfLines={2}>
               {d.nom_complet}
             </Text>
           </TouchableOpacity>

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { rechercher } from "../api";
 import { track } from "../analytics";
 import type { DeputeResume, ScrutinResume } from "../types";
@@ -65,7 +65,7 @@ export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
       renderItem={({ item }) => {
         if (item.kind === "header")
           return (
-            <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.textMuted, marginTop: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+            <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginTop: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }]}>
               {item.label}
             </Text>
           );
@@ -79,8 +79,8 @@ export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
             >
               <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text }}>{d.nom_complet}</Text>
-                <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 1 }}>{d.abrev ?? "—"}</Text>
+                <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{d.nom_complet}</Text>
+                <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{d.abrev ?? "—"}</Text>
               </View>
               <Feather name="chevron-right" size={20} color={C.textFaint} />
             </TouchableOpacity>

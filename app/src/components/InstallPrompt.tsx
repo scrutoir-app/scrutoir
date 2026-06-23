@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, RADIUS } from "../theme";
+import { C, F, T, RADIUS } from "../theme";
 import { ScrutoirMark } from "./ScrutoirMark";
 import { getDeferredPrompt, onPromptChange, promptInstall, isStandalone, isIOS } from "../pwa";
 
@@ -78,8 +78,8 @@ export function InstallPrompt() {
       </View>
 
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: F.bold, fontSize: 13.5, color: C.text }}>Installer Scrutoir</Text>
-        <Text style={{ fontFamily: F.regular, fontSize: 11.5, color: C.textMuted, marginTop: 1 }}>
+        <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Installer Scrutoir</Text>
+        <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted, marginTop: 1 }]}>
           {mode === "android"
             ? "Accès en un tap, hors-ligne, sans passer par un store."
             : "Ouvrez « Partager » (menu « ⋯ »), faites défiler — au besoin « Voir plus » — jusqu'à « + Sur l'écran d'accueil »."}
@@ -91,7 +91,7 @@ export function InstallPrompt() {
           onPress={install}
           style={{ backgroundColor: C.accent, paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.pill }}
         >
-          <Text style={{ color: "#fff", fontFamily: F.semibold, fontSize: 13 }}>Installer</Text>
+          <Text style={[T.small, { color: "#fff", fontFamily: F.semibold }]}>Installer</Text>
         </TouchableOpacity>
       )}
 

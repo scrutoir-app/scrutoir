@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
 import { PositionCells } from "../components/PositionCells";
 import { BarreDivergente } from "../components/BarreDivergente";
@@ -46,8 +46,8 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 13, marginBottom: 16 }}>
         <View style={{ width: 12, height: 54, borderRadius: 6, backgroundColor: p.couleur ?? C.textFaint }} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>{p.abrev ?? p.libelle}</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 2 }} numberOfLines={2}>
+          <Text style={[T.title, { color: C.text }]}>{p.abrev ?? p.libelle}</Text>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]} numberOfLines={2}>
             {p.libelle} · {p.nb_deputes} élus
           </Text>
         </View>
@@ -69,8 +69,8 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         >
           <Image source={{ uri: data.president.photo_url ?? undefined }} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }}>Président du groupe</Text>
-            <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, marginTop: 1 }}>{data.president.nom_complet}</Text>
+            <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }]}>Président du groupe</Text>
+            <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 1 }]}>{data.president.nom_complet}</Text>
           </View>
           <Feather name="chevron-right" size={18} color={C.textFaint} />
         </TouchableOpacity>
@@ -85,7 +85,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
           <Feather name="users" size={18} color={C.accent} />
         </View>
-        <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>Voir les {p.nb_deputes} élus du groupe</Text>
+        <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>Voir les {p.nb_deputes} élus du groupe</Text>
         <Feather name="chevron-right" size={18} color={C.textFaint} />
       </TouchableOpacity>
 
@@ -106,12 +106,12 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       />
 
       {/* Activité parlementaire */}
-      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginTop: 6, marginBottom: 12 }}>Activité parlementaire</Text>
+      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 6, marginBottom: 12 }]}>Activité parlementaire</Text>
       <View style={{ flexDirection: "row", gap: 11, marginBottom: 6 }}>
         <ActiviteCard total={data.amendements} label="Amendements déposés" parElu={data.amendements_par_elu} ratio={data.amendements_ratio} unite="amendement" />
         <ActiviteCard total={data.propositions} label="Propositions de loi" parElu={data.propositions_par_elu} ratio={data.propositions_ratio} unite="proposition" />
       </View>
-      <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginBottom: 16, lineHeight: 15 }}>
+      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginBottom: 16 }]}>
         L'écart à la moyenne des groupes est toujours indiqué. Très au-dessus = activité intense… ou obstruction ; en-dessous = le groupe dépose peu.
       </Text>
 
@@ -121,14 +121,14 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
           const actif = pe.id === periode;
           return (
             <TouchableOpacity key={pe.id} onPress={() => setPeriode(pe.id)} style={{ flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: "center", backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : {}) }}>
-              <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 12.5, color: actif ? C.text : C.textMuted }}>{pe.label}</Text>
+              <Text style={[T.small, { fontFamily: actif ? F.bold : F.medium, color: actif ? C.text : C.textMuted }]}>{pe.label}</Text>
             </TouchableOpacity>
           );
         })}
       </View>
 
-      <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginBottom: 4 }}>Positions par thème</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginBottom: 12 }}>Touchez un thème pour le détail des votes du groupe</Text>
+      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 4 }]}>Positions par thème</Text>
+      <Text style={[T.small, { color: C.textMuted, marginBottom: 12 }]}>Touchez un thème pour le détail des votes du groupe</Text>
       <View style={{ gap: 9 }}>
         {data.categories.map((c) => (
           <PartiThemeRow
@@ -142,7 +142,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         ))}
       </View>
 
-      <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>
+      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 20 }]}>
         Positions = répartition des votes du groupe par thème. Scrutins publics nominatifs, 17ᵉ législature.
       </Text>
     </ScrollView>
@@ -156,23 +156,23 @@ function StatRow({ valeur, moy, label, phrase, detail }: { valeur: number | null
   return (
     <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 9, ...shadowCard }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 12.5, color: C.textMuted }}>{label}</Text>
+        <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{label}</Text>
         <TouchableOpacity onPress={() => setOpen((o) => !o)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
           <Feather name="info" size={15} color={C.textFaint} />
         </TouchableOpacity>
       </View>
-      <Text style={{ fontFamily: F.extra, fontSize: 26, color: C.accent, letterSpacing: -0.6, marginTop: 2 }}>
-        {valeur ?? "—"}<Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textFaint }}>%</Text>
+      <Text style={[T.title, tnum, { color: C.accent, marginTop: 2 }]}>
+        {valeur ?? "—"}<Text style={[T.small, { fontFamily: F.bold, color: C.textFaint }]}>%</Text>
       </Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 3, lineHeight: 16 }}>{phrase}</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 3 }]}>{phrase}</Text>
       {moy != null && (
         <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 4, marginTop: 9, backgroundColor: C.surfaceAlt, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 }}>
           <Feather name={above ? "arrow-up-right" : "arrow-down-right"} size={13} color={C.textMuted} />
-          <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.textMuted }}>moyenne des groupes : {moy} %</Text>
+          <Text style={[T.micro, { color: C.textMuted }]}>moyenne des groupes : {moy} %</Text>
         </View>
       )}
       {open && (
-        <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 10, lineHeight: 16 }}>{detail}</Text>
+        <Text style={[T.small, { color: C.textFaint, marginTop: 10 }]}>{detail}</Text>
       )}
     </View>
   );
@@ -188,7 +188,7 @@ function EcartChip({ ratio }: { ratio: number | null }) {
   else { txt = `×${fmt(ratio)} vs moy.`; }
   return (
     <View style={{ backgroundColor: bg, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 }}>
-      <Text style={{ fontFamily: F.bold, fontSize: 11, color: fg }}>{txt}</Text>
+      <Text style={[T.micro, { fontFamily: F.bold, color: fg }]}>{txt}</Text>
     </View>
   );
 }
@@ -199,11 +199,11 @@ function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; l
   const color = ratio == null ? C.text : ratio >= 1.5 ? C.loyalBas : ratio > 1.1 ? C.loyalMoyen : C.text;
   return (
     <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
-      <Text style={{ fontFamily: F.extra, fontSize: 22, color, letterSpacing: -0.5 }}>{total.toLocaleString("fr-FR")}</Text>
-      <Text style={{ fontFamily: F.semibold, fontSize: 12, color: C.textMuted, marginTop: 2 }}>{label}</Text>
+      <Text style={[T.title, tnum, { color }]}>{total.toLocaleString("fr-FR")}</Text>
+      <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, marginTop: 2 }]}>{label}</Text>
       {parElu != null && (
         <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint }}>{fmt(parElu)}/élu</Text>
+          <Text style={[T.small, { color: C.textFaint }]}>{fmt(parElu)}/élu</Text>
           <EcartChip ratio={ratio} />
         </View>
       )}
@@ -220,7 +220,7 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: {
         <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
           <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
         </View>
-        <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }}>{cat.libelle}</Text>
+        <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>{cat.libelle}</Text>
         <Feather name={ouvert ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
       </TouchableOpacity>
 
@@ -231,7 +231,7 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: {
       </View>
 
       {!ouvert ? (
-        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textMuted, marginTop: 6 }}>
+        <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 6 }]}>
           {cat.pour} pour · {cat.contre} contre · {cat.abstention} abst.
         </Text>
       ) : (
@@ -245,7 +245,7 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: {
             onCell={onOpenPosition}
           />
           <TouchableOpacity onPress={onOpenTheme} style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 11 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Voir tous les scrutins du thème</Text>
+            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir tous les scrutins du thème</Text>
             <Feather name="chevron-right" size={15} color={C.accent} />
           </TouchableOpacity>
         </View>

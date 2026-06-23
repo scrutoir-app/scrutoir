@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C, F, positionLabel } from "../theme";
+import { C, T, positionLabel } from "../theme";
 import { getVotesParti } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
@@ -43,10 +43,10 @@ export function VotesPartiScreen({
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
         <View style={{ paddingTop: 12 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 18, color: C.text }}>
+          <Text style={[T.heading, { color: C.text }]}>
             {libelle} — consigne « {positionLabel(position)} »
           </Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 10 }}>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 10 }]}>
             {filtered.length} scrutins en {categorieLibelle}
           </Text>
           {Bar}

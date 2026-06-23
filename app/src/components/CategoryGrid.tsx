@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, RADIUS, F, shadowCard } from "../theme";
+import { C, RADIUS, F, T, tnum, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
 import type { CategorieRef } from "../types";
 
@@ -19,7 +19,7 @@ function Tile({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
       </View>
       <View>
         <Text
-          style={{ fontFamily: F.bold, fontSize: 11.5, color: C.text, lineHeight: 13.5, letterSpacing: -0.2 }}
+          style={[T.small, { fontFamily: F.bold, color: C.text }]}
           numberOfLines={2}
           adjustsFontSizeToFit
           minimumFontScale={0.85}
@@ -27,7 +27,7 @@ function Tile({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
           {ui.court ?? c.libelle}
         </Text>
         {c.nb_scrutins != null && (
-          <Text style={{ fontFamily: F.semibold, fontSize: 9.5, color: C.textFaint, marginTop: 2 }}>
+          <Text style={[T.micro, tnum, { color: C.textFaint, marginTop: 2 }]}>
             {c.nb_scrutins} scrutins
           </Text>
         )}

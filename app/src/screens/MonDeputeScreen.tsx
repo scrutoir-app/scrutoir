@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { AN_DEPUTES_URL } from "../config";
 import { getDepartements, getCirconscription, rechercheCommunes } from "../api";
 import type { Commune } from "../api";
@@ -53,7 +53,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
       style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 16 }}
     >
       <Feather name="external-link" size={14} color={C.accent} />
-      <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>
+      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>
         Je ne connais pas ma circonscription ?
       </Text>
     </TouchableOpacity>
@@ -61,8 +61,8 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
-      <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>Mon député</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4, lineHeight: 18 }}>
+      <Text style={[T.title, { color: C.text }]}>Mon député</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
         Cherchez votre commune ou votre code postal — on vous amène à votre département.
       </Text>
 
@@ -72,12 +72,12 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
         <>
           <TouchableOpacity onPress={() => { setSel(null); setSelCommune(null); }} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 14, marginBottom: 10 }}>
             <Feather name="chevron-left" size={16} color={C.accent} />
-            <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.accent }}>
+            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>
               {selCommune ? `${selCommune} · ${sel.nom} (${sel.num})` : `${sel.nom} (${sel.num})`} — changer
             </Text>
           </TouchableOpacity>
           {sel.circos > 1 && (
-            <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginBottom: 10, lineHeight: 16 }}>
+            <Text style={[T.small, { color: C.textFaint, marginBottom: 10 }]}>
               {sel.circos} circonscriptions dans ce département. Choisissez la vôtre (le lien officiel ci-dessous
               aide à l'identifier précisément).
             </Text>
@@ -91,13 +91,13 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
                 style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, ...shadowCard }}
               >
                 <View style={{ width: 30, alignItems: "center" }}>
-                  <Text style={{ fontFamily: F.extra, fontSize: 16, color: C.accent }}>{e.circo}</Text>
-                  <Text style={{ fontFamily: F.medium, fontSize: 9, color: C.textFaint }}>circo</Text>
+                  <Text style={[T.callout, tnum, { fontFamily: F.extra, color: C.accent }]}>{e.circo}</Text>
+                  <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>circo</Text>
                 </View>
                 <Image source={{ uri: e.photo_url ?? undefined }} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
                 <View style={{ flex: 1 }}>
-                  <Text style={{ fontFamily: F.bold, fontSize: 14.5, color: C.text }} numberOfLines={1}>{e.nom_complet}</Text>
-                  <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 1 }}>{e.abrev ?? e.groupe ?? "—"}</Text>
+                  <Text style={[T.body, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{e.nom_complet}</Text>
+                  <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{e.abrev ?? e.groupe ?? "—"}</Text>
                 </View>
                 <Feather name="chevron-right" size={18} color={C.textFaint} />
               </TouchableOpacity>
@@ -115,7 +115,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
               onChangeText={setQ}
               placeholder="Votre commune ou code postal…"
               placeholderTextColor={C.textFaint}
-              style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+              style={[T.callout, { flex: 1, color: C.text, fontFamily: F.medium, outlineStyle: "none" }] as any}
               autoCorrect={false}
             />
             {chercheCommune && <ActivityIndicator size="small" color={C.textFaint} />}
@@ -132,8 +132,8 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
                 >
                   <Feather name="map-pin" size={15} color={C.accent} />
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.text }}>{c.nom}</Text>
-                    <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginTop: 1 }}>
+                    <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{c.nom}</Text>
+                    <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>
                       {c.codesPostaux?.[0] ?? ""} · dépt {c.codeDepartement}
                     </Text>
                   </View>
@@ -144,7 +144,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
           )}
 
           {q.trim().length >= 2 && !chercheCommune && communes.length === 0 && (
-            <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 14, textAlign: "center" }}>
+            <Text style={[T.small, { color: C.textMuted, marginTop: 14, textAlign: "center" }]}>
               Aucune commune trouvée. Essayez le code postal complet, ou parcourez par département.
             </Text>
           )}
@@ -152,7 +152,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
           {/* Repli : parcourir par département */}
           <TouchableOpacity onPress={() => setParcourir((p) => !p)} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 18 }}>
             <Feather name={parcourir ? "chevron-up" : "chevron-down"} size={16} color={C.textMuted} />
-            <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.textMuted }}>Ou parcourir par département</Text>
+            <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>Ou parcourir par département</Text>
           </TouchableOpacity>
           {parcourir && (
             <View style={{ marginTop: 10, gap: 8 }}>
@@ -163,9 +163,9 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
                   onPress={() => setSel(d)}
                   style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}
                 >
-                  <Text style={{ fontFamily: F.extra, fontSize: 15, color: C.accent, width: 34 }}>{d.num}</Text>
-                  <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14.5, color: C.text }}>{d.nom}</Text>
-                  <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint }}>{d.circos} circo.</Text>
+                  <Text style={[T.callout, tnum, { fontFamily: F.extra, color: C.accent, width: 34 }]}>{d.num}</Text>
+                  <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>{d.nom}</Text>
+                  <Text style={[T.small, { color: C.textFaint }]}>{d.circos} circo.</Text>
                   <Feather name="chevron-right" size={18} color={C.textFaint} />
                 </TouchableOpacity>
               ))}
@@ -176,7 +176,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
         </>
       )}
 
-      <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 20, lineHeight: 16 }}>
+      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 20 }]}>
         La recherche commune/code postal s'appuie sur l'API Géo officielle (geo.api.gouv.fr) et vous amène
         à votre département. Les grandes villes comptent plusieurs circonscriptions : le lien officiel
         ci-dessus permet d'identifier précisément la vôtre.

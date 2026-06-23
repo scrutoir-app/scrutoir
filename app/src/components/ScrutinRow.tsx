@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, formatDate } from "../theme";
+import { C, F, T, tnum, formatDate } from "../theme";
 import { catUI } from "../categoryUI";
 import type { ScrutinResume } from "../types";
 
@@ -27,16 +27,16 @@ export function ScrutinRow({
         </View>
       )}
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 20 }} numberOfLines={2}>
+        <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]} numberOfLines={2}>
           {scrutin.titre || scrutin.objet}
         </Text>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 }}>
           <View style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 10.5, color: adopte ? C.adopteFg : C.rejeteFg }}>
+            <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>
               {adopte ? "Adopté" : "Rejeté"}
             </Text>
           </View>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint }}>{formatDate(scrutin.date)}</Text>
+          <Text style={[T.small, tnum, { color: C.textFaint }]}>{formatDate(scrutin.date)}</Text>
         </View>
       </View>
     </TouchableOpacity>

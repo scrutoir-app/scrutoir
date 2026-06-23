@@ -4,6 +4,8 @@
 // au changement (cf. ThemeProvider) → tous les composants qui lisent `C.x` se mettent à jour
 // sans changer leurs imports.
 
+import type { TextStyle } from "react-native";
+
 export type Scheme = "light" | "dark";
 
 // Palette CLAIRE (par défaut historique).
@@ -96,6 +98,24 @@ export const F = {
   bold: "Manrope_700Bold",
   extra: "Manrope_800ExtraBold",
 };
+
+// Échelle typographique — 5 TAILLES distinctes : 11 · 13 · 15 · 18 · 22 (écarts ~1.2,
+// hiérarchie qu'on voit). `callout` = même taille que `body` (15) mais en semi-bold :
+// c'est la variante d'emphase / sous-titre, PAS une 6ᵉ taille. La FAMILLE d'un cran peut
+// être surchargée au cas par cas ; la TAILLE vient toujours d'un cran de T (plancher 11 px).
+// S'étale tel quel : style={[T.body, { color: C.textMuted }]}.
+export const T = {
+  micro:   { fontFamily: F.semibold, fontSize: 11, lineHeight: 14, letterSpacing: 0 },
+  small:   { fontFamily: F.medium,   fontSize: 13, lineHeight: 17, letterSpacing: 0 },
+  body:    { fontFamily: F.medium,   fontSize: 15, lineHeight: 21, letterSpacing: -0.1 },
+  callout: { fontFamily: F.semibold, fontSize: 15, lineHeight: 20, letterSpacing: -0.1 },
+  heading: { fontFamily: F.bold,     fontSize: 18, lineHeight: 22, letterSpacing: -0.3 },
+  title:   { fontFamily: F.extra,    fontSize: 22, lineHeight: 26, letterSpacing: -0.4 },
+} as const;
+
+// Chiffres tabulaires : à étaler sur tout nombre qui s'aligne en colonne ou défile
+// (compteurs de votes, pourcentages, nombres de scrutins, dates numériques empilées).
+export const tnum: TextStyle = { fontVariant: ["tabular-nums"] };
 
 export const RADIUS = { sm: 10, md: 14, lg: 18, xl: 22, pill: 999 };
 

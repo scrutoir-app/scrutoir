@@ -4,7 +4,7 @@ import {
   useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent,
 } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, RADIUS, F, shadowCard } from "../theme";
+import { C, RADIUS, F, T, tnum, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
 import { ScrutoirMark } from "./ScrutoirMark";
 import type { CategorieRef } from "../types";
@@ -173,18 +173,18 @@ export function ThemePicker({ cats, onOpen }: { cats: CategorieRef[]; onOpen: (c
           <MaterialCommunityIcons name={ui.icon as any} size={32} color={C.accent} />
         </Animated.View>
 
-        <Text style={{ fontFamily: F.extra, fontSize: 26, color: C.text, letterSpacing: -0.5, marginTop: 14, textAlign: "center" }}>
+        <Text style={[T.title, { color: C.text, marginTop: 14, textAlign: "center" }]}>
           {ui.court ?? featured.libelle}
         </Text>
 
         {featured.nb_scrutins != null && (
-          <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.textMuted, marginTop: 4, textAlign: "center" }}>
+          <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted, marginTop: 4, textAlign: "center" }]}>
             {featured.nb_scrutins} scrutins
           </Text>
         )}
 
         <View style={{ flexDirection: "row", alignItems: "center", marginTop: 10 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.accent }}>Ouvrir</Text>
+          <Text style={[T.body, { fontFamily: F.bold, color: C.accent }]}>Ouvrir</Text>
           <MaterialCommunityIcons name="chevron-right" size={20} color={C.accent} />
         </View>
       </Pressable>

@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { getDeputesParti } from "../api";
 import type { DeputeResume } from "../types";
 import type { Nav } from "../nav";
@@ -17,8 +17,8 @@ export function MembresPartiScreen({ uid, libelle, nav }: { uid: string; libelle
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>{libelle}</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1, marginBottom: 14 }}>
+      <Text style={[T.title, { color: C.text }]}>{libelle}</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 1, marginBottom: 14 }]}>
         {loading ? "…" : `${deps.length} élus`}
       </Text>
       {loading ? (
@@ -33,9 +33,9 @@ export function MembresPartiScreen({ uid, libelle, nav }: { uid: string; libelle
           >
             <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
             <View style={{ flex: 1 }}>
-              <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text }}>{d.nom_complet}</Text>
+              <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{d.nom_complet}</Text>
               {!!(d.departement || d.circo) && (
-                <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 1 }} numberOfLines={1}>
+                <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]} numberOfLines={1}>
                   {[d.departement, d.circo ? `${d.circo}ᵉ circo` : null].filter(Boolean).join(" · ")}
                 </Text>
               )}

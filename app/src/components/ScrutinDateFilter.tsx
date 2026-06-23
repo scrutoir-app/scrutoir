@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
-import { C, F } from "../theme";
+import { C, F, T } from "../theme";
 
 const MOIS = ["janv.", "févr.", "mars", "avr.", "mai", "juin", "juil.", "août", "sept.", "oct.", "nov.", "déc."];
 
@@ -14,7 +14,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
         borderWidth: 1, borderColor: active ? C.accent : C.borderStrong,
       }}
     >
-      <Text style={{ fontFamily: active ? F.bold : F.medium, fontSize: 12.5, color: active ? "#fff" : C.textMuted }}>{label}</Text>
+      <Text style={[T.small, { fontFamily: active ? F.bold : F.medium, color: active ? "#fff" : C.textMuted }]}>{label}</Text>
     </TouchableOpacity>
   );
 }

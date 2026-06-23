@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
-import { C, F, formatDate, positionLabel } from "../theme";
+import { C, F, T, formatDate, positionLabel } from "../theme";
 import { getDissidences } from "../api";
 import type { Dissidence } from "../types";
 import type { Nav } from "../nav";
@@ -29,9 +29,9 @@ export function DissidencesScreen({ uid, nom, nav }: { uid: string; nom: string;
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
         <View style={{ paddingTop: 14 }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>Dissidences</Text>
-          <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.textMuted, marginTop: 2 }}>{nom}</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 6, marginBottom: 4, lineHeight: 17 }}>
+          <Text style={[T.title, { color: C.text }]}>Dissidences</Text>
+          <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, marginTop: 2 }]}>{nom}</Text>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 6, marginBottom: 4 }]}>
             {liste.length} scrutins où le vote diffère de la consigne majoritaire du groupe
             (les plus récents d'abord).
           </Text>
@@ -47,13 +47,13 @@ export function DissidencesScreen({ uid, nom, nav }: { uid: string; nom: string;
           onPress={() => nav.push({ name: "scrutin", uid: item.uid })}
           style={{ paddingVertical: 11, borderTopWidth: 0.5, borderTopColor: C.border }}
         >
-          <Text style={{ fontFamily: F.semibold, fontSize: 14, color: C.text, lineHeight: 19 }} numberOfLines={2}>
+          <Text style={[T.body, { fontFamily: F.semibold, color: C.text }]} numberOfLines={2}>
             {item.titre || item.objet}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
             <Pastille texte={`A voté : ${positionLabel(item.position)}`} fg={C.loyalBas} bg={C.loyalBasBg} />
             <Pastille texte={`Consigne : ${positionLabel(item.consigne)}`} fg={C.textMuted} bg={C.surfaceAlt} />
-            <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>{formatDate(item.date)}</Text>
+            <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>{formatDate(item.date)}</Text>
           </View>
         </TouchableOpacity>
       )}
@@ -64,7 +64,7 @@ export function DissidencesScreen({ uid, nom, nav }: { uid: string; nom: string;
 function Pastille({ texte, fg, bg }: { texte: string; fg: string; bg: string }) {
   return (
     <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
-      <Text style={{ fontFamily: F.semibold, color: fg, fontSize: 11 }}>{texte}</Text>
+      <Text style={[T.micro, { color: fg }]}>{texte}</Text>
     </View>
   );
 }

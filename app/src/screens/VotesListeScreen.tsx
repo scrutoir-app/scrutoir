@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C, F, positionLabel, couleurPosition } from "../theme";
+import { C, F, T, positionLabel, couleurPosition } from "../theme";
 import { getVotesDepute } from "../api";
 import type { VoteScrutin } from "../types";
 import type { Nav } from "../nav";
@@ -42,12 +42,12 @@ export function VotesListeScreen({
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
         <View style={{ paddingTop: 12 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 18, color: C.text }}>
+          <Text style={[T.heading, { color: C.text }]}>
             {position === "absent" || position === "nonvotant"
               ? `${nom} — n'a pas pris part`
               : `${nom} — a voté « ${positionLabel(position)} »`}
           </Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 3, marginBottom: 10 }}>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 10 }]}>
             {filtered.length} scrutins en {categorieLibelle}
           </Text>
           {Bar}
@@ -63,14 +63,14 @@ export function VotesListeScreen({
           <ScrutinRow scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
           {voteExprime && item.consigne != null && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: -4, marginBottom: 8, marginLeft: 4 }}>
-              <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>
+              <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>
                 consigne du groupe :
               </Text>
-              <Text style={{ fontFamily: F.bold, fontSize: 11, color: couleurPosition(item.consigne) }}>
+              <Text style={[T.micro, { fontFamily: F.bold, color: couleurPosition(item.consigne) }]}>
                 {positionLabel(item.consigne)}
               </Text>
               {item.consigne !== position && (
-                <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.contre }}>· écart</Text>
+                <Text style={[T.micro, { fontFamily: F.bold, color: C.contre }]}>· écart</Text>
               )}
             </View>
           )}

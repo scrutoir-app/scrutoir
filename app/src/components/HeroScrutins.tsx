@@ -4,7 +4,7 @@ import {
   LayoutChangeEvent, useWindowDimensions, Platform,
 } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard, formatDate } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, formatDate } from "../theme";
 import { catUI } from "../categoryUI";
 import { HemicycleSeats } from "./HemicycleSeats";
 import type { ScrutinResume } from "../types";
@@ -119,15 +119,15 @@ function HeroCard({
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.surfaceAlt, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 5 }}>
             <MaterialCommunityIcons name={ui.icon as any} size={14} color={C.accent} />
-            <Text style={{ fontFamily: F.bold, fontSize: 11.5, color: C.accent }}>{ui.court ?? "Scrutin"}</Text>
+            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>{ui.court ?? "Scrutin"}</Text>
           </View>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted }}>{formatDate(s.date)}</Text>
+          <Text style={[T.small, { color: C.textMuted }]}>{formatDate(s.date)}</Text>
         </View>
 
         {/* Milieu : kicker + titre */}
         <View>
-          <Text style={{ fontFamily: F.semibold, fontSize: 11.5, color: C.textMuted, marginBottom: 3 }}>{kicker(s)}</Text>
-          <Text style={{ fontFamily: F.extra, fontSize: 17.5, lineHeight: 22.5, color: C.text, letterSpacing: -0.3 }} numberOfLines={2}>
+          <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, marginBottom: 3 }]}>{kicker(s)}</Text>
+          <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]} numberOfLines={2}>
             {s.dossier_titre || s.titre || s.objet}
           </Text>
         </View>
@@ -136,10 +136,10 @@ function HeroCard({
         <View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 8 }}>
             <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
-              <Text style={{ fontFamily: F.bold, fontSize: 11, color: adopte ? C.adopteFg : C.rejeteFg }}>{adopte ? "Adopté" : "Rejeté"}</Text>
+              <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>{adopte ? "Adopté" : "Rejeté"}</Text>
             </View>
             {votants > 0 && (
-              <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, fontVariant: ["tabular-nums"] }}>
+              <Text style={[T.small, tnum, { color: C.textMuted }]}>
                 {disp.p} pour · {disp.c} contre · {disp.v} votants
               </Text>
             )}
@@ -180,7 +180,7 @@ function FreshnessIndicator({ ingestedAt, reduceMotion }: { ingestedAt: string |
 
   return (
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 9 }}>
-      <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted }}>
+      <Text style={[T.small, { color: C.textMuted }]}>
         Mis à jour le {formatDate(ingestedAt.slice(0, 10))}
       </Text>
       {recent && (
@@ -192,7 +192,7 @@ function FreshnessIndicator({ ingestedAt, reduceMotion }: { ingestedAt: string |
               transform: [{ scale: reduceMotion ? 1 : pulse.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1.2] }) }],
             }}
           />
-          <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.accent, letterSpacing: 0.2 }}>En direct</Text>
+          <Text style={[T.micro, { fontFamily: F.bold, color: C.accent }]}>En direct</Text>
         </View>
       )}
     </View>

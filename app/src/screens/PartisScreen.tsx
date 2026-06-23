@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { getPartis } from "../api";
 import type { PartiResume } from "../types";
 import type { Nav } from "../nav";
@@ -17,8 +17,8 @@ export function PartisScreen({ nav }: { nav: Nav }) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Partis</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
+        <Text style={[T.title, { color: C.text }]}>Partis</Text>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
           Les groupes de la 17ᵉ législature — cohésion, participation et positions par thème.
         </Text>
       </View>
@@ -36,14 +36,14 @@ export function PartisScreen({ nav }: { nav: Nav }) {
             >
               <View style={{ width: 10, height: 38, borderRadius: 5, backgroundColor: p.couleur ?? C.textFaint }} />
               <View style={{ flex: 1 }}>
-                <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text }}>{p.abrev ?? p.libelle}</Text>
-                <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 1 }} numberOfLines={1}>
+                <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{p.abrev ?? p.libelle}</Text>
+                <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]} numberOfLines={1}>
                   {p.libelle} · {p.nb_deputes} élus
                 </Text>
               </View>
               <View style={{ alignItems: "flex-end", marginRight: 4 }}>
-                <Text style={{ fontFamily: F.extra, fontSize: 19, color: C.text, letterSpacing: -0.3 }}>{p.nb_deputes}</Text>
-                <Text style={{ fontFamily: F.medium, fontSize: 10, color: C.textFaint }}>élus</Text>
+                <Text style={[T.heading, tnum, { color: C.text }]}>{p.nb_deputes}</Text>
+                <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>élus</Text>
               </View>
               <Feather name="chevron-right" size={18} color={C.textFaint} />
             </TouchableOpacity>

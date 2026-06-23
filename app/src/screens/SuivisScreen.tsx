@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
+import { C, F, T, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
 import { catUI } from "../categoryUI";
 import { getVotesSuivis, getPartis } from "../api";
 import { useFollows, getLastSeen, markSeen } from "../follows";
@@ -23,7 +23,7 @@ function PositionPill({ position }: { position: string }) {
   const col = couleurPosition(position);
   return (
     <View style={{ backgroundColor: col + "1F", paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 }}>
-      <Text style={{ fontFamily: F.bold, fontSize: 11.5, color: col }}>{positionLabel(position)}</Text>
+      <Text style={[T.small, { fontFamily: F.bold, color: col }]}>{positionLabel(position)}</Text>
     </View>
   );
 }
@@ -60,8 +60,8 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Suivis</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
+        <Text style={[T.title, { color: C.text }]}>Suivis</Text>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
           Les derniers votes des élus que vous suivez.
         </Text>
       </View>
@@ -70,7 +70,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
       {/* Partis suivis (raccourci vers leur fiche) */}
       {partis.length > 0 && (
         <View style={{ marginTop: 16 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text, marginBottom: 10 }}>Partis suivis</Text>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginBottom: 10 }]}>Partis suivis</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 9, paddingRight: 8 }}>
             {partis.map((p) => (
               <TouchableOpacity
@@ -80,7 +80,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
                 style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.surface, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, ...shadowCard }}
               >
                 <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: p.couleur ?? C.accent }} />
-                <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.text }}>{p.abrev ?? p.libelle}</Text>
+                <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{p.abrev ?? p.libelle}</Text>
               </TouchableOpacity>
             ))}
           </ScrollView>
@@ -91,10 +91,10 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
       {follows.length === 0 && (
         <View style={{ marginTop: 40, alignItems: "center", paddingHorizontal: 20 }}>
           <MaterialCommunityIcons name="bell-outline" size={40} color={C.textFaint} />
-          <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, marginTop: 14, textAlign: "center" }}>
+          <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 14, textAlign: "center" }]}>
             Vous ne suivez personne pour l'instant
           </Text>
-          <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.textMuted, marginTop: 6, textAlign: "center", lineHeight: 19 }}>
+          <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted, marginTop: 6, textAlign: "center" }]}>
             Ouvrez la fiche d'un député et touchez la cloche « Suivre ».
             Ses derniers votes apparaîtront ici.
           </Text>
@@ -108,7 +108,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
 
       {/* Feed */}
       {follows.length > 0 && items !== null && items.length === 0 && (
-        <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 24, textAlign: "center" }}>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 24, textAlign: "center" }]}>
           Aucun vote nominatif récent pour ces élus.
         </Text>
       )}
@@ -130,16 +130,16 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
                     <Avatar uri={v.photo} couleur={v.couleur} />
                   </TouchableOpacity>
                   <View style={{ flex: 1 }}>
-                    <Text style={{ fontFamily: F.bold, fontSize: 13.5, color: C.text }} numberOfLines={1}>
+                    <Text style={[T.body, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>
                       {v.nom}
                     </Text>
-                    <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 1 }}>
+                    <Text style={[T.small, { color: C.textFaint, marginTop: 1 }]}>
                       {v.abrev ? v.abrev + " · " : ""}{formatDate(v.date)}
                     </Text>
                   </View>
                   {isNew(v.date) && (
                     <View style={{ backgroundColor: C.accent, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 }}>
-                      <Text style={{ fontFamily: F.bold, fontSize: 10, color: "#fff" }}>Nouveau</Text>
+                      <Text style={[T.micro, { fontFamily: F.bold, color: "#fff" }]}>Nouveau</Text>
                     </View>
                   )}
                 </View>
@@ -151,7 +151,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
                       <MaterialCommunityIcons name={cat.icon as any} size={15} color={cat.fg} />
                     </View>
                   )}
-                  <Text style={{ flex: 1, fontFamily: F.medium, fontSize: 13, color: C.text, lineHeight: 18 }} numberOfLines={2}>
+                  <Text style={[T.small, { flex: 1, color: C.text }]} numberOfLines={2}>
                     {v.titre}
                   </Text>
                   <PositionPill position={v.position} />

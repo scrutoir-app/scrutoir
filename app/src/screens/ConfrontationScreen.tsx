@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking,
 } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
 import { SEUIL_FIABILITE, scrutinSourceUrl } from "../config";
 import { catUI } from "../categoryUI";
 import { rechercher, getConfrontation } from "../api";
@@ -56,8 +56,8 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
 
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 20, color: C.text, letterSpacing: -0.4 }}>Confronter deux élus</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4, lineHeight: 18 }}>
+      <Text style={[T.title, { color: C.text }]}>Confronter deux élus</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
         Sur les seuls scrutins publics nominatifs où les deux ont voté. Un silence de données n'est pas un désaccord.
       </Text>
 
@@ -74,7 +74,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
             const actif = p.v === periode;
             return (
               <TouchableOpacity key={p.v} onPress={() => setPeriode(p.v)} style={{ flex: 1, paddingVertical: 7, borderRadius: RADIUS.pill, backgroundColor: actif ? C.surface : "transparent", alignItems: "center", ...(actif ? shadowCard : {}) }}>
-                <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 12, color: actif ? C.text : C.textMuted }}>{p.label}</Text>
+                <Text style={[T.small, { fontFamily: actif ? F.bold : F.medium, color: actif ? C.text : C.textMuted }]}>{p.label}</Text>
               </TouchableOpacity>
             );
           })}
@@ -82,7 +82,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
       )}
 
       {!pret && (
-        <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textFaint, marginTop: 28, textAlign: "center" }}>
+        <Text style={[T.body, { color: C.textFaint, marginTop: 28, textAlign: "center" }]}>
           Choisissez deux élus pour comparer leurs votes.
         </Text>
       )}
@@ -113,10 +113,10 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
     return (
       <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, alignItems: "center", ...shadowCard }}>
         <Image source={{ uri: depute.photo_url ?? undefined }} style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: C.surfaceAlt }} />
-        <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text, marginTop: 7, textAlign: "center" }} numberOfLines={2}>{depute.nom_complet}</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textMuted, marginTop: 1 }}>{depute.abrev ?? "—"}</Text>
+        <Text style={[T.body, { fontFamily: F.bold, color: C.text, marginTop: 7, textAlign: "center" }]} numberOfLines={2}>{depute.nom_complet}</Text>
+        <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 1 }]}>{depute.abrev ?? "—"}</Text>
         <TouchableOpacity onPress={onClear} style={{ marginTop: 7 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 11.5, color: C.accent }}>Changer</Text>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Changer</Text>
         </TouchableOpacity>
       </View>
     );
@@ -131,7 +131,7 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
           onChangeText={setQ}
           placeholder="Un élu…"
           placeholderTextColor={C.textFaint}
-          style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+          style={[T.callout, { flex: 1, color: C.text, fontFamily: F.medium, outlineStyle: "none" }] as any}
           autoCorrect={false}
         />
       </View>
@@ -139,8 +139,8 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
         <TouchableOpacity key={d.uid} onPress={() => { onPick(d); setQ(""); setRes([]); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 7 }}>
           <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: C.surfaceAlt }} />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontFamily: F.semibold, fontSize: 12.5, color: C.text }} numberOfLines={1}>{d.nom_complet}</Text>
-            <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textMuted }}>{d.abrev ?? "—"}</Text>
+            <Text style={[T.small, { fontFamily: F.semibold, color: C.text }]} numberOfLines={1}>{d.nom_complet}</Text>
+            <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted }]}>{d.abrev ?? "—"}</Text>
           </View>
         </TouchableOpacity>
       ))}
@@ -176,21 +176,21 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
             <View style={{ flex: data.desaccords || 0.0001, backgroundColor: C.contre }} />
           </View>
         )}
-        <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint, marginTop: 11, textAlign: "center", lineHeight: 15 }}>
+        <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 11, textAlign: "center" }]}>
           {periodeLabel} · scrutins publics nominatifs (17ᵉ législature){"\n"}où {depA.nom_complet} et {depB.nom_complet} ont tous deux voté
         </Text>
       </View>
 
       {data.communs === 0 && (
-        <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 20, textAlign: "center", lineHeight: 19 }}>
+        <Text style={[T.body, { color: C.textMuted, marginTop: 20, textAlign: "center" }]}>
           Aucun scrutin nominatif commun sur cette période. Leurs positions ne sont pas comparables par ce canal.
         </Text>
       )}
 
       {fiables.length > 0 && (
         <View style={{ marginTop: 22 }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 16, color: C.text }}>Accord par thème</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 2, marginBottom: 11 }}>
+          <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Accord par thème</Text>
+          <Text style={[T.small, { color: C.textFaint, marginTop: 2, marginBottom: 11 }]}>
             Du plus divergent au plus convergent. Touchez un thème pour le détail.
           </Text>
           <View style={{ gap: 9 }}>
@@ -203,15 +203,15 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
 
       {(nonCouverts.length > 0 || insuffisants.length > 0) && (
         <View style={{ marginTop: 22 }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 14, color: C.textMuted }}>Non couvert</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textFaint, marginTop: 2, marginBottom: 9, lineHeight: 16 }}>
+          <Text style={[T.body, { fontFamily: F.extra, color: C.textMuted }]}>Non couvert</Text>
+          <Text style={[T.small, { color: C.textFaint, marginTop: 2, marginBottom: 9 }]}>
             Pas (ou trop peu) de scrutin nominatif commun — invérifiable par ce canal, ce n'est pas un désaccord.
           </Text>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
             {[...insuffisants, ...nonCouverts].map((t) => (
               <View key={t.id} style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.pill, paddingVertical: 5, paddingHorizontal: 10 }}>
-                <Text style={{ fontFamily: F.semibold, fontSize: 11.5, color: C.textMuted }}>{t.libelle}</Text>
-                <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint }}>{t.communs}</Text>
+                <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{t.libelle}</Text>
+                <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint }]}>{t.communs}</Text>
               </View>
             ))}
           </View>
@@ -224,8 +224,8 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
 function Synthese({ n, label, color }: { n: number | string; label: string; color: string }) {
   return (
     <View style={{ alignItems: "center" }}>
-      <Text style={{ fontFamily: F.extra, fontSize: 24, color, letterSpacing: -0.5 }}>{n}</Text>
-      <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.textMuted, marginTop: 2 }}>{label}</Text>
+      <Text style={[T.title, tnum, { color }]}>{n}</Text>
+      <Text style={[T.micro, { color: C.textMuted, marginTop: 2 }]}>{label}</Text>
     </View>
   );
 }
@@ -254,7 +254,7 @@ function ThemeSpectrumRow({ theme, sousTitre, nav }: { theme: ConfrontationTheme
           <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
             <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
           </View>
-          <Text style={{ flex: 1, fontFamily: F.bold, fontSize: 14, color: C.text }} numberOfLines={1}>{theme.libelle}</Text>
+          <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{theme.libelle}</Text>
           <Feather name={open ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
         </View>
 
@@ -264,7 +264,7 @@ function ThemeSpectrumRow({ theme, sousTitre, nav }: { theme: ConfrontationTheme
           <BarreDivergente pour={a} contre={d} />
         </View>
 
-        <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textMuted, marginTop: 6 }}>
+        <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 6 }]}>
           <Text style={{ fontFamily: F.bold, color: C.pour }}>{a} accord{a > 1 ? "s" : ""}</Text>
           {" · "}
           <Text style={{ fontFamily: F.bold, color: C.contre }}>{d} désaccord{d > 1 ? "s" : ""}</Text>
@@ -297,14 +297,14 @@ export function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }
   return (
     <View style={{ borderTopWidth: 1, borderTopColor: C.border, paddingTop: 9 }}>
       <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: sc.uid })}>
-        <Text style={{ fontFamily: F.semibold, fontSize: 13, color: C.text, lineHeight: 18 }} numberOfLines={2}>
+        <Text style={[T.body, { fontFamily: F.semibold, color: C.text }]} numberOfLines={2}>
           {sc.titre || sc.objet}
         </Text>
       </TouchableOpacity>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 7 }}>
         <PosChip pos={sc.posA} />
         <PosChip pos={sc.posB} />
-        <Text style={{ fontFamily: F.medium, fontSize: 10.5, color: C.textFaint, flex: 1 }}>
+        <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint, flex: 1 }]}>
           {formatDate(sc.date)} · n° {sc.numero}
         </Text>
         {url && (
@@ -317,12 +317,12 @@ export function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }
       {!!resume && (
         <>
           <TouchableOpacity onPress={() => setVoirTexte((v) => !v)} style={{ marginTop: 7 }} hitSlop={6}>
-            <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.accent }}>
+            <Text style={[T.micro, { fontFamily: F.bold, color: C.accent }]}>
               {voirTexte ? "Masquer ▴" : labelOuvrir}
             </Text>
           </TouchableOpacity>
           {voirTexte && (
-            <Text style={{ fontFamily: F.regular, fontSize: 12, color: C.textMuted, marginTop: 5, lineHeight: 17 }}>
+            <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted, marginTop: 5 }]}>
               {resume}
             </Text>
           )}
@@ -337,7 +337,7 @@ function PosChip({ pos }: { pos: string }) {
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.pill, paddingVertical: 3, paddingHorizontal: 8 }}>
       <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: col }} />
-      <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.text }}>{positionLabel(pos)}</Text>
+      <Text style={[T.micro, { fontFamily: F.bold, color: C.text }]}>{positionLabel(pos)}</Text>
     </View>
   );
 }

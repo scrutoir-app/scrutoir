@@ -1,14 +1,14 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity, Linking } from "react-native";
-import { C, F } from "../theme";
+import { C, F, T } from "../theme";
 
 const EMAIL = "contact@scrutoir.fr";
 
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <View style={{ marginBottom: 18 }}>
-      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, marginBottom: 5 }}>{titre}</Text>
-      <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.textMuted, lineHeight: 20 }}>{children}</Text>
+      <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginBottom: 5 }]}>{titre}</Text>
+      <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted }]}>{children}</Text>
     </View>
   );
 }
@@ -24,7 +24,7 @@ function Mail() {
 export function MentionsScreen() {
   return (
     <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 22, color: C.text, letterSpacing: -0.5, marginBottom: 14 }}>
+      <Text style={[T.title, { color: C.text, marginBottom: 14 }]}>
         Mentions légales & confidentialité
       </Text>
 

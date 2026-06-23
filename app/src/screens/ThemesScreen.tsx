@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard, formatDate } from "../theme";
+import { C, F, T, RADIUS, shadowCard, formatDate } from "../theme";
 import { getCategories } from "../api";
 import { catUI } from "../categoryUI";
 import type { CategorieRef } from "../types";
@@ -24,14 +24,14 @@ function ThemeRow({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
         <MaterialCommunityIcons name={ui.icon as any} size={22} color={ui.fg} />
       </View>
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: F.bold, fontSize: 14.5, color: C.text }}>{c.libelle}</Text>
+        <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{c.libelle}</Text>
         {meta.length > 0 && (
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginTop: 2 }}>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]}>
             {meta.join(" · ")}
           </Text>
         )}
         {c.dernier_titre && (
-          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 3 }} numberOfLines={1}>
+          <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 3 }]} numberOfLines={1}>
             Dernier : {c.dernier_titre}
           </Text>
         )}
@@ -52,8 +52,8 @@ export function ThemesScreen({ nav }: { nav: Nav }) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Thèmes</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
+        <Text style={[T.title, { color: C.text }]}>Thèmes</Text>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
           Parcourez les scrutins par grand sujet
         </Text>
       </View>

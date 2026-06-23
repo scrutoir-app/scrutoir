@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { catUI } from "../categoryUI";
 import { SEUIL_FIABILITE } from "../config";
 import { PositionCells } from "./PositionCells";
@@ -50,8 +50,8 @@ export function CategoryVoteCard({
           <MaterialCommunityIcons name={ui.icon as any} size={17} color={ui.fg} />
         </View>
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text }}>{cat.libelle}</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginTop: 1 }}>
+          <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{cat.libelle}</Text>
+          <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint, marginTop: 1 }]}>
             {exprimes} vote{exprimes > 1 ? "s" : ""} exprimé{exprimes > 1 ? "s" : ""} · {total} scrutins
           </Text>
         </View>
@@ -71,7 +71,7 @@ export function CategoryVoteCard({
             <PositionCells cells={cells} onCell={onCell} />
           ) : (
             <View style={{ backgroundColor: C.surfaceSunken, borderRadius: 11, paddingVertical: 13, paddingHorizontal: 12, alignItems: "center" }}>
-              <Text style={{ fontFamily: F.semibold, fontSize: 12.5, color: C.textMuted, textAlign: "center" }}>
+              <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, textAlign: "center" }]}>
                 {exprimes === 0 ? "Aucun vote nominatif" : `${exprimes} vote${exprimes > 1 ? "s" : ""} nominatif${exprimes > 1 ? "s" : ""}`} — trop peu pour dégager une position
               </Text>
             </View>
@@ -79,14 +79,14 @@ export function CategoryVoteCard({
 
           {fiable && cat.nonvotant > 0 && (
             <TouchableOpacity activeOpacity={0.6} onPress={() => onCell("nonvotant")} style={{ marginTop: 9 }}>
-              <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint }}>
+              <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>
                 dont <Text style={{ fontFamily: F.bold, color: C.textMuted }}>{cat.nonvotant} non votants</Text> · présent, n'a pas pris part ›
               </Text>
             </TouchableOpacity>
           )}
 
           <TouchableOpacity onPress={onTitle} style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 11 }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Voir tous les votes du thème</Text>
+            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir tous les votes du thème</Text>
             <Feather name="chevron-right" size={15} color={C.accent} />
           </TouchableOpacity>
         </View>

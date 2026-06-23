@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { getScrutinsCategorie } from "../api";
 import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
@@ -32,12 +32,12 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ListHeaderComponent={
         <View style={{ paddingTop: 14 }}>
-          <Text style={{ fontFamily: F.extra, fontSize: 21, color: C.text, letterSpacing: -0.4 }}>{libelle}</Text>
+          <Text style={[T.title, { color: C.text }]}>{libelle}</Text>
 
-          <Text style={{ fontFamily: F.bold, fontSize: 13, color: C.text, marginTop: 18, marginBottom: 2 }}>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginTop: 18, marginBottom: 2 }]}>
             Scrutins ({filtered.length})
           </Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11, color: C.textFaint, marginBottom: 10, lineHeight: 16 }}>
+          <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginBottom: 10 }]}>
             Les plus récents d'abord. Classement automatique à partir de l'intitulé.
           </Text>
           {Bar}

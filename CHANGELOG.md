@@ -7,6 +7,14 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.51 — 2026-06-23
+- **Échelle typographique unifiée** : remplacement des ~26 tailles de police codées à la main
+  par **5 tailles** (11 · 13 · 15 · 18 · 22, écarts ~1.2) centralisées dans `app/src/theme.ts`
+  (objet `T` + `tnum` pour les chiffres tabulaires). Tous les écrans migrés ; alignement
+  colonne par colonne des compteurs (votes, %, scrutins). `callout` = coupe semi-bold de `body`
+  (15px) pour les sous-titres, pas une taille de plus. Aucun changement de hiérarchie (un titre
+  reste un titre) ; titre du hero d'accueil et vedette des thèmes calmés.
+
 ## 1.0.50 — 2026-06-23
 - **SEO — couverture complète (lots 4 & 6)** : le pré-rendu (`prerender-seo.mjs`) couvre
   désormais **les 7 422 scrutins** (`/scrutin/<numero>/`, plus seulement les 75 « grands ») et

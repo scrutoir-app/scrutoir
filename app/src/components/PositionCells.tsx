@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
-import { C, F } from "../theme";
+import { C, F, T, tnum } from "../theme";
 
 export interface PositionCell {
   pos: string;
@@ -29,8 +29,8 @@ export function PositionCells({ cells, onCell }: { cells: PositionCell[]; onCell
             paddingVertical: 9, alignItems: "center", opacity: c.n === 0 ? 0.5 : 1,
           }}
         >
-          <Text style={{ fontFamily: F.extra, fontSize: 18, color: c.color, letterSpacing: -0.3 }}>{c.n}</Text>
-          <Text style={{ fontFamily: F.semibold, fontSize: 11, color: C.textMuted, marginTop: 3 }}>{c.label}</Text>
+          <Text style={[T.heading, tnum, { fontFamily: F.extra, color: c.color }]}>{c.n}</Text>
+          <Text style={[T.micro, { color: C.textMuted, marginTop: 3 }]}>{c.label}</Text>
         </TouchableOpacity>
       ))}
     </View>

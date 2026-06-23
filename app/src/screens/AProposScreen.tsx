@@ -1,14 +1,14 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { C, F, RADIUS } from "../theme";
+import { C, F, T, RADIUS } from "../theme";
 import { APP_VERSION } from "../config";
 import type { Nav } from "../nav";
 
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
   return (
     <View style={{ marginBottom: 18 }}>
-      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, marginBottom: 5 }}>{titre}</Text>
-      <Text style={{ fontFamily: F.regular, fontSize: 13, color: C.textMuted, lineHeight: 20 }}>{children}</Text>
+      <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginBottom: 5 }]}>{titre}</Text>
+      <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted }]}>{children}</Text>
     </View>
   );
 }
@@ -17,14 +17,14 @@ export function AProposScreen({ nav }: { nav: Nav }) {
   return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>À propos & limites</Text>
+        <Text style={[T.title, { color: C.text }]}>À propos & limites</Text>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
 
-      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 22, marginTop: 6 }}>
+      <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 6 }]}>
         À quoi sert Scrutoir ?
       </Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 13.5, color: C.text, lineHeight: 21, marginTop: 6 }}>
+      <Text style={[T.body, { color: C.text, marginTop: 6 }]}>
         Scrutoir aide à comparer le discours des politiques à leurs actes. L'app rend lisibles les
         votes réels des députés à l'Assemblée : cherchez un élu et voyez comment il ou elle a
         voté par thème, ouvrez un scrutin pour comprendre le texte, confrontez deux élus sur leurs
@@ -32,24 +32,24 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         aucune couleur de parti n'est mise en avant, seul le vote parle.
       </Text>
 
-      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 22, marginTop: 18 }}>
+      <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 18 }]}>
         Pourquoi Scrutoir ?
       </Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 13.5, color: C.text, lineHeight: 21, marginTop: 6 }}>
+      <Text style={[T.body, { color: C.text, marginTop: 6 }]}>
         C'est un vieux mot français. L'escritoire était un bureau d'écriture, un meuble où l'on
         consignait, archivait, gardait trace. Le mot a disparu au XVIIIᵉ siècle. On l'a repris parce
         qu'il porte deux choses à la fois : la racine de scrutin, et l'idée d'un endroit où l'on
         regarde de près. C'est exactement ce que fait l'app.
       </Text>
 
-      <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, lineHeight: 20, marginTop: 16, marginBottom: 18 }}>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 16, marginBottom: 18 }]}>
         Scrutoir s'appuie sur les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
         les seuls votes attribués nominativement à chaque député. Pour rester honnête, voici
         précisément ce que l'app couvre — et ce qu'elle ne couvre pas.
       </Text>
 
       <View style={{ backgroundColor: C.loyalMoyenBg, borderRadius: RADIUS.md, padding: 13, marginBottom: 20 }}>
-        <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.loyalMoyen, lineHeight: 19 }}>
+        <Text style={[T.small, { color: C.loyalMoyen }]}>
           ⚠️ Les chiffres ne reflètent qu'une partie de l'activité d'un député. À lire avec
           nuance, sans en tirer de conclusion hâtive.
         </Text>
@@ -124,15 +124,15 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         onPress={() => nav.push({ name: "mentions" })}
         style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.accentSoft }}
       >
-        <Text style={{ fontFamily: F.bold, fontSize: 13.5, color: C.accent }}>Mentions légales & confidentialité</Text>
-        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.accent }}>›</Text>
+        <Text style={[T.body, { fontFamily: F.bold, color: C.accent }]}>Mentions légales & confidentialité</Text>
+        <Text style={[T.callout, { fontFamily: F.bold, color: C.accent }]}>›</Text>
       </TouchableOpacity>
 
       <View style={{ marginTop: 6, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.accentSoft }}>
-        <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.textMuted }}>
+        <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>
           Scrutoir · version {APP_VERSION}
         </Text>
-        <Text style={{ fontFamily: F.regular, fontSize: 11.5, color: C.textFaint, marginTop: 2 }}>
+        <Text style={[T.small, { fontFamily: F.regular, color: C.textFaint, marginTop: 2 }]}>
           Indiquez ce numéro avec vos retours pour situer la version concernée.
         </Text>
       </View>

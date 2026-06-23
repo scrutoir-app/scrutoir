@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F } from "../theme";
+import { C, F, T } from "../theme";
 
 /**
  * Barre divergente à axe central PARTAGÉ entre les lignes d'une même liste
@@ -35,7 +35,7 @@ export function BarreDivergente({
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: label != null ? 48 : 0 }}>
       {label != null && (
         <Text
-          style={{ width: LABEL_W, fontFamily: F.semibold, fontSize: 12.5, color: C.text }}
+          style={[T.small, { width: LABEL_W, fontFamily: F.semibold, color: C.text }]}
           numberOfLines={2}
         >
           {label}

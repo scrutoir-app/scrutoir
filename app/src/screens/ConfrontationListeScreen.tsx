@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, FlatList } from "react-native";
-import { C, F } from "../theme";
+import { C, F, T } from "../theme";
 import type { ConfrontationScrutin } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinLigne } from "./ConfrontationScreen";
@@ -36,11 +36,11 @@ export function ConfrontationListeScreen({
         <View style={{ paddingTop: 14, marginBottom: 6 }}>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: couleur }} />
-            <Text style={{ fontFamily: F.extra, fontSize: 19, color: C.text, letterSpacing: -0.3 }}>
+            <Text style={[T.heading, { fontFamily: F.extra, color: C.text }]}>
               {kind === "accord" ? "Accords" : "Désaccords"} · {themeLibelle}
             </Text>
           </View>
-          <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 3, marginBottom: 12 }}>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 12 }]}>
             {sousTitre} · {filtered.length} {motPluriel}
             {filtered.length > 1 ? "s" : ""}
           </Text>

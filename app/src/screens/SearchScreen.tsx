@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { rechercher, getGrandsScrutins, getCategories, getMeta } from "../api";
 import { track } from "../analytics";
 import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
@@ -72,7 +72,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
             <Feather name="settings" size={18} color={C.accent} />
           </TouchableOpacity>
         </View>
-        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
           Scrutins publics nominatifs · 17ᵉ législature
         </Text>
       </View>
@@ -94,7 +94,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
             onChangeText={setQ}
             placeholder="Recherche député, parti, loi…"
             placeholderTextColor={C.textMuted}
-            style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+            style={[T.callout, { flex: 1, color: C.text, fontFamily: F.medium, outlineStyle: "none" }] as any}
             autoCorrect={false}
           />
           {loading && <ActivityIndicator size="small" color={C.textFaint} />}
@@ -161,8 +161,8 @@ function Accueil({ nav }: { nav: Nav }) {
       >
         <Feather name="git-pull-request" size={20} color="#fff" />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 14.5, color: "#fff" }}>Confronter deux élus</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: "rgba(255,255,255,0.8)", marginTop: 1 }}>
+          <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>Confronter deux élus</Text>
+          <Text style={[T.small, { color: "rgba(255,255,255,0.8)", marginTop: 1 }]}>
             Leurs votes côte à côte, accords et désaccords
           </Text>
         </View>
@@ -176,8 +176,8 @@ function Accueil({ nav }: { nav: Nav }) {
       >
         <Feather name="map-pin" size={19} color={C.accent} />
         <View style={{ flex: 1 }}>
-          <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.text }}>Trouver mon député</Text>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginTop: 1 }}>
+          <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Trouver mon député</Text>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>
             Par département et circonscription
           </Text>
         </View>
@@ -185,9 +185,9 @@ function Accueil({ nav }: { nav: Nav }) {
       </TouchableOpacity>
 
       <View style={{ paddingHorizontal: 18, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 22, marginBottom: 12 }}>
-        <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3 }}>Derniers grands scrutins</Text>
+        <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Derniers grands scrutins</Text>
         <TouchableOpacity onPress={() => nav.push({ name: "grandsScrutins" })}>
-          <Text style={{ fontFamily: F.bold, fontSize: 12.5, color: C.accent }}>Tout voir ›</Text>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Tout voir ›</Text>
         </TouchableOpacity>
       </View>
 
@@ -209,7 +209,7 @@ function Accueil({ nav }: { nav: Nav }) {
 
 function SectionTitle({ titre }: { titre: string }) {
   return (
-    <Text style={{ fontFamily: F.extra, fontSize: 16.5, color: C.text, letterSpacing: -0.3, marginTop: 22, marginBottom: 12 }}>
+    <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 22, marginBottom: 12 }]}>
       {titre}
     </Text>
   );
@@ -217,7 +217,7 @@ function SectionTitle({ titre }: { titre: string }) {
 
 function SectionLabel({ label }: { label: string }) {
   return (
-    <Text style={{ fontFamily: F.bold, fontSize: 12, color: C.textMuted, marginTop: 14, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>
+    <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginTop: 14, marginBottom: 8, textTransform: "uppercase" }]}>
       {label}
     </Text>
   );
@@ -232,8 +232,8 @@ function DeputeRow({ d, onPress }: { d: DeputeResume; onPress: () => void }) {
     >
       <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
       <View style={{ flex: 1 }}>
-        <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text }}>{d.nom_complet}</Text>
-        <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textMuted, marginTop: 1 }}>{d.abrev ?? "—"}</Text>
+        <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{d.nom_complet}</Text>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{d.abrev ?? "—"}</Text>
       </View>
       <Feather name="chevron-right" size={20} color={C.textFaint} />
     </TouchableOpacity>

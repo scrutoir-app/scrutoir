@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, RADIUS, shadowCard, formatDate } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, formatDate } from "../theme";
 import { catUI } from "../categoryUI";
 import type { ScrutinResume } from "../types";
 
@@ -30,15 +30,15 @@ export function ScrutinCard({ scrutin, onPress }: { scrutin: ScrutinResume; onPr
             </View>
           )}
           <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
-            <Text style={{ fontFamily: F.bold, fontSize: 11, color: adopte ? C.adopteFg : C.rejeteFg }}>
+            <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>
               {adopte ? "Adopté" : "Rejeté"}
             </Text>
           </View>
         </View>
-        <Text style={{ fontFamily: F.medium, fontSize: 12, color: C.textFaint }}>{formatDate(scrutin.date)}</Text>
+        <Text style={[T.small, tnum, { color: C.textFaint }]}>{formatDate(scrutin.date)}</Text>
       </View>
 
-      <Text style={{ fontFamily: F.bold, fontSize: 15.5, color: C.text, lineHeight: 21 }} numberOfLines={3}>
+      <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]} numberOfLines={3}>
         {scrutin.titre || scrutin.objet}
       </Text>
 
@@ -49,7 +49,7 @@ export function ScrutinCard({ scrutin, onPress }: { scrutin: ScrutinResume; onPr
             {seg(c, C.contre)}
             {seg(a, C.abstention)}
           </View>
-          <Text style={{ fontFamily: F.medium, fontSize: 11.5, color: C.textMuted, marginTop: 7 }}>
+          <Text style={[T.small, tnum, { color: C.textMuted, marginTop: 7 }]}>
             {p} pour · {c} contre · {a} abst.
           </Text>
         </>
