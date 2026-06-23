@@ -1,128 +1,67 @@
-# Votes AN — ce que votent réellement les députés
+# Scrutoir — ce que votent réellement les députés
 
-Application qui permet de chercher un·e député·e et de voir **ce qu'il/elle a réellement
-voté**, ventilé par grandes catégories thématiques (Écologie, Sécurité, Santé…), à partir
-des données Open Data de l'Assemblée Nationale (17ᵉ législature).
+Application web citoyenne, **neutre, gratuite et sans publicité**, qui rend lisibles les
+**votes réels des député·e·s** à l'Assemblée nationale (17ᵉ législature), à partir de l'Open
+Data officiel. Objectif : confronter le discours et les actes — **aucune couleur de parti
+n'est mise en avant, seul le vote parle.**
 
-> Objectif : confronter le discours et les actes. On affiche, par catégorie et par période,
-> le détail Pour / Contre / Abstention / Absent — sans score agrégé trompeur.
+🟢 **En ligne : [scrutoir.fr](https://scrutoir.fr)** (PWA installable, fonctionne hors-ligne).
 
-## Architecture
+## Fonctionnalités
+
+- **Recherche** de député·e·s, de partis et de scrutins.
+- **Fiche élu·e** : participation relative, votes par thème (Pour / Contre / Abstention /
+  Absent · Non votant), dissidences, consigne du groupe par scrutin. *Pas de score de loyauté
+  agrégé* (jugé trompeur) — on montre l'écart à la consigne, à vous de lire.
+- **Détail d'un scrutin** : résultat, exposé de l'amendement, position par groupe, votants,
+  lien vers la source officielle.
+- **Confrontation de deux élu·e·s** : accords / désaccords par thème (barres divergentes),
+  avec page détaillée filtrable par année/mois.
+- **Fiches partis** (cohésion, participation, activité, positions par thème), **« Mon·ma
+  député·e »** (département → circonscription), onglet **Suivis**.
+- **Accueil** : carrousel « signature » animé des derniers grands scrutins + indicateur de
+  fraîcheur des données.
+- **Mode clair / sombre / auto** (⚙️ Paramètres).
+
+## Architecture (100 % statique)
+
+Pas de serveur en production : la base est pré-générée en fichiers JSON servis en statique.
 
 ```
-pipeline/   Ingestion Open Data AN → base de données (Node + TypeScript + SQLite)
-api/        API HTTP locale au-dessus de la base (Express)
-app/        Application mobile Expo (React Native, iOS + Android + Web)
-data/       Base votes.db + archives brutes (ignoré par git)
+pipeline/   Ingestion Open Data AN → SQLite (data/votes.db) → export JSON (Node + TypeScript)
+app/        Application Expo / React Native (web + iOS + Android). Lit les JSON pré-générés.
+api/        API Express — DÉVELOPPEMENT LOCAL UNIQUEMENT (non déployée).
+data/       votes.db + archives brutes (ignoré par git)
 ```
 
-## Lancer l'app (3 terminaux)
+- **Données** : `pipeline` (`npm run ingest:refresh` + `npm run export:static`) dump ~8 000
+  fichiers JSON dans `app/public/data/` (git-ignoré, régénéré). `app/src/api.ts` les lit.
+- **Hébergement** : **Cloudflare Pages** (gratuit). Déploiement quotidien automatique via
+  GitHub Actions (`.github/workflows/refresh.yml`) — voir **[DEPLOY-static.md](DEPLOY-static.md)**.
+- **Versionnage** : `app/src/config.ts` (`APP_VERSION`) + **[CHANGELOG.md](CHANGELOG.md)**.
+
+## Lancer en local (dev)
 
 ```bash
-# 1. (une fois) charger les données
-cd pipeline && npm install && npm run ingest
-
-# 2. l'API
-cd api && npm install && npm start          # http://localhost:4000
-
-# 3. l'app
-cd app && npm install && npm run web         # http://localhost:8081
-#   ou: npm run ios / npm run android / Expo Go sur ton téléphone
+export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"        # Node via nvm
+cd pipeline && npm install && npm run ingest && npm run export:static   # base + JSON
+cd ../app && npm install && npm run web                 # http://localhost:8081
 ```
 
-Sur téléphone (Expo Go), remplace `localhost` par l'IP LAN de ton Mac dans
-`app/src/api.ts` (ou via la variable `EXPO_PUBLIC_API_BASE`).
-
-## Lancer l'API
-
-```bash
-cd api
-npm install
-npm start            # http://localhost:4000
-```
-
-Endpoints :
-- `GET /search?q=…` — recherche unifiée députés + scrutins
-- `GET /deputes/:uid?periode=all|12m|6m` — profil de vote + loyauté au groupe
-- `GET /scrutins/:uid` — détail d'un scrutin (ventilation par groupe + consigne)
-- `GET /scrutins/:uid/vote/:deputeUid` — vote précis + conformité à la consigne
-- `GET /categories` — liste des catégories
-
-## Indicateur de loyauté
-
-L'AN fournit la `positionMajoritaire` (consigne) de chaque groupe par scrutin.
-La loyauté d'un·e député·e = % de ses votes exprimés conformes à la consigne de son
-groupe. Validé : discrimine de ~72 % (les plus indépendants) à ~99 % (cadres de groupe).
-
-La base est en **SQLite** pour le prototype (zéro compte, zéro Docker). Le schéma est
-relationnel pur et **portable vers Postgres / Supabase** pour la mise en ligne.
+L'API Express (`api/`) reste disponible pour le dev mais n'est **pas** nécessaire à l'app web
+(qui lit les JSON statiques). Détails et pièges : **[CLAUDE.md](CLAUDE.md)** (handoff technique).
 
 ## Source des données
 
-Open Data Assemblée Nationale (licence Etalab, mise à jour quotidienne) :
+Open Data de l'Assemblée nationale (licence Etalab, mise à jour quotidienne), 17ᵉ législature :
+scrutins publics nominatifs, acteurs/organes (députés, groupes, mandats), amendements.
 
-- **Scrutins** : `repository/17/loi/scrutins/Scrutins.json.zip` — position nominative de
-  chaque député pour chaque scrutin public.
-- **Acteurs & Organes** : `repository/17/amo/.../AMO10_...json.zip` — députés actifs,
-  mandats, groupes politiques.
-- **Photos** : `www2.assemblee-nationale.fr/static/tribun/17/photos/{id}.jpg`.
+⚠️ **Seuls les scrutins publics sont nominatifs** — les votes à main levée ne le sont pas et
+n'apparaissent pas. L'absence est *déduite* et bornée aux dates du mandat. La classification
+thématique (12 catégories) est calculée automatiquement à partir de l'intitulé (donc imparfaite).
 
-⚠️ Seuls les **scrutins publics** sont nominatifs (les votes à main levée ne le sont pas).
+## Limites & vie privée
 
-## Modèle de données
-
-`groupes`, `deputes`, `scrutins`, `votes` (position de chaque député par scrutin),
-`categories`, `scrutin_categories` (association thématique avec `source` =
-`mots-cles | ia | valide` pour la classification hybride).
-
-## Classification thématique
-
-Aucune catégorie n'est fournie par l'AN — on les calcule. Deux niveaux :
-
-1. **Mots-clés** (`src/categories.ts`) — fallback déterministe, sans clé API. Actif par défaut.
-2. **IA (Claude)** — branchable via `ANTHROPIC_API_KEY`, avec mise en file des cas
-   ambigus pour **validation humaine** (les lignes `source='valide'` sont prioritaires et
-   jamais écrasées).
-
-## Lancer le pipeline
-
-```bash
-cd pipeline
-npm install
-npm run ingest            # télécharge (si besoin) + charge + classe
-npm run ingest:download   # force le re-téléchargement (données du jour)
-npm run query -- "Panot"  # profil de vote d'un député (validation)
-```
-
-## État actuel
-
-✅ Pipeline d'ingestion complet : 577 députés, 12 groupes, 7422 scrutins, ~1,15 M de
-votes, classification thématique (12 catégories), consignes de groupe.
-✅ API HTTP : recherche députés+scrutins, profil avec loyauté, détail de scrutin.
-✅ App mobile Expo : 3 écrans fonctionnels (recherche / fiche député / détail scrutin),
-vérifiés sur données réelles.
-
-## Exposés des amendements
-
-Quand un scrutin porte sur un amendement, on affiche son exposé sommaire (dispositif +
-justification de l'auteur), issu du jeu de données **Amendements** de l'AN (~270 Mo, lu en
-streaming sans extraction). Le lien scrutin↔amendement est reconstitué par heuristique
-(date du sort + numéro + auteur) : ~91 % des scrutins sur amendement sont reliés.
-
-```bash
-cd pipeline && npm run link-amendements   # télécharge l'archive si besoin + relie
-```
-
-## Idées en attente (backlog)
-
-- **Espace « élus »** (distinct de la vue électeur) : un·e député·e y verrait son **taux de
-  réussite** = part de ses votes exprimés où le résultat a suivi son vote (Pour→adopté ou
-  Contre→rejeté), au **global** et **par thème**. Données déjà disponibles (position du
-  député + `sort_code` du scrutin). À faire **après** avoir terminé la vue électeur.
-
-## Pistes suivantes
-
-- Améliorer la classification (affiner les mots-clés ou brancher Claude API en hybride).
-- Lister les « dissidences » d'un·e député·e (scrutins votés contre la consigne).
-- Filtrer/parcourir les scrutins par catégorie.
-- Mise en ligne : migration SQLite → Supabase (Postgres) + build iOS/Android.
+Données non officielles, à titre informatif, à lire avec nuance. Aucun compte requis, aucune
+donnée personnelle collectée ; mesure d'audience anonyme et agrégée. Détail dans l'app
+(onglet **Infos** → « À propos & limites » + mentions légales).
