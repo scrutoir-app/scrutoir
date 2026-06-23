@@ -6,7 +6,7 @@ import {
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard, formatDate } from "../theme";
 import { catUI } from "../categoryUI";
-import { ScrutoirMark } from "./ScrutoirMark";
+import { HemicycleSeats } from "./HemicycleSeats";
 import type { ScrutinResume } from "../types";
 
 const GAP = 12;
@@ -105,9 +105,13 @@ function HeroCard({
         backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.border, ...shadowCard,
       }}
     >
-      {/* Filigrane hémicycle, coin supérieur droit, fondu à l'apparition */}
-      <Animated.View style={{ position: "absolute", top: -26, right: -18, opacity: fade }} pointerEvents="none">
-        <ScrutoirMark size={168} color={C.watermarkInk} accent={C.watermarkFocal} />
+      {/* Filigrane : hémicycle peuplé de sièges = les députés (suggestion simplifiée),
+          ancré en bas-centre, balaie toute la carte, très discret. Fondu à l'apparition. */}
+      <Animated.View
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: fade }}
+        pointerEvents="none"
+      >
+        <HemicycleSeats width={width} height={HERO_H} color={C.watermarkInk} />
       </Animated.View>
 
       <View style={{ flex: 1, padding: 16, justifyContent: "space-between" }}>
