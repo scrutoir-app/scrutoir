@@ -50,18 +50,22 @@ export function ThemesScreen({ nav }: { nav: Nav }) {
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Thèmes</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1, marginBottom: 16 }}>
-        Parcourez les scrutins par grand sujet
-      </Text>
-      {loading ? (
-        <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
-      ) : (
-        cats.map((c) => (
-          <ThemeRow key={c.id} c={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
-        ))
-      )}
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
+        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Thèmes</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
+          Parcourez les scrutins par grand sujet
+        </Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+        {loading ? (
+          <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
+        ) : (
+          cats.map((c) => (
+            <ThemeRow key={c.id} c={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
+          ))
+        )}
+      </ScrollView>
+    </View>
   );
 }

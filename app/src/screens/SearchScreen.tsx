@@ -11,7 +11,7 @@ import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { HeroScrutins } from "../components/HeroScrutins";
 import { ThemePicker } from "../components/ThemePicker";
-import { ScrutoirMark } from "../components/ScrutoirMark";
+import { ScrutoirLogo } from "../components/brand/ScrutoirLogo";
 import { MesSuivis } from "../components/MesSuivis";
 
 type Item =
@@ -61,10 +61,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
       {/* Masthead */}
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10 }}>
-            <ScrutoirMark size={42} color={C.text} accent={C.accent} />
-            <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Scrutoir</Text>
-          </View>
+          <ScrutoirLogo wordHeight={33} color={C.text} accent={C.accent} />
           <TouchableOpacity
             onPress={() => nav.push({ name: "parametres" })}
             accessibilityRole="button"

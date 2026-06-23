@@ -15,10 +15,13 @@ function Bloc({ titre, children }: { titre: string; children: React.ReactNode })
 
 export function AProposScreen({ nav }: { nav: Nav }) {
   return (
-    <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>À propos & limites</Text>
+    <View style={{ flex: 1 }}>
+      <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
+        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>À propos & limites</Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
 
-      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 22, marginTop: 12 }}>
+      <Text style={{ fontFamily: F.bold, fontSize: 15, color: C.text, lineHeight: 22, marginTop: 6 }}>
         À quoi sert Scrutoir ?
       </Text>
       <Text style={{ fontFamily: F.medium, fontSize: 13.5, color: C.text, lineHeight: 21, marginTop: 6 }}>
@@ -133,6 +136,7 @@ export function AProposScreen({ nav }: { nav: Nav }) {
           Indiquez ce numéro avec vos retours pour situer la version concernée.
         </Text>
       </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

@@ -58,11 +58,14 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
   const isNew = (date: string | null) => !!lastSeen.current && !!date && date > lastSeen.current;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Suivis</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 13, color: C.textMuted, marginTop: 4 }}>
-        Les derniers votes des élus que vous suivez.
-      </Text>
+    <View style={{ flex: 1 }}>
+      <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
+        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Suivis</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
+          Les derniers votes des élus que vous suivez.
+        </Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
       {/* Partis suivis (raccourci vers leur fiche) */}
       {partis.length > 0 && (
@@ -158,6 +161,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
           })}
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }

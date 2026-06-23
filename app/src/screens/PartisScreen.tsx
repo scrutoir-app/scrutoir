@@ -15,12 +15,14 @@ export function PartisScreen({ nav }: { nav: Nav }) {
   }, []);
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-      <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Partis</Text>
-      <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 1, marginBottom: 16 }}>
-        Les groupes de la 17ᵉ législature — cohésion, participation et positions par thème.
-      </Text>
-
+    <View style={{ flex: 1 }}>
+      <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
+        <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Partis</Text>
+        <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
+          Les groupes de la 17ᵉ législature — cohésion, participation et positions par thème.
+        </Text>
+      </View>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
       {loading ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
       ) : (
@@ -48,6 +50,7 @@ export function PartisScreen({ nav }: { nav: Nav }) {
           ))}
         </View>
       )}
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
