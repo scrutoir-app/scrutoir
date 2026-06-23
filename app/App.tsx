@@ -153,23 +153,31 @@ function AppInner() {
         {/* Recherche EN LIGNE depuis les onglets de navigation (l'Accueil a déjà la sienne) :
             vrai champ de saisie ; on tape directement, les résultats remplacent le contenu. */}
         {stack.length === 1 && ongletAvecRecherche && (
-          <View
-            style={{ flexDirection: "row", alignItems: "center", gap: 10, marginHorizontal: 16, marginTop: 12, marginBottom: 4, height: 46, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 12, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
-          >
-            <Feather name="search" size={17} color={C.textMuted} />
-            <TextInput
-              value={gq}
-              onChangeText={setGq}
-              placeholder="Recherche député, parti, loi…"
-              placeholderTextColor={C.textMuted}
-              style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
-              autoCorrect={false}
-            />
-            {gq.length > 0 && (
-              <TouchableOpacity onPress={() => setGq("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-                <Feather name="x" size={18} color={C.textFaint} />
-              </TouchableOpacity>
-            )}
+          <View style={{ paddingHorizontal: 18, marginTop: 12, marginBottom: 4 }}>
+            <View
+              style={{
+                flexDirection: "row", alignItems: "center", gap: 11, height: 54,
+                backgroundColor: C.surface, borderRadius: RADIUS.md, paddingLeft: 8, paddingRight: 15,
+                borderWidth: 1, borderColor: C.borderStrong, ...shadowCard,
+              }}
+            >
+              <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
+                <Feather name="search" size={19} color="#fff" />
+              </View>
+              <TextInput
+                value={gq}
+                onChangeText={setGq}
+                placeholder="Recherche député, parti, loi…"
+                placeholderTextColor={C.textMuted}
+                style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+                autoCorrect={false}
+              />
+              {gq.length > 0 && (
+                <TouchableOpacity onPress={() => setGq("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                  <Feather name="x" size={18} color={C.textFaint} />
+                </TouchableOpacity>
+              )}
+            </View>
           </View>
         )}
 
