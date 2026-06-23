@@ -1,0 +1,11 @@
+# Scrutoir — https://scrutoir.fr
+# Ce que votent réellement les députés français (Open Data Assemblée nationale).
+# Service neutre, gratuit, sans pub.
+#
+# On autorise tout : tant que les pages par contenu (lot 2, pré-rendu) n'existent pas,
+# Google a besoin du JS/CSS et des données (/data/) pour rendre l'accueil (rendu client).
+
+User-agent: *
+Allow: /
+
+Sitemap: https://scrutoir.fr/sitemap.xml

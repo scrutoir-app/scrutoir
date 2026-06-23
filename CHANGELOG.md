@@ -7,6 +7,14 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.48 — 2026-06-23
+- **SEO — fondations de crawl (lot 1)** : ajout de `robots.txt` (autorise tout + référence le
+  sitemap), génération de `sitemap.xml` au build (`patch-pwa.mjs`, `lastmod` issu de
+  `version.json`), et balise `<link rel="canonical">` vers l'apex `scrutoir.fr` (l'apex et le
+  `www` servaient tous deux un 200 → contenu dupliqué). Socle pour le pré-rendu des pages par
+  contenu (lot 2). Voir `docs/seo-audit.md`.
+  ⚠️ Reste à poser côté Cloudflare : redirection **301 `www` → apex** (Redirect Rule dashboard).
+
 ## 1.0.47 — 2026-06-23
 - **Splash d'ouverture aligné sur le nouveau logo** : l'animation de chargement (hémicycle
   dont les sièges s'allument) reprend le **siège blanc contour encre** et le **logotype
