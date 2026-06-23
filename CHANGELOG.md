@@ -7,6 +7,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.50 — 2026-06-23
+- **SEO — couverture complète (lots 4 & 6)** : le pré-rendu (`prerender-seo.mjs`) couvre
+  désormais **les 7 422 scrutins** (`/scrutin/<numero>/`, plus seulement les 75 « grands ») et
+  génère des pages **député × thème** (`/depute/<slug>/<theme>/`) listant le détail scrutin par
+  scrutin du député sur chaque thème, avec écart à la consigne du groupe. Garde-fou anti « thin
+  content » : ces pages ne sont **indexées que ≥ 10 votes exprimés** (5 135 indexées), les plus
+  maigres restent en `noindex,follow` (1 019) pour ne pas casser le maillage. Sitemap : **13 163
+  URLs**. Les lignes « votes par thème » de la fiche député pointent vers ces nouvelles pages.
+
 ## 1.0.49 — 2026-06-23
 - **SEO — pré-rendu des pages de contenu (lot 2)** : 681 vraies pages HTML statiques générées
   au build (`app/scripts/prerender-seo.mjs`) depuis les JSON : **577 députés** (`/depute/<slug>/`),

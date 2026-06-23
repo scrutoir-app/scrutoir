@@ -27,6 +27,13 @@ const SITE = "https://scrutoir.fr";
 // Couleurs de vote (les SEULES couleurs porteuses de sens, cf. règle de neutralité).
 const COL = { pour: "#2F8F5B", contre: "#C44536", abstention: "#D6A43C" };
 
+// Lot 6 : une page député×thème n'est INDEXÉE (sitemap + indexable) que si le député a
+// au moins ce nombre de votes EXPRIMÉS (pour/contre/abstention) sur le thème. En dessous,
+// la page existe quand même (pour ne jamais casser un lien interne) mais en `noindex,follow`.
+// Évite de noyer l'index sous des milliers de pages maigres (garde-fou audit §5).
+const DEPUTE_THEME_INDEX_MIN = 10;
+const POS_LABEL = { pour: "Pour", contre: "Contre", abstention: "Abstention", nonvotant: "Non votant", absent: "Absent" };
+
 // ---------- helpers ----------
 const esc = (s) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -135,7 +142,7 @@ function crumbsHtml(crumbs) {
   );
 }
 
-function shell({ title, description, path, ogImage, ogType = "website", jsonld, crumbs, h1, sub, main }) {
+function shell({ title, description, path, ogImage, ogType = "website", jsonld, crumbs, h1, sub, main, noindex = false }) {
   const canonical = SITE + path;
   const ld = [breadcrumbLd(crumbs), ...(jsonld ? [jsonld] : [])];
   return `<!DOCTYPE html>
@@ -143,7 +150,7 @@ function shell({ title, description, path, ogImage, ogType = "website", jsonld, 
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>${esc(title)}</title>
+${noindex ? `<meta name="robots" content="noindex,follow">\n` : ""}<title>${esc(title)}</title>
 <meta name="description" content="${esc(description)}">
 <link rel="canonical" href="${canonical}">
 <meta property="og:type" content="${ogType}">
@@ -187,7 +194,7 @@ async function writePage(path, html) {
 const urls = []; // pour le sitemap : { path, priority, changefreq }
 const add = (path, priority, changefreq = "weekly") => urls.push({ path, priority, changefreq });
 
-async function genDeputes() {
+async function genDeputes(scrutinMap, themesMeta) {
   const list = await readJSON(join(dataDir, "deputes.json"));
   // Slugs uniques et STABLES : nom seul si unique, sinon désambiguïsé par département-circo
   // (un même nom dans la même circo est impossible — un seul siège).
@@ -199,6 +206,7 @@ async function genDeputes() {
   };
 
   const items = []; // pour le hub, groupé par parti
+  let dtIndexed = 0, dtNoindex = 0; // compteurs pages député×thème (lot 6)
   for (const d of list) {
     const slug = slugOf(d);
     const path = `/depute/${slug}/`;
@@ -212,6 +220,16 @@ async function genDeputes() {
     }
     const p = detail?.profils?.all || null;
     const cats = (p?.categories || []).filter((c) => c.total > 0).sort((a, b) => b.total - a.total);
+
+    // Lot 6 : on range les votes EXPRIMÉS du député par thème (via la carte scrutin→catégorie).
+    const buckets = {}; // themeId -> [{ numero, titre, date, position, consigne }]
+    for (const [suid, tuple] of Object.entries(detail?.votes || {})) {
+      const pos = Array.isArray(tuple) ? tuple[0] : tuple;
+      if (pos !== "pour" && pos !== "contre" && pos !== "abstention") continue;
+      const sc = scrutinMap[suid];
+      if (!sc || !sc.cat) continue;
+      (buckets[sc.cat] ||= []).push({ numero: sc.numero, titre: sc.titre, date: sc.date, position: pos, consigne: Array.isArray(tuple) ? tuple[1] : null });
+    }
 
     const statsHtml = p
       ? `<div class="card"><div class="stats">
@@ -228,7 +246,7 @@ async function genDeputes() {
          <tbody>${cats
            .map(
              (c) =>
-               `<tr><td><a href="/theme/${esc(c.id)}/">${esc(c.libelle)}</a></td><td class="n">${c.pour}</td><td class="n">${c.contre}</td><td class="n">${c.abstention}</td><td class="n">${c.absent}</td></tr>`,
+               `<tr><td><a href="${buckets[c.id]?.length ? `/depute/${slug}/${esc(c.id)}/` : `/theme/${esc(c.id)}/`}">${esc(c.libelle)}</a></td><td class="n">${c.pour}</td><td class="n">${c.contre}</td><td class="n">${c.abstention}</td><td class="n">${c.absent}</td></tr>`,
            )
            .join("")}</tbody></table>
          <p class="legend" style="margin-top:10px">Décompte des scrutins publics nominatifs par grand thème. « Absent » est déduit et borné aux dates du mandat.</p>
@@ -278,8 +296,58 @@ async function genDeputes() {
       }),
     );
     add(path, "0.7");
+
+    // Lot 6 : une page par (député, thème) où il a au moins un vote exprimé.
+    for (const [themeId, rows] of Object.entries(buckets)) {
+      rows.sort((a, b) => String(b.date).localeCompare(String(a.date)));
+      const expressed = rows.length;
+      const indexed = expressed >= DEPUTE_THEME_INDEX_MIN;
+      const tLib = themesMeta[themeId]?.libelle || themeId;
+      const dtPath = `/depute/${slug}/${themeId}/`;
+      const shown = rows.slice(0, 300);
+      const tbody = shown
+        .map((r) => {
+          const ecart =
+            r.consigne && r.consigne !== r.position && (r.consigne === "pour" || r.consigne === "contre") && (r.position === "pour" || r.position === "contre")
+              ? ` <span style="color:#9AA1AB">· ≠ groupe</span>`
+              : "";
+          return `<tr><td style="white-space:nowrap;color:#5A626E">${fmtDate(r.date)}</td><td><a href="/scrutin/${r.numero}/">${esc(trunc(r.titre, 90))}</a></td><td style="white-space:nowrap"><b style="color:${COL[r.position] || "#5A626E"}">${POS_LABEL[r.position] || r.position}</b>${ecart}</td></tr>`;
+        })
+        .join("");
+      const dtMain = `
+        <p>Le détail des <strong>${expressed} vote${expressed > 1 ? "s" : ""} exprimé${expressed > 1 ? "s" : ""}</strong> de ${esc(d.nom_complet)} (${esc(d.abrev || d.groupe)}) sur les scrutins publics du thème « ${esc(tLib)} », du plus récent au plus ancien. « ≠ groupe » signale un écart avec la consigne du groupe.</p>
+        <div class="card"><table>
+          <thead><tr><th>Date</th><th>Scrutin</th><th>Vote</th></tr></thead>
+          <tbody>${tbody}</tbody>
+        </table>${rows.length > shown.length ? `<p class="legend" style="margin-top:10px">Affichage des ${shown.length} votes les plus récents sur ${rows.length}.</p>` : ""}</div>
+        <p><a href="/depute/${slug}/">← Fiche de ${esc(d.nom_complet)}</a> · <a href="/theme/${esc(themeId)}/">Thème ${esc(tLib)}</a></p>`;
+      await writePage(
+        dtPath,
+        shell({
+          title: `${d.nom_complet} et le thème ${tLib} — ses votes | Scrutoir`,
+          description: `Les ${expressed} votes de ${d.nom_complet} (${d.abrev || d.groupe}) sur le thème « ${tLib} » à l'Assemblée nationale : le détail scrutin par scrutin.`,
+          path: dtPath,
+          noindex: !indexed,
+          crumbs: [
+            { name: "Accueil", url: "/" },
+            { name: "Députés", url: "/deputes/" },
+            { name: d.nom_complet, url: `/depute/${slug}/` },
+            { name: tLib },
+          ],
+          h1: `${d.nom_complet} — votes sur ${tLib}`,
+          sub: `${expressed} votes exprimés · 17ᵉ législature`,
+          main: dtMain,
+        }),
+      );
+      if (indexed) {
+        add(dtPath, "0.5");
+        dtIndexed++;
+      } else {
+        dtNoindex++;
+      }
+    }
   }
-  return items;
+  return { items, dtIndexed, dtNoindex };
 }
 
 async function genThemes(grands) {
@@ -397,15 +465,19 @@ async function genPartis() {
   return items;
 }
 
-async function genScrutins(grands) {
-  for (const g of grands) {
-    const path = `/scrutin/${g.numero}/`;
-    let groupes = [];
+async function genScrutins(scrutinsList) {
+  let n = 0;
+  for (const item of scrutinsList) {
+    const path = `/scrutin/${item.numero}/`;
+    let detail = null;
     try {
-      groupes = (await readJSON(join(dataDir, "scrutin", `${g.uid}.json`)))?.groupes || [];
+      detail = await readJSON(join(dataDir, "scrutin", `${item.uid}.json`));
     } catch {
-      /* détail absent */
+      /* détail absent → on saute (rare) */
     }
+    if (!detail?.scrutin) continue;
+    const g = { ...detail.scrutin, categorie: item.categorie || null };
+    const groupes = detail.groupes || [];
     const adopted = g.sort_code === "adopte";
     const titre = g.dossier_titre || g.titre;
     const groupTable = groupes.length
@@ -456,7 +528,9 @@ async function genScrutins(grands) {
       }),
     );
     add(path, "0.5");
+    if (++n % 2000 === 0) console.log(`[prerender-seo] … ${n} pages scrutin générées`);
   }
+  return n;
 }
 
 // ---------- hubs (listes crawlables) ----------
@@ -578,13 +652,25 @@ async function main() {
     process.exit(1);
   }
   const grands = await readJSON(join(dataDir, "grands.json"));
-  const deputes = await genDeputes();
+  const scrutinsList = await readJSON(join(dataDir, "scrutins.json"));
+
+  // Carte scrutin → { numero, titre, date, thème } : sert au lot 6 (ranger les votes par thème).
+  const scrutinMap = {};
+  for (const s of scrutinsList) scrutinMap[s.uid] = { numero: s.numero, titre: s.titre, date: s.date, cat: s.categorie || null };
+  // Libellés des thèmes (id → libellé) pour les pages député×thème.
+  const themesMeta = {};
+  for (const c of await readJSON(join(dataDir, "categories.json"))) themesMeta[c.id] = { libelle: c.libelle };
+
+  const { items: deputes, dtIndexed, dtNoindex } = await genDeputes(scrutinMap, themesMeta);
   const themes = await genThemes(grands);
   const partis = await genPartis();
-  await genScrutins(grands);
+  const nbScrutins = await genScrutins(scrutinsList);
   await genHubs(deputes, themes, partis, grands);
   const n = await writeSitemap();
-  console.log(`[prerender-seo] ${deputes.length} députés, ${themes.length} thèmes, ${partis.length} partis, ${grands.length} scrutins + 4 hubs → ${n} URLs au sitemap.`);
+  console.log(
+    `[prerender-seo] ${deputes.length} députés, ${themes.length} thèmes, ${partis.length} partis, ${nbScrutins} scrutins, ` +
+      `${dtIndexed} pages député×thème indexées (+${dtNoindex} en noindex) + 4 hubs → ${n} URLs au sitemap.`,
+  );
 }
 
 main();
