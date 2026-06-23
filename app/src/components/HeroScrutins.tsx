@@ -107,7 +107,7 @@ function HeroCard({
     >
       {/* Filigrane hémicycle, coin supérieur droit, fondu à l'apparition */}
       <Animated.View style={{ position: "absolute", top: -26, right: -18, opacity: fade }} pointerEvents="none">
-        <ScrutoirMark size={168} color="rgba(23,26,31,0.07)" accent="rgba(60,70,84,0.13)" />
+        <ScrutoirMark size={168} color={C.watermarkInk} accent={C.watermarkFocal} />
       </Animated.View>
 
       <View style={{ flex: 1, padding: 16, justifyContent: "space-between" }}>

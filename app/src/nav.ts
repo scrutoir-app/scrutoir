@@ -55,7 +55,8 @@ export type Route =
     }
   | { name: "monDepute" }
   | { name: "suivis" }
-  | { name: "mentions" };
+  | { name: "mentions" }
+  | { name: "parametres" };
 
 export interface Nav {
   push: (route: Route) => void;

@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.45 — 2026-06-23
+- **Mode sombre** : nouveau réglage d'apparence **Clair / Sombre / Auto** (« Auto » suit le
+  système). Accessible via l'icône **⚙️ en haut de l'Accueil → écran Paramètres**. Le choix
+  est mémorisé. Palette sombre cohérente (couleurs de vote relevées, pictos de thème adaptés) ;
+  la couleur n'encode toujours que le vote.
+
 ## 1.0.44 — 2026-06-22
 - **Hero d'accueil « signature »** : refonte du carrousel des derniers grands scrutins.
   Fond blanc sobre + **filigrane hémicycle** (motif Scrutoir) à la place de la photo ;

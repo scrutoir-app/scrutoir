@@ -30,10 +30,12 @@ import { VotantsScreen } from "./src/screens/VotantsScreen";
 import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
 import { ConfrontationListeScreen } from "./src/screens/ConfrontationListeScreen";
 import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
+import { ParametresScreen } from "./src/screens/ParametresScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
 import { InstallPrompt } from "./src/components/InstallPrompt";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
+import { ThemeProvider, useThemeMode } from "./src/themeMode";
 import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
@@ -45,6 +47,15 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 ];
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppInner />
+    </ThemeProvider>
+  );
+}
+
+function AppInner() {
+  const { effective } = useThemeMode();
   const [fontsLoaded, fontError] = useFonts({
     Manrope_400Regular, Manrope_500Medium, Manrope_600SemiBold, Manrope_700Bold, Manrope_800ExtraBold,
   });
@@ -101,6 +112,7 @@ export default function App() {
     confrontationListe: "Confrontation",
     monDepute: "Mon député",
     mentions: "Mentions légales",
+    parametres: "Paramètres",
   };
   const showHeader = stack.length > 1;
 
@@ -113,8 +125,8 @@ export default function App() {
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar barStyle="dark-content" />
+    <SafeAreaView key={effective} style={{ flex: 1, backgroundColor: C.bg }}>
+      <StatusBar barStyle={effective === "dark" ? "light-content" : "dark-content"} />
       <View
         style={{
           maxWidth: 480, width: "100%", flex: 1, alignSelf: "center",
@@ -195,6 +207,7 @@ export default function App() {
             <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} nav={nav} />
           )}
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
+          {current.name === "parametres" && <ParametresScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
             </>
           )}

@@ -28,8 +28,8 @@ export function BarreDivergente({
   const base = pour + contre || 1;
   const pPour = (pour / base) * 100;
   const pContre = (contre / base) * 100;
-  const piste = "rgba(60,70,84,0.10)";
-  const axe = "rgba(60,70,84,0.4)";
+  const piste = C.hairline;
+  const axe = C.hairlineStrong;
 
   const contenu = (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: label != null ? 48 : 0 }}>

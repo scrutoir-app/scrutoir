@@ -1,5 +1,6 @@
 // Habillage des catégories : icône (MaterialCommunityIcons) + teinte douce neutre.
 // Teintes désaturées volontairement — distinction visuelle sans connotation partisane.
+import { getScheme } from "./theme";
 
 export interface CatUI {
   icon: string; // nom MaterialCommunityIcons
@@ -32,8 +33,29 @@ const MAP: Record<string, CatUI> = {
   logement: { icon: "home-city", bg: "#F0EDE9", fg: "#8A6F5A", court: "Logement", photos: ph("photo-1486406146926-c627a92ad1ab", "photo-1560518883-ce09059eeffa", "photo-1448630360428-65456885c650") },
 };
 
+// --- Teintes adaptées au thème sombre ---------------------------------------
+// On garde la HUE de chaque thème : tuile = teinte très assombrie (vers le fond
+// sombre), icône = teinte éclaircie. Pas de table à maintenir, juste un mélange.
+function hexToRgb(h: string): [number, number, number] {
+  const s = h.replace("#", "");
+  return [parseInt(s.slice(0, 2), 16), parseInt(s.slice(2, 4), 16), parseInt(s.slice(4, 6), 16)];
+}
+function mix(hex: string, target: [number, number, number], t: number): string {
+  const [r, g, b] = hexToRgb(hex);
+  const m = (a: number, bb: number) => Math.round(a + (bb - a) * t);
+  return `#${[m(r, target[0]), m(g, target[1]), m(b, target[2])].map((v) => v.toString(16).padStart(2, "0")).join("")}`;
+}
+
 export function catUI(id: string): CatUI {
-  return MAP[id] ?? FALLBACK;
+  const base = MAP[id] ?? FALLBACK;
+  if (getScheme() === "dark") {
+    return {
+      ...base,
+      bg: mix(base.fg, [27, 33, 41], 0.82), // tuile sombre, teintée de la hue
+      fg: mix(base.fg, [255, 255, 255], 0.28), // icône éclaircie pour le contraste
+    };
+  }
+  return base;
 }
 
 // Hash stable d'une chaîne (pour choisir une photo de façon déterministe par scrutin).

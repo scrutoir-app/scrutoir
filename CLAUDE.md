@@ -107,7 +107,16 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.44**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.45**.
+- **Mode sombre (v1.0.45)** : réglage Clair/Sombre/Auto dans **Paramètres** (icône ⚙️ en-tête Accueil →
+  route `parametres`, `screens/ParametresScreen.tsx`). Thème **réactif sans refacto des imports** : `theme.ts`
+  expose `LIGHT`/`DARK` + une palette VIVANTE `C` (et `shadowCard`) réécrite par `applyScheme()` ; le
+  `ThemeProvider` (`themeMode.tsx`, hook `useThemeMode`) résout le thème effectif (« auto » → `useColorScheme`),
+  l'applique avant rendu, persiste la préférence (`localStorage scrutoir.scheme`, défaut **Clair**), et l'app
+  **remonte l'arbre** via `key={effective}` (App.tsx) → tous les `C.x` se mettent à jour. `categoryUI.catUI()`
+  dérive des teintes sombres (mélange) selon `getScheme()`. Filigrane hero + pistes des barres divergentes =
+  tokens `C.watermarkInk/watermarkFocal/hairline/hairlineStrong`. StatusBar suit le thème. ⚠️ Le splash injecté
+  (`patch-pwa.mjs`) reste clair → micro-flash possible si « Auto » + système sombre (TODO : splash neutre).
 - **Analytics privacy-first** (sans cookie/IP/identifiant, RGPD, pas de bandeau) : Worker `analytics/`
   (`scrutoir-analytics`, déployé sur `scrutoir-analytics.anthony-627.workers.dev`) → `POST /collect` écrit
   dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;

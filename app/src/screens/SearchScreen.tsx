@@ -60,9 +60,20 @@ export function SearchScreen({ nav }: { nav: Nav }) {
     <View style={{ flex: 1 }}>
       {/* Masthead */}
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10 }}>
-          <ScrutoirMark size={42} color={C.text} accent={C.accent} />
-          <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Scrutoir</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <View style={{ flexDirection: "row", alignItems: "baseline", gap: 10 }}>
+            <ScrutoirMark size={42} color={C.text} accent={C.accent} />
+            <Text style={{ fontFamily: F.extra, fontSize: 23, color: C.text, letterSpacing: -0.6 }}>Scrutoir</Text>
+          </View>
+          <TouchableOpacity
+            onPress={() => nav.push({ name: "parametres" })}
+            accessibilityRole="button"
+            accessibilityLabel="Paramètres"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.borderStrong, ...shadowCard }}
+          >
+            <Feather name="settings" size={18} color={C.accent} />
+          </TouchableOpacity>
         </View>
         <Text style={{ fontFamily: F.medium, fontSize: 12.5, color: C.textMuted, marginTop: 4 }}>
           Scrutins publics nominatifs · 17ᵉ législature

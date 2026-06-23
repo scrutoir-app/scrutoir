@@ -1,7 +1,13 @@
-// Design system "Scrutoir" — app moderne, palette neutre (encre + gris froid),
-// la couleur n'encode que la DONNÉE de vote (jamais un parti).
+// Design system "Scrutoir" — palette neutre (encre + gris froid), la couleur n'encode
+// que la DONNÉE de vote (jamais un parti). Deux thèmes : clair (LIGHT) et sombre (DARK).
+// `C` est une palette VIVANTE : `applyScheme()` réécrit ses clés, et l'app remonte l'arbre
+// au changement (cf. ThemeProvider) → tous les composants qui lisent `C.x` se mettent à jour
+// sans changer leurs imports.
 
-export const C = {
+export type Scheme = "light" | "dark";
+
+// Palette CLAIRE (par défaut historique).
+export const LIGHT = {
   bg: "#F2F4F7", // fond froid clair
   surface: "#FFFFFF", // cartes
   surfaceAlt: "#E6E9EE", // fonds de contrôles (segmented...)
@@ -35,6 +41,51 @@ export const C = {
   adopteFg: "#3C7A5E",
   rejeteBg: "#F7EAE6",
   rejeteFg: "#B05A45",
+
+  // Filets / motifs dérivés (filigrane hero, pistes des barres divergentes)
+  watermarkInk: "rgba(23,26,31,0.07)",
+  watermarkFocal: "rgba(60,70,84,0.13)",
+  hairline: "rgba(60,70,84,0.10)",
+  hairlineStrong: "rgba(60,70,84,0.40)",
+};
+
+// Palette SOMBRE — même langage, couleurs de vote relevées pour rester lisibles.
+export const DARK: typeof LIGHT = {
+  bg: "#0F1318", // encre froide profonde
+  surface: "#191E26", // cartes (au-dessus du fond)
+  surfaceAlt: "#252C35", // fonds de contrôles
+  surfaceSunken: "#20272F", // pistes de barres
+  border: "#272F39",
+  borderStrong: "#363F4B",
+
+  text: "#EAEDF1",
+  textMuted: "#9AA2AE",
+  textFaint: "#697079",
+
+  accent: "#8A93A1", // ardoise claire (lisible en texte ET en fond d'action)
+  accentSoft: "#252C35",
+
+  pour: "#57A98D",
+  contre: "#D17F6B",
+  abstention: "#DCAA55",
+  absent: "#565E69",
+
+  loyalHaut: "#57A98D",
+  loyalHautBg: "#16302A",
+  loyalMoyen: "#C99B55",
+  loyalMoyenBg: "#322A19",
+  loyalBas: "#D08066",
+  loyalBasBg: "#392019",
+
+  adopteBg: "#16302A",
+  adopteFg: "#74CFAC",
+  rejeteBg: "#3A201B",
+  rejeteFg: "#E2917C",
+
+  watermarkInk: "rgba(255,255,255,0.06)",
+  watermarkFocal: "rgba(255,255,255,0.11)",
+  hairline: "rgba(255,255,255,0.09)",
+  hairlineStrong: "rgba(255,255,255,0.35)",
 };
 
 // Familles de police Manrope (chargées dans App via useFonts)
@@ -48,14 +99,53 @@ export const F = {
 
 export const RADIUS = { sm: 10, md: 14, lg: 18, xl: 22, pill: 999 };
 
-// Ombre douce réutilisable (cartes)
-export const shadowCard = {
-  shadowColor: "#141822",
-  shadowOpacity: 0.06,
-  shadowRadius: 8,
-  shadowOffset: { width: 0, height: 2 },
-  elevation: 2,
-};
+const SHADOW_LIGHT = { shadowColor: "#141822", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 };
+const SHADOW_DARK = { shadowColor: "#000000", shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 3 }, elevation: 3 };
+
+// Palette VIVANTE + ombre vivante (réécrites par applyScheme).
+export const C = { ...LIGHT };
+export const shadowCard = { ...SHADOW_LIGHT };
+
+let _scheme: Scheme = "light";
+export const getScheme = (): Scheme => _scheme;
+
+/** Réécrit la palette vivante `C` + `shadowCard` selon le thème. */
+export function applyScheme(scheme: Scheme): void {
+  _scheme = scheme;
+  Object.assign(C, scheme === "dark" ? DARK : LIGHT);
+  Object.assign(shadowCard, scheme === "dark" ? SHADOW_DARK : SHADOW_LIGHT);
+}
+
+// --- Préférence persistée (localStorage web ; mémoire ailleurs) -----------------
+export type SchemePref = "light" | "dark" | "auto";
+const PREF_KEY = "scrutoir.scheme";
+
+export function getStoredPref(): SchemePref {
+  try {
+    const v = typeof localStorage !== "undefined" ? localStorage.getItem(PREF_KEY) : null;
+    if (v === "light" || v === "dark" || v === "auto") return v;
+  } catch { /* mémoire */ }
+  return "light"; // défaut : clair (l'utilisateur opte pour sombre/auto)
+}
+export function setStoredPref(p: SchemePref): void {
+  try { if (typeof localStorage !== "undefined") localStorage.setItem(PREF_KEY, p); } catch { /* mémoire */ }
+}
+
+/** Scheme système au chargement (web) — pour résoudre "auto" dès le 1er rendu. */
+export function systemSchemeAtLoad(): Scheme {
+  try {
+    if (typeof window !== "undefined" && window.matchMedia) {
+      return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+    }
+  } catch { /* ignore */ }
+  return "light";
+}
+
+// Applique le bon thème dès l'import (avant le 1er rendu) pour éviter un flash.
+{
+  const pref = getStoredPref();
+  applyScheme(pref === "auto" ? systemSchemeAtLoad() : pref);
+}
 
 export function couleurLoyaute(pct: number | null): { fg: string; bg: string } {
   if (pct == null) return { fg: C.textMuted, bg: C.surfaceAlt };
