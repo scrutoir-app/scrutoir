@@ -75,6 +75,24 @@ const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[�
 // --- Référentiels directs ---------------------------------------------------
 export const getCategories = () => j<CategorieRef[]>("categories");
 export const getGrandsScrutins = () => j<ScrutinResume[]>("grands");
+
+/**
+ * Fraîcheur des données : `version.json` est régénéré à chaque export statique
+ * (cron quotidien après ré-ingestion AN + à chaque déploiement). `generatedAt` est
+ * donc une VRAIE date de mise à jour des données publiées (jamais codée en dur).
+ * Lu sans cache pour rester à jour. Renvoie `null` si la source est indisponible.
+ */
+export interface Meta { ingestedAt: string | null }
+export async function getMeta(): Promise<Meta> {
+  try {
+    const res = await fetch(`${DATA_BASE}/data/version.json`, { cache: "no-store" });
+    if (!res.ok) return { ingestedAt: null };
+    const v = (await res.json()) as { generatedAt?: unknown };
+    return { ingestedAt: typeof v?.generatedAt === "string" ? v.generatedAt : null };
+  } catch {
+    return { ingestedAt: null };
+  }
+}
 export const getPartis = () => j<PartiResume[]>("partis");
 export const getProfil = (uid: string, periode: Periode) => depute(uid).then((d) => d.profils[periode]);
 export const getScrutin = (uid: string) => j<DetailScrutin>(`scrutin/${uid}`);
