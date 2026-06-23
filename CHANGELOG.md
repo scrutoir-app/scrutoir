@@ -7,6 +7,17 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.49 — 2026-06-23
+- **SEO — pré-rendu des pages de contenu (lot 2)** : 681 vraies pages HTML statiques générées
+  au build (`app/scripts/prerender-seo.mjs`) depuis les JSON : **577 députés** (`/depute/<slug>/`),
+  **12 thèmes** (`/theme/<id>/`), **12 partis** (`/parti/<slug>/`), **75 grands scrutins**
+  (`/scrutin/<numero>/`) + 4 hubs crawlables (`/deputes/`, `/themes/`, `/partis/`, `/scrutins/`).
+  Contenu réel et unique, `<title>`/`description` uniques, canonical, Open Graph, **JSON-LD**
+  (Person / Organization / CollectionPage / Article + BreadcrumbList) et **maillage interne**
+  complet. Ces fichiers priment sur le catch-all `_redirects` ; ajout de fallbacks 404 sur les
+  namespaces pour éviter les soft-404. Sitemap étendu à 681 URLs. Neutralité respectée (couleur
+  seulement sur les votes). Voir `docs/seo-audit.md`.
+
 ## 1.0.48 — 2026-06-23
 - **SEO — fondations de crawl (lot 1)** : ajout de `robots.txt` (autorise tout + référence le
   sitemap), génération de `sitemap.xml` au build (`patch-pwa.mjs`, `lastmod` issu de

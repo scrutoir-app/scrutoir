@@ -7,4 +7,10 @@
 # impact, l'app garde toujours l'URL « / » (navigation en mémoire, aucun lien profond).
 /_expo/*  /404.html  404
 /data/*   /404.html  404
+# Namespaces des pages SEO pré-rendues (lot 2). Les fichiers réels priment ; une entité
+# inexistante (ex. /depute/inconnu/) fait un VRAI 404 au lieu d'un soft-404 (home en 200).
+/depute/*   /404.html  404
+/theme/*    /404.html  404
+/parti/*    /404.html  404
+/scrutin/*  /404.html  404
 /*  /index.html  200

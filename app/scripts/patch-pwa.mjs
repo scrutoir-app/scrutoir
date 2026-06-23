@@ -187,39 +187,6 @@ async function fixVendorFonts() {
   }
 }
 
-/*
- * Génère dist/sitemap.xml. Pour l'instant, seule la page d'accueil est une vraie page
- * distincte et indexable (l'app a une navigation en mémoire, sans URL par contenu). Les
- * pages par contenu (députés, scrutins, thèmes…) viendront au lot 2 (pré-rendu SSG) : il
- * suffira d'étendre `urls` ci-dessous. `lastmod` = date de régénération des données.
- */
-async function generateSitemap() {
-  let lastmod = "";
-  try {
-    const v = JSON.parse(await readFile(join(distDir, "data", "version.json"), "utf8"));
-    if (typeof v?.generatedAt === "string") lastmod = v.generatedAt.slice(0, 10); // YYYY-MM-DD
-  } catch {
-    /* version.json absent → on omet lastmod */
-  }
-
-  const urls = [{ loc: "https://scrutoir.fr/", changefreq: "daily", priority: "1.0" }];
-
-  const body = urls
-    .map(
-      (u) =>
-        `  <url>\n    <loc>${u.loc}</loc>` +
-        (lastmod ? `\n    <lastmod>${lastmod}</lastmod>` : "") +
-        (u.changefreq ? `\n    <changefreq>${u.changefreq}</changefreq>` : "") +
-        (u.priority ? `\n    <priority>${u.priority}</priority>` : "") +
-        `\n  </url>`,
-    )
-    .join("\n");
-
-  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${body}\n</urlset>\n`;
-  await writeFile(join(distDir, "sitemap.xml"), xml, "utf8");
-  console.log(`[patch-pwa] sitemap.xml généré (${urls.length} URL${urls.length > 1 ? "s" : ""}${lastmod ? `, lastmod ${lastmod}` : ""}).`);
-}
-
 async function main() {
   try {
     await access(distHtml);
@@ -229,10 +196,8 @@ async function main() {
   }
 
   // Correctif polices (indépendant du marqueur : doit tourner à chaque build).
+  // Le sitemap.xml et les pages SEO sont générés ensuite par `prerender-seo.mjs`.
   await fixVendorFonts();
-
-  // Sitemap (indépendant du marqueur : régénéré à chaque build pour rafraîchir lastmod).
-  await generateSitemap();
 
   let html = await readFile(distHtml, "utf8");
 

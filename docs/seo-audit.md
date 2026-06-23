@@ -159,9 +159,9 @@ Open Data AN citées sur chaque page).
 
 | # | Lot | Contenu | Dépend de | Priorité |
 |---|---|---|---|---|
-| **1** | Fondations crawl | `robots.txt`, `sitemap.xml` (socle), canonique domaine | — | 🔴 Haute |
-| **2** | SSG socle | Générateur + pages **députés / thèmes / partis / grands scrutins** avec meta + JSON-LD + maillage | 1 | 🔴 Haute |
-| **3** | Mesure | Google Search Console (propriété + sitemap soumis), suivi indexation | 1-2 | 🔴 Haute |
+| **1** | Fondations crawl | `robots.txt`, `sitemap.xml` (socle), canonique domaine | — | ✅ **Livré (v1.0.48)** |
+| **2** | SSG socle | Générateur + pages **députés / thèmes / partis / grands scrutins** avec meta + JSON-LD + maillage | 1 | ✅ **Livré (v1.0.49)** — 681 pages |
+| **3** | Mesure | Google Search Console (propriété + sitemap soumis), suivi indexation | 1-2 | 🔴 Haute (à faire) |
 | **4** | SSG scrutins | Déploiement progressif des 7 422 scrutins | 2 | 🟠 Moyenne |
 | **5** | Enrichissement | Optimisation titres/descriptions selon données GSC, FAQ/contenu d'appui | 3-4 | 🟠 Moyenne |
 | **6** | Croisements | Pages député × thème (avec seuil + `noindex` sinon) | 4 | 🟢 Basse |
