@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.47 — 2026-06-23
+- **Splash d'ouverture aligné sur le nouveau logo** : l'animation de chargement (hémicycle
+  dont les sièges s'allument) reprend le **siège blanc contour encre** et le **logotype
+  vectorisé** avec point du « i » blanc — au lieu de l'ancien picto monochrome + mot en
+  police système. Cohérent avec le masthead de l'app. Voir `app/scripts/patch-pwa.mjs`.
+
 ## 1.0.46 — 2026-06-23
 - **Nouveau logo Scrutoir** : picto hémicycle redessiné (siège blanc contour encre, jumeau
   du point du « i ») + logotype vectorisé (Manrope ExtraBold, indépendant du chargement de
