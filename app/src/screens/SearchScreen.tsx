@@ -4,7 +4,7 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, RADIUS, shadowCard } from "../theme";
-import { rechercher, getGrandsScrutins, getCategories } from "../api";
+import { rechercher, getGrandsScrutins, getCategories, getMeta } from "../api";
 import { track } from "../analytics";
 import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
@@ -126,12 +126,15 @@ export function SearchScreen({ nav }: { nav: Nav }) {
 function Accueil({ nav }: { nav: Nav }) {
   const [cats, setCats] = useState<CategorieRef[]>([]);
   const [grands, setGrands] = useState<ScrutinResume[]>([]);
+  const [ingestedAt, setIngestedAt] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     Promise.all([getCategories(), getGrandsScrutins()])
       .then(([c, g]) => { setCats(c); setGrands(g); })
       .finally(() => setLoading(false));
+    // Fraîcheur des données (non bloquant) : date réelle de régénération (version.json).
+    getMeta().then((m) => setIngestedAt(m.ingestedAt)).catch(() => setIngestedAt(null));
   }, []);
 
   if (loading)
@@ -182,6 +185,7 @@ function Accueil({ nav }: { nav: Nav }) {
 
       <HeroScrutins
         scrutins={grands.slice(0, 8)}
+        ingestedAt={ingestedAt}
         onOpen={(uid) => nav.push({ name: "scrutin", uid })}
       />
 
