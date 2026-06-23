@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.53 — 2026-06-23
+- **Filtre Adopté / Rejeté sur les listes de scrutins** : en plus du filtre par année/mois, on
+  peut désormais filtrer par résultat (« Adoptés » / « Rejetés »). Ajouté au composant partagé
+  `ScrutinDateFilter`, il apparaît automatiquement sur toutes les listes où il y a un mélange
+  (thème, votes d'un parti, confrontation, grands scrutins, votes d'un député) et reste masqué
+  quand c'est inutile. « Rejeté » = tout ce qui n'est pas « adopté » (même règle que le badge).
+
 ## 1.0.52 — 2026-06-23
 - **Correctif : zoom iOS au focus du champ de recherche** (régression du 1.0.51). Les champs de
   saisie étaient passés à 15px ; en dessous de 16px, iOS Safari zoome automatiquement au focus.
