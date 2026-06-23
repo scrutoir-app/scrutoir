@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.56 — 2026-06-23
+- **Baseline d'accueil** : « Scrutins publics nominatifs · 17ᵉ législature » → **« Comment votent
+  vraiment vos élus »** (accroche plus claire et orientée usage). La nuance « scrutins publics
+  nominatifs » reste détaillée dans l'onglet Infos.
+
 ## 1.0.55 — 2026-06-23
 - **Accueil « Explorer par thème » trié par nombre de scrutins décroissant** : la vedette et la
   pellicule suivent désormais l'activité réelle de l'Assemblée par thème (ordre neutre, sans

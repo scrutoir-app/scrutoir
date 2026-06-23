@@ -73,7 +73,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
           </TouchableOpacity>
         </View>
         <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
-          Scrutins publics nominatifs · 17ᵉ législature
+          Comment votent vraiment vos élus
         </Text>
       </View>
 
