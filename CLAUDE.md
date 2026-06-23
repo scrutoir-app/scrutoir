@@ -107,7 +107,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.43**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.44**.
 - **Analytics privacy-first** (sans cookie/IP/identifiant, RGPD, pas de bandeau) : Worker `analytics/`
   (`scrutoir-analytics`, déployé sur `scrutoir-analytics.anthony-627.workers.dev`) → `POST /collect` écrit
   dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;
@@ -231,16 +231,21 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - Dissidences, votants, listes par thème/position, écran Thèmes, À propos, **barre d'onglets** (4 :
   Accueil · Thèmes · Partis · Infos).
 - Accueil : **carrousel hero swipeable** des derniers grands scrutins (`components/HeroScrutins.tsx`,
-  FlatList horizontal + snap + points de pagination) au lieu de la liste verticale → gagne de la
-  hauteur, ajoute un visuel. Carte hero = **photo de fond par thème** (`ImageBackground`, hauteur 210)
-  + **voile sombre** (lisibilité) + **texte blanc** (titre non gras, Manrope SemiBold). Photos =
-  `categoryUI.ts` champ `photos[]` (**2-3 par catégorie**) → **PLACEHOLDERS Unsplash** (à remplacer
-  par des visuels sous licence avant mise en ligne). Rotation **déterministe par scrutin** via
-  `catPhoto(catId, scrutin.uid)` (hash → index) : stable pour un scrutin donné, variée d'une carte à
-  l'autre. Slot **photo du porteur** prévu en avatar
-  (`ScrutinResume.porteur_nom/porteur_photo` — affiche le chip icône de catégorie tant que non
-  branché), kicker (Projet/Proposition de loi / Motion de censure dérivé du libellé), badge
-  Adopté/Rejeté, barre de votes. « Tout voir » → `GrandsScrutinsScreen` (route `grandsScrutins`).
+  FlatList horizontal + snap + points de pagination) au lieu de la liste verticale.
+  **(v1.0.44) Refonte « signature » SANS photo** : carte blanche `C.surface` + bordure 0.5 `C.border`
+  + **filigrane hémicycle** (réutilise `ScrutoirMark`, rgba `C.text` ~0.07 / focal `C.accent` ~0.13,
+  fondu à l'apparition). Contenu : chip catégorie neutre + date, kicker (Projet/Proposition de loi /
+  Motion de censure dérivé du libellé) + titre `F.extra` **17,5px** (aligné sur l'échelle typo), badge
+  Adopté/Rejeté + méta `tabular-nums` + **barre de vote ET compteurs ANIMÉS** 0→valeur (~850ms ease-out,
+  `Animated`, `VoteBar.tsx` non modifié). ⚠️ **Reduce-motion** géré (`AccessibilityInfo` + listener →
+  valeurs finales directes). ⚠️ Le listener des compteurs reste attaché toute la vie de la carte (anim
+  jamais stoppée) → une slide interrompue finit toujours sur la vraie valeur (pas de chiffre figé).
+  **Indicateur de fraîcheur** : `getMeta()` (`api.ts`) lit `version.json generatedAt` (vraie date de
+  régénération, archi statique = pas de serveur `/meta`) → « Mis à jour le {date} » + badge « En direct »
+  (point qui pulse) si < 48h ; jamais de date inventée (rien si source absente). Navigation : **flèches
+  rondes** (web/large, wrap, a11y) + points pilule `C.accent`, sync `onViewableItemsChanged`.
+  `catPhoto` conservé (inutilisé par le hero désormais, gardé pour d'autres usages).
+  « Tout voir » → `GrandsScrutinsScreen` (route `grandsScrutins`).
   ⚠️ Largeur alignée sur les autres composants via **mesure `onLayout`** (pas `useWindowDimensions`,
   qui ≠ largeur du contenu centré) + remontage `key={winW}` pour reflow au resize web. Largeur de
   repli (`effW = boxW || min(winW,560)`) pour rendre tout de suite (sinon hero effondré si `onLayout`

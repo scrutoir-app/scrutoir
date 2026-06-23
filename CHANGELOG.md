@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.44 — 2026-06-22
+- **Hero d'accueil « signature »** : refonte du carrousel des derniers grands scrutins.
+  Fond blanc sobre + **filigrane hémicycle** (motif Scrutoir) à la place de la photo ;
+  **barre de vote et compteurs animés** (0 → valeur, respecte reduce-motion) ; navigation
+  flèches + points ; **indicateur de fraîcheur** « Mis à jour le {date} · En direct »
+  basé sur la vraie date de régénération des données (`version.json`).
+
 ## 1.0.43 — 2026-06-22
 - **Confrontation — contexte du duel conservé** : en ouvrant la liste détaillée des accords/
   désaccords puis en revenant en arrière, les **2 élus sélectionnés** (et la période) sont
