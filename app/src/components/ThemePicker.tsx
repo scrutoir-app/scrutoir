@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   View, Text, Pressable, ScrollView, Animated, Platform, AccessibilityInfo,
   useWindowDimensions, NativeSyntheticEvent, NativeScrollEvent,
@@ -117,8 +117,15 @@ export function ThemePicker({ cats, onOpen }: { cats: CategorieRef[]; onOpen: (c
     Animated.spring(scale, { toValue: 1, useNativeDriver: Platform.OS !== "web", friction: 6, tension: 120 }).start();
   }, [index, reduce, scale]);
 
-  if (!cats.length) return null;
-  const featured = cats[Math.min(index, cats.length - 1)];
+  // Ordre neutre : par nombre de scrutins décroissant (reflète l'activité de l'Assemblée
+  // sur chaque thème, sans encoder de jugement). Bascule alphabétique possible en une ligne.
+  const sortedCats = useMemo(
+    () => [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)),
+    [cats]
+  );
+
+  if (!sortedCats.length) return null;
+  const featured = sortedCats[Math.min(index, sortedCats.length - 1)];
   const ui = catUI(featured.id);
 
   const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
@@ -204,7 +211,7 @@ export function ThemePicker({ cats, onOpen }: { cats: CategorieRef[]; onOpen: (c
           onContentSizeChange={(w) => setContentW(w)}
           contentContainerStyle={{ paddingHorizontal: showArrows ? SIDE_PAD : 2, gap: GAP, paddingVertical: 2 }}
         >
-          {cats.map((c, i) => (
+          {sortedCats.map((c, i) => (
             <Thumb key={c.id} c={c} active={i === index} onSelect={() => setIndex(i)} />
           ))}
         </ScrollView>
