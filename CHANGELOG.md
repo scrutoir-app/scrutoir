@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.52 — 2026-06-23
+- **Correctif : zoom iOS au focus du champ de recherche** (régression du 1.0.51). Les champs de
+  saisie étaient passés à 15px ; en dessous de 16px, iOS Safari zoome automatiquement au focus.
+  Nouveau token `inputText` (16px, dans `theme.ts`) appliqué à tous les `TextInput` (recherche
+  accueil + onglets, confrontation, « trouver mon député »).
+
 ## 1.0.51 — 2026-06-23
 - **Échelle typographique unifiée** : remplacement des ~26 tailles de police codées à la main
   par **5 tailles** (11 · 13 · 15 · 18 · 22, écarts ~1.2) centralisées dans `app/src/theme.ts`

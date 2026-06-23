@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking,
 } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
+import { C, F, T, tnum, inputText, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
 import { SEUIL_FIABILITE, scrutinSourceUrl } from "../config";
 import { catUI } from "../categoryUI";
 import { rechercher, getConfrontation } from "../api";
@@ -131,7 +131,7 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
           onChangeText={setQ}
           placeholder="Un élu…"
           placeholderTextColor={C.textFaint}
-          style={[T.callout, { flex: 1, color: C.text, fontFamily: F.medium, outlineStyle: "none" }] as any}
+          style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
           autoCorrect={false}
         />
       </View>

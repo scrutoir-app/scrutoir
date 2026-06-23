@@ -117,6 +117,11 @@ export const T = {
 // (compteurs de votes, pourcentages, nombres de scrutins, dates numériques empilées).
 export const tnum: TextStyle = { fontVariant: ["tabular-nums"] };
 
+// Champs de saisie (TextInput) : 16 px MINIMUM — en dessous, iOS Safari zoome
+// automatiquement au focus. Ce n'est PAS un cran de hiérarchie, mais une contrainte
+// d'interaction : à utiliser pour TOUTE zone de saisie. style={[inputText, { color }]}.
+export const inputText: TextStyle = { ...T.body, fontSize: 16 };
+
 export const RADIUS = { sm: 10, md: 14, lg: 18, xl: 22, pill: 999 };
 
 const SHADOW_LIGHT = { shadowColor: "#141822", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 };

@@ -9,7 +9,7 @@ import {
   Manrope_700Bold,
   Manrope_800ExtraBold,
 } from "@expo-google-fonts/manrope";
-import { C, F, RADIUS, shadowCard } from "./src/theme";
+import { C, F, inputText, RADIUS, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { SearchResultsList } from "./src/components/SearchResultsList";
@@ -169,7 +169,7 @@ function AppInner() {
                 onChangeText={setGq}
                 placeholder="Recherche député, parti, loi…"
                 placeholderTextColor={C.textMuted}
-                style={{ flex: 1, fontSize: 16, color: C.text, fontFamily: F.medium, outlineStyle: "none" } as any}
+                style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
                 autoCorrect={false}
               />
               {gq.length > 0 && (

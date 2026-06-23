@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, inputText, RADIUS, shadowCard } from "../theme";
 import { AN_DEPUTES_URL } from "../config";
 import { getDepartements, getCirconscription, rechercheCommunes } from "../api";
 import type { Commune } from "../api";
@@ -115,7 +115,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
               onChangeText={setQ}
               placeholder="Votre commune ou code postal…"
               placeholderTextColor={C.textFaint}
-              style={[T.callout, { flex: 1, color: C.text, fontFamily: F.medium, outlineStyle: "none" }] as any}
+              style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
               autoCorrect={false}
             />
             {chercheCommune && <ActivityIndicator size="small" color={C.textFaint} />}

@@ -3,7 +3,7 @@ import {
   View, Text, TextInput, FlatList, TouchableOpacity, Image, ActivityIndicator, ScrollView,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T, inputText, RADIUS, shadowCard } from "../theme";
 import { rechercher, getGrandsScrutins, getCategories, getMeta } from "../api";
 import { track } from "../analytics";
 import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
@@ -94,7 +94,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
             onChangeText={setQ}
             placeholder="Recherche député, parti, loi…"
             placeholderTextColor={C.textMuted}
-            style={[T.callout, { flex: 1, color: C.text, fontFamily: F.medium, outlineStyle: "none" }] as any}
+            style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
             autoCorrect={false}
           />
           {loading && <ActivityIndicator size="small" color={C.textFaint} />}
