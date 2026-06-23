@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } fr
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
 import { catUI } from "../categoryUI";
+import { PartyLogo } from "../components/PartyLogo";
 import { getVotesSuivis, getPartis } from "../api";
 import { useFollows, getLastSeen, markSeen } from "../follows";
 import type { VoteSuivi, PartiResume } from "../types";
@@ -79,7 +80,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
                 onPress={() => nav.push({ name: "parti", uid: p.uid })}
                 style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.surface, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, ...shadowCard }}
               >
-                <View style={{ width: 16, height: 16, borderRadius: 8, backgroundColor: p.couleur ?? C.accent }} />
+                <PartyLogo abrev={p.abrev} couleur={p.couleur} size={22} />
                 <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{p.abrev ?? p.libelle}</Text>
               </TouchableOpacity>
             ))}

@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { APP_VERSION } from "../config";
 import { useThemeMode } from "../themeMode";
+import { usePartyLogos } from "../prefs";
 import type { SchemePref } from "../theme";
 import type { Nav } from "../nav";
 
@@ -42,10 +43,51 @@ function ThemeSelector() {
   );
 }
 
+/** Avatars des groupes : sigles lisibles (défaut) ou logos officiels (opt-in). */
+function GroupAvatarSelector() {
+  const [logosOn, setLogosOn] = usePartyLogos();
+  const opts: { v: boolean; label: string }[] = [
+    { v: false, label: "Sigles" },
+    { v: true, label: "Logos officiels" },
+  ];
+  return (
+    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginTop: 12, ...shadowCard }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
+          <Feather name="users" size={17} color={C.textMuted} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Avatars des groupes</Text>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]}>
+            Logos officiels des groupes, ou sigles (plus lisibles). S'applique à vos suivis.
+          </Text>
+        </View>
+      </View>
+      <View style={{ flexDirection: "row", gap: 4, padding: 4, backgroundColor: C.surfaceAlt, borderRadius: 12, marginTop: 12 }}>
+        {opts.map((o) => {
+          const actif = logosOn === o.v;
+          return (
+            <TouchableOpacity
+              key={String(o.v)}
+              onPress={() => setLogosOn(o.v)}
+              accessibilityRole="button"
+              accessibilityLabel={`Avatars : ${o.label}`}
+              style={{ flex: 1, alignItems: "center", justifyContent: "center", paddingVertical: 9, borderRadius: 9, backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : {}) }}
+            >
+              <Text style={[T.small, { fontFamily: actif ? F.bold : F.medium, color: actif ? C.text : C.textMuted }]}>{o.label}</Text>
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
 export function ParametresScreen(_props: { nav: Nav }) {
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
       <ThemeSelector />
+      <GroupAvatarSelector />
 
       <Text style={[T.small, { color: C.textFaint, marginTop: 14, marginHorizontal: 4 }]}>
         Le détail « À propos & limites » et les mentions légales restent dans l'onglet Infos.

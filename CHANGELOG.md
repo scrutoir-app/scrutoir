@@ -7,6 +7,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.54 — 2026-06-23
+- **Avatars des groupes : logos officiels (opt-in)** — nouveau réglage *Paramètres → Avatars des
+  groupes* (« Sigles » par défaut / « Logos officiels »). Les logos des 12 groupes (servis depuis
+  `/logos/partis/`) s'affichent dans « Mes suivis » et les puces « Partis suivis » quand l'utilisateur
+  l'active ; sinon sigles lisibles (comportement inchangé). Préférence locale à l'appareil.
+- **Forme = type d'entité suivie** : un **groupe** s'affiche en **carré arrondi** (comme les thèmes),
+  un **député** reste **rond** → on distingue d'un coup d'œil un groupe suivi d'un élu suivi.
+- Logos posés sur fond clair neutre → lisibles en thème clair comme sombre ; fallback monogramme
+  (sigle) si pas de logo (ex. NI).
+
 ## 1.0.53 — 2026-06-23
 - **Filtre Adopté / Rejeté sur les listes de scrutins** : en plus du filtre par année/mois, on
   peut désormais filtrer par résultat (« Adoptés » / « Rejetés »). Ajouté au composant partagé

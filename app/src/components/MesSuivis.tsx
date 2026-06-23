@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity, ScrollView } from "react-native";
 import { C, F, T } from "../theme";
+import { PartyLogo } from "./PartyLogo";
 import { getDeputesByUids, getPartis } from "../api";
 import { useFollows } from "../follows";
 import type { DeputeResume, PartiResume } from "../types";
@@ -49,9 +50,7 @@ export function MesSuivis({ nav }: { nav: Nav }) {
             onPress={() => nav.push({ name: "parti", uid: p.uid })}
             style={{ alignItems: "center", width: 64 }}
           >
-            <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: p.couleur ?? C.accent, alignItems: "center", justifyContent: "center" }}>
-              <Text style={[T.small, { fontFamily: F.extra, color: "#fff" }]}>{p.abrev ?? "?"}</Text>
-            </View>
+            <PartyLogo abrev={p.abrev} couleur={p.couleur} size={52} />
             <Text style={[T.micro, { fontFamily: F.medium, color: C.text, marginTop: 5, textAlign: "center" }]} numberOfLines={2}>
               {p.abrev ?? p.libelle}
             </Text>
