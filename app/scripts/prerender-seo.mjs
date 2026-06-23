@@ -15,7 +15,7 @@
  * ou un thème. On n'affiche pas de « score de loyauté » en vedette (cohérent avec l'app) :
  * on s'en tient aux faits (participation, votes par thème, consigne de groupe).
  */
-import { readFile, writeFile, mkdir } from "node:fs/promises";
+import { readFile, writeFile, mkdir, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -27,11 +27,14 @@ const SITE = "https://scrutoir.fr";
 // Couleurs de vote (les SEULES couleurs porteuses de sens, cf. règle de neutralité).
 const COL = { pour: "#2F8F5B", contre: "#C44536", abstention: "#D6A43C" };
 
-// Lot 6 : une page député×thème n'est INDEXÉE (sitemap + indexable) que si le député a
-// au moins ce nombre de votes EXPRIMÉS (pour/contre/abstention) sur le thème. En dessous,
-// la page existe quand même (pour ne jamais casser un lien interne) mais en `noindex,follow`.
-// Évite de noyer l'index sous des milliers de pages maigres (garde-fou audit §5).
+// Lot 6 — pages député×thème. DEUX contraintes :
+//  1) Qualité (anti thin content, audit §5) : au moins ce nombre de votes EXPRIMÉS sur le thème.
+//  2) Budget fichiers : Cloudflare Pages plafonne à 20 000 fichiers/déploiement, et l'app pèse
+//     déjà ~8 700 fichiers (JSON data + photos) + 7 422 pages scrutin. On limite donc chaque
+//     député à ses N thèmes les plus actifs (sinon ~6 200 pages → dépassement de la limite).
 const DEPUTE_THEME_INDEX_MIN = 10;
+const DEPUTE_THEME_MAX = 3;
+const CF_PAGES_FILE_LIMIT = 20000;
 const POS_LABEL = { pour: "Pour", contre: "Contre", abstention: "Abstention", nonvotant: "Non votant", absent: "Absent" };
 
 // ---------- helpers ----------
@@ -206,7 +209,7 @@ async function genDeputes(scrutinMap, themesMeta) {
   };
 
   const items = []; // pour le hub, groupé par parti
-  let dtIndexed = 0, dtNoindex = 0; // compteurs pages député×thème (lot 6)
+  let dtIndexed = 0; // compteur pages député×thème (lot 6)
   for (const d of list) {
     const slug = slugOf(d);
     const path = `/depute/${slug}/`;
@@ -230,6 +233,14 @@ async function genDeputes(scrutinMap, themesMeta) {
       if (!sc || !sc.cat) continue;
       (buckets[sc.cat] ||= []).push({ numero: sc.numero, titre: sc.titre, date: sc.date, position: pos, consigne: Array.isArray(tuple) ? tuple[1] : null });
     }
+    // On ne génère que les N thèmes les plus actifs du député (≥ seuil), pour la qualité ET
+    // pour tenir sous la limite de fichiers Cloudflare Pages.
+    const dtThemes = Object.entries(buckets)
+      .filter(([, rows]) => rows.length >= DEPUTE_THEME_INDEX_MIN)
+      .sort((a, b) => b[1].length - a[1].length)
+      .slice(0, DEPUTE_THEME_MAX)
+      .map(([id]) => id);
+    const dtSet = new Set(dtThemes);
 
     const statsHtml = p
       ? `<div class="card"><div class="stats">
@@ -246,7 +257,7 @@ async function genDeputes(scrutinMap, themesMeta) {
          <tbody>${cats
            .map(
              (c) =>
-               `<tr><td><a href="${buckets[c.id]?.length ? `/depute/${slug}/${esc(c.id)}/` : `/theme/${esc(c.id)}/`}">${esc(c.libelle)}</a></td><td class="n">${c.pour}</td><td class="n">${c.contre}</td><td class="n">${c.abstention}</td><td class="n">${c.absent}</td></tr>`,
+               `<tr><td><a href="${dtSet.has(c.id) ? `/depute/${slug}/${esc(c.id)}/` : `/theme/${esc(c.id)}/`}">${esc(c.libelle)}</a></td><td class="n">${c.pour}</td><td class="n">${c.contre}</td><td class="n">${c.abstention}</td><td class="n">${c.absent}</td></tr>`,
            )
            .join("")}</tbody></table>
          <p class="legend" style="margin-top:10px">Décompte des scrutins publics nominatifs par grand thème. « Absent » est déduit et borné aux dates du mandat.</p>
@@ -297,11 +308,11 @@ async function genDeputes(scrutinMap, themesMeta) {
     );
     add(path, "0.7");
 
-    // Lot 6 : une page par (député, thème) où il a au moins un vote exprimé.
-    for (const [themeId, rows] of Object.entries(buckets)) {
+    // Lot 6 : une page par (député, thème) parmi les thèmes retenus (top N, ≥ seuil).
+    for (const themeId of dtThemes) {
+      const rows = buckets[themeId];
       rows.sort((a, b) => String(b.date).localeCompare(String(a.date)));
       const expressed = rows.length;
-      const indexed = expressed >= DEPUTE_THEME_INDEX_MIN;
       const tLib = themesMeta[themeId]?.libelle || themeId;
       const dtPath = `/depute/${slug}/${themeId}/`;
       const shown = rows.slice(0, 300);
@@ -327,7 +338,6 @@ async function genDeputes(scrutinMap, themesMeta) {
           title: `${d.nom_complet} et le thème ${tLib} — ses votes | Scrutoir`,
           description: `Les ${expressed} votes de ${d.nom_complet} (${d.abrev || d.groupe}) sur le thème « ${tLib} » à l'Assemblée nationale : le détail scrutin par scrutin.`,
           path: dtPath,
-          noindex: !indexed,
           crumbs: [
             { name: "Accueil", url: "/" },
             { name: "Députés", url: "/deputes/" },
@@ -339,15 +349,11 @@ async function genDeputes(scrutinMap, themesMeta) {
           main: dtMain,
         }),
       );
-      if (indexed) {
-        add(dtPath, "0.5");
-        dtIndexed++;
-      } else {
-        dtNoindex++;
-      }
+      add(dtPath, "0.5");
+      dtIndexed++;
     }
   }
-  return { items, dtIndexed, dtNoindex };
+  return { items, dtIndexed };
 }
 
 async function genThemes(grands) {
@@ -661,7 +667,7 @@ async function main() {
   const themesMeta = {};
   for (const c of await readJSON(join(dataDir, "categories.json"))) themesMeta[c.id] = { libelle: c.libelle };
 
-  const { items: deputes, dtIndexed, dtNoindex } = await genDeputes(scrutinMap, themesMeta);
+  const { items: deputes, dtIndexed } = await genDeputes(scrutinMap, themesMeta);
   const themes = await genThemes(grands);
   const partis = await genPartis();
   const nbScrutins = await genScrutins(scrutinsList);
@@ -669,8 +675,24 @@ async function main() {
   const n = await writeSitemap();
   console.log(
     `[prerender-seo] ${deputes.length} députés, ${themes.length} thèmes, ${partis.length} partis, ${nbScrutins} scrutins, ` +
-      `${dtIndexed} pages député×thème indexées (+${dtNoindex} en noindex) + 4 hubs → ${n} URLs au sitemap.`,
+      `${dtIndexed} pages député×thème (top ${DEPUTE_THEME_MAX}/député) + 4 hubs → ${n} URLs au sitemap.`,
   );
+
+  // Garde-fou : Cloudflare Pages refuse > 20 000 fichiers. On échoue tôt, avec un message clair,
+  // plutôt que de laisser `wrangler pages deploy` planter en fin de CI.
+  let fileCount = 0;
+  const walk = async (dir) => {
+    for (const e of await readdir(dir, { withFileTypes: true })) {
+      if (e.isDirectory()) await walk(join(dir, e.name));
+      else fileCount++;
+    }
+  };
+  await walk(distDir);
+  console.log(`[prerender-seo] dist contient ${fileCount} fichiers (limite Cloudflare Pages : ${CF_PAGES_FILE_LIMIT}).`);
+  if (fileCount > CF_PAGES_FILE_LIMIT) {
+    console.error(`[prerender-seo] ERREUR : ${fileCount} > ${CF_PAGES_FILE_LIMIT} fichiers — réduire DEPUTE_THEME_MAX ou sortir /data du déploiement Pages.`);
+    process.exit(1);
+  }
 }
 
 main();

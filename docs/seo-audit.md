@@ -164,7 +164,12 @@ Open Data AN citées sur chaque page).
 | **3** | Mesure | Google Search Console (propriété + sitemap soumis), suivi indexation | 1-2 | 🔴 Haute (à faire) |
 | **4** | SSG scrutins | Déploiement des 7 422 scrutins | 2 | ✅ **Livré (v1.0.50)** |
 | **5** | Enrichissement | Optimisation titres/descriptions selon données GSC, FAQ/contenu d'appui | 3-4 | 🟠 Moyenne (à faire) |
-| **6** | Croisements | Pages député × thème (≥ 10 votes exprimés indexées, sinon `noindex`) | 4 | ✅ **Livré (v1.0.50)** — 5 135 indexées |
+| **6** | Croisements | Pages député × thème — top 3 thèmes/député (≥ 10 votes exprimés) | 4 | ✅ **Livré (v1.0.50)** — 1 720 pages |
+
+> ⚠️ **Limite Cloudflare Pages : 20 000 fichiers/déploiement.** L'app embarque ~8 700 fichiers (JSON
+> data + photos) ; avec 7 422 pages scrutin, le budget restant a forcé le plafonnement du lot 6 aux
+> 3 thèmes/député (≈18 400 fichiers, marge ~1 600). Pour lever cette contrainte (full lot 6, ou
+> croissance long terme), il faudra **sortir `/data` du déploiement Pages** (R2 / Worker / sous-domaine).
 | **7** | Consolidation | (Optionnel) routing in-app / Expo Router pour liens profonds | — | 🟢 Basse |
 
 **Premier pas concret recommandé :** lot 1 + 2 (Phase A). C'est ce qui transforme Scrutoir

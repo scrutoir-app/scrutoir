@@ -11,10 +11,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 - **SEO — couverture complète (lots 4 & 6)** : le pré-rendu (`prerender-seo.mjs`) couvre
   désormais **les 7 422 scrutins** (`/scrutin/<numero>/`, plus seulement les 75 « grands ») et
   génère des pages **député × thème** (`/depute/<slug>/<theme>/`) listant le détail scrutin par
-  scrutin du député sur chaque thème, avec écart à la consigne du groupe. Garde-fou anti « thin
-  content » : ces pages ne sont **indexées que ≥ 10 votes exprimés** (5 135 indexées), les plus
-  maigres restent en `noindex,follow` (1 019) pour ne pas casser le maillage. Sitemap : **13 163
-  URLs**. Les lignes « votes par thème » de la fiche député pointent vers ces nouvelles pages.
+  scrutin du député, avec écart à la consigne du groupe. Deux garde-fous : qualité (≥ 10 votes
+  exprimés) **et** budget de fichiers — Cloudflare Pages plafonne à **20 000 fichiers/déploiement**,
+  donc on se limite aux **3 thèmes les plus actifs par député** (1 720 pages ; ~18 400 fichiers au
+  total, marge ~1 600). Les lignes « votes par thème » de la fiche pointent vers ces pages (top 3)
+  ou vers le thème global. Sitemap : **9 748 URLs**. Le build échoue désormais tôt avec un message
+  clair si on approche la limite Pages.
 
 ## 1.0.49 — 2026-06-23
 - **SEO — pré-rendu des pages de contenu (lot 2)** : 681 vraies pages HTML statiques générées
