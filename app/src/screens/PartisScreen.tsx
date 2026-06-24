@@ -3,6 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "rea
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { getPartis } from "../api";
+import { HemicyclePicto } from "../components/HemicyclePicto";
 import type { PartiResume } from "../types";
 import type { Nav } from "../nav";
 
@@ -34,11 +35,11 @@ export function PartisScreen({ nav }: { nav: Nav }) {
               onPress={() => nav.push({ name: "parti", uid: p.uid })}
               style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}
             >
-              <View style={{ width: 10, height: 38, borderRadius: 5, backgroundColor: p.couleur ?? C.textFaint }} />
+              <HemicyclePicto groupes={partis} activeAbrev={p.abrev} color={p.couleur ?? C.textFaint} size={46} />
               <View style={{ flex: 1 }}>
                 <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{p.abrev ?? p.libelle}</Text>
                 <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]} numberOfLines={1}>
-                  {p.libelle} · {p.nb_deputes} élus
+                  {p.libelle}
                 </Text>
               </View>
               <View style={{ alignItems: "flex-end", marginRight: 4 }}>

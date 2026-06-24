@@ -7,6 +7,18 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.61 — 2026-06-24
+- **Barre divergente — décompte des voix animé** : sur la carte « hero », la barre passe en
+  style capsules (3 capsules indépendantes posées sur une piste, léger jour autour de
+  l'abstention). Au-dessus, « écart de N voix » ; en dessous, le décompte « N pour / N abst. /
+  N contre ». Les nombres s'incrémentent de 0 à leur valeur en synchro avec le remplissage
+  (~1,9 s, même easing), rejoués à chaque affichage de carte.
+- **Pictogramme hémicycle sur la liste des Partis** : la pastille de couleur est remplacée par
+  un mini-hémicycle (géométrie du logo Scrutoir) qui situe le groupe sur l'axe gauche-droite
+  (LFI à gauche, RN à droite…). Nouveau composant `HemicyclePicto`. Placement par position
+  politique avec garantie d'au moins un siège visible par groupe ; NI et hors-liste en gris.
+- **Liste des Partis : suppression du doublon « N élus »** sous le sigle (déjà affiché en gros à droite).
+
 ## 1.0.60 — 2026-06-24
 - **Barre divergente à abstention centrée** sur la carte « hero » des derniers grands scrutins :
   le pour part vers la gauche, le contre vers la droite, l'abstention occupe le centre à cheval

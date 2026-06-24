@@ -60,15 +60,11 @@ function HeroCard({
   const progress = useRef(new Animated.Value(0)).current; // 0 → 1 (compteurs animés)
   const fade = useRef(new Animated.Value(0)).current; // filigrane
   const seen = useRef(false);
-  const [disp, setDisp] = useState({ p: 0, c: 0, a: 0, v: 0 });
+  const [votantsDisp, setVotantsDisp] = useState(0); // total animé (le détail pour/abst/contre est dans la barre)
 
-  // Compteurs : un listener attaché pour TOUTE la vie de la carte. L'animation n'est
-  // jamais stoppée → même si la slide change en cours d'anim, `progress` atteint 1 et
-  // les compteurs finissent sur la vraie valeur (pas de chiffre figé intermédiaire).
+  // Compteur du total : listener attaché pour TOUTE la vie de la carte.
   useEffect(() => {
-    const id = progress.addListener(({ value }) => {
-      setDisp({ p: Math.round(value * p), c: Math.round(value * c), a: Math.round(value * a), v: Math.round(value * votants) });
-    });
+    const id = progress.addListener(({ value }) => setVotantsDisp(Math.round(value * votants)));
     return () => progress.removeListener(id);
   }, []);
 
@@ -127,26 +123,18 @@ function HeroCard({
           </Text>
         </View>
 
-        {/* Bas : badge résultat + total + barre divergente (abstention centrée) + légende */}
+        {/* Bas : badge résultat + total + barre divergente (écart + abstention centrée + décompte) */}
         <View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 8 }}>
             <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
               <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>{adopte ? "Adopté" : "Rejeté"}</Text>
             </View>
             {votants > 0 && (
-              <Text style={[T.small, tnum, { color: C.textMuted }]}>{disp.v} votants</Text>
+              <Text style={[T.small, tnum, { color: C.textMuted }]}>{votantsDisp} votants</Text>
             )}
           </View>
           {votants > 0 && (
-            <>
-              <VoteBarDivergenteCentree pour={p} contre={c} abstention={a} active={active} />
-              {/* Légende : pour à gauche, abstention au centre, contre à droite (alignée sur la barre) */}
-              <View style={{ flexDirection: "row", marginTop: 6 }}>
-                <Text style={[T.micro, tnum, { flex: 1, textAlign: "left", fontFamily: F.semibold, color: C.pour }]}>{disp.p} pour</Text>
-                <Text style={[T.micro, tnum, { flex: 1, textAlign: "center", fontFamily: F.semibold, color: C.abstention }]}>{disp.a} abstention</Text>
-                <Text style={[T.micro, tnum, { flex: 1, textAlign: "right", fontFamily: F.semibold, color: C.contre }]}>{disp.c} contre</Text>
-              </View>
-            </>
+            <VoteBarDivergenteCentree pour={p} contre={c} abstention={a} active={active} />
           )}
         </View>
       </View>
