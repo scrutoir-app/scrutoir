@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.59 — 2026-06-24
+- **Page Thèmes triée par nombre de scrutins décroissant** : les thèmes les plus actifs
+  apparaissent en premier (Économie 2914, Santé 1514, Sécurité & Justice 987…), cohérent
+  avec le tri déjà appliqué à la grille de l'accueil depuis la v1.0.55.
+
 ## 1.0.58 — 2026-06-24
 - **Ordre de lecture de la page Confrontation** : le texte « Choisissez deux élus pour comparer
   leurs votes. » est désormais affiché au-dessus des boîtes de sélection (et non plus après le
