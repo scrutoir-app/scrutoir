@@ -61,7 +61,7 @@ export function ThemesScreen({ nav }: { nav: Nav }) {
         {loading ? (
           <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
         ) : (
-          cats.map((c) => (
+          [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)).map((c) => (
             <ThemeRow key={c.id} c={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
           ))
         )}
