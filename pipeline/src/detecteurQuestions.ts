@@ -10,12 +10,17 @@ import { openDb } from "./db.js";
  * l'inclusion finale : il filtre, score, étiquette, et PRÉSERVE les décisions
  * humaines (these, statut) entre deux exécutions. Déterministe, idempotent.
  *
- * Sortie : data/questions/<categorie>.json (hors bundle app, versionnable → les
- * décisions humaines survivent à un git pull). Lancer : npm run detect-questions.
+ * Sortie AUTORITATIVE : le Brain (fichier relu à la main, porteur des thèses et des
+ * statuts validés → source de vérité). Surchargeable via QUESTIONS_OUT. Si le dossier
+ * projet n'existe pas (ex. runner CI), l'étape est ignorée proprement : le chaînage dans
+ * l'ingestion ne casse pas, et seuls les imports LOCAUX rafraîchissent le Brain.
+ * Lancer : npm run detect-questions [-- <theme> ...].
  */
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OUT = path.resolve(__dirname, "../../data/questions");
+const OUT = process.env.QUESTIONS_OUT
+  ? path.resolve(process.env.QUESTIONS_OUT)
+  : "/Users/anthonyrousseau/Brain/01 - Projects/Scrutoir/questions";
 
 const SIEGES_TOTAL = 577;
 
@@ -135,7 +140,18 @@ function familleClivage(bp: Record<string, Pos | null>, clivage: number): string
   return "autre";
 }
 
-export function detecterQuestions(db: ReturnType<typeof openDb>): Record<string, number> {
+export function detecterQuestions(
+  db: ReturnType<typeof openDb>,
+  opts?: { themes?: string[] }
+): Record<string, number> {
+  // Garde : si le dossier projet (parent de OUT) n'existe pas — typiquement un runner CI
+  // sous Linux où le Brain n'est pas monté — on ignore l'étape sans planter l'ingestion.
+  const parentOut = path.dirname(OUT);
+  if (!fs.existsSync(parentOut)) {
+    console.log(`   (détecteur de questions ignoré : « ${parentOut} » introuvable)`);
+    return {};
+  }
+
   // Sièges par groupe (la table groupes n'a pas nb_deputes → on compte les élus actifs).
   const siegesParUid = new Map<string, number>();
   for (const row of db
@@ -260,10 +276,13 @@ export function detecterQuestions(db: ReturnType<typeof openDb>): Record<string,
     });
   }
 
-  // 4) DÉDUPLICATION PAR DOSSIER — un texte = une question (meilleur total).
+  // 4) DÉDUPLICATION PAR DOSSIER — un texte = une question. On garde le vote d'ensemble
+  // de la DERNIÈRE LECTURE (date la plus récente) : c'est la décision réelle du texte, et
+  // c'est ce qu'on veut comme « question » (ex. ArcelorMittal → 2e lecture, pas la 1re).
+  // Le total ne sert que de départage à date égale.
   const meilleur = (a: Candidat, b: Candidat): Candidat => {
-    if (a.total !== b.total) return a.total > b.total ? a : b;
     if ((a.date ?? "") !== (b.date ?? "")) return (a.date ?? "") > (b.date ?? "") ? a : b; // dernière lecture
+    if (a.total !== b.total) return a.total > b.total ? a : b;
     if ((a.numero ?? 0) !== (b.numero ?? 0)) return (a.numero ?? 0) > (b.numero ?? 0) ? a : b;
     return a.uid > b.uid ? a : b; // tie-break stable
   };
@@ -292,9 +311,12 @@ export function detecterQuestions(db: ReturnType<typeof openDb>): Record<string,
   }
 
   // 6) + 7) ÉCRITURE avec préservation des décisions humaines (merge).
+  // Filtre optionnel de thèmes (1er run = « economie » seul) ; sinon tous.
+  const filtre = opts?.themes?.length ? new Set(opts.themes) : null;
   fs.mkdirSync(OUT, { recursive: true });
   const resultats: Record<string, number> = {};
   for (const [cat, liste] of parTheme) {
+    if (filtre && !filtre.has(cat)) continue;
     liste.sort((a, b) => b.total - a.total || (b.date ?? "").localeCompare(a.date ?? "") || a.uid.localeCompare(b.uid));
 
     const fichier = path.join(OUT, `${cat}.json`);
@@ -333,17 +355,25 @@ export function detecterQuestions(db: ReturnType<typeof openDb>): Record<string,
   return resultats;
 }
 
-// Exécution directe (npm run detect-questions) : reste lançable seul, sans effet de
-// bord à l'import (le pipeline appelle detecterQuestions() lui-même après classify).
+// Exécution directe (npm run detect-questions [-- <theme> ...]) : lançable seul, sans
+// effet de bord à l'import (le pipeline appelle detecterQuestions() après classify).
 if (import.meta.url === `file://${process.argv[1]}`) {
+  const themes = process.argv.slice(2).filter((a) => !a.startsWith("-"));
   const db = openDb();
   try {
-    const res = detecterQuestions(db);
-    const themes = Object.keys(res).sort();
+    const res = detecterQuestions(db, themes.length ? { themes } : undefined);
+    const ecrits = Object.keys(res).sort();
     console.log(`✅ Questions détectées → ${OUT}`);
-    for (const t of themes) console.log(`   ${t} : ${res[t]} candidats`);
+    for (const t of ecrits) {
+      console.log(`   ${t} : ${res[t]} candidats`);
+      // Contrôle : les 5 premiers titres (par total décroissant) du thème écrit.
+      try {
+        const arr = JSON.parse(fs.readFileSync(path.join(OUT, `${t}.json`), "utf8")) as any[];
+        arr.slice(0, 5).forEach((c, i) => console.log(`       ${i + 1}. [${c.total.toFixed(3)}] ${c.titre}`));
+      } catch { /* lecture best-effort */ }
+    }
     const total = Object.values(res).reduce((s, n) => s + n, 0);
-    console.log(`   (${total} lignes au total sur ${themes.length} thèmes)`);
+    console.log(`   (${total} lignes au total sur ${ecrits.length} thème(s))`);
   } finally {
     db.close();
   }

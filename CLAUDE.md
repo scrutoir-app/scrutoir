@@ -297,13 +297,16 @@ cd ../app && npm run web                            # app -> http://localhost:80
   `pipeline/src/classifyIA.ts` (`npm run classify:ia`, modèle Haiku 4.5) reclasse les non-classés via
   l'API Anthropic, **gardé par `ANTHROPIC_API_KEY`** (no-op sans clé). Mots-clés conservés par défaut.
 - **Exposé d'amendement** : jointure heuristique date+numéro+auteur (~91%), `pipeline/src/linkAmendements.ts`.
-- **Détecteur de questions (test de proximité)** : `pipeline/src/detecteurQuestions.ts` (`npm run detect-questions`,
-  aussi chaîné dans `ingest.ts` après classify). Lit `votes.db`, filtre les **votes sur texte entier**
-  (solennel + « l'ensemble du projet/proposition de loi »), score (clivage/couverture/importance/lisibilité),
-  **dédoublonne par dossier**, étiquette une **famille de clivage** (signature des 11 groupes + 4 blocs) et écrit
-  `data/questions/<theme>.json`. **Merge non destructif** : préserve les décisions humaines (`these`, `statut`)
-  entre deux exécutions ; déterministe/idempotent. Sortie **gitignorée** (`data/questions/`) — la file curée est
-  versionnée dans le Brain. Ne rédige pas de thèses, ne décide pas l'inclusion finale.
+- **Détecteur de questions (test de proximité)** : `pipeline/src/detecteurQuestions.ts`
+  (`npm run detect-questions [-- <theme>…]`, aussi chaîné dans `ingest.ts` après classify). Lit `votes.db`, filtre les
+  **votes sur texte entier** (solennel + « l'ensemble du projet/proposition de loi »), score
+  (clivage/couverture/importance/lisibilité), **dédoublonne par dossier en gardant la DERNIÈRE LECTURE** (date max),
+  étiquette une **famille de clivage** (signature des 11 groupes + 4 blocs ; `consensus` = clivage<0.25, pas un compte
+  de blocs). **Sortie autoritative = le Brain** : `/Users/anthonyrousseau/Brain/01 - Projects/Scrutoir/questions/<theme>.json`
+  (env `QUESTIONS_OUT` pour surcharger) — fichier relu/édité à la main. **Garde** : si le dossier projet est absent
+  (ex. CI Linux), l'étape est **ignorée sans planter** (seuls les imports locaux rafraîchissent le Brain).
+  **Merge non destructif** : préserve `these`/`statut` entre deux runs ; déterministe/idempotent. Ne rédige pas de
+  thèses, ne décide pas l'inclusion finale.
 
 ## Backlog (recommandations traitées : voir l'historique git "Reco N")
 - **Reco 2 (IA)** : brancher une **clé Anthropic** → `npm run classify:ia` (scaffold prêt).
