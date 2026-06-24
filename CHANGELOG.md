@@ -7,6 +7,20 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.57 — 2026-06-24
+- **Shuffle confrontation** : bouton « Laissez-vous surprendre » sous les sélecteurs de la page
+  Confrontation. Trois angles pré-calculés dans le pipeline : `fracture_interne` (même groupe,
+  votes les plus éloignés), `alliance_contre_nature` (groupes opposés, votes étonnamment proches),
+  `faux_duel` (autour de 50 % d'accord). Bannière « Pourquoi ce duel » au-dessus de la synthèse.
+  Architecture entièrement statique : pipeline → SQLite `confrontation_shuffle` → JSON
+  `confrontation_shuffle.json` → lecture client-side. NI exclus des viviers ; calcul restreint aux
+  scrutins classés dans un thème (cohérence avec `confrontation()`).
+- **Barre sticky des deux élus** : composant `DuelDeputesBar` (avatar + nom + groupe, gauche/droite
+  en miroir). Sur `ConfrontationScreen` : apparaît animée au scroll avec le taux d'accord au centre.
+  Sur `ConfrontationListeScreen` : barre fixe en haut avec le thème et le taux de désaccord/accord.
+- **Votes A gauche, B droite dans les listes de scrutins** : le vote du premier élu s'affiche à
+  gauche et celui du second à droite (date au centre), en miroir de la barre sticky.
+
 ## 1.0.56 — 2026-06-23
 - **Baseline d'accueil** : « Scrutins publics nominatifs · 17ᵉ législature » → **« Comment votent
   vraiment vos élus »** (accroche plus claire et orientée usage). La nuance « scrutins publics
