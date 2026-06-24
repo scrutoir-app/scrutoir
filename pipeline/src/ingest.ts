@@ -8,6 +8,7 @@ import { calculerParticipation } from "./participation.js";
 import { calculerPropositions, lierDossiers } from "./activiteGroupes.js";
 import { localiserPhotos } from "./photos.js";
 import { calculerShuffleConfrontation } from "./shuffleConfrontation.js";
+import { detecterQuestions } from "./detecteurQuestions.js";
 
 async function main() {
   const force = process.argv.includes("--download");
@@ -59,6 +60,10 @@ async function main() {
   console.log("     · viviers du shuffle de confrontation");
   const sh = calculerShuffleConfrontation(db);
   console.log(`       ${sh.fracture_interne} fractures internes, ${sh.alliance_contre_nature} alliances, ${sh.faux_duel} faux duels`);
+
+  console.log("     · file de candidats du test de proximité (par thème)");
+  const q = detecterQuestions(db);
+  console.log(`       ${Object.values(q).reduce((s, n) => s + n, 0)} candidats sur ${Object.keys(q).length} thèmes`);
 
   db.close();
   console.log(`\n✅ Ingestion terminee en ${((Date.now() - t0) / 1000).toFixed(1)}s`);

@@ -10,6 +10,7 @@
     "ingest:refresh": "tsx src/ingest.ts --refresh",
     "classify": "tsx src/classify.ts",
     "classify:ia": "tsx src/classifyIA.ts",
+    "detect-questions": "tsx src/detecteurQuestions.ts",
     "export:static": "tsx src/exportStatic.ts",
     "link-amendements": "tsx src/linkAmendements.ts",
     "query": "tsx src/query.ts"
