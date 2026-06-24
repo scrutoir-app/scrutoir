@@ -138,8 +138,14 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
         Sur les seuls scrutins publics nominatifs où les deux ont voté. Un silence de données n'est pas un désaccord.
       </Text>
 
+      {!pret && (
+        <Text style={[T.body, { color: C.textFaint, marginTop: 16 }]}>
+          Choisissez deux élus pour comparer leurs votes.
+        </Text>
+      )}
+
       {/* Sélecteurs symétriques */}
-      <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
+      <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
         <DeputeSlot depute={depA} onPick={choisirA} onClear={viderA} />
         <DeputeSlot depute={depB} onPick={choisirB} onClear={viderB} />
       </View>
@@ -172,12 +178,6 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
             );
           })}
         </View>
-      )}
-
-      {!pret && (
-        <Text style={[T.body, { color: C.textFaint, marginTop: 28, textAlign: "center" }]}>
-          Choisissez deux élus pour comparer leurs votes.
-        </Text>
       )}
 
       {loading && <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />}
