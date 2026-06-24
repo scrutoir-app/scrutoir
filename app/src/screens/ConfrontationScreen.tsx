@@ -417,17 +417,19 @@ export function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }
           {sc.titre || sc.objet}
         </Text>
       </TouchableOpacity>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 7 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", marginTop: 7 }}>
         <PosChip pos={sc.posA} />
+        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint }]}>
+            {formatDate(sc.date)} · n° {sc.numero}
+          </Text>
+          {url && (
+            <TouchableOpacity onPress={() => Linking.openURL(url)} hitSlop={8}>
+              <Feather name="external-link" size={13} color={C.accent} />
+            </TouchableOpacity>
+          )}
+        </View>
         <PosChip pos={sc.posB} />
-        <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint, flex: 1 }]}>
-          {formatDate(sc.date)} · n° {sc.numero}
-        </Text>
-        {url && (
-          <TouchableOpacity onPress={() => Linking.openURL(url)} hitSlop={8}>
-            <Feather name="external-link" size={13} color={C.accent} />
-          </TouchableOpacity>
-        )}
       </View>
       {/* Résumé du texte : caché par défaut, à la demande (reco confrontation) */}
       {!!resume && (
