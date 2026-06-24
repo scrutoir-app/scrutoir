@@ -151,6 +151,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
       </View>
 
       {/* Shuffle — juste sous la rangée des sélecteurs. Re-clic = nouveau tirage. */}
+      <View style={{ borderTopWidth: 1, borderTopColor: C.border, marginTop: 18 }} />
       <View style={{ alignItems: "center", marginTop: 14, gap: 9 }}>
         <Text style={[T.small, { color: C.textMuted }]}>Pas d'idée ? Laissez-vous surprendre.</Text>
         <TouchableOpacity
