@@ -2,6 +2,7 @@ import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
   PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi, ShuffleConfrontation, AngleShuffle,
 } from "./types";
+import type { QuestionProximite } from "./testProximite/score";
 
 /**
  * Couche données « tout statique » : l'app lit des fichiers JSON pré-générés
@@ -75,6 +76,8 @@ const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[�
 // --- Référentiels directs ---------------------------------------------------
 export const getCategories = () => j<CategorieRef[]>("categories");
 export const getGrandsScrutins = () => j<ScrutinResume[]>("grands");
+// Test de proximité : questions validées + totaux (compilé par `npm run build-test-data`).
+export const getTestProximite = () => j<QuestionProximite[]>("test-proximite");
 
 /**
  * Fraîcheur des données : `version.json` est régénéré à chaque export statique

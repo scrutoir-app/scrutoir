@@ -134,7 +134,7 @@ function HeroCard({
             )}
           </View>
           {votants > 0 && (
-            <VoteBarDivergenteCentree pour={p} contre={c} abstention={a} active={active} />
+            <VoteBarDivergenteCentree pour={p} contre={c} abstention={a} active={active} ecart decompte />
           )}
         </View>
       </View>

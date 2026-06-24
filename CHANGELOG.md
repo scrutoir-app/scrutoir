@@ -7,6 +7,26 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.62 — 2026-06-24
+- **Test de proximité** : nouvelle fonctionnalité. Réponds à de vrais scrutins clivants (Pour /
+  Sans avis / Contre) et découvre ta proximité avec chaque groupe — un **spectre**, jamais un parti
+  unique. Entrées : carte d'accueil mise en avant « Et toi, tu votes comment ? », bouton par thème,
+  bouton sur une fiche parti. Déroulé question par question avec dévoilement « Comment l'Assemblée
+  a voté » (barre divergente + phrase d'alignement + lien source). Résultat : classement global
+  (hémicycle par groupe + barres), **matrice thème × groupe**, pondération par thème recalculée en
+  direct.
+- **100 % privé** : les réponses (opinion politique, donnée sensible) ne sont **ni envoyées ni
+  stockées côté serveur** — calcul sur l'appareil, dernier résultat gardé en local, partage par lien
+  qui encode les réponses dans l'URL et recalcule à l'ouverture.
+- **Animation d'accueil du test** : un « ? » dessiné par les sièges de l'hémicycle (coupole colorée
+  par groupe + queue), composant `IntroQuestionMark`.
+- **Blocage par thème** : un test mono-thème n'est proposé qu'au-delà de 7 scrutins validés
+  (auto-déblocage dès que la donnée le permet) ; le test complet reste toujours accessible.
+- **Accueil réordonné** : grands scrutins → test → mon député → confronter → thèmes. L'emphase
+  (carte sombre) passe de « Confronter deux élus » à « Et toi, tu votes comment ? ».
+- Données : `npm run build-test-data` (pipeline) compile les questions validées + totaux réels en
+  `data/test-proximite.json`. Page Infos enrichie (test, confidentialité).
+
 ## 1.0.61 — 2026-06-24
 - **Barre divergente — décompte des voix animé** : sur la carte « hero », la barre passe en
   style capsules (3 capsules indépendantes posées sur une piste, léger jour autour de

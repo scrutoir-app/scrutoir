@@ -1,4 +1,5 @@
 import type { ConfrontationScrutin, DeputeResume } from "./types";
+import type { Reponse } from "./testProximite/score";
 
 export type Route =
   | { name: "search" }
@@ -59,7 +60,11 @@ export type Route =
   | { name: "monDepute" }
   | { name: "suivis" }
   | { name: "mentions" }
-  | { name: "parametres" };
+  | { name: "parametres" }
+  // Test de proximité : intro (animation + choix du mode), déroulé, résultat.
+  | { name: "testIntro"; theme?: string; themeLibelle?: string }
+  | { name: "test"; mode: "theme" | "complet"; theme?: string; themeLibelle?: string }
+  | { name: "testResultat"; reponses: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number> };
 
 export interface Nav {
   push: (route: Route) => void;

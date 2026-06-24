@@ -33,6 +33,10 @@ import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
 import { ParametresScreen } from "./src/screens/ParametresScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
+import { TestIntroScreen } from "./src/screens/TestIntroScreen";
+import { TestScreen } from "./src/screens/TestScreen";
+import { TestResultatScreen } from "./src/screens/TestResultatScreen";
+import { lireHashPartage } from "./src/testProximite/storage";
 import { InstallPrompt } from "./src/components/InstallPrompt";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
 import { ThemeProvider, useThemeMode } from "./src/themeMode";
@@ -61,6 +65,16 @@ function AppInner() {
   });
   const [stack, setStack] = useState<Route[]>([{ name: "search" }]);
   const current = stack[stack.length - 1];
+
+  // Lien de partage du test de proximité (#test=…) : on recalcule à l'ouverture,
+  // 100 % client (rien n'est envoyé au serveur). Une seule fois, au montage.
+  useEffect(() => {
+    const partage = lireHashPartage();
+    if (partage && Object.keys(partage.reponses).length) {
+      setStack([{ name: "search" }, { name: "testResultat", reponses: partage.reponses, poids: partage.poids }]);
+    }
+  }, []);
+
   const root = stack[0].name;
   const keyboardOpen = useKeyboardOpen(); // masque la barre d'onglets quand le clavier est ouvert
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
@@ -113,6 +127,9 @@ function AppInner() {
     monDepute: "Mon député",
     mentions: "Mentions légales",
     parametres: "Paramètres",
+    testIntro: "Test de proximité",
+    test: "Test de proximité",
+    testResultat: "Ton résultat",
   };
   const showHeader = stack.length > 1;
 
@@ -217,6 +234,9 @@ function AppInner() {
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
           {current.name === "parametres" && <ParametresScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
+          {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
+          {current.name === "test" && <TestScreen mode={current.mode} theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
+          {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} themesJoues={current.themesJoues} nav={nav} />}
             </>
           )}
         </View>

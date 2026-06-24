@@ -102,6 +102,15 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         désaccord.
       </Bloc>
 
+      <Bloc titre="Le test de proximité">
+        Le test te confronte à de vrais scrutins, choisis parce qu'ils portent sur un texte entier
+        et qu'ils ont divisé l'Assemblée (pas les votes quasi-unanimes ni les amendements de détail).
+        Pour chaque vote, on regarde si ta réponse rejoint la position de chaque groupe : on ne
+        compte que les votes où toi ET le groupe avez tranché « pour » ou « contre » (abstention et
+        « sans avis » sont exclus). Le résultat est un spectre — ta proximité avec tous les groupes,
+        thème par thème — et jamais un parti unique : on ne se résume pas à une étiquette.
+      </Bloc>
+
       <Bloc titre="Exposé des amendements">
         Quand un scrutin porte sur un amendement, on affiche son exposé. Le lien scrutin↔amendement
         est reconstitué automatiquement (date + numéro + auteur) : il aboutit pour ~9 amendements
@@ -111,6 +120,14 @@ export function AProposScreen({ nav }: { nav: Nav }) {
       <Bloc titre="Source & période">
         Open Data de l'Assemblée Nationale (licence Etalab, mise à jour quotidienne), 17ᵉ
         législature (depuis juin 2024). Données non officielles, à titre informatif.
+      </Bloc>
+
+      <Bloc titre="Tes réponses restent chez toi">
+        Tes réponses au test de proximité sont une opinion politique — une donnée sensible. Elles ne
+        sont ni envoyées ni stockées sur un serveur : tout le calcul se fait sur ton appareil. Ton
+        dernier résultat est gardé en local (sur ce navigateur) pour que tu puisses le revoir, et un
+        lien de partage encode tes réponses dans l'adresse elle-même — il recalcule tout à l'ouverture,
+        sans compte ni base de données.
       </Bloc>
 
       <Bloc titre="Mesure d'audience">

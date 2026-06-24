@@ -1,0 +1,496 @@
+[
+  {
+    "id": 2957,
+    "theme": "agriculture",
+    "these": "Lever des contraintes réglementaires qui pèsent sur le métier d'agriculteur.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "partagé",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 316,
+      "contre": 223,
+      "abstention": 25
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2957"
+  },
+  {
+    "id": 3273,
+    "theme": "agriculture",
+    "these": "Rendre obligatoire l'affichage de l'origine de tous les aliments.",
+    "famille_clivage": "droite_RN_vs_gauche",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "abstention",
+      "DEM": "contre",
+      "EPR": "contre",
+      "HOR": "abstention",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 149,
+      "contre": 174,
+      "abstention": 8
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3273"
+  },
+  {
+    "id": 881,
+    "theme": "economie",
+    "these": "Instaurer un impôt plancher de 2 % sur le patrimoine des ultra-riches.",
+    "famille_clivage": "gauche_vs_centre_droite",
+    "positions": {
+      "LFI-NFP": "pour",
+      "GDR": "pour",
+      "ECOS": "pour",
+      "SOC": "pour",
+      "DEM": "contre",
+      "EPR": "contre",
+      "HOR": "contre",
+      "DR": "contre",
+      "UDDPLR": "contre",
+      "RN": "abstention"
+    },
+    "totaux": {
+      "pour": 116,
+      "contre": 39,
+      "abstention": 31
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/881"
+  },
+  {
+    "id": 1319,
+    "theme": "economie",
+    "these": "Maintenir les règles qui relèvent le prix plancher des produits alimentaires (SRP+10) pour soutenir le revenu des agriculteurs, quitte à renchérir un peu les prix en magasin.",
+    "famille_clivage": "RN_isolé",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "pour",
+      "ECOS": "abstention",
+      "SOC": "pour",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "abstention",
+      "RN": "contre"
+    },
+    "totaux": {
+      "pour": 284,
+      "contre": 169,
+      "abstention": 43
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1319"
+  },
+  {
+    "id": 3056,
+    "theme": "economie",
+    "these": "Simplifier les règles d urbanisme pour faciliter la construction de logements.",
+    "famille_clivage": "gauche_vs_centre_droite",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "abstention",
+      "ECOS": "contre",
+      "SOC": "pour",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "abstention",
+      "RN": "abstention"
+    },
+    "totaux": {
+      "pour": 65,
+      "contre": 41,
+      "abstention": 52
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3056"
+  },
+  {
+    "id": 6184,
+    "theme": "economie",
+    "these": "Alléger les démarches et obligations administratives qui pèsent sur les entreprises.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "partagé",
+      "DEM": "pour",
+      "EPR": "partagé",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 275,
+      "contre": 225,
+      "abstention": 30
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6184"
+  },
+  {
+    "id": 6319,
+    "theme": "economie",
+    "these": "Durcir la lutte contre la fraude en ciblant surtout la fraude aux prestations sociales, avec la possibilité de suspendre les allocations chômage en cas de soupçon.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "partagé",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 335,
+      "contre": 182,
+      "abstention": 5
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6319"
+  },
+  {
+    "id": 7259,
+    "theme": "economie",
+    "these": "Soutenir la loi de souveraineté agricole, qui allège certaines contraintes environnementales pour les agriculteurs.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 369,
+      "contre": 178,
+      "abstention": 15
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7259"
+  },
+  {
+    "id": 7380,
+    "theme": "economie",
+    "these": "Nationaliser ArcelorMittal pour préserver l emploi et la souveraineté industrielle.",
+    "famille_clivage": "gauche_vs_centre_droite",
+    "positions": {
+      "LFI-NFP": "pour",
+      "GDR": "pour",
+      "ECOS": "pour",
+      "SOC": "pour",
+      "LIOT": "contre",
+      "DEM": "contre",
+      "EPR": "contre",
+      "HOR": "contre",
+      "DR": "contre",
+      "UDDPLR": "contre",
+      "RN": "abstention"
+    },
+    "totaux": {
+      "pour": 106,
+      "contre": 49,
+      "abstention": 47
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7380"
+  },
+  {
+    "id": 840,
+    "theme": "education",
+    "these": "Prolonger les dispositifs d'égalité des chances pour l'accès aux grandes écoles.",
+    "famille_clivage": "RN_isolé",
+    "positions": {
+      "LFI-NFP": "abstention",
+      "GDR": "pour",
+      "ECOS": "pour",
+      "SOC": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "contre",
+      "RN": "contre"
+    },
+    "totaux": {
+      "pour": 112,
+      "contre": 48,
+      "abstention": 24
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/840"
+  },
+  {
+    "id": 5845,
+    "theme": "education",
+    "these": "Renforcer l'enseignement de la défense nationale à l'école.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "DEM": "pour",
+      "HOR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 39,
+      "contre": 17,
+      "abstention": 0
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/5845"
+  },
+  {
+    "id": 1303,
+    "theme": "institutions",
+    "these": "Étendre le scrutin de liste à toutes les communes, y compris les plus petites.",
+    "famille_clivage": "droite_RN_vs_gauche",
+    "positions": {
+      "LFI-NFP": "pour",
+      "GDR": "pour",
+      "ECOS": "pour",
+      "SOC": "pour",
+      "LIOT": "contre",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "abstention",
+      "DR": "contre",
+      "UDDPLR": "contre",
+      "RN": "contre"
+    },
+    "totaux": {
+      "pour": 206,
+      "contre": 181,
+      "abstention": 25
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1303"
+  },
+  {
+    "id": 6045,
+    "theme": "institutions",
+    "these": "Fusionner départements et régions en collectivités uniques pour simplifier le millefeuille territorial.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "partagé",
+      "DEM": "partagé",
+      "EPR": "pour",
+      "HOR": "partagé",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 131,
+      "contre": 100,
+      "abstention": 12
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6045"
+  },
+  {
+    "id": 6736,
+    "theme": "international-defense",
+    "these": "Renforcer le budget militaire pluriannuel via la loi de programmation militaire.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "pour",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 440,
+      "contre": 122,
+      "abstention": 4
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6736"
+  },
+  {
+    "id": 7408,
+    "theme": "logement",
+    "these": "Réserver davantage de logements aux travailleurs des services publics (police, soignants, enseignants).",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "abstention",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 292,
+      "contre": 160,
+      "abstention": 14
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7408"
+  },
+  {
+    "id": 5729,
+    "theme": "sante",
+    "these": "Légaliser l'aide à mourir sous conditions (fin de vie).",
+    "famille_clivage": "droite_RN_vs_gauche",
+    "positions": {
+      "LFI-NFP": "pour",
+      "GDR": "pour",
+      "ECOS": "pour",
+      "SOC": "pour",
+      "LIOT": "partagé",
+      "DEM": "partagé",
+      "EPR": "pour",
+      "HOR": "partagé",
+      "DR": "contre",
+      "UDDPLR": "contre",
+      "RN": "contre"
+    },
+    "totaux": {
+      "pour": 299,
+      "contre": 226,
+      "abstention": 37
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/5729"
+  },
+  {
+    "id": 1262,
+    "theme": "securite-justice",
+    "these": "Garantir l'exécution effective des courtes peines de prison ferme.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 63,
+      "contre": 42,
+      "abstention": 2
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1262"
+  },
+  {
+    "id": 1624,
+    "theme": "securite-justice",
+    "these": "Durcir la réponse pénale envers les mineurs délinquants et responsabiliser leurs parents.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 341,
+      "contre": 187,
+      "abstention": 8
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1624"
+  },
+  {
+    "id": 3061,
+    "theme": "securite-justice",
+    "these": "Inscrire l'absence de consentement dans la définition pénale du viol.",
+    "famille_clivage": "RN_isolé",
+    "positions": {
+      "LFI-NFP": "pour",
+      "GDR": "abstention",
+      "ECOS": "pour",
+      "SOC": "pour",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "contre",
+      "RN": "contre"
+    },
+    "totaux": {
+      "pour": 155,
+      "contre": 31,
+      "abstention": 5
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3061"
+  },
+  {
+    "id": 7405,
+    "theme": "securite-justice",
+    "these": "Renforcer les pouvoirs de sécurité et la rétention administrative pour prévenir les attentats.",
+    "famille_clivage": "gauche_vs_reste",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LIOT": "partagé",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDDPLR": "pour",
+      "RN": "pour"
+    },
+    "totaux": {
+      "pour": 345,
+      "contre": 177,
+      "abstention": 11
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7405"
+  }
+]

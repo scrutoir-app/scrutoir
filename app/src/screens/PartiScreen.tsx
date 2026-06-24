@@ -89,6 +89,19 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <Feather name="chevron-right" size={18} color={C.textFaint} />
       </TouchableOpacity>
 
+      {/* Test de proximité (mode complet) */}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={() => nav.push({ name: "testIntro" })}
+        style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, marginBottom: 16, ...shadowCard }}
+      >
+        <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
+          <Feather name="help-circle" size={18} color={C.accent} />
+        </View>
+        <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>Es-tu proche de ce groupe ?</Text>
+        <Feather name="chevron-right" size={18} color={C.textFaint} />
+      </TouchableOpacity>
+
       {/* Cohésion & participation, expliquées + repère moyenne des groupes */}
       <StatRow
         valeur={data.cohesion_pct}

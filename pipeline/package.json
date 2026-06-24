@@ -11,6 +11,8 @@
     "classify": "tsx src/classify.ts",
     "classify:ia": "tsx src/classifyIA.ts",
     "detect-questions": "tsx src/detecteurQuestions.ts",
+    "build-test-data": "tsx src/buildTestData.ts",
+    "test-score": "tsx --test ../app/src/testProximite/score.test.ts",
     "export:static": "tsx src/exportStatic.ts",
     "link-amendements": "tsx src/linkAmendements.ts",
     "query": "tsx src/query.ts"

@@ -154,21 +154,37 @@ function Accueil({ nav }: { nav: Nav }) {
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
+      {/* 2. Derniers grands scrutins (hero + Tout voir) */}
+      <View style={{ paddingHorizontal: 18, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 22, marginBottom: 12 }}>
+        <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Derniers grands scrutins</Text>
+        <TouchableOpacity onPress={() => nav.push({ name: "grandsScrutins" })}>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Tout voir ›</Text>
+        </TouchableOpacity>
+      </View>
+
+      <HeroScrutins
+        scrutins={grands.slice(0, 8)}
+        ingestedAt={ingestedAt}
+        onOpen={(uid) => nav.push({ name: "scrutin", uid })}
+      />
+
+      {/* 3. Et toi, tu votes comment ? — entrée du test (carte mise en avant), sous le feed */}
       <TouchableOpacity
         activeOpacity={0.85}
-        onPress={() => nav.push({ name: "confrontation" })}
+        onPress={() => nav.push({ name: "testIntro" })}
         style={{ marginHorizontal: 18, marginTop: 14, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 13, paddingHorizontal: 15, ...shadowCard }}
       >
-        <Feather name="git-pull-request" size={20} color="#fff" />
+        <Feather name="help-circle" size={20} color="#fff" />
         <View style={{ flex: 1 }}>
-          <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>Confronter deux élus</Text>
+          <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>Et toi, tu votes comment ?</Text>
           <Text style={[T.small, { color: "rgba(255,255,255,0.8)", marginTop: 1 }]}>
-            Leurs votes côte à côte, accords et désaccords
+            Teste ta proximité avec les groupes
           </Text>
         </View>
         <Feather name="chevron-right" size={20} color="rgba(255,255,255,0.8)" />
       </TouchableOpacity>
 
+      {/* 4. Trouver mon député */}
       <TouchableOpacity
         activeOpacity={0.85}
         onPress={() => nav.push({ name: "monDepute" })}
@@ -184,19 +200,23 @@ function Accueil({ nav }: { nav: Nav }) {
         <Feather name="chevron-right" size={20} color={C.textFaint} />
       </TouchableOpacity>
 
-      <View style={{ paddingHorizontal: 18, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 22, marginBottom: 12 }}>
-        <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Derniers grands scrutins</Text>
-        <TouchableOpacity onPress={() => nav.push({ name: "grandsScrutins" })}>
-          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Tout voir ›</Text>
-        </TouchableOpacity>
-      </View>
+      {/* 5. Confronter deux élus (carte blanche standard) */}
+      <TouchableOpacity
+        activeOpacity={0.85}
+        onPress={() => nav.push({ name: "confrontation" })}
+        style={{ marginHorizontal: 18, marginTop: 9, flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 12, paddingHorizontal: 15, ...shadowCard }}
+      >
+        <Feather name="git-pull-request" size={19} color={C.accent} />
+        <View style={{ flex: 1 }}>
+          <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Confronter deux élus</Text>
+          <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>
+            Leurs votes côte à côte, accords et désaccords
+          </Text>
+        </View>
+        <Feather name="chevron-right" size={20} color={C.textFaint} />
+      </TouchableOpacity>
 
-      <HeroScrutins
-        scrutins={grands.slice(0, 8)}
-        ingestedAt={ingestedAt}
-        onOpen={(uid) => nav.push({ name: "scrutin", uid })}
-      />
-
+      {/* 6. Explorer par thème */}
       <View style={{ paddingHorizontal: 18 }}>
         <SectionTitle titre="Explorer par thème" />
         <ThemePicker cats={cats} onOpen={(c) => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />

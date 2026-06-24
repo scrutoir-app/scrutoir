@@ -29,14 +29,20 @@ export function VoteBarDivergenteCentree({
   siegesTotal = SIEGES_TOTAL,
   height = 16,
   active = true,
+  ecart: avecEcart = false,
+  decompte = false,
 }: {
   pour: number;
   contre: number;
   abstention: number;
   siegesTotal?: number;
   height?: number;
-  /** Rejoue l'ouverture + le décompte à chaque passage à true (carte du carrousel affichée). */
+  /** Rejoue l'ouverture (+ écart/décompte) à chaque passage à true (carte du carrousel). */
   active?: boolean;
+  /** Affiche « écart de N voix » au-dessus (animé). Défaut : non (barre seule). */
+  ecart?: boolean;
+  /** Affiche le décompte « N pour / N abst. / N contre » sous la barre (animé). Défaut : non. */
+  decompte?: boolean;
 }) {
   const exprimes = pour + contre + abstention || 1;
   const abstFrac = Math.min(0.3, abstention / exprimes); // part d'abstention (bornée à 30 %)
@@ -105,10 +111,12 @@ export function VoteBarDivergenteCentree({
 
   return (
     <View>
-      {/* Écart de voix, au-dessus, centré, discret */}
-      <Text style={[T.micro, tnum, { textAlign: "center", color: C.textMuted, marginBottom: 6 }]}>
-        écart de {disp.e} voix
-      </Text>
+      {/* Écart de voix, au-dessus, centré, discret (optionnel) */}
+      {avecEcart && (
+        <Text style={[T.micro, tnum, { textAlign: "center", color: C.textMuted, marginBottom: 6 }]}>
+          écart de {disp.e} voix
+        </Text>
+      )}
 
       {/* Piste de fond unique + trois capsules indépendantes par-dessus */}
       <View onLayout={onLayout} style={{ height, justifyContent: "center" }}>
@@ -133,12 +141,14 @@ export function VoteBarDivergenteCentree({
         />
       </View>
 
-      {/* Décompte des voix : pour (gauche) · abst. (centre) · contre (droite) */}
-      <View style={{ flexDirection: "row", marginTop: 6 }}>
-        <Text style={[T.small, tnum, { flex: 1, textAlign: "left", fontFamily: F.semibold, color: C.pour }]}>{disp.p} pour</Text>
-        <Text style={[T.small, tnum, { flex: 1, textAlign: "center", fontFamily: F.semibold, color: C.abstention }]}>{disp.a} abst.</Text>
-        <Text style={[T.small, tnum, { flex: 1, textAlign: "right", fontFamily: F.semibold, color: C.contre }]}>{disp.c} contre</Text>
-      </View>
+      {/* Décompte des voix : pour (gauche) · abst. (centre) · contre (droite) — optionnel */}
+      {decompte && (
+        <View style={{ flexDirection: "row", marginTop: 6 }}>
+          <Text style={[T.small, tnum, { flex: 1, textAlign: "left", fontFamily: F.semibold, color: C.pour }]}>{disp.p} pour</Text>
+          <Text style={[T.small, tnum, { flex: 1, textAlign: "center", fontFamily: F.semibold, color: C.abstention }]}>{disp.a} abst.</Text>
+          <Text style={[T.small, tnum, { flex: 1, textAlign: "right", fontFamily: F.semibold, color: C.contre }]}>{disp.c} contre</Text>
+        </View>
+      )}
     </View>
   );
 }
