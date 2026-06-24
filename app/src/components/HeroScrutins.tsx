@@ -7,11 +7,12 @@ import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, formatDate } from "../theme";
 import { catUI } from "../categoryUI";
 import { HemicycleSeats } from "./HemicycleSeats";
+import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
 import type { ScrutinResume } from "../types";
 
 const GAP = 12;
 const SIDE = 18; // marge écran (alignée sur le contenu de l'accueil)
-const HERO_H = 202; // hauteur fixe de la carte (carrousel uniforme + centrage des flèches)
+const HERO_H = 222; // hauteur fixe de la carte (carrousel uniforme + centrage des flèches)
 const ANIM_BAR = 850; // ms — barre de vote
 const ANIM_FADE = 450; // ms — filigrane
 
@@ -55,46 +56,40 @@ function HeroCard({
   const votants = p + c + a;
   const tot = votants || 1;
   const ui = s.categorie ? catUI(s.categorie) : catUI("");
-  const barW = width - 32; // largeur du contenu (padding 16 de chaque côté)
-  const segPx = (v: number) => (v / tot) * barW;
 
-  const progress = useRef(new Animated.Value(0)).current; // 0 → 1 (barre + compteurs)
+  const progress = useRef(new Animated.Value(0)).current; // 0 → 1 (compteurs animés)
   const fade = useRef(new Animated.Value(0)).current; // filigrane
   const seen = useRef(false);
-  const [disp, setDisp] = useState({ p: 0, c: 0, v: 0 });
+  const [disp, setDisp] = useState({ p: 0, c: 0, a: 0, v: 0 });
 
   // Compteurs : un listener attaché pour TOUTE la vie de la carte. L'animation n'est
   // jamais stoppée → même si la slide change en cours d'anim, `progress` atteint 1 et
   // les compteurs finissent sur la vraie valeur (pas de chiffre figé intermédiaire).
   useEffect(() => {
     const id = progress.addListener(({ value }) => {
-      setDisp({ p: Math.round(value * p), c: Math.round(value * c), v: Math.round(value * votants) });
+      setDisp({ p: Math.round(value * p), c: Math.round(value * c), a: Math.round(value * a), v: Math.round(value * votants) });
     });
     return () => progress.removeListener(id);
   }, []);
 
-  // À la PREMIÈRE apparition de la slide : on anime. reduce-motion → valeurs finales.
+  // À chaque apparition de la slide : les compteurs repartent de 0. Le filigrane ne
+  // fait son fondu qu'une fois (seen). reduce-motion → valeurs finales immédiates.
   useEffect(() => {
-    if (!active || seen.current) return;
-    seen.current = true;
+    if (!active) return;
     if (reduceMotion) {
       progress.setValue(1);
       fade.setValue(1);
       return;
     }
-    Animated.parallel([
-      Animated.timing(fade, { toValue: 1, duration: ANIM_FADE, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-      Animated.timing(progress, { toValue: 1, duration: ANIM_BAR, easing: Easing.out(Easing.cubic), useNativeDriver: false }),
-    ]).start();
+    if (!seen.current) {
+      seen.current = true;
+      Animated.timing(fade, { toValue: 1, duration: ANIM_FADE, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+    }
+    progress.setValue(0);
+    const anim = Animated.timing(progress, { toValue: 1, duration: ANIM_BAR, easing: Easing.out(Easing.cubic), useNativeDriver: false });
+    anim.start();
+    return () => anim.stop();
   }, [active]);
-
-  const seg = (v: number, col: string) =>
-    v > 0 ? (
-      <Animated.View
-        key={col}
-        style={{ height: 8, backgroundColor: col, width: progress.interpolate({ inputRange: [0, 1], outputRange: [0, segPx(v)] }) }}
-      />
-    ) : null;
 
   return (
     <TouchableOpacity
@@ -111,7 +106,7 @@ function HeroCard({
         style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: fade }}
         pointerEvents="none"
       >
-        <HemicycleSeats width={width} height={HERO_H} color={C.watermarkInk} />
+        <HemicycleSeats width={width} height={HERO_H} color={C.watermarkInk} pitch={38} />
       </Animated.View>
 
       <View style={{ flex: 1, padding: 16, justifyContent: "space-between" }}>
@@ -132,24 +127,26 @@ function HeroCard({
           </Text>
         </View>
 
-        {/* Bas : badge résultat + méta + barre */}
+        {/* Bas : badge résultat + total + barre divergente (abstention centrée) + légende */}
         <View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 8 }}>
             <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
               <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>{adopte ? "Adopté" : "Rejeté"}</Text>
             </View>
             {votants > 0 && (
-              <Text style={[T.small, tnum, { color: C.textMuted }]}>
-                {disp.p} pour · {disp.c} contre · {disp.v} votants
-              </Text>
+              <Text style={[T.small, tnum, { color: C.textMuted }]}>{disp.v} votants</Text>
             )}
           </View>
           {votants > 0 && (
-            <View style={{ flexDirection: "row", height: 8, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceAlt }}>
-              {seg(p, C.pour)}
-              {seg(c, C.contre)}
-              {seg(a, C.abstention)}
-            </View>
+            <>
+              <VoteBarDivergenteCentree pour={p} contre={c} abstention={a} active={active} />
+              {/* Légende : pour à gauche, abstention au centre, contre à droite (alignée sur la barre) */}
+              <View style={{ flexDirection: "row", marginTop: 6 }}>
+                <Text style={[T.micro, tnum, { flex: 1, textAlign: "left", fontFamily: F.semibold, color: C.pour }]}>{disp.p} pour</Text>
+                <Text style={[T.micro, tnum, { flex: 1, textAlign: "center", fontFamily: F.semibold, color: C.abstention }]}>{disp.a} abstention</Text>
+                <Text style={[T.micro, tnum, { flex: 1, textAlign: "right", fontFamily: F.semibold, color: C.contre }]}>{disp.c} contre</Text>
+              </View>
+            </>
           )}
         </View>
       </View>

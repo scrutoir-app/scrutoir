@@ -69,6 +69,16 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         (« plus assidu que X % ») car il est bas pour tout le monde.
       </Bloc>
 
+      <Bloc titre="Lecture de la barre de vote">
+        Sur chaque carte, le pour part vers la gauche, le contre vers la droite, et
+        l'abstention occupe le centre à sa taille réelle. La longueur colorée est rapportée
+        à la moitié de l'hémicycle, donc une barre courte sur piste longue signale une
+        faible participation. Comme l'abstention tient le centre, la largeur restante de
+        chaque camp se réduit quand l'abstention monte. Comparer la longueur des barres d'un
+        vote à forte abstention avec celle d'un vote à faible abstention n'est donc pas
+        fiable. Chaque carte se lit pour elle-même.
+      </Bloc>
+
       <Bloc titre="Classification thématique approximative">
         L'Assemblée ne range pas les scrutins par thème. Le classement (Écologie, Sécurité…) est
         calculé automatiquement à partir de l'intitulé. Il est imparfait : certains scrutins ne

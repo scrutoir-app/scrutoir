@@ -7,6 +7,17 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.60 — 2026-06-24
+- **Barre divergente à abstention centrée** sur la carte « hero » des derniers grands scrutins :
+  le pour part vers la gauche, le contre vers la droite, l'abstention occupe le centre à cheval
+  sur l'axe (largeur bornée à 30 %). Échelle = demi-hémicycle (577/2), donc une barre courte sur
+  piste longue signale une faible participation. Légende 3 colonnes sous la barre
+  (pour / abstention / contre). Nouveau composant `VoteBarDivergenteCentree` (les listes gardent
+  `BarreDivergente`). Les trois segments s'ouvrent ensemble depuis le centre (~1,9 s, cubic-out),
+  rejoués à chaque fois qu'une carte du carrousel est affichée ; reduce-motion respecté.
+- **Filigrane des cartes allégé** (espacement des « sièges » 22 → 38) : fond moins chargé, plus lisible.
+- Nouveau bloc « Lecture de la barre de vote » dans l'écran Infos.
+
 ## 1.0.59 — 2026-06-24
 - **Page Thèmes triée par nombre de scrutins décroissant** : les thèmes les plus actifs
   apparaissent en premier (Économie 2914, Santé 1514, Sécurité & Justice 987…), cohérent
