@@ -7,6 +7,7 @@ import { lierAmendements } from "./linkAmendements.js";
 import { calculerParticipation } from "./participation.js";
 import { calculerPropositions, lierDossiers } from "./activiteGroupes.js";
 import { localiserPhotos } from "./photos.js";
+import { calculerShuffleConfrontation } from "./shuffleConfrontation.js";
 
 async function main() {
   const force = process.argv.includes("--download");
@@ -54,6 +55,10 @@ async function main() {
     const t = await lierDossiers(db);
     console.log(`     ${t} scrutins reliés à l'intitulé officiel de leur dossier`);
   }
+
+  console.log("     · viviers du shuffle de confrontation");
+  const sh = calculerShuffleConfrontation(db);
+  console.log(`       ${sh.fracture_interne} fractures internes, ${sh.alliance_contre_nature} alliances, ${sh.faux_duel} faux duels`);
 
   db.close();
   console.log(`\n✅ Ingestion terminee en ${((Date.now() - t0) / 1000).toFixed(1)}s`);

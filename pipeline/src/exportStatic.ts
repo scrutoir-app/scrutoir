@@ -183,6 +183,26 @@ for (const { uid } of allScrutinUids) {
   if (++ns % 1000 === 0) console.log(`  scrutins ${ns}/${allScrutinUids.length}`);
 }
 
+// 6 bis) Viviers du « shuffle » de confrontation, groupés par angle (petit fichier
+//        lu une fois côté app ; les DeputeResume sont résolus via l'index deputes).
+{
+  const angles = ["fracture_interne", "alliance_contre_nature", "faux_duel"] as const;
+  const shuffle: Record<string, Array<{ a: string; b: string; communs: number; accords: number; taux: number }>> = {};
+  const stmt = db.prepare(
+    "SELECT a_uid, b_uid, communs, accords, taux FROM confrontation_shuffle WHERE angle = ? ORDER BY rang"
+  );
+  for (const angle of angles) {
+    shuffle[angle] = (stmt.all(angle) as any[]).map((r) => ({
+      a: r.a_uid,
+      b: r.b_uid,
+      communs: r.communs,
+      accords: r.accords,
+      taux: Math.round(r.taux * 100), // pourcentage entier (tauxAccord)
+    }));
+  }
+  write("confrontation_shuffle.json", shuffle);
+}
+
 // 7) version.json : cache-busting / détection de nouveau déploiement (lu par le SW
 // en network-first, et exploitable côté app pour un futur bandeau « mise à jour »).
 write("version.json", {

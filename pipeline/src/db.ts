@@ -114,6 +114,20 @@ export function createSchema(db: Database.Database): void {
       expose         TEXT    -- exposé sommaire (justification)
     );
 
+    -- Paires de députés pré-calculées pour le « shuffle » de la confrontation.
+    -- Trois angles, chacun porteur d'une surprise (cf. shuffleConfrontation.ts) ;
+    -- on ne stocke que les meilleurs candidats par angle, jamais toute la matrice.
+    CREATE TABLE IF NOT EXISTS confrontation_shuffle (
+      angle    TEXT NOT NULL,            -- 'fracture_interne' | 'alliance_contre_nature' | 'faux_duel'
+      a_uid    TEXT NOT NULL REFERENCES deputes(uid),
+      b_uid    TEXT NOT NULL REFERENCES deputes(uid),
+      communs  INTEGER NOT NULL,         -- scrutins nominatifs où A et B ont tous deux voté
+      accords  INTEGER NOT NULL,         -- scrutins où ils ont voté pareil
+      taux     REAL NOT NULL,            -- accords / communs (0..1)
+      rang     INTEGER NOT NULL,         -- 1 = candidat le plus marqué pour l'angle
+      PRIMARY KEY (angle, a_uid, b_uid)
+    );
+
     CREATE INDEX IF NOT EXISTS idx_gp_scrutin     ON groupe_positions(scrutin_uid);
     CREATE INDEX IF NOT EXISTS idx_votes_depute   ON votes(depute_uid);
     CREATE INDEX IF NOT EXISTS idx_votes_scrutin  ON votes(scrutin_uid);

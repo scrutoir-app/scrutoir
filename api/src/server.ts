@@ -23,6 +23,7 @@ import {
   profilParti,
   partisParCategorie,
   confrontation,
+  shuffleConfrontation,
   departements,
   deputesParCirco,
   type Periode,
@@ -110,6 +111,15 @@ app.get("/confrontation", (req, res) => {
   if (!a || !b) return res.status(400).json({ error: "deux députés (a, b) requis" });
   const r = confrontation(db, a, b, periode);
   if (!r) return res.status(404).json({ error: "Député introuvable" });
+  res.json(r);
+});
+
+// Shuffle de la confrontation : une paire surprenante piochée dans un vivier
+// pré-calculé. angle optionnel (sinon tiré au hasard).
+app.get("/confrontation/shuffle", (req, res) => {
+  const angle = req.query.angle ? String(req.query.angle) : undefined;
+  const r = shuffleConfrontation(db, angle);
+  if (!r) return res.status(404).json({ error: "Aucune paire disponible" });
   res.json(r);
 });
 

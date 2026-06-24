@@ -1,6 +1,6 @@
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
-  PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi,
+  PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi, ShuffleConfrontation, AngleShuffle,
 } from "./types";
 
 /**
@@ -302,6 +302,32 @@ export async function getConfrontation(aUid: string, bUid: string, periode: Peri
     a, b, periode, communs, desaccords, accords: communs - desaccords,
     themes: [...themes.values()].sort((x, y) => x.ordre - y.ordre),
   };
+}
+
+// --- Shuffle de la confrontation (client) -----------------------------------
+type PaireShuffle = { a: string; b: string; communs: number; accords: number; taux: number };
+const ANGLES_SHUFFLE: AngleShuffle[] = ["fracture_interne", "alliance_contre_nature", "faux_duel"];
+const shuffleData = () => j<Record<AngleShuffle, PaireShuffle[]>>("confrontation_shuffle");
+
+/**
+ * Pioche une paire surprenante dans un vivier pré-calculé. `angle` optionnel : si
+ * absent, on en tire un au hasard (parmi ceux qui ont des paires). Léger biais vers
+ * les meilleurs rangs (tirage le mieux classé sur deux), mais on garde de l'aléa.
+ */
+export async function getConfrontationShuffle(angle?: AngleShuffle): Promise<ShuffleConfrontation | null> {
+  const [data, deps] = await Promise.all([shuffleData(), deputesIndex()]);
+  const dispo = ANGLES_SHUFFLE.filter((a) => (data[a]?.length ?? 0) > 0);
+  if (!dispo.length) return null;
+  const choisi = angle && data[angle]?.length ? angle : dispo[Math.floor(Math.random() * dispo.length)];
+  const paires = data[choisi] ?? [];
+  if (!paires.length) return null;
+  const byUid = new Map(deps.map((d) => [d.uid, d]));
+  const i = Math.min(Math.floor(Math.random() * paires.length), Math.floor(Math.random() * paires.length));
+  const p = paires[i];
+  const a = byUid.get(p.a);
+  const b = byUid.get(p.b);
+  if (!a || !b) return null;
+  return { angle: choisi, a, b, communs: p.communs, tauxAccord: p.taux };
 }
 
 // --- Recherche de commune (API Géo officielle, reste dynamique côté client) --

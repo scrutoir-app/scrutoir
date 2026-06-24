@@ -212,7 +212,7 @@ function AppInner() {
           {current.name === "mentions" && <MentionsScreen />}
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} periode={current.periode} nav={nav} />}
           {current.name === "confrontationListe" && (
-            <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} nav={nav} />
+            <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} depA={current.depA} depB={current.depB} communs={current.communs} nav={nav} />
           )}
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
           {current.name === "parametres" && <ParametresScreen nav={nav} />}

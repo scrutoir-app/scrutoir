@@ -741,6 +741,50 @@ export function confrontation(
   };
 }
 
+/**
+ * Tirage « shuffle » de la confrontation : une paire de députés piochée dans un
+ * vivier pré-calculé (table confrontation_shuffle). Si `angle` est absent, on en
+ * choisit un au hasard. On pioche au hasard dans l'angle, avec un léger biais vers
+ * les meilleurs rangs (les plus marqués), tout en gardant de l'aléa. Renvoie la
+ * forme DeputeResume déjà utilisée par confrontation(), + l'accord global de la paire.
+ */
+export type AngleShuffle = "fracture_interne" | "alliance_contre_nature" | "faux_duel";
+const ANGLES_SHUFFLE: AngleShuffle[] = ["fracture_interne", "alliance_contre_nature", "faux_duel"];
+
+export function shuffleConfrontation(db: Database.Database, angle?: string) {
+  const choisi = (ANGLES_SHUFFLE as string[]).includes(angle ?? "")
+    ? (angle as AngleShuffle)
+    : ANGLES_SHUFFLE[Math.floor(Math.random() * ANGLES_SHUFFLE.length)];
+
+  const paires = db
+    .prepare(`SELECT a_uid, b_uid, communs, accords, taux FROM confrontation_shuffle WHERE angle = ? ORDER BY rang`)
+    .all(choisi) as Array<{ a_uid: string; b_uid: string; communs: number; accords: number; taux: number }>;
+  if (!paires.length) return null;
+
+  // Biais léger vers les bons rangs : on tire deux fois et on garde le mieux classé.
+  const i = Math.min(Math.floor(Math.random() * paires.length), Math.floor(Math.random() * paires.length));
+  const p = paires[i];
+
+  const resume = (uid: string) =>
+    db
+      .prepare(
+        `SELECT d.uid, d.nom_complet, d.photo_url, g.libelle AS groupe, g.abrev, g.couleur
+         FROM deputes d LEFT JOIN groupes g ON g.uid = d.groupe_uid WHERE d.uid = ?`
+      )
+      .get(uid) as DeputeResume | undefined;
+  const a = resume(p.a_uid);
+  const b = resume(p.b_uid);
+  if (!a || !b) return null;
+
+  return {
+    angle: choisi,
+    a,
+    b,
+    communs: p.communs,
+    tauxAccord: Math.round(p.taux * 100),
+  };
+}
+
 /** Liste des départements (pour le sélecteur "mon député"), avec nb de circonscriptions. */
 export function departements(db: Database.Database) {
   return db

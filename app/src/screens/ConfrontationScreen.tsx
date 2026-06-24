@@ -1,16 +1,17 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking,
+  View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking, Animated, Platform,
 } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, inputText, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
 import { SEUIL_FIABILITE, scrutinSourceUrl } from "../config";
 import { catUI } from "../categoryUI";
-import { rechercher, getConfrontation } from "../api";
+import { rechercher, getConfrontation, getConfrontationShuffle } from "../api";
 import { BarreDivergente } from "../components/BarreDivergente";
+import { DuelDeputesBar } from "../components/DuelDeputesBar";
 import { PositionCells } from "../components/PositionCells";
 import { track } from "../analytics";
-import type { DeputeResume, Confrontation, ConfrontationScrutin, ConfrontationTheme, Periode } from "../types";
+import type { DeputeResume, Confrontation, ConfrontationScrutin, ConfrontationTheme, Periode, AngleShuffle } from "../types";
 import type { Nav } from "../nav";
 
 const PERIODES: { v: Periode; label: string }[] = [
@@ -19,12 +20,62 @@ const PERIODES: { v: Periode; label: string }[] = [
   { v: "6m", label: "6 mois" },
 ];
 
+// Libellé du bandeau « Pourquoi ce duel » selon l'angle du tirage. Ton neutre,
+// sobre, sans vocabulaire de combat — c'est ce qui écarte tout soupçon partisan.
+const ANGLE_LABEL: Record<AngleShuffle, string> = {
+  fracture_interne: "Même groupe, votes les plus éloignés.",
+  alliance_contre_nature: "Groupes opposés, votes étonnamment proches.",
+  faux_duel: "Ni alliés ni adversaires : ça se joue dossier par dossier.",
+};
+const ANGLE_ICON: Record<AngleShuffle, keyof typeof Feather.glyphMap> = {
+  fracture_interne: "git-branch",
+  alliance_contre_nature: "git-merge",
+  faux_duel: "git-commit",
+};
+const ANGLES_SHUFFLE: AngleShuffle[] = ["fracture_interne", "alliance_contre_nature", "faux_duel"];
+
 export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: string; b?: string; periode?: Periode; nav: Nav }) {
   const [depA, setDepA] = useState<DeputeResume | null>(null);
   const [depB, setDepB] = useState<DeputeResume | null>(null);
   const [periode, setPeriode] = useState<Periode>(periodeInit ?? "all");
   const [data, setData] = useState<Confrontation | null>(null);
   const [loading, setLoading] = useState(false);
+  // Angle du dernier tirage shuffle (null dès qu'un sélecteur est touché à la main).
+  const [shuffleAngle, setShuffleAngle] = useState<AngleShuffle | null>(null);
+  const [shuffling, setShuffling] = useState(false);
+
+  // Barre sticky des deux élus : apparaît quand les sélecteurs ont défilé hors champ.
+  const scrollY = useRef(new Animated.Value(0)).current;
+  const barOpacity = scrollY.interpolate({ inputRange: [120, 190], outputRange: [0, 1], extrapolate: "clamp" });
+  const barTranslate = scrollY.interpolate({ inputRange: [120, 190], outputRange: [-10, 0], extrapolate: "clamp" });
+
+  // Sélection manuelle d'un élu → on quitte le contexte « tirage » (plus de bandeau).
+  const choisirA = (d: DeputeResume) => { setDepA(d); setShuffleAngle(null); };
+  const choisirB = (d: DeputeResume) => { setDepB(d); setShuffleAngle(null); };
+  const viderA = () => { setDepA(null); setShuffleAngle(null); };
+  const viderB = () => { setDepB(null); setShuffleAngle(null); };
+
+  // Shuffle : pioche une paire dans un autre angle que le précédent (effet machine
+  // à sous), remplit les deux sélecteurs → le useEffect ci-dessous charge le duel.
+  async function lancerShuffle() {
+    if (shuffling) return;
+    setShuffling(true);
+    try {
+      const dispo = ANGLES_SHUFFLE.filter((a) => a !== shuffleAngle);
+      const cible = dispo[Math.floor(Math.random() * dispo.length)];
+      const res = await getConfrontationShuffle(cible);
+      if (res) {
+        setDepA(res.a);
+        setDepB(res.b);
+        setShuffleAngle(res.angle);
+        track("shuffle", res.angle);
+      }
+    } catch {
+      /* silencieux : un tirage raté ne casse pas l'écran */
+    } finally {
+      setShuffling(false);
+    }
+  }
 
   // Pré-sélection éventuelle (uid passés en route) → on récupère le résumé via une recherche légère.
   useEffect(() => {
@@ -54,8 +105,34 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
 
   const pret = depA && depB;
 
+  const tauxAccord = data && data.communs ? Math.round((data.accords / data.communs) * 100) : null;
+
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
+    <View style={{ flex: 1 }}>
+      {/* Barre sticky : les deux élus + le taux d'accord, révélée au scroll. */}
+      {pret && data && !loading && (
+        <Animated.View
+          style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, opacity: barOpacity, transform: [{ translateY: barTranslate }], pointerEvents: "none" }}
+        >
+          <DuelDeputesBar
+            a={depA!}
+            b={depB!}
+            center={
+              <View style={{ paddingVertical: 4, paddingHorizontal: 11, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.md, alignItems: "center" }}>
+                <Text style={[tnum, { fontFamily: F.extra, fontSize: 17, lineHeight: 20, color: C.text }]}>{tauxAccord != null ? `${tauxAccord}%` : "—"}</Text>
+                <Text style={[T.micro, { fontFamily: F.semibold, color: C.textMuted }]}>d'accord</Text>
+              </View>
+            }
+          />
+        </Animated.View>
+      )}
+
+      <Animated.ScrollView
+        contentContainerStyle={{ padding: 16, paddingBottom: 44 }}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: Platform.OS !== "web" })}
+      >
       <Text style={[T.title, { color: C.text }]}>Confronter deux élus</Text>
       <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
         Sur les seuls scrutins publics nominatifs où les deux ont voté. Un silence de données n'est pas un désaccord.
@@ -63,8 +140,24 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
 
       {/* Sélecteurs symétriques */}
       <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
-        <DeputeSlot depute={depA} onPick={setDepA} onClear={() => setDepA(null)} />
-        <DeputeSlot depute={depB} onPick={setDepB} onClear={() => setDepB(null)} />
+        <DeputeSlot depute={depA} onPick={choisirA} onClear={viderA} />
+        <DeputeSlot depute={depB} onPick={choisirB} onClear={viderB} />
+      </View>
+
+      {/* Shuffle — juste sous la rangée des sélecteurs. Re-clic = nouveau tirage. */}
+      <View style={{ alignItems: "center", marginTop: 14, gap: 9 }}>
+        <Text style={[T.small, { color: C.textMuted }]}>Pas d'idée ? Laissez-vous surprendre.</Text>
+        <TouchableOpacity
+          onPress={lancerShuffle}
+          disabled={shuffling}
+          accessibilityLabel="Tirer une paire au hasard"
+          style={{
+            width: 46, height: 46, borderRadius: RADIUS.pill, borderWidth: 1.5, borderColor: C.accent,
+            backgroundColor: C.surface, alignItems: "center", justifyContent: "center", ...shadowCard,
+          }}
+        >
+          {shuffling ? <ActivityIndicator size="small" color={C.accent} /> : <Feather name="shuffle" size={20} color={C.accent} />}
+        </TouchableOpacity>
       </View>
 
       {/* Période */}
@@ -89,8 +182,9 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
 
       {loading && <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />}
 
-      {pret && data && !loading && <Resultats data={data} depA={depA!} depB={depB!} periode={periode} nav={nav} />}
-    </ScrollView>
+      {pret && data && !loading && <Resultats data={data} depA={depA!} depB={depB!} periode={periode} shuffleAngle={shuffleAngle} nav={nav} />}
+      </Animated.ScrollView>
+    </View>
   );
 }
 
@@ -150,7 +244,7 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
 
 /* ------------------------------------------------------------------ Résultats */
 
-function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; depA: DeputeResume; depB: DeputeResume; periode: Periode; nav: Nav }) {
+function Resultats({ data, depA, depB, periode, shuffleAngle, nav }: { data: Confrontation; depA: DeputeResume; depB: DeputeResume; periode: Periode; shuffleAngle: AngleShuffle | null; nav: Nav }) {
   // Spectre : thèmes assez couverts, triés du plus divergent au plus convergent.
   const fiables = data.themes
     .filter((t) => t.communs >= SEUIL_FIABILITE)
@@ -163,6 +257,25 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
 
   return (
     <View style={{ marginTop: 18 }}>
+      {/* Bandeau « Pourquoi ce duel » : présent uniquement sur un tirage shuffle,
+          au-dessus de la synthèse. Explique l'angle, écarte tout soupçon partisan. */}
+      {shuffleAngle && (
+        <View
+          style={{
+            flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10,
+            backgroundColor: C.surfaceSunken, borderRadius: RADIUS.md, paddingVertical: 11, paddingHorizontal: 13,
+          }}
+        >
+          <Feather name={ANGLE_ICON[shuffleAngle]} size={18} color={C.accent} />
+          <View style={{ flex: 1 }}>
+            <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, letterSpacing: 0.4, textTransform: "uppercase" }]}>
+              Pourquoi ce duel
+            </Text>
+            <Text style={[T.small, { fontFamily: F.semibold, color: C.text, marginTop: 1 }]}>{ANGLE_LABEL[shuffleAngle]}</Text>
+          </View>
+        </View>
+      )}
+
       {/* Carte de synthèse — honnête même sortie de l'app (capture d'écran) */}
       <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
         <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
@@ -195,7 +308,7 @@ function Resultats({ data, depA, depB, periode, nav }: { data: Confrontation; de
           </Text>
           <View style={{ gap: 9 }}>
             {fiables.map((t) => (
-              <ThemeSpectrumRow key={t.id} theme={t} sousTitre={`${depA.nom_complet} vs ${depB.nom_complet}`} nav={nav} />
+              <ThemeSpectrumRow key={t.id} theme={t} depA={depA} depB={depB} sousTitre={`${depA.nom_complet} vs ${depB.nom_complet}`} nav={nav} />
             ))}
           </View>
         </View>
@@ -231,7 +344,7 @@ function Synthese({ n, label, color }: { n: number | string; label: string; colo
 }
 
 /** Ligne de spectre : thème + barre divergente accords/désaccords, dépliable. */
-function ThemeSpectrumRow({ theme, sousTitre, nav }: { theme: ConfrontationTheme; sousTitre: string; nav: Nav }) {
+function ThemeSpectrumRow({ theme, depA, depB, sousTitre, nav }: { theme: ConfrontationTheme; depA: DeputeResume; depB: DeputeResume; sousTitre: string; nav: Nav }) {
   const [open, setOpen] = useState(false);
   const ui = catUI(theme.id);
   const d = theme.desaccords.length;
@@ -245,6 +358,9 @@ function ThemeSpectrumRow({ theme, sousTitre, nav }: { theme: ConfrontationTheme
       themeLibelle: theme.libelle,
       sousTitre,
       scrutins: kind === "accord" ? theme.accords : theme.desaccords,
+      depA,
+      depB,
+      communs: theme.communs,
     });
 
   return (

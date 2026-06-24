@@ -229,3 +229,14 @@ export interface Confrontation {
   accords: number;
   themes: ConfrontationTheme[];
 }
+
+// « Shuffle » de la confrontation : une paire surprenante piochée dans un vivier
+// pré-calculé. Trois angles, chacun porteur d'une surprise (cf. pipeline).
+export type AngleShuffle = "fracture_interne" | "alliance_contre_nature" | "faux_duel";
+export interface ShuffleConfrontation {
+  angle: AngleShuffle;
+  a: DeputeResume;
+  b: DeputeResume;
+  communs: number;
+  tauxAccord: number; // accords / communs, en pourcentage entier
+}

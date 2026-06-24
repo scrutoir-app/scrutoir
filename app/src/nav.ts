@@ -1,4 +1,4 @@
-import type { ConfrontationScrutin } from "./types";
+import type { ConfrontationScrutin, DeputeResume } from "./types";
 
 export type Route =
   | { name: "search" }
@@ -52,6 +52,9 @@ export type Route =
       themeLibelle: string;
       sousTitre: string;
       scrutins: ConfrontationScrutin[];
+      depA: DeputeResume; // pour la barre sticky des deux élus (contexte)
+      depB: DeputeResume;
+      communs: number; // total de scrutins communs du thème (pour le taux affiché)
     }
   | { name: "monDepute" }
   | { name: "suivis" }
