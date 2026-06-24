@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.58 — 2026-06-24
+- **Ordre de lecture de la page Confrontation** : le texte « Choisissez deux élus pour comparer
+  leurs votes. » est désormais affiché au-dessus des boîtes de sélection (et non plus après le
+  shuffle). Séparateur léger entre les sélecteurs et la zone shuffle pour distinguer visuellement
+  les deux modes d'entrée (manuel vs. tirage).
+
 ## 1.0.57 — 2026-06-24
 - **Shuffle confrontation** : bouton « Laissez-vous surprendre » sous les sélecteurs de la page
   Confrontation. Trois angles pré-calculés dans le pipeline : `fracture_interne` (même groupe,
