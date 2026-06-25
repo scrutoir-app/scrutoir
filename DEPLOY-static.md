@@ -50,7 +50,7 @@ Deux options :
   export NVM_DIR="$HOME/.nvm"; . "$NVM_DIR/nvm.sh"
   cd pipeline && npm run ingest:refresh && npm run export:static
   cd ../app && npm run build:web
-  npx wrangler pages deploy dist --project-name=scrutoir
+  npm run deploy:pages   # garde anti-régression des données + wrangler pages deploy (bypass : -- --force)
   # (wrangler demandera de te connecter à Cloudflare au 1er lancement)
   ```
 

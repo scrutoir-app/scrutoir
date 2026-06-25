@@ -107,7 +107,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.45**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.64**.
 - **Mode sombre (v1.0.45)** : réglage Clair/Sombre/Auto dans **Paramètres** (icône ⚙️ en-tête Accueil →
   route `parametres`, `screens/ParametresScreen.tsx`). Thème **réactif sans refacto des imports** : `theme.ts`
   expose `LIGHT`/`DARK` + une palette VIVANTE `C` (et `shadowCard`) réécrite par `applyScheme()` ; le
@@ -143,8 +143,11 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - **Photos thèmes self-hébergées** (`app/public/hero/<id>.jpg`, 35 images Unsplash licence libre, ~4 Mo,
   committées) → plus d'appel externe (vie privée + hors-ligne). `categoryUI.ts ph()` → `/hero/<id>.jpg`.
   Régénérables : `app/scripts/gen-hero.sh`.
-- Déploiement manuel (hors robot) : `cd app && export CLOUDFLARE_ACCOUNT_ID=627984d2dd614e139df12342e9f2469a &&
-  npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true`.
+- Déploiement manuel (hors robot) : préférer `cd app && export CLOUDFLARE_ACCOUNT_ID=627984d2dd614e139df12342e9f2469a &&
+  npm run deploy:pages`. `deploy:pages` = **garde anti-régression** (`scripts/check-data-freshness.mjs` : refuse de
+  déployer si la base LOCALE est plus ancienne/pauvre que la prod — évite l'écrasement déjà vécu) + `wrangler pages
+  deploy dist`. Bypass : `npm run deploy:pages -- --force`. Commande brute (sans garde, à éviter) :
+  `npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true`.
 
 - Projet Cloudflare Pages `scrutoir` créé (Direct Upload), compte **anthony@seedger.com**, account id
   `627984d2dd614e139df12342e9f2469a`. Déploiement local : `cd app && export CLOUDFLARE_ACCOUNT_ID=… &&
@@ -264,7 +267,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   tuiles thème sont des pictos neutres (icône + libellé court `categoryUI.court`) pour éviter la
   connotation éditoriale. ⚠️ **Porteur du hero non encore branché** : grands scrutins = lois entières
   (0/75 ont un `auteur`) → photo du porteur = extraire auteur/rapporteur des Dossiers législatifs (TODO).
-- **Picto de catégorie** sur chaque scrutin (ScrutinCard/ScrutinRow ; API renvoie `categorie`
+- **Picto de catégorie** sur chaque scrutin (ScrutinCard, rendu unique des listes ; API renvoie `categorie`
   principale par sous-requête). **Code couleur** sur le nombre d'amendements d'un parti (orange si
   > moyenne, rouge si ×≥1.5 → signal d'anomalie/obstruction).
 
