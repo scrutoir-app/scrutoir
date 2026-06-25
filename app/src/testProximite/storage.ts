@@ -65,8 +65,20 @@ export function decoderPartage(s: string): { reponses: Record<number, Reponse>; 
   try {
     const p = JSON.parse(unb64url(s)) as { r?: Record<string, number>; w?: Record<string, number> };
     const reponses: Record<number, Reponse> = {};
-    for (const [id, c] of Object.entries(p.r ?? {})) reponses[Number(id)] = DECODE[c] ?? "sans_avis";
-    return { reponses, poids: p.w };
+    for (const [id, c] of Object.entries(p.r ?? {})) {
+      const n = Number(id);
+      // Ne garder que des ids entiers et des codes connus (0/1/2) — un lien trafiqué
+      // ne doit pas injecter de clé NaN ni de réponse hors barème.
+      if (Number.isInteger(n) && (c === 0 || c === 1 || c === 2)) reponses[n] = DECODE[c];
+    }
+    // Poids : seulement des nombres finis bornés (évite NaN/poids absurde dans le score).
+    let poids: Record<string, number> | undefined;
+    if (p.w && typeof p.w === "object") {
+      poids = {};
+      for (const [k, w] of Object.entries(p.w))
+        if (typeof w === "number" && isFinite(w) && w >= 0 && w <= 3) poids[k] = w;
+    }
+    return { reponses, poids };
   } catch {
     return null;
   }

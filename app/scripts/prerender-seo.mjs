@@ -40,6 +40,11 @@ const POS_LABEL = { pour: "Pour", contre: "Contre", abstention: "Abstention", no
 // ---------- helpers ----------
 const esc = (s) =>
   String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+// Sérialise un objet pour un <script type="application/ld+json"> : JSON.stringify
+// n'échappe pas `<`, donc un titre/nom contenant `</script>` casserait la page.
+// On échappe `< > &` et les séparateurs de ligne Unicode en \uXXXX (JSON reste valide).
+const jsonLd = (obj) =>
+  JSON.stringify(obj).replace(/[<>&\u2028\u2029]/g, (c) => "\\u" + c.charCodeAt(0).toString(16).padStart(4, "0"));
 const slugify = (s) =>
   String(s ?? "")
     .toLowerCase()
@@ -167,7 +172,7 @@ ${noindex ? `<meta name="robots" content="noindex,follow">\n` : ""}<title>${esc(
 <link rel="icon" href="/favicon.ico">
 <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
 <style>${CSS}</style>
-<script type="application/ld+json">${JSON.stringify(ld)}</script>
+<script type="application/ld+json">${jsonLd(ld)}</script>
 </head>
 <body>
 <header class="hd"><a class="brand" href="/">${markSvg(28)}<span>Scrutoir</span></a></header>

@@ -7,6 +7,22 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.63 — 2026-06-25
+- **Sécurité & robustesse** (durcissement, sans changement visible).
+  - **Dashboard analytics** (Worker privé) : correction d'une XSS stockée (l'échappement
+    HTML ignorait les guillemets, et le texte de recherche — entrée non fiable — atterrissait
+    dans un attribut `title`) ; ajout d'une **CSP stricte** sur la réponse `/stats` (filet en
+    défense en profondeur, aucun script ne peut s'exécuter) ; requêtes SQL : whitelist du type
+    d'événement avant interpolation ; comparaison du mot de passe à **temps constant**.
+  - **Pré-rendu SEO** : sérialisation JSON-LD durcie (`<`, `>`, `&` et séparateurs de ligne
+    Unicode échappés) — un titre/nom contenant `</script>` ne peut plus casser la page.
+  - **Test de proximité** : `decoderPartage` valide désormais le lien partagé (ids entiers,
+    codes de réponse connus, poids numériques bornés) — un lien trafiqué ne peut plus injecter
+    de valeur absurde dans le calcul.
+  - **Déploiement** : nouveau garde `npm run check:data` / `npm run deploy:pages` qui **refuse
+    un déploiement manuel** si la base locale est plus ancienne/pauvre que la prod (évite la
+    régression de données déjà rencontrée).
+
 ## 1.0.62 — 2026-06-24
 - **Test de proximité** : nouvelle fonctionnalité. Réponds à de vrais scrutins clivants (Pour /
   Sans avis / Contre) et découvre ta proximité avec chaque groupe — un **spectre**, jamais un parti

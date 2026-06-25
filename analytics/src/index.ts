@@ -42,6 +42,15 @@ function corsHeaders(origin: string | null, allowed: string[]): Record<string, s
 
 const clip = (s: unknown, n: number): string => (typeof s === "string" ? s : "").slice(0, n);
 
+// Comparaison à temps constant (auth dashboard) : évite une fuite par timing du mot de passe.
+function safeEqual(a: string, b: string): boolean {
+  const e = new TextEncoder(), x = e.encode(a), y = e.encode(b);
+  if (x.length !== y.length) return false;
+  let d = 0;
+  for (let i = 0; i < x.length; i++) d |= x[i] ^ y[i];
+  return d === 0;
+}
+
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const url = new URL(request.url);
@@ -87,7 +96,7 @@ export default {
       if (auth.startsWith("Basic ")) {
         try { pass = atob(auth.slice(6)).split(":").slice(1).join(":"); } catch { /* ignore */ }
       }
-      if (!env.DASH_KEY || pass !== env.DASH_KEY) {
+      if (!env.DASH_KEY || !safeEqual(pass, env.DASH_KEY)) {
         return new Response("Authentification requise.", {
           status: 401,
           headers: { "WWW-Authenticate": 'Basic realm="Scrutoir Analytics", charset="UTF-8"' },
@@ -95,7 +104,18 @@ export default {
       }
       const days = Math.min(365, Math.max(1, parseInt(url.searchParams.get("days") || "30", 10) || 30));
       const html = await dashboard(env, days);
-      return new Response(html, { headers: { "Content-Type": "text/html; charset=utf-8" } });
+      return new Response(html, {
+        headers: {
+          "Content-Type": "text/html; charset=utf-8",
+          // Le dashboard n'a AUCUN <script> et seulement du CSS + SVG inline : une CSP
+          // stricte rend inerte toute injection résiduelle (défense en profondeur).
+          "Content-Security-Policy":
+            "default-src 'none'; style-src 'unsafe-inline'; img-src data:; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+          "X-Content-Type-Options": "nosniff",
+          "Referrer-Policy": "no-referrer",
+          "Cache-Control": "no-store",
+        },
+      });
     }
 
     return new Response("scrutoir-analytics ok", { status: 200 });
@@ -148,7 +168,7 @@ const meta = (t: string) => META[t] || { i: "•", l: t };
 
 async function dashboard(env: Env, days: number): Promise<string> {
   const ds = env.DATASET;
-  const esc = (s: string) => (s || "").replace(/[<>&]/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;" }[c]!));
+  const esc = (s: string) => (s || "").replace(/[<>&"']/g, (c) => ({ "<": "&lt;", ">": "&gt;", "&": "&amp;", '"': "&quot;", "'": "&#39;" }[c]!));
 
   const [deps, scrs, cats, prts] = await Promise.all([
     fetchJson("https://scrutoir.fr/data/deputes.json"),
@@ -198,7 +218,9 @@ async function dashboard(env: Env, days: number): Promise<string> {
 
   // Auto-sections : tout type d'événement présent et NON déjà couvert ci-dessus.
   const covered = new Set(["confront", "follow", "unfollow", "follow_parti", "unfollow_parti", "depute", "parti", "scrutin", "screen", "theme", "search", "search_empty", "source", "install"]);
-  const extraTypes = byType.map((r) => r.k).filter((t: string) => !covered.has(t));
+  // Filtre [a-z_] : borne le type avant interpolation SQL (les types légitimes sont tous
+  // en minuscules/underscore) → ferme le risque d'injection sans casser l'auto-évolution.
+  const extraTypes = byType.map((r) => r.k).filter((t: string) => !covered.has(t) && /^[a-z_]{1,32}$/.test(t));
   const extras = await Promise.all(extraTypes.map((t: string) => q(env, topSql(ds, t, days)).then((rows) => ({ t, rows }))));
 
   // --- Rendu ---
