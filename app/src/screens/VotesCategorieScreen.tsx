@@ -4,7 +4,7 @@ import { C, F, T, positionLabel } from "../theme";
 import { getVotesDeputeCategorie } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
-import { ScrutinRow } from "../components/ScrutinRow";
+import { ScrutinCard } from "../components/ScrutinCard";
 
 const ORDRE: { pos: string; color: string }[] = [
   { pos: "pour", color: C.pour },
@@ -75,7 +75,9 @@ export function VotesCategorieScreen({
             <Text style={[T.small, { color: C.textMuted }]}>· {item.count}</Text>
           </View>
         ) : (
-          <ScrutinRow scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />
+          <View style={{ marginBottom: 11 }}>
+            <ScrutinCard scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />
+          </View>
         )
       }
     />

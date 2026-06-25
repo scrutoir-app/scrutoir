@@ -5,7 +5,7 @@ import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { getScrutinsCategorie, getTestProximite } from "../api";
 import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
-import { ScrutinRow } from "../components/ScrutinRow";
+import { ScrutinCard } from "../components/ScrutinCard";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 import { compterParTheme, themeTestActif, MSG_THEME_VERROUILLE } from "../testProximite/config";
 
@@ -40,6 +40,7 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
       data={filtered}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+      ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
       ListHeaderComponent={
         <View style={{ paddingTop: 14 }}>
           <Text style={[T.title, { color: C.text }]}>{libelle}</Text>
@@ -71,13 +72,14 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
             Les plus récents d'abord. Classement automatique à partir de l'intitulé.
           </Text>
           {Bar}
+          <View style={{ height: 11 }} />
         </View>
       }
       ListEmptyComponent={
         <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 32 }}>Aucun scrutin dans ce thème.</Text>
       }
       renderItem={({ item }) => (
-        <ScrutinRow scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
+        <ScrutinCard scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
       )}
     />
   );

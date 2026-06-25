@@ -72,6 +72,7 @@ write("deputes.json", deputes);
 const scrutinsRaw = db
   .prepare(
     `SELECT s.uid, s.numero, s.date, s.titre, s.sort_code, s.type_vote,
+            s.pour, s.contre, s.abstention,
             (SELECT sc.categorie_id FROM scrutin_categories sc WHERE sc.scrutin_uid = s.uid
              ORDER BY sc.confiance DESC LIMIT 1) AS categorie,
             (SELECT group_concat(sc2.categorie_id) FROM scrutin_categories sc2 WHERE sc2.scrutin_uid = s.uid) AS cats

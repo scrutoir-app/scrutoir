@@ -42,7 +42,7 @@ export function useScrutinDateFilter<T extends { date: string | null; sort_code?
 
   // Résultat : on ne propose le filtre que si la liste contient À LA FOIS des adoptés et des
   // rejetés (sinon le toggle n'a aucun sens). « Rejeté » = tout ce qui n'est pas « adopte »
-  // (cohérent avec le badge de ScrutinRow).
+  // (cohérent avec le badge de ScrutinCard).
   const hasAdopte = useMemo(() => items.some((i) => i.sort_code === "adopte"), [items]);
   const hasRejete = useMemo(() => items.some((i) => i.sort_code != null && i.sort_code !== "adopte"), [items]);
   const showResult = hasAdopte && hasRejete;

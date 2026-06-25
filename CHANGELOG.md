@@ -7,6 +7,17 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.64 — 2026-06-25
+- **Carte de scrutin unifiée partout** : les listes de scrutins (Thème, votes d'un député par
+  thème / par position, votes d'un groupe) adoptent la **même carte** que les Grands scrutins —
+  picto + résultat + date + titre + **barre de vote et décompte Pour/Contre/Abstention**. Avant,
+  ces listes affichaient une ligne dense sans la répartition des voix. Meilleure lisibilité et
+  cohérence d'un écran à l'autre. Chaque page garde ses filtres propres (résultat, dates, etc.).
+- Les rendus spécifiques sont conservés tels quels : confrontation de deux élus (votes A↔B) et
+  cartes par thème de la fiche député (cases Pour/Contre du député).
+- Technique : l'index `scrutins.json` porte désormais `pour/contre/abstention` (≈ +40 Ko gzip) ;
+  composant unique `ScrutinCard` (l'ancien `ScrutinRow` est supprimé).
+
 ## 1.0.63 — 2026-06-25
 - **Sécurité & robustesse** (durcissement, sans changement visible).
   - **Dashboard analytics** (Worker privé) : correction d'une XSS stockée (l'échappement

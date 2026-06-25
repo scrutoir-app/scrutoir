@@ -4,7 +4,7 @@ import { C, F, T, positionLabel, couleurPosition } from "../theme";
 import { getVotesDepute } from "../api";
 import type { VoteScrutin } from "../types";
 import type { Nav } from "../nav";
-import { ScrutinRow } from "../components/ScrutinRow";
+import { ScrutinCard } from "../components/ScrutinCard";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 
 export function VotesListeScreen({
@@ -40,6 +40,7 @@ export function VotesListeScreen({
       data={filtered}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+      ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
       ListHeaderComponent={
         <View style={{ paddingTop: 12 }}>
           <Text style={[T.heading, { color: C.text }]}>
@@ -51,6 +52,7 @@ export function VotesListeScreen({
             {filtered.length} scrutins en {categorieLibelle}
           </Text>
           {Bar}
+          <View style={{ height: 11 }} />
         </View>
       }
       ListEmptyComponent={
@@ -60,9 +62,9 @@ export function VotesListeScreen({
       }
       renderItem={({ item }) => (
         <View>
-          <ScrutinRow scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
+          <ScrutinCard scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
           {voteExprime && item.consigne != null && (
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: -4, marginBottom: 8, marginLeft: 4 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 7, marginLeft: 4 }}>
               <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>
                 consigne du groupe :
               </Text>

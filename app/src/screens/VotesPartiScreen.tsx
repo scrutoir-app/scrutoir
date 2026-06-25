@@ -4,7 +4,7 @@ import { C, T, positionLabel } from "../theme";
 import { getVotesParti } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
-import { ScrutinRow } from "../components/ScrutinRow";
+import { ScrutinCard } from "../components/ScrutinCard";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 
 /** Scrutins où le groupe a tenu une position donnée sur un thème (drill-down fiche parti). */
@@ -41,6 +41,7 @@ export function VotesPartiScreen({
       data={filtered}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
+      ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
       ListHeaderComponent={
         <View style={{ paddingTop: 12 }}>
           <Text style={[T.heading, { color: C.text }]}>
@@ -50,13 +51,14 @@ export function VotesPartiScreen({
             {filtered.length} scrutins en {categorieLibelle}
           </Text>
           {Bar}
+          <View style={{ height: 11 }} />
         </View>
       }
       ListEmptyComponent={
         <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 32 }}>Aucun scrutin.</Text>
       }
       renderItem={({ item }) => (
-        <ScrutinRow scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
+        <ScrutinCard scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
       )}
     />
   );
