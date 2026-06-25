@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.65 — 2026-06-25
+- **Guide « Installer sur iPhone ou iPad »** : sur iOS, le bandeau d'installation (bas de l'accueil)
+  devient « Voir comment faire » et ouvre un **guide illustré en 4 étapes** — barre d'adresse « ••• » →
+  « Partager » → « Sur l'écran d'accueil » → « Ajouter » (Apple n'autorisant aucun ajout automatique).
+  Réservé à iOS ; Android conserve le bouton « Installer » natif. Le bandeau disparaît une fois l'app
+  installée (mode standalone). Nouveau composant `InstallGuide.tsx`.
+
 ## 1.0.64 — 2026-06-25
 - **Carte de scrutin unifiée partout** : les listes de scrutins (Thème, votes d'un député par
   thème / par position, votes d'un groupe) adoptent la **même carte** que les Grands scrutins —

@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS } from "../theme";
 import { ScrutoirMark } from "./ScrutoirMark";
+import { InstallGuide } from "./InstallGuide";
 import { getDeferredPrompt, onPromptChange, promptInstall, isStandalone, isIOS } from "../pwa";
 
 const DISMISS_KEY = "scrutoir_install_dismissed";
@@ -14,6 +15,7 @@ const DISMISS_KEY = "scrutoir_install_dismissed";
  */
 export function InstallPrompt() {
   const [mode, setMode] = useState<"android" | "ios" | null>(null);
+  const [guideOpen, setGuideOpen] = useState(false);
 
   useEffect(() => {
     if (Platform.OS !== "web") return;
@@ -51,53 +53,75 @@ export function InstallPrompt() {
     if (ok) setMode(null);
   };
 
-  return (
+  const mark = (
     <View
       style={{
-        flexDirection: "row",
+        width: 38,
+        height: 38,
+        borderRadius: 10,
+        backgroundColor: C.accentSoft,
         alignItems: "center",
-        gap: 11,
-        paddingHorizontal: 14,
-        paddingVertical: 11,
-        backgroundColor: C.surface,
-        borderTopWidth: 1,
-        borderTopColor: C.border,
+        justifyContent: "center",
       }}
     >
+      <ScrutoirMark size={26} />
+    </View>
+  );
+
+  return (
+    <>
       <View
         style={{
-          width: 38,
-          height: 38,
-          borderRadius: 10,
-          backgroundColor: C.accentSoft,
+          flexDirection: "row",
           alignItems: "center",
-          justifyContent: "center",
+          gap: 11,
+          paddingHorizontal: 14,
+          paddingVertical: 11,
+          backgroundColor: C.surface,
+          borderTopWidth: 1,
+          borderTopColor: C.border,
         }}
       >
-        <ScrutoirMark size={26} />
-      </View>
+        {mode === "ios" ? (
+          // iOS : pas de déclenchement auto possible → tap = guide illustré.
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => setGuideOpen(true)}
+            style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 11 }}
+          >
+            {mark}
+            <View style={{ flex: 1 }}>
+              <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Installer Scrutoir</Text>
+              <View style={{ flexDirection: "row", alignItems: "center", marginTop: 1 }}>
+                <Text style={[T.small, { fontFamily: F.semibold, color: C.accent }]}>Voir comment faire</Text>
+                <Feather name="chevron-right" size={15} color={C.accent} style={{ marginLeft: 1 }} />
+              </View>
+            </View>
+          </TouchableOpacity>
+        ) : (
+          <>
+            {mark}
+            <View style={{ flex: 1 }}>
+              <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Installer Scrutoir</Text>
+              <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted, marginTop: 1 }]}>
+                Accès en un tap, hors-ligne, sans passer par un store.
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={install}
+              style={{ backgroundColor: C.accent, paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.pill }}
+            >
+              <Text style={[T.small, { color: "#fff", fontFamily: F.semibold }]}>Installer</Text>
+            </TouchableOpacity>
+          </>
+        )}
 
-      <View style={{ flex: 1 }}>
-        <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Installer Scrutoir</Text>
-        <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted, marginTop: 1 }]}>
-          {mode === "android"
-            ? "Accès en un tap, hors-ligne, sans passer par un store."
-            : "Ouvrez « Partager » (menu « ⋯ »), faites défiler — au besoin « Voir plus » — jusqu'à « + Sur l'écran d'accueil »."}
-        </Text>
-      </View>
-
-      {mode === "android" && (
-        <TouchableOpacity
-          onPress={install}
-          style={{ backgroundColor: C.accent, paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.pill }}
-        >
-          <Text style={[T.small, { color: "#fff", fontFamily: F.semibold }]}>Installer</Text>
+        <TouchableOpacity onPress={close} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ padding: 4 }}>
+          <Feather name="x" size={18} color={C.textFaint} />
         </TouchableOpacity>
-      )}
+      </View>
 
-      <TouchableOpacity onPress={close} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ padding: 4 }}>
-        <Feather name="x" size={18} color={C.textFaint} />
-      </TouchableOpacity>
-    </View>
+      <InstallGuide visible={guideOpen} onClose={() => setGuideOpen(false)} />
+    </>
   );
 }
