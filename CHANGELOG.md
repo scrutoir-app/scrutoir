@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.0.66 — 2026-06-25
+- **Analytics (interne)** : mesure d'engagement **anonyme** du test de proximité — `test_start` /
+  `test_done` avec le thème (ou « complet »), **jamais** les réponses ni le parti compatible (opinion
+  politique = donnée sensible, conforme à la promesse « ne pas profiler »). Correction : l'event
+  `shuffle` (bouton « Laissez-vous surprendre ») était émis par l'app mais rejeté par le Worker
+  (absent de `EVENTS`) → désormais enregistré, avec l'angle du tirage. Aucun changement visible.
+
 ## 1.0.65 — 2026-06-25
 - **Guide « Installer sur iPhone ou iPad »** : sur iOS, le bandeau d'installation (bas de l'accueil)
   devient « Voir comment faire » et ouvre un **guide illustré en 4 étapes** — barre d'adresse « ••• » →

@@ -25,8 +25,10 @@ interface Env {
 
 const EVENTS = new Set([
   "screen", "depute", "scrutin", "parti", "theme",
-  "confront", "follow", "unfollow", "follow_parti", "unfollow_parti",
+  "confront", "shuffle", "follow", "unfollow", "follow_parti", "unfollow_parti",
   "search", "search_empty", "source", "install",
+  // Test de proximité : engagement anonyme uniquement (jamais les réponses ni le parti).
+  "test_start", "test_done",
 ]);
 
 function corsHeaders(origin: string | null, allowed: string[]): Record<string, string> {
@@ -163,6 +165,9 @@ const META: Record<string, { i: string; l: string }> = {
   search_empty: { i: "🔍", l: "Recherches vides" },
   source: { i: "🔗", l: "Clics source AN" },
   install: { i: "📲", l: "Installations" },
+  shuffle: { i: "🎲", l: "Tirages surprise (duels)" },
+  test_start: { i: "📝", l: "Tests commencés" },
+  test_done: { i: "✅", l: "Tests terminés" },
 };
 const meta = (t: string) => META[t] || { i: "•", l: t };
 

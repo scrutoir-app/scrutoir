@@ -8,6 +8,7 @@ import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { phraseAlignement } from "../testProximite/phrase";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
+import { track } from "../analytics";
 
 const N_COMPLET = 12;
 const N_THEME = 10;
@@ -55,6 +56,13 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet"; th
   const [reponses, setReponses] = useState<Record<number, Reponse>>({});
   const [revealed, setRevealed] = useState(false);
 
+  // Engagement anonyme : « un test a commencé/terminé » + le thème (ou « complet »).
+  // JAMAIS les réponses ni le parti compatible (opinion politique = RGPD art. 9).
+  const testKey = mode === "theme" ? theme ?? "theme" : "complet";
+  useEffect(() => {
+    track("test_start", testKey);
+  }, []);
+
   useEffect(() => {
     Promise.all([getTestProximite(), getPartis(), getCategories()]).then(([qs, ps, cs]) => {
       setPartis(ps);
@@ -79,6 +87,7 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet"; th
   const repondre = (r: Reponse) => { setReponses((p) => ({ ...p, [q.id]: r })); setRevealed(true); };
   const suivant = () => {
     if (idx + 1 >= total) {
+      track("test_done", testKey);
       const themesJoues = [...new Set(questions.map((x) => x.theme))];
       nav.push({ name: "testResultat", reponses: { ...reponses, [q.id]: rep! }, themesJoues });
     } else {
