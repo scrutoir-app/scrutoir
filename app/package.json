@@ -21,6 +21,10 @@
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
+  "//overrides": "Force uuid >= 11.1.1 (GHSA-w5hq-g745-h8pq, contrôle de bornes). Seul conso = xcode@3.0.1 (génération projet iOS, build-time, jamais exécuté par 'expo export -p web') via @expo/config-plugins ; il appelle uuid.v4(), named export conservé en v11 → compatible.",
+  "overrides": {
+    "uuid": "^11.1.1"
+  },
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
