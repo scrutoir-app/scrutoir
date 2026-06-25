@@ -32,7 +32,7 @@
     "web": "expo start --web",
     "build:web": "expo export -p web && node scripts/patch-pwa.mjs && node scripts/prerender-seo.mjs",
     "check:data": "node scripts/check-data-freshness.mjs",
-    "deploy:pages": "node scripts/check-data-freshness.mjs && wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true"
+    "deploy:pages": "node scripts/check-data-freshness.mjs && npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true"
   },
   "private": true
 }
