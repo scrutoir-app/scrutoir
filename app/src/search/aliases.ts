@@ -43,7 +43,7 @@ export const ALIASES: Alias[] = [
   { concept: "Motion de censure", cles: ["motion de censure", "censure du gouvernement"], theme: "institutions",
     expansion: "motion de censure responsabilité du gouvernement" },
   { concept: "Droits des personnes LGBT", cles: ["lgbt", "lgbtq", "lgbti", "lgbtqia"], theme: "institutions",
-    expansion: "droits des personnes LGBT orientation sexuelle identité de genre thérapies de conversion discriminations" },
+    expansion: "personnes LGBT homosexualité orientation sexuelle identité de genre thérapies de conversion" },
   { concept: "Mariage des couples de même sexe", cles: ["mariage pour tous", "mariage homosexuel", "mariage gay"], theme: "institutions",
     expansion: "ouverture du mariage et de l'adoption aux couples de même sexe" },
   { concept: "Proportionnelle", cles: ["proportionnelle", "scrutin proportionnel"], theme: "institutions",
@@ -174,4 +174,24 @@ export function etendreRequete(q: string): {
     ? [q.trim(), ...correspondances.map((c) => c.expansion)].join(". ")
     : q.trim();
   return { enrichi, correspondances };
+}
+
+/**
+ * Texte à VECTORISER pour la recherche sémantique. Choix important : concaténer une
+ * expansion à une requête déjà en langage naturel DILUE le vecteur (e5-small est faible)
+ * et dégrade le classement. On n'expanse donc QUE lorsque la requête entière est un
+ * SIGLE/JARGON (peu informatif brut) : on la REMPLACE alors par son expansion factuelle
+ * (« PMA » → « procréation médicalement assistée… », « 49.3 » → « article 49 alinéa 3… »).
+ * Sinon on garde la requête brute (« droits LGBT », « aide à mourir » sont déjà bons).
+ */
+export function texteAVectoriser(q: string): string {
+  const n = normaliser(q).replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+  if (!n) return q.trim();
+  for (const a of ALIASES) {
+    for (const cle of a.cles) {
+      const nc = normaliser(cle).replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+      if (nc && nc === n) return a.expansion; // la requête EST un alias → on remplace
+    }
+  }
+  return q.trim();
 }

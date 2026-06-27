@@ -4,57 +4,19 @@ import {
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, inputText, RADIUS, shadowCard } from "../theme";
-import { rechercher, getGrandsScrutins, getCategories, getMeta } from "../api";
-import { track } from "../analytics";
-import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
+import { getGrandsScrutins, getCategories, getMeta } from "../api";
+import type { CategorieRef, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
+import { SearchResultsList } from "../components/SearchResultsList";
 import { HeroScrutins } from "../components/HeroScrutins";
 import { ThemePicker } from "../components/ThemePicker";
 import { ScrutoirLogo } from "../components/brand/ScrutoirLogo";
 import { MesSuivis } from "../components/MesSuivis";
 
-type Item =
-  | { kind: "header"; label: string }
-  | { kind: "depute"; data: DeputeResume }
-  | { kind: "scrutin"; data: ScrutinResume };
-
 export function SearchScreen({ nav }: { nav: Nav }) {
   const [q, setQ] = useState("");
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const enRecherche = q.trim().length >= 2;
-
-  useEffect(() => {
-    if (timer.current) clearTimeout(timer.current);
-    if (!enRecherche) {
-      setItems([]);
-      return;
-    }
-    setLoading(true);
-    timer.current = setTimeout(async () => {
-      try {
-        const r = await rechercher(q.trim());
-        const next: Item[] = [];
-        if (r.deputes.length) {
-          next.push({ kind: "header", label: "Députés" });
-          r.deputes.forEach((d) => next.push({ kind: "depute", data: d }));
-        }
-        if (r.scrutins.length) {
-          next.push({ kind: "header", label: "Scrutins" });
-          r.scrutins.forEach((s) => next.push({ kind: "scrutin", data: s }));
-        }
-        setItems(next);
-        const hits = r.deputes.length + r.scrutins.length;
-        track(hits ? "search" : "search_empty", q.trim().toLowerCase().slice(0, 40));
-      } catch {
-        setItems([]);
-      } finally {
-        setLoading(false);
-      }
-    }, 250);
-  }, [q]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -97,36 +59,10 @@ export function SearchScreen({ nav }: { nav: Nav }) {
             style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
             autoCorrect={false}
           />
-          {loading && <ActivityIndicator size="small" color={C.textFaint} />}
         </View>
       </View>
 
-      {!enRecherche ? (
-        <Accueil nav={nav} />
-      ) : (
-        <FlatList
-          data={items}
-          keyExtractor={(it, i) => (it.kind === "header" ? `h-${it.label}-${i}` : `${it.kind}-${it.data.uid}`)}
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 8, paddingBottom: 32 }}
-          ListEmptyComponent={
-            !loading ? (
-              <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 40, fontFamily: F.medium }}>
-                Aucun résultat pour « {q.trim()} »
-              </Text>
-            ) : null
-          }
-          renderItem={({ item }) => {
-            if (item.kind === "header") return <SectionLabel label={item.label} />;
-            if (item.kind === "depute") return <DeputeRow d={item.data} onPress={() => nav.push({ name: "depute", uid: item.data.uid })} />;
-            return (
-              <View style={{ marginBottom: 10 }}>
-                <ScrutinCard scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />
-              </View>
-            );
-          }}
-        />
-      )}
+      {!enRecherche ? <Accueil nav={nav} /> : <SearchResultsList q={q} nav={nav} />}
     </View>
   );
 }
@@ -235,27 +171,3 @@ function SectionTitle({ titre }: { titre: string }) {
   );
 }
 
-function SectionLabel({ label }: { label: string }) {
-  return (
-    <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginTop: 14, marginBottom: 8, textTransform: "uppercase" }]}>
-      {label}
-    </Text>
-  );
-}
-
-function DeputeRow({ d, onPress }: { d: DeputeResume; onPress: () => void }) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.7}
-      onPress={onPress}
-      style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, marginBottom: 9, ...shadowCard }}
-    >
-      <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
-      <View style={{ flex: 1 }}>
-        <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{d.nom_complet}</Text>
-        <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{d.abrev ?? "—"}</Text>
-      </View>
-      <Feather name="chevron-right" size={20} color={C.textFaint} />
-    </TouchableOpacity>
-  );
-}

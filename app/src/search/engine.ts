@@ -11,7 +11,7 @@
  * hors-ligne au 1er usage), l'appelant retombe sur la recherche LEXICALE.
  */
 import { embedQuery } from "./embedder";
-import { routerIntention } from "./intent";
+import { texteAVectoriser } from "./aliases";
 
 // ⚠️ Verrou de compatibilité : doivent correspondre au pipeline (embeddings.ts
 // EMBED_MODEL / EMBED_VERSION). L'en-tête de l'index est vérifié au chargement.
@@ -99,9 +99,10 @@ export async function rechercheSemantique(
   q: string,
   opts: OptionsSemantique = {}
 ): Promise<ResultatSemantique[]> {
-  const { k = 60, ecart = 0.04, min = 5 } = opts;
-  const { enrichi } = routerIntention(q); // expansion d'alias (PMA→…, 49.3→…)
-  const [qvec, idx] = await Promise.all([embedQuery(enrichi), chargerIndexSemantique()]);
+  const { k = 60, ecart = 0.03, min = 3 } = opts;
+  // Acronyme/jargon → remplacé par son expansion ; langage naturel → requête brute.
+  const texte = texteAVectoriser(q);
+  const [qvec, idx] = await Promise.all([embedQuery(texte), chargerIndexSemantique()]);
 
   // Cosinus = Σ q·v / (|q|·|v|) ; q est déjà normé (|q|=1) → cos = Σ q·v / norme[i].
   const scores = new Float32Array(idx.count);

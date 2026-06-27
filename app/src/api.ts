@@ -161,6 +161,14 @@ export async function getDeputesParti(groupeUid: string): Promise<DeputeResume[]
     .sort((a, b) => a.nom_complet.localeCompare(b.nom_complet, "fr"));
 }
 
+/** Résout des scrutins (index léger) à partir d'uids, dans l'ORDRE des uids fournis
+ *  (utilisé par la fusion sémantique : l'ordre = le classement par pertinence). */
+export async function getScrutinsParUids(uids: string[]): Promise<ScrutinResume[]> {
+  if (!uids.length) return [];
+  const map = await scrutinsMap();
+  return uids.map((u) => map.get(u)).filter(Boolean) as ScrutinResume[];
+}
+
 /** Résout des fiches-résumé de députés à partir d'une liste d'uids (élus suivis). */
 export async function getDeputesByUids(uids: string[]): Promise<DeputeResume[]> {
   if (!uids.length) return [];
