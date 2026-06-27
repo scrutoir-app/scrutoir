@@ -32,6 +32,27 @@ export function jetons(s: string): string[] {
     .filter(Boolean);
 }
 
+// Mots-outils français + termes procéduraux omniprésents (article, amendement, loi…)
+// ignorés en RECHERCHE LEXICALE par mot-clé. Source UNIQUE partagée pipeline (génération
+// de recherche-texte.json) et client (tokens de la requête) → matching cohérent.
+export const MOTS_OUTILS = new Set([
+  "les", "des", "une", "aux", "que", "qui", "pour", "dans", "par", "sur", "avec", "sans",
+  "est", "sont", "plus", "cet", "cette", "ces", "son", "ses", "leur", "leurs", "elle",
+  "afin", "donc", "mais", "lui", "nos", "vos", "tout", "tous", "toute", "toutes", "the",
+  "and", "premier", "premiere", "article", "amendement", "amendements", "proposition",
+  "projet", "loi", "ensemble", "alinea", "apres", "avant", "relatif", "relative",
+]);
+
+/** Mots-clés porteurs de sens (uniques, ≥ 3 lettres, hors mots-outils) — pour la
+ *  recherche lexicale par mot-clé (corpus indexé ET requête, même traitement). */
+export function motsCles(s: string): string[] {
+  const vus = new Set<string>();
+  for (const t of jetons(s)) {
+    if (t.length >= 3 && !MOTS_OUTILS.has(t)) vus.add(t);
+  }
+  return [...vus];
+}
+
 /**
  * Distance d'édition de Damerau-Levenshtein BORNÉE (insertion, suppression,
  * substitution, transposition de 2 lettres adjacentes). Sort tôt si la distance

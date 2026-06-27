@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { cleDossier, dedupParDossier, rechercherSujet } from "./fusion";
+import { filtrerLexical } from "./lexical";
 import type { ScrutinResume } from "../types";
 
 const S = (uid: string, titre: string, date = "2025-01-01"): ScrutinResume => ({
@@ -54,6 +55,29 @@ test("dedupParDossier : préserve l'ordre de pertinence (1re occurrence)", () =>
   ];
   const out = dedupParDossier(liste);
   assert.deepEqual(out.map((s) => s.uid), ["x", "y"]);
+});
+
+// — Recherche lexicale par mot-clé (repli/complément sur l'exposé) —
+test("filtrerLexical : trouve le mot-clé présent dans l'exposé (pas dans le titre)", () => {
+  const corpus = {
+    a: "amendement budget carburant ticpe gazole transport", // exposé carburant
+    b: "logement loyer habitat construction",
+    c: "carburant essence pompe prix energie",
+  };
+  assert.deepEqual(filtrerLexical(corpus, "carburant").sort(), ["a", "c"]);
+});
+
+test("filtrerLexical : exige TOUS les mots-clés (ET), ignore mots-outils", () => {
+  const corpus = {
+    a: "carburant prix pompe energie",
+    b: "carburant transport maritime",
+  };
+  // « prix » + « carburant » → seul a ; « le », « du » ignorés (mots-outils/courts)
+  assert.deepEqual(filtrerLexical(corpus, "le prix du carburant"), ["a"]);
+});
+
+test("filtrerLexical : requête sans mot-clé porteur → aucun résultat", () => {
+  assert.deepEqual(filtrerLexical({ a: "carburant prix" }, "les"), []);
 });
 
 // — Repli lexical (§11 : modèle indisponible / hors-ligne) —

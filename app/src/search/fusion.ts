@@ -13,6 +13,7 @@
 import { rechercher, getScrutinsParUids } from "../api";
 import type { DeputeResume, ScrutinResume } from "../types";
 import { rechercheSemantique } from "./engine";
+import { rechercheLexicale } from "./lexical";
 import { routerIntention } from "./intent";
 import { aplatir } from "./normalize";
 
@@ -82,22 +83,45 @@ export async function rechercherSujet(
   exactScrutins: ScrutinResume[]
 ): Promise<{ sujet: ScrutinResume[]; semantiqueDispo: boolean }> {
   const intent = routerIntention(q);
-  // Sémantique seulement pour les requêtes « sujet » (pas un n° de scrutin ni un parti exact).
+  // Sémantique/lexical seulement pour les requêtes « sujet » (pas n° de scrutin ni parti exact).
   if (intent.type !== "sujet") return { sujet: [], semantiqueDispo: false };
+
+  // 1) SÉMANTIQUE (peut échouer = modèle/hors-ligne → on garde le lexical comme repli).
+  let semUids: string[] = [];
+  let semantiqueDispo = false;
   try {
     const sem = await rechercheSemantique(q); // classés par cosinus décroissant
-    const pertinent = sem.length > 0 && sem[0].score >= SEUIL_SUJET;
-    if (!pertinent) return { sujet: [], semantiqueDispo: true };
-    const uidsExacts = new Set(exactScrutins.map((s) => s.uid));
-    const dossiersExacts = new Set(exactScrutins.map((s) => cleDossier(s.titre)));
-    const resolus = await getScrutinsParUids(sem.map((r) => r.uid)); // ordre = pertinence
-    const sujet = dedupParDossier(resolus.filter((s) => !uidsExacts.has(s.uid)))
-      .filter((s) => !dossiersExacts.has(cleDossier(s.titre)))
-      .slice(0, MAX_SUJET);
-    return { sujet, semantiqueDispo: true };
+    semantiqueDispo = true;
+    if (sem.length > 0 && sem[0].score >= SEUIL_SUJET) semUids = sem.map((r) => r.uid);
   } catch {
-    return { sujet: [], semantiqueDispo: false }; // repli lexical : on garde l'exact
+    semantiqueDispo = false;
   }
+
+  // 2) LEXICAL mot-clé sur l'exposé (complément + repli) — rattrape « carburant »,
+  //    « essence »… que le sémantique rate (cosinus tassés / mot absent du titre).
+  let lexUids: string[] = [];
+  try {
+    lexUids = await rechercheLexicale(q);
+  } catch {
+    /* corpus indispo → on s'en passe */
+  }
+
+  if (!semUids.length && !lexUids.length) return { sujet: [], semantiqueDispo };
+
+  const uidsExacts = new Set(exactScrutins.map((s) => s.uid));
+  const dossiersExacts = new Set(exactScrutins.map((s) => cleDossier(s.titre)));
+
+  // Sémantique d'abord (ordre = pertinence), puis lexical (récents d'abord), sans doublon.
+  const dejaSem = new Set(semUids);
+  const semScrutins = await getScrutinsParUids(semUids);
+  const lexScrutins = (await getScrutinsParUids(lexUids.filter((u) => !dejaSem.has(u)))).sort(
+    (a, b) => (b.date || "").localeCompare(a.date || "")
+  );
+
+  const sujet = dedupParDossier([...semScrutins, ...lexScrutins].filter((s) => !uidsExacts.has(s.uid)))
+    .filter((s) => !dossiersExacts.has(cleDossier(s.titre)))
+    .slice(0, MAX_SUJET);
+  return { sujet, semantiqueDispo };
 }
 
 /** Recherche complète exact + Sujet en un appel (tests / usage non incrémental). */

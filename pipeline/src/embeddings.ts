@@ -3,6 +3,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { pipeline, env } from "@huggingface/transformers";
 import { openDb } from "./db.js";
+import { motsCles } from "../../app/src/search/normalize";
 
 /**
  * Génère l'INDEX D'EMBEDDINGS de tous les scrutins pour la recherche sémantique
@@ -47,6 +48,14 @@ interface Row {
 // sujets entiers (carburant, niches…) sont INVISIBLES car portés par des amendements
 // au budget. e5-small gère ~512 tokens ; on borne pour rester focalisé (mean-pooling).
 const MAX_EXPOSE = 500;
+
+/** Texte de RECHERCHE LEXICALE d'un scrutin : mots-clés uniques issus du titre +
+ *  intitulé de dossier + thèmes + exposé. Sert au repli mot-clé (« carburant »,
+ *  « essence »…) que le sémantique rate sur ces titres courts. `motsCles` partagé avec
+ *  le client → cohérence requête↔index. */
+function texteRecherche(r: Row): string {
+  return motsCles([r.dossier_titre, r.titre, r.cats, r.expose].filter(Boolean).join(" ")).join(" ");
+}
 
 /** Texte vectorisé : intitulé officiel + titre + thèmes + exposé d'amendement (si présent).
  *  L'exposé apporte le SENS réel des amendements à titre générique (champs existants, neutre). */
@@ -134,6 +143,14 @@ async function main() {
   );
   const mb = (q.byteLength / 1024 / 1024).toFixed(2);
   console.log(`✅ Index : ${uids.length} vecteurs × ${DIM} (int8) = ${mb} Mo + embeddings.meta.json (scale=${scale.toFixed(1)})`);
+
+  // 3) Texte de recherche lexicale (repli mot-clé sur l'exposé) — 1 fichier, chargé
+  // paresseusement côté client. Map uid → tokens uniques porteurs de sens.
+  const texte: Record<string, string> = {};
+  for (const r of rows) texte[r.uid] = texteRecherche(r);
+  fs.writeFileSync(path.join(OUT, "recherche-texte.json"), JSON.stringify(texte));
+  const tmb = (Buffer.byteLength(JSON.stringify(texte)) / 1024 / 1024).toFixed(2);
+  console.log(`✅ Texte de recherche : ${rows.length} scrutins = ${tmb} Mo (recherche-texte.json)`);
 }
 
 main().catch((e) => {
