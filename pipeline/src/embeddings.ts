@@ -22,6 +22,9 @@ import { openDb } from "./db.js";
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OUT = path.resolve(__dirname, "../../app/public/data");
+// Cache du modèle HORS node_modules (sinon `npm ci` le wipe → re-DL 118 Mo chaque run CI).
+// Cachable tel quel par GitHub Actions. Surchargeable via HF_CACHE_DIR.
+const HF_CACHE = process.env.HF_CACHE_DIR || path.resolve(__dirname, "../../.hf-cache");
 
 // ⚠️ Verrou de compatibilité : doit être IDENTIQUE côté navigateur.
 export const EMBED_MODEL = "Xenova/multilingual-e5-small";
@@ -63,6 +66,7 @@ async function main() {
 
   console.log(`Embeddings : ${rows.length} scrutins, modèle ${EMBED_MODEL} (q8)…`);
   env.allowRemoteModels = true; // télécharge le modèle depuis HF (mis en cache)
+  env.cacheDir = HF_CACHE; // cache stable (hors node_modules) → réutilisable en CI
   const extract = await pipeline("feature-extraction", EMBED_MODEL, { dtype: "q8" });
 
   // 1) Vectorisation (float32 en mémoire) + suivi du max absolu pour quantifier au mieux.

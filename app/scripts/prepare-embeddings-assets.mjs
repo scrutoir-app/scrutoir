@@ -90,13 +90,17 @@ if (fs.existsSync(commonEsm)) {
   missing.push({ ok: false, label: "ort/common (onnxruntime-common/dist/esm)", src: commonEsm });
 }
 
-// 3) Modèle + tokenizer depuis le cache du pipeline (rempli par `npm run embeddings`)
-const modelCache = path.join(
-  REPO,
-  "pipeline/node_modules/@huggingface/transformers/.cache",
-  MODEL_ID
-);
-const r3 = copyDir(modelCache, path.join(PUBLIC, "models", MODEL_ID), `models/${MODEL_ID}`);
+// 3) Modèle + tokenizer depuis le cache HF (rempli par `npm run embeddings`).
+//    Emplacement stable `.hf-cache/` (cf. embeddings.ts) ; repli sur l'ancien cache
+//    node_modules pour les setups locaux antérieurs.
+const cacheDirs = [
+  path.join(process.env.HF_CACHE_DIR || path.join(REPO, ".hf-cache"), MODEL_ID),
+  path.join(REPO, "pipeline/node_modules/@huggingface/transformers/.cache", MODEL_ID),
+];
+const modelCache = cacheDirs.find((d) => fs.existsSync(d));
+const r3 = modelCache
+  ? copyDir(modelCache, path.join(PUBLIC, "models", MODEL_ID), `models/${MODEL_ID}`)
+  : { ok: false, label: `models/${MODEL_ID}`, src: cacheDirs.join(" | ") };
 if (!r3.ok) missing.push(r3);
 
 if (missing.length) {

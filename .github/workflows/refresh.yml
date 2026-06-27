@@ -41,9 +41,25 @@ jobs:
           restore-keys: |
             raw-
 
+      # Cache du modèle d'embeddings e5-small (~118 Mo) HORS node_modules → réutilisé
+      # entre runs (sinon re-téléchargé depuis HF à chaque fois). Clé stable (le modèle
+      # ne change pas tant que EMBED_MODEL/VERSION ne bougent pas).
+      - name: Cache du modèle d'embeddings (.hf-cache)
+        uses: actions/cache@v4
+        with:
+          path: .hf-cache
+          key: hf-e5-small-v1
+
       - name: Installer les dépendances (pipeline)
         working-directory: pipeline
         run: npm ci
+
+      # Garde : tests purs de la recherche (normalisation, alias, intention, dédup
+      # dossier, repli). Rapides et déterministes → bloque un déploiement si le code
+      # de recherche est cassé. (Le test sémantique, plus lent, se lance à la main.)
+      - name: Tests recherche (déterministe + fusion)
+        working-directory: pipeline
+        run: npm run test-search
 
       - name: Ré-ingestion (téléchargement conditionnel ETag)
         working-directory: pipeline
@@ -52,6 +68,14 @@ jobs:
       - name: Export statique (JSON → app/public/data + version.json)
         working-directory: pipeline
         run: npm run export:static
+
+      # Index d'embeddings pour la recherche sémantique : lit votes.db, écrit
+      # app/public/data/embeddings.bin + meta. Télécharge le modèle dans .hf-cache
+      # (mis en cache ci-dessus). build:web (prepare:embeddings) copiera ensuite le
+      # modèle/runtime/bundle depuis .hf-cache + node_modules vers public/.
+      - name: Index d'embeddings (recherche sémantique)
+        working-directory: pipeline
+        run: npm run embeddings
 
       - name: Installer les dépendances (app)
         working-directory: app

@@ -17,8 +17,10 @@ import { routerIntention } from "./intent";
 import { aplatir } from "./normalize";
 
 // Plancher de pertinence pour AFFICHER la section « Sujet » (cosinus tassés → calibré
-// empiriquement : pertinents ≥ 0,85, hors-sujet ≤ 0,845). Contourné si un alias est
-// reconnu (signal topique fort). ⚠️ à re-tuner avec l'usage réel.
+// empiriquement : pertinents ≥ 0,85, hors-sujet ≤ 0,845). ⚠️ à re-tuner avec l'usage réel.
+// NB : pas d'override par alias — un sujet ABSENT du corpus (ex. PMA, loi de 2021 hors
+// 17e législature) embarque vers le voisin le plus proche (fin de vie) à ~0,86 ; forcer
+// l'affichage sur simple présence d'alias créait un faux positif. Le plancher gouverne tout.
 const SEUIL_SUJET = 0.85;
 const MAX_SUJET = 8;
 
@@ -84,7 +86,7 @@ export async function rechercherSujet(
   if (intent.type !== "sujet") return { sujet: [], semantiqueDispo: false };
   try {
     const sem = await rechercheSemantique(q); // classés par cosinus décroissant
-    const pertinent = sem.length > 0 && (sem[0].score >= SEUIL_SUJET || intent.correspondances.length > 0);
+    const pertinent = sem.length > 0 && sem[0].score >= SEUIL_SUJET;
     if (!pertinent) return { sujet: [], semantiqueDispo: true };
     const uidsExacts = new Set(exactScrutins.map((s) => s.uid));
     const dossiersExacts = new Set(exactScrutins.map((s) => cleDossier(s.titre)));

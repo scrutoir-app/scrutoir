@@ -10,3 +10,4 @@ app/public/data/*
 app/public/models/
 app/public/ort/
 app/public/vendor/*.min.js
+.hf-cache/
