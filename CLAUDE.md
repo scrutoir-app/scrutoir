@@ -107,7 +107,12 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.1.0**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.2.0**.
+- **Schéma pédagogique « parcours d'une loi »** (v1.2.0) : `components/ParcoursLoi.tsx` (surcouche réutilisable :
+  timeline 6 étapes + glossaire, accent unique sur le scrutin public, hémicycle animé, reduce-motion). Contenu dans
+  `content/parcoursLoi.ts` (fichier de chaînes UNIQUE, versionné `PARCOURS_VERSION`). Points d'entrée : interstitiel
+  1er lancement (persistance `parcoursLoiPrefs.ts`), entrée Accueil sous la recherche, ⓘ sur le détail scrutin.
+  100 % front (aucun pipeline/fetch/tiers), offline. Mesure : `parcours_open`/`parcours_close`.
 - **Mode sombre (v1.0.45)** : réglage Clair/Sombre/Auto dans **Paramètres** (icône ⚙️ en-tête Accueil →
   route `parametres`, `screens/ParametresScreen.tsx`). Thème **réactif sans refacto des imports** : `theme.ts`
   expose `LIGHT`/`DARK` + une palette VIVANTE `C` (et `shadowCard`) réécrite par `applyScheme()` ; le

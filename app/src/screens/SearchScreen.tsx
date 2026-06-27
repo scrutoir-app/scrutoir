@@ -13,9 +13,11 @@ import { HeroScrutins } from "../components/HeroScrutins";
 import { ThemePicker } from "../components/ThemePicker";
 import { ScrutoirLogo } from "../components/brand/ScrutoirLogo";
 import { MesSuivis } from "../components/MesSuivis";
+import { ParcoursLoi } from "../components/ParcoursLoi";
 
 export function SearchScreen({ nav }: { nav: Nav }) {
   const [q, setQ] = useState("");
+  const [parcours, setParcours] = useState(false);
   const enRecherche = q.trim().length >= 2;
 
   return (
@@ -62,7 +64,22 @@ export function SearchScreen({ nav }: { nav: Nav }) {
         </View>
       </View>
 
+      {/* Entrée permanente, discrète, vers le schéma pédagogique. */}
+      {!enRecherche && (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => setParcours(true)}
+          style={{ flexDirection: "row", alignItems: "center", gap: 7, marginHorizontal: 18, marginBottom: 6 }}
+        >
+          <Feather name="help-circle" size={14} color={C.accent} />
+          <Text style={[T.small, { color: C.accent, fontFamily: F.medium }]}>
+            Loi, amendement, scrutin : qui est qui ?
+          </Text>
+        </TouchableOpacity>
+      )}
+
       {!enRecherche ? <Accueil nav={nav} /> : <SearchResultsList q={q} nav={nav} onCorriger={setQ} />}
+      <ParcoursLoi visible={parcours} onClose={() => setParcours(false)} source="accueil" />
     </View>
   );
 }

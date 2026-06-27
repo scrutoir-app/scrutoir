@@ -38,6 +38,8 @@ import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
 import { lireHashPartage } from "./src/testProximite/storage";
 import { InstallPrompt } from "./src/components/InstallPrompt";
+import { ParcoursLoi } from "./src/components/ParcoursLoi";
+import { useInterstitielParcours } from "./src/parcoursLoiPrefs";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
 import { ThemeProvider, useThemeMode } from "./src/themeMode";
 import { track } from "./src/analytics";
@@ -82,6 +84,10 @@ function AppInner() {
   const ongletAvecRecherche = ["themes", "partis", "suivis", "apropos"].includes(root);
   const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
   useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
+
+  // Interstitiel pédagogique « parcours d'une loi » : montré UNE fois par installation
+  // (re-proposé si le contenu change), rejetable. Persistance locale (cf. parcoursLoiPrefs).
+  const [interstitiel, setInterstitiel] = useState(useInterstitielParcours());
 
   const nav: Nav = {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
@@ -243,6 +249,9 @@ function AppInner() {
 
         {/* Bandeau d'installation PWA, en bas de l'Accueil (masqué si clavier ouvert) */}
         {root === "search" && !keyboardOpen && <InstallPrompt />}
+
+        {/* Interstitiel pédagogique au 1er lancement (une fois par installation). */}
+        <ParcoursLoi visible={interstitiel} onClose={() => setInterstitiel(false)} source="interstitiel" />
 
         {/* Barre d'onglets : positionnement d'origine (avant v1.0.25), paddingBottom fixe.
             Pas de viewport-fit=cover/safe-area (déréglait la position en app installée).

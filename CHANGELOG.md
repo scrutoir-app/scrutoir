@@ -7,6 +7,20 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.2.0 — 2026-06-27
+- **Schéma pédagogique « parcours d'une loi »** : un composant inline réutilisable
+  (`components/ParcoursLoi.tsx`) qui dissout la confusion loi / texte / amendement / scrutin.
+  Timeline en 6 étapes (dépôt → commission → séance → **vote** → vote solennel → Sénat/
+  promulgation) + glossaire des 4 mots, avec **accent unique sur le scrutin public** (le seul
+  objet que Scrutoir affiche) et badge « Scrutoir ne voit que ça ». L'étape « vote » dit
+  explicitement que la plupart des votes ont lieu à main levée, **sans trace** (honnêteté).
+  Révélation animée étape par étape + hémicycle qui se remplit siège par siège (clin d'œil au
+  splash) ; `prefers-reduced-motion` respecté. 100 % local (contenu dans un fichier de chaînes
+  unique `content/parcoursLoi.ts`), hors-ligne, sans son, aucun appel tiers. Points d'entrée :
+  **interstitiel au 1er lancement** (versionné, rejetable, une fois), **entrée permanente sur
+  l'Accueil** (« Loi, amendement, scrutin : qui est qui ? »), **ⓘ sur le détail d'un scrutin**.
+  Ouverture/fermeture mesurées (`parcours_open`/`parcours_close`).
+
 ## 1.1.0 — 2026-06-27
 - **Recherche en langage naturel (« Sujet »)** : en plus de la recherche exacte (élu, loi,
   parti, n°), une section **Sujet** trouve les scrutins **liés au thème même sans le mot exact**

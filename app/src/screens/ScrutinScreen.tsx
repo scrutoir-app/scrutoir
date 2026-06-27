@@ -7,11 +7,13 @@ import { getScrutin } from "../api";
 import { track } from "../analytics";
 import type { DetailScrutin } from "../types";
 import type { Nav } from "../nav";
+import { ParcoursLoi } from "../components/ParcoursLoi";
 
 export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [data, setData] = useState<DetailScrutin | null>(null);
   const [loading, setLoading] = useState(true);
   const [briefOuvert, setBriefOuvert] = useState(false);
+  const [parcours, setParcours] = useState(false);
 
   useEffect(() => {
     let vivant = true;
@@ -59,9 +61,19 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
       </View>
 
       <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{s.titre || s.objet}</Text>
-      <Text style={[T.small, tnum, { color: C.textMuted, marginTop: 6 }]}>
-        {formatDate(s.date)} · scrutin n° {s.numero}
-      </Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 6 }}>
+        <Text style={[T.small, tnum, { color: C.textMuted }]}>
+          {formatDate(s.date)} · scrutin n° {s.numero}
+        </Text>
+        <TouchableOpacity
+          onPress={() => setParcours(true)}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+          accessibilityLabel="Qu'est-ce qu'un scrutin ? Voir le parcours d'une loi"
+        >
+          <Feather name="info" size={14} color={C.accent} />
+        </TouchableOpacity>
+      </View>
+      <ParcoursLoi visible={parcours} onClose={() => setParcours(false)} source="scrutin" />
 
       {/* Lien source : page publique du scrutin sur l'Assemblée Nationale */}
       {scrutinSourceUrl(s.numero) && (
