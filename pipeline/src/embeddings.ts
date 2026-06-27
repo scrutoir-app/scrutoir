@@ -39,9 +39,17 @@ interface Row {
   objet: string | null;
   dossier_titre: string | null;
   cats: string | null;
+  expose: string | null;
 }
 
-/** Texte vectorisé : intitulé officiel + titre + thèmes (champs existants, neutre). */
+// Longueur max de l'exposé d'amendement ajouté au passage. Les titres d'amendements
+// sont génériques (« amendement n° X à l'article Y du PLF ») → sans l'exposé, des
+// sujets entiers (carburant, niches…) sont INVISIBLES car portés par des amendements
+// au budget. e5-small gère ~512 tokens ; on borne pour rester focalisé (mean-pooling).
+const MAX_EXPOSE = 500;
+
+/** Texte vectorisé : intitulé officiel + titre + thèmes + exposé d'amendement (si présent).
+ *  L'exposé apporte le SENS réel des amendements à titre générique (champs existants, neutre). */
 function passage(r: Row): string {
   const parts: string[] = [];
   const principal = (r.dossier_titre || r.titre || r.objet || "").trim();
@@ -50,6 +58,10 @@ function passage(r: Row): string {
     parts.push(r.titre.trim());
   }
   if (r.cats) parts.push(r.cats);
+  if (r.expose) {
+    const e = r.expose.replace(/\s+/g, " ").trim();
+    if (e) parts.push(e.length > MAX_EXPOSE ? e.slice(0, MAX_EXPOSE) : e);
+  }
   return "passage: " + parts.join(". ").replace(/\s+/g, " ").trim();
 }
 
@@ -59,8 +71,11 @@ async function main() {
     .prepare(
       `SELECT s.uid, s.titre, s.objet, s.dossier_titre,
          (SELECT group_concat(c.libelle, ', ') FROM scrutin_categories sc
-          JOIN categories c ON c.id = sc.categorie_id WHERE sc.scrutin_uid = s.uid) AS cats
-       FROM scrutins s ORDER BY s.date DESC, s.numero DESC`
+          JOIN categories c ON c.id = sc.categorie_id WHERE sc.scrutin_uid = s.uid) AS cats,
+         a.expose AS expose
+       FROM scrutins s
+       LEFT JOIN amendements a ON a.scrutin_uid = s.uid
+       ORDER BY s.date DESC, s.numero DESC`
     )
     .all() as Row[];
 
