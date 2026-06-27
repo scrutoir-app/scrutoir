@@ -107,7 +107,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.0.64**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.1.0**.
 - **Mode sombre (v1.0.45)** : réglage Clair/Sombre/Auto dans **Paramètres** (icône ⚙️ en-tête Accueil →
   route `parametres`, `screens/ParametresScreen.tsx`). Thème **réactif sans refacto des imports** : `theme.ts`
   expose `LIGHT`/`DARK` + une palette VIVANTE `C` (et `shadowCard`) réécrite par `applyScheme()` ; le
@@ -202,6 +202,32 @@ cd ../app && npm run web                            # app -> http://localhost:80
   classés (clé Anthropic, `npm run classify:ia`).
 - Hors-code : dépôt marque **INPI** (cl. 9 & 42).
 - Dév local classique : `api` (:4000, dev-only) + `app` `npm run web` (:8081, navigateur du Mac).
+
+## Recherche en langage naturel (« Sujet ») — v1.1.0, 100 % navigateur, gratuite, hors-ligne
+Vient EN PLUS de la recherche exacte (élu/loi/parti/n°, inchangée et prioritaire). Code sous `app/src/search/`.
+- **Pipeline** : `pipeline/src/embeddings.ts` (`npm run embeddings`) vectorise chaque scrutin (passage =
+  dossier+titre+thèmes+**exposé d'amendement**) avec **multilingual-e5-small** (q8, `@huggingface/transformers`) →
+  **un** fichier `app/public/data/embeddings.bin` (int8) + `embeddings.meta.json` ; écrit AUSSI `recherche-texte.json`
+  (uid→mots-clés, pour le repli lexical). Modèle mis en cache hors node_modules dans `.hf-cache/` (`env.cacheDir`).
+- **Modèle auto-hébergé** sous `app/public/{models,ort,vendor}/` (git-ignorés, **provisionnés au build** par
+  `app/scripts/prepare-embeddings-assets.mjs`, chaîné EN 1er dans `build:web`). La lib transformers est chargée
+  **HORS Metro** (balise `<script type=module>` + **import map** résolvant onnxruntime-web/-common, cf. `embedder.ts`) ;
+  backend WASM **asyncify**, `numThreads=1`.
+- ⚠️ **Cloudflare Pages refuse > 25 Mio/fichier** ; le modèle q8 fait ~113 Mio → **découpé en parts < 24 Mio**
+  (prepare) **réassemblées par le service worker** (`sw.js assembleModel`, cache `scrutoir-model-v1`). Le fichier
+  entier sert au **dev** (Expo, sans SW) ; il est **retiré du dist** par `scripts/strip-model-for-pages.mjs` (dans
+  `build:web` après export, + garde-fou « aucun fichier > 25 Mio »). CSP : `script-src` inclut `'wasm-unsafe-eval'`.
+- **Client** : `engine.ts` (cosinus/top-K + coupure relative), `aliases.ts` (dico curé NEUTRE : PMA/49.3/LGBT… +
+  `texteAVectoriser` qui n'expanse que les sigles), `intent.ts` (numéro/parti/sujet + « Tu voulais dire »),
+  `lexical.ts` (repli mot-clé sur l'exposé — marche sans modèle), `fusion.ts` (exact prioritaire + section « Sujet »,
+  **dédup par dossier** priorité au texte entier, plancher 0.85), `suggestions.ts` (thèmes à la frappe).
+- **Tests rejouables** : `cd pipeline && npm run test-search` (26 purs : normalisation/alias/intention/dédup/lexical) et
+  `npm run test-semantic` (4, sur le vrai index+modèle). `test-search` est aussi un garde dans `refresh.yml`.
+- ⚠️ **Limite connue** : e5-small donne des cosinus tassés sur les titres courts → les mots SEULS ambigus
+  (« carburant », « essence ») sont au niveau du bruit côté sémantique ; c'est le **repli lexical** (exposé) qui les
+  attrape. Requêtes plus spécifiques = meilleurs résultats. Sujets hors corpus 17e lég. (ex. PMA, loi 2021) absents.
+- **CI** (`refresh.yml`) : étape `npm run embeddings` après `export:static` + **cache `.hf-cache`** (sinon re-DL 118 Mo/run)
+  + garde `test-search`. `build:web` provisionne/découpe/strippe automatiquement.
 
 ## Source de données (data.assemblee-nationale.fr, licence Etalab)
 - Scrutins : `repository/17/loi/scrutins/Scrutins.json.zip` (position nominative par député).
