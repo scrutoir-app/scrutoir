@@ -2,7 +2,24 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { cleDossier, dedupParDossier, rechercherSujet } from "./fusion";
 import { filtrerLexical } from "./lexical";
+import { suggererThemes } from "./suggestions";
 import type { ScrutinResume } from "../types";
+
+const CATS = [
+  { id: "ecologie", libelle: "Écologie & Climat" },
+  { id: "agriculture", libelle: "Agriculture & Alimentation" },
+  { id: "logement", libelle: "Logement & Territoires" },
+];
+
+test("suggererThemes : préfixe accentué/insensible à la casse", () => {
+  assert.deepEqual(suggererThemes("ecolo", CATS).map((t) => t.id), ["ecologie"]);
+  assert.deepEqual(suggererThemes("AGRI", CATS).map((t) => t.id), ["agriculture"]);
+});
+
+test("suggererThemes : moins de 2 lettres ou sans correspondance → rien", () => {
+  assert.deepEqual(suggererThemes("e", CATS), []);
+  assert.deepEqual(suggererThemes("carburant", CATS), []);
+});
 
 const S = (uid: string, titre: string, date = "2025-01-01"): ScrutinResume => ({
   uid, numero: null, date, titre, objet: null, sort_code: null, sort_libelle: null,

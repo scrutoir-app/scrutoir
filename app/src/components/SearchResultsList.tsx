@@ -2,13 +2,14 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard } from "../theme";
-import { rechercher } from "../api";
+import { rechercher, getCategories } from "../api";
 import { dedupParDossier, rechercherSujet } from "../search/fusion";
 import { routerIntention } from "../search/intent";
 import { motsCles } from "../search/normalize";
+import { suggererThemes, type SuggestionTheme } from "../search/suggestions";
 import { embedderEstPret } from "../search/embedder";
 import { track } from "../analytics";
-import type { DeputeResume, ScrutinResume } from "../types";
+import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "./ScrutinCard";
 
@@ -38,8 +39,15 @@ export function SearchResultsList({
   const [sujet, setSujet] = useState<Item[]>([]); // section « Sujet » (ou ligne de chargement)
   const [correction, setCorrection] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [cats, setCats] = useState<CategorieRef[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reqId = useRef(0);
+
+  useEffect(() => {
+    getCategories().then(setCats).catch(() => {});
+  }, []);
+
+  const themes: SuggestionTheme[] = suggererThemes(q.trim(), cats);
 
   useEffect(() => {
     if (timer.current) clearTimeout(timer.current);
@@ -113,17 +121,40 @@ export function SearchResultsList({
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32 }}
       ListHeaderComponent={
-        correction ? (
-          <TouchableOpacity
-            activeOpacity={0.7}
-            onPress={() => onCorriger?.(correction)}
-            disabled={!onCorriger}
-            style={{ paddingVertical: 8 }}
-          >
-            <Text style={[T.small, { color: C.textMuted }]}>
-              Tu voulais dire : <Text style={{ fontFamily: F.bold, color: C.accent }}>{correction}</Text> ?
-            </Text>
-          </TouchableOpacity>
+        correction || themes.length ? (
+          <View style={{ paddingTop: 4 }}>
+            {correction ? (
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => onCorriger?.(correction)}
+                disabled={!onCorriger}
+                style={{ paddingVertical: 8 }}
+              >
+                <Text style={[T.small, { color: C.textMuted }]}>
+                  Tu voulais dire : <Text style={{ fontFamily: F.bold, color: C.accent }}>{correction}</Text> ?
+                </Text>
+              </TouchableOpacity>
+            ) : null}
+            {themes.length ? (
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, paddingVertical: 8 }}>
+                {themes.map((t) => (
+                  <TouchableOpacity
+                    key={t.id}
+                    activeOpacity={0.7}
+                    onPress={() => nav.push({ name: "categorie", id: t.id, libelle: t.libelle })}
+                    style={{
+                      flexDirection: "row", alignItems: "center", gap: 5,
+                      backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderStrong,
+                      borderRadius: 999, paddingVertical: 6, paddingHorizontal: 12, ...shadowCard,
+                    }}
+                  >
+                    <Feather name="grid" size={12} color={C.accent} />
+                    <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{t.libelle}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+            ) : null}
+          </View>
         ) : null
       }
       ListEmptyComponent={
