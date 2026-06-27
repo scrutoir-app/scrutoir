@@ -3,6 +3,8 @@ import type {
   PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi, ShuffleConfrontation, AngleShuffle,
 } from "./types";
 import type { QuestionProximite } from "./testProximite/score";
+import { normaliser } from "./search/normalize";
+import { ALIAS_PARTIS } from "./search/aliases";
 
 /**
  * Couche données « tout statique » : l'app lit des fichiers JSON pré-générés
@@ -58,20 +60,8 @@ function bornePeriode(p: Periode): string | null {
 }
 const EXPRIME = (pos: string) => pos === "pour" || pos === "contre" || pos === "abstention";
 
-// Alias usuels de partis -> sigle du groupe (recherche).
-const ALIAS_PARTIS: Record<string, string> = {
-  lr: "DR", "les republicains": "DR", republicains: "DR",
-  renaissance: "EPR", macron: "EPR", ensemble: "EPR",
-  modem: "DEM", democrate: "DEM", democrates: "DEM",
-  ps: "SOC", socialiste: "SOC", socialistes: "SOC",
-  lfi: "LFI-NFP", insoumis: "LFI-NFP", melenchon: "LFI-NFP", nfp: "LFI-NFP", "france insoumise": "LFI-NFP",
-  rn: "RN", "rassemblement national": "RN", "le pen": "RN", bardella: "RN",
-  eelv: "ECOS", verts: "ECOS", ecologiste: "ECOS", ecologistes: "ECOS",
-  pcf: "GDR", communiste: "GDR", communistes: "GDR",
-  horizons: "HOR", philippe: "HOR",
-  liot: "LIOT", udr: "UDDPLR", ciotti: "UDDPLR",
-};
-const norm = (s: string) => (s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").trim();
+// Normalisation + alias de partis partagés avec la recherche sémantique (src/search).
+const norm = normaliser;
 
 // --- Référentiels directs ---------------------------------------------------
 export const getCategories = () => j<CategorieRef[]>("categories");
