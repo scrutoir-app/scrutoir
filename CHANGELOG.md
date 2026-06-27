@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.3.3 — 2026-06-27
+- **Barre de recherche sticky de l'Accueil** : au scroll, elle adopte désormais **le même
+  champ que les autres onglets** (carré ardoise + loupe blanche + placeholder réel « Un sujet,
+  un nom, une loi… »), et **apparaît un peu plus tôt** (dès que le champ atteint le haut, sans
+  attendre que tout le héros ait défilé).
+
 ## 1.3.2 — 2026-06-27
 - **Partage du résultat du test de proximité** : le message vu côté destinataire devient
   **« Voici mon résultat : proche du groupe X à N %. Et toi ? »** (le « et toi ? » invite à

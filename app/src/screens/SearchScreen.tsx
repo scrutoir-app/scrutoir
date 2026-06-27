@@ -148,10 +148,14 @@ export function SearchScreen({ nav }: { nav: Nav }) {
   const [heroBottom, setHeroBottom] = useState(300);
   const [stuck, setStuck] = useState(false);
 
+  // Seuil d'apparition du sticky : un peu AVANT que le héros ait fini de défiler
+  // (≈ quand le champ atteint le haut), pas seulement une fois tout le héros sorti.
+  const seuilSticky = Math.max(70, heroBottom - 90);
+
   useEffect(() => {
-    const id = scrollY.addListener(({ value }) => setStuck(value > heroBottom - 30));
+    const id = scrollY.addListener(({ value }) => setStuck(value > seuilSticky - 24));
     return () => scrollY.removeListener(id);
-  }, [heroBottom]);
+  }, [seuilSticky]);
 
   // Mode résultats : héros compact épinglé (champ conservé, focus auto) + liste.
   if (enRecherche) {
@@ -168,8 +172,8 @@ export function SearchScreen({ nav }: { nav: Nav }) {
     );
   }
 
-  const stickyOpacity = scrollY.interpolate({ inputRange: [heroBottom - 30, heroBottom], outputRange: [0, 1], extrapolate: "clamp" });
-  const stickyTranslate = scrollY.interpolate({ inputRange: [heroBottom - 30, heroBottom], outputRange: [-8, 0], extrapolate: "clamp" });
+  const stickyOpacity = scrollY.interpolate({ inputRange: [seuilSticky - 24, seuilSticky], outputRange: [0, 1], extrapolate: "clamp" });
+  const stickyTranslate = scrollY.interpolate({ inputRange: [seuilSticky - 24, seuilSticky], outputRange: [-8, 0], extrapolate: "clamp" });
 
   const allerEnHaut = () => {
     scrollRef.current?.scrollTo?.({ y: 0, animated: true });
@@ -212,16 +216,19 @@ export function SearchScreen({ nav }: { nav: Nav }) {
         style={{ position: "absolute", top: 0, left: 0, right: 0, opacity: stickyOpacity, transform: [{ translateY: stickyTranslate }] }}
       >
         <View style={{ backgroundColor: C.bg, paddingHorizontal: SIDE, paddingTop: 9, paddingBottom: 10, borderBottomWidth: 1, borderBottomColor: C.border }}>
+          {/* Même champ que les autres onglets : carré ardoise + loupe blanche + placeholder réel. */}
           <TouchableOpacity
             activeOpacity={0.8}
             onPress={allerEnHaut}
             accessibilityRole="search"
             accessibilityLabel="Rechercher"
-            style={{ flexDirection: "row", alignItems: "center", gap: 10, height: 46, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 13, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
+            style={{ flexDirection: "row", alignItems: "center", gap: 11, height: 54, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingLeft: 8, paddingRight: 15, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
           >
-            <Feather name="search" size={18} color={C.accent} />
-            <Text style={[T.body, { color: C.textMuted, flex: 1 }]} numberOfLines={1}>
-              Rechercher un sujet, un nom…
+            <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
+              <Feather name="search" size={19} color="#fff" />
+            </View>
+            <Text style={[inputText, { flex: 1, color: C.textMuted }]} numberOfLines={1}>
+              Un sujet, un nom, une loi… ex. logement, santé, agriculture
             </Text>
           </TouchableOpacity>
         </View>
