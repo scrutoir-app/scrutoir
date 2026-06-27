@@ -1,11 +1,15 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
+import React, { useEffect, useRef, useState } from "react";
+import { View, Text, ScrollView, FlatList, ActivityIndicator, TouchableOpacity, LayoutChangeEvent } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard, formatDate } from "../theme";
-import { getCategories } from "../api";
+import { getCategories, getScrutinsRecents } from "../api";
 import { catUI } from "../categoryUI";
-import type { CategorieRef } from "../types";
+import { HeroCard, useReduceMotion } from "../components/HeroScrutins";
+import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
+import type { CategorieRef, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
+
+const SIDE = 18; // marge écran (alignée sur le contenu de l'accueil / du carrousel d'origine)
 
 /** Ligne de thème : picto + libellé + contexte (nb de scrutins, dernier) + chevron. */
 function ThemeRow({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
@@ -41,7 +45,109 @@ function ThemeRow({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
   );
 }
 
-export function ThemesScreen({ nav }: { nav: Nav }) {
+type Vue = "recents" | "themes";
+
+/** Bascule « Récents » / « Par thème » — un segmented control sobre. */
+function Bascule({ vue, onChange }: { vue: Vue; onChange: (v: Vue) => void }) {
+  const items: { key: Vue; label: string }[] = [
+    { key: "recents", label: "Récents" },
+    { key: "themes", label: "Par thème" },
+  ];
+  return (
+    <View style={{ flexDirection: "row", backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, padding: 3 }}>
+      {items.map((it) => {
+        const actif = vue === it.key;
+        return (
+          <TouchableOpacity
+            key={it.key}
+            activeOpacity={0.8}
+            onPress={() => onChange(it.key)}
+            style={{ flex: 1, alignItems: "center", justifyContent: "center", height: 36, borderRadius: RADIUS.pill, backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : null) }}
+          >
+            <Text style={[T.small, { fontFamily: F.bold, color: actif ? C.text : C.textMuted }]}>{it.label}</Text>
+          </TouchableOpacity>
+        );
+      })}
+    </View>
+  );
+}
+
+/**
+ * Vue « Récents » : tous les derniers scrutins, tous sujets confondus, en chronologique.
+ * Présentation = la carte « hero » signature de l'accueil (kicker, « Adopté · N votants »,
+ * barre divergente centrée animée), empilée en LISTE verticale (le carrousel/swipe en moins).
+ * L'animation des compteurs se déclenche quand la carte entre à l'écran (suivi de visibilité).
+ */
+function VueRecents({ nav }: { nav: Nav }) {
+  const [scrutins, setScrutins] = useState<ScrutinResume[] | null>(null);
+  const { filtered, Bar } = useScrutinDateFilter(scrutins ?? []);
+  const reduceMotion = useReduceMotion();
+  const [boxW, setBoxW] = useState(0);
+  const [vues, setVues] = useState<Set<string>>(() => new Set());
+
+  useEffect(() => {
+    getScrutinsRecents().then(setScrutins);
+  }, []);
+
+  // Suivi de visibilité : une carte « vue » au moins une fois reste animée (identité stable
+  // exigée par FlatList → useRef ; mise à jour fonctionnelle pour éviter toute fermeture périmée).
+  const onView = useRef((info: { viewableItems: Array<{ key?: string }> }) => {
+    setVues((prev) => {
+      let changed = false;
+      const next = new Set(prev);
+      for (const it of info.viewableItems) {
+        if (it.key && !next.has(it.key)) { next.add(it.key); changed = true; }
+      }
+      return changed ? next : prev;
+    });
+  }).current;
+  const viewCfg = useRef({ itemVisiblePercentThreshold: 35 }).current;
+
+  const onLayout = (e: LayoutChangeEvent) => {
+    const w = e.nativeEvent.layout.width;
+    if (w && w !== boxW) setBoxW(w);
+  };
+
+  const cardW = boxW > 0 ? boxW - SIDE * 2 : 0;
+
+  return (
+    <View style={{ flex: 1 }} onLayout={onLayout}>
+      {!scrutins || cardW <= 0 ? (
+        <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
+      ) : (
+        <FlatList
+          data={filtered}
+          keyExtractor={(s) => s.uid}
+          contentContainerStyle={{ paddingHorizontal: SIDE, paddingTop: 14, paddingBottom: 40 }}
+          ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
+          showsVerticalScrollIndicator={false}
+          onViewableItemsChanged={onView}
+          viewabilityConfig={viewCfg}
+          ListHeaderComponent={
+            <View style={{ paddingBottom: 12 }}>
+              <Text style={[T.small, { color: C.textMuted, marginBottom: 12 }]}>
+                Les derniers scrutins, tous sujets confondus ({filtered.length})
+              </Text>
+              {Bar}
+            </View>
+          }
+          renderItem={({ item }) => (
+            <HeroCard
+              s={item}
+              width={cardW}
+              active={reduceMotion || vues.has(item.uid)}
+              reduceMotion={reduceMotion}
+              onPress={() => nav.push({ name: "scrutin", uid: item.uid })}
+            />
+          )}
+        />
+      )}
+    </View>
+  );
+}
+
+/** Vue « Par thème » : la liste de thèmes (lignes riches), inchangée. */
+function VueThemes({ nav }: { nav: Nav }) {
   const [cats, setCats] = useState<CategorieRef[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -50,22 +156,38 @@ export function ThemesScreen({ nav }: { nav: Nav }) {
   }, []);
 
   return (
+    <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+      {loading ? (
+        <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
+      ) : (
+        [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)).map((c) => (
+          <ThemeRow key={c.id} c={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
+        ))
+      )}
+    </ScrollView>
+  );
+}
+
+/**
+ * Onglet « Scrutins » : consultation des scrutins. Deux vues d'un même onglet —
+ * « Récents » (destination de l'ancien carrousel « Tout voir », tous sujets, chronologique)
+ * et « Par thème » (la liste de thèmes historique). Clé de route « themes » conservée.
+ */
+export function ThemesScreen({ nav }: { nav: Nav }) {
+  const [vue, setVue] = useState<Vue>("recents");
+
+  return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <Text style={[T.title, { color: C.text }]}>Thèmes</Text>
-        <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
-          Parcours les scrutins par grand sujet
+        <Text style={[T.title, { color: C.text }]}>Scrutins</Text>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 4, marginBottom: 12 }]}>
+          Les derniers votes, ou parcours-les par grand sujet
         </Text>
+        <Bascule vue={vue} onChange={setVue} />
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-        {loading ? (
-          <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
-        ) : (
-          [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)).map((c) => (
-            <ThemeRow key={c.id} c={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
-          ))
-        )}
-      </ScrollView>
+      <View style={{ flex: 1 }}>
+        {vue === "recents" ? <VueRecents nav={nav} /> : <VueThemes nav={nav} />}
+      </View>
     </View>
   );
 }

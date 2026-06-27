@@ -4,6 +4,7 @@ import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { getPartis } from "../api";
 import { HemicyclePicto } from "../components/HemicyclePicto";
+import { DuelVedette } from "../components/DuelVedette";
 import type { PartiResume } from "../types";
 import type { Nav } from "../nav";
 
@@ -24,6 +25,8 @@ export function PartisScreen({ nav }: { nav: Nav }) {
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+      {/* Bloc « duel » vivant (déménagé de l'accueil) : aperçu, visages, relancer. */}
+      <DuelVedette nav={nav} />
       {loading ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
       ) : (

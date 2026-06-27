@@ -66,6 +66,19 @@ const norm = normaliser;
 // --- Référentiels directs ---------------------------------------------------
 export const getCategories = () => j<CategorieRef[]>("categories");
 export const getGrandsScrutins = () => j<ScrutinResume[]>("grands");
+/**
+ * Scrutins les plus récents, TOUS SUJETS CONFONDUS, en chronologique inverse.
+ * Alimente la vue « Récents » de l'onglet Scrutins (consultation globale de retour).
+ * Pas de nouvel export pipeline : on relit l'index `scrutins.json` déjà chargé pour la
+ * recherche (déjà trié par date desc ; on re-trie par sécurité). `limit` borne la liste
+ * (l'index complet peut être volumineux ; la vue garde son propre filtre par date).
+ */
+export async function getScrutinsRecents(limit = 250): Promise<ScrutinResume[]> {
+  const scrs = await scrutinsIndex();
+  return [...scrs]
+    .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? "") || (b.numero ?? 0) - (a.numero ?? 0))
+    .slice(0, limit);
+}
 // Test de proximité : questions validées + totaux (compilé par `npm run build-test-data`).
 export const getTestProximite = () => j<QuestionProximite[]>("test-proximite");
 
@@ -329,6 +342,27 @@ export async function getConfrontationShuffle(angle?: AngleShuffle): Promise<Shu
   const b = byUid.get(p.b);
   if (!a || !b) return null;
   return { angle: choisi, a, b, communs: p.communs, tauxAccord: p.taux };
+}
+
+/**
+ * « Duel du jour » : UNE paire surprenante, STABLE sur toute la journée (même paire pour
+ * tout le monde, qui « tourne » d'un jour à l'autre), piochée dans le vivier pré-calculé.
+ * Déterministe par date (pas de Math.random) → ne bouge pas en cours de session.
+ */
+export async function getDuelDuJour(): Promise<ShuffleConfrontation | null> {
+  const [data, deps] = await Promise.all([shuffleData(), deputesIndex()]);
+  const toutes: { angle: AngleShuffle; p: PaireShuffle }[] = [];
+  for (const a of ANGLES_SHUFFLE) for (const p of data[a] ?? []) toutes.push({ angle: a, p });
+  if (!toutes.length) return null;
+  const jour = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  let h = 0;
+  for (let i = 0; i < jour.length; i++) h = (h * 31 + jour.charCodeAt(i)) >>> 0;
+  const { angle, p } = toutes[h % toutes.length];
+  const byUid = new Map(deps.map((d) => [d.uid, d]));
+  const a = byUid.get(p.a);
+  const b = byUid.get(p.b);
+  if (!a || !b) return null;
+  return { angle, a, b, communs: p.communs, tauxAccord: p.taux };
 }
 
 // --- Recherche de commune (API Géo officielle, reste dynamique côté client) --

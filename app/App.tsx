@@ -46,7 +46,9 @@ import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
-  { root: "themes", label: "Thèmes", icon: "grid" },
+  // Onglet de consultation des scrutins (Récents + Par thème). Clé de route historique
+  // « themes » conservée (invisible à l'utilisateur) pour éviter toute régression de nav.
+  { root: "themes", label: "Scrutins", icon: "grid" },
   { root: "partis", label: "Partis", icon: "users" },
   { root: "suivis", label: "Suivis", icon: "bell" },
   { root: "apropos", label: "Infos", icon: "info" },
@@ -233,7 +235,7 @@ function AppInner() {
           )}
           {current.name === "apropos" && <AProposScreen nav={nav} />}
           {current.name === "mentions" && <MentionsScreen />}
-          {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} periode={current.periode} nav={nav} />}
+          {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} periode={current.periode} hasard={current.hasard} nav={nav} />}
           {current.name === "confrontationListe" && (
             <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} depA={current.depA} depB={current.depB} communs={current.communs} nav={nav} />
           )}

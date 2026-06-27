@@ -46,7 +46,7 @@ export type Route =
       groupeLibelle?: string;
     }
   | { name: "apropos" }
-  | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m" }
+  | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m"; hasard?: boolean }
   | {
       name: "confrontationListe";
       kind: "accord" | "desaccord";

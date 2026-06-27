@@ -7,6 +7,32 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.3.0 — 2026-06-27
+- **Refonte de l'Accueil autour de la recherche** (retours terrain : recherche invisible,
+  accueil trop chargé). La recherche devient le **héros** : un seul aplat encre (titre « Sur
+  quoi tu veux les voir voter ? », champ réel 16 px, tags exemples **neutres** — pouvoir
+  d'achat, Europe, médicaments… — qui préremplissent). Le héros **défile** et une barre de
+  recherche compacte se **colle en haut au scroll** (tap → remonte + focus), au lieu d'être
+  épinglée en permanence. Sous le héros : ⓘ « parcours d'une loi », puis une **carte test
+  claire** secondaire (« Et toi, tu votes comment ? »), un **bloc duel compact** (Lancer un
+  duel / Duel au hasard + ligne « Duel du jour » déterministe), et un **slot bas adaptatif** :
+  feed « Depuis ta dernière visite » pour qui suit des élus, invite « Suis ton premier
+  député » sinon. Le **carrousel « Derniers grands scrutins » est retiré** de l'Accueil (sa
+  consultation revient dans l'onglet Scrutins).
+- **Onglet « Thèmes » renommé « Scrutins »**, à deux vues : **Récents** (tous les derniers
+  scrutins, **tous sujets confondus**, en chronologique, avec la **carte hero signature**
+  animée — kicker, « Adopté · N votants », barre divergente centrée — et filtre par date) et
+  **Par thème** (la liste de thèmes existante). La consultation globale des scrutins est de
+  retour, accessible en deux taps.
+- **Bloc duel « vivant » déménagé en tête de l'onglet Partis** (visages, taux d'accord,
+  « Relancer »), tandis que l'Accueil n'en garde qu'une version compacte.
+- **Écran d'allumage** : mention « Appli citoyenne » ajoutée sous le wordmark (logo et
+  animation hémicycle inchangés).
+- **Dark mode** : héros de recherche et cartes-scrutins remontés sur des **panneaux ardoise
+  plus clairs** pour ne plus se fondre dans le fond encre.
+- Logo de marque strictement inchangé (composant prod réutilisé). Standards UI respectés
+  (champ 16 px → pas de zoom iOS, plancher de police, échelle typo cohérente).
+
 ## 1.2.0 — 2026-06-27
 - **Schéma pédagogique « parcours d'une loi »** : un composant inline réutilisable
   (`components/ParcoursLoi.tsx`) qui dissout la confusion loi / texte / amendement / scrutin.

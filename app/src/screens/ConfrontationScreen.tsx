@@ -34,7 +34,7 @@ const ANGLE_ICON: Record<AngleShuffle, keyof typeof Feather.glyphMap> = {
 };
 const ANGLES_SHUFFLE: AngleShuffle[] = ["fracture_interne", "alliance_contre_nature", "faux_duel"];
 
-export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: string; b?: string; periode?: Periode; nav: Nav }) {
+export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, nav }: { a?: string; b?: string; periode?: Periode; hasard?: boolean; nav: Nav }) {
   const [depA, setDepA] = useState<DeputeResume | null>(null);
   const [depB, setDepB] = useState<DeputeResume | null>(null);
   const [periode, setPeriode] = useState<Periode>(periodeInit ?? "all");
@@ -78,9 +78,11 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
   }
 
   // Pré-sélection éventuelle (uid passés en route) → on récupère le résumé via une recherche légère.
+  // « Duel au hasard » (depuis l'accueil) : aucun élu fourni → on lance directement un tirage.
   useEffect(() => {
     if (a && !depA) hydrate(a, setDepA);
     if (b && !depB) hydrate(b, setDepB);
+    if (hasard && !a && !b) lancerShuffle();
   }, []);
 
   // Persiste le duel dans la route : en naviguant vers la liste détaillée puis en

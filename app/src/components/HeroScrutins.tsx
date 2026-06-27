@@ -4,7 +4,7 @@ import {
   LayoutChangeEvent, useWindowDimensions, Platform,
 } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard, formatDate } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, formatDate, getScheme } from "../theme";
 import { catUI } from "../categoryUI";
 import { HemicycleSeats } from "./HemicycleSeats";
 import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
@@ -27,7 +27,7 @@ function kicker(s: ScrutinResume): string {
 }
 
 /** Reduce-motion système (avec écoute des changements). */
-function useReduceMotion(): boolean {
+export function useReduceMotion(): boolean {
   const [rm, setRm] = useState(false);
   useEffect(() => {
     let on = true;
@@ -41,8 +41,10 @@ function useReduceMotion(): boolean {
 /**
  * Carte « hero » signature (sans photo) : fond blanc, filigrane hémicycle en coin,
  * barre de vote et compteurs animés (0 → valeur) à l'apparition de la slide.
+ * Réutilisée hors carrousel (liste verticale « Récents » de l'onglet Scrutins) :
+ * `active` pilote l'animation, déclenchée quand la carte entre à l'écran.
  */
-function HeroCard({
+export function HeroCard({
   s, width, active, reduceMotion, onPress,
 }: {
   s: ScrutinResume;
@@ -93,7 +95,10 @@ function HeroCard({
       onPress={onPress}
       style={{
         width, height: HERO_H, borderRadius: RADIUS.lg, overflow: "hidden",
-        backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.border, ...shadowCard,
+        // Surface volontairement plus claire en sombre (panneau surélevé, plus lisible
+        // que C.surface qui se fond dans le fond encre). Inchangée en clair (déjà blanc).
+        backgroundColor: getScheme() === "dark" ? "#222A35" : C.surface,
+        borderWidth: 0.5, borderColor: getScheme() === "dark" ? C.borderStrong : C.border, ...shadowCard,
       }}
     >
       {/* Filigrane : hémicycle peuplé de sièges = les députés (suggestion simplifiée),
