@@ -5,16 +5,89 @@
  * (onnxruntime-web, WASM auto-hébergé sous /ort). C'est le MÊME modèle que le pipeline
  * (`pipeline/src/embeddings.ts`) → vecteurs compatibles. Aucun appel réseau externe.
  *
- * Le modèle (~130 Mo) n'est téléchargé qu'au PREMIER usage de la recherche sémantique
+ * ⚠️ La lib N'EST PAS importée via Metro : Metro plante sur l'`import()` dynamique
+ * d'onnxruntime-web. On charge le bundle ESM préfabriqué (`/vendor/transformers.web.min.js`)
+ * par une balise <script type="module"> injectée à la demande → c'est le navigateur qui
+ * exécute nativement le `import()` dynamique. La lib se pose sur `window.__transformers`.
+ *
+ * ⚠️ Le bundle transformers importe onnxruntime-web par SPECIFIER NU (`onnxruntime-web`,
+ * `onnxruntime-web/webgpu`) que le navigateur ne sait pas résoudre sans bundler. On injecte
+ * donc un IMPORT MAP (avant la balise loader) qui pointe ces specifiers vers les bundles ESM
+ * ort auto-hébergés sous /ort/ (eux-mêmes chargent le .wasm via wasmPaths='/ort/').
+ *
+ * Le modèle (~118 Mo) n'est téléchargé qu'au PREMIER usage de la recherche sémantique
  * (chargement paresseux), puis mis en cache par le service worker. Préfixe e5 « query: ».
  */
-let extractorP: Promise<unknown> | null = null;
 
-/** Charge (une seule fois) le pipeline d'extraction de features. */
+const LOADER_SRC = "/vendor/transformers-loader.mjs";
+
+// Résolution des specifiers nus d'onnxruntime-web vers les bundles ESM auto-hébergés.
+const IMPORT_MAP = {
+  imports: {
+    "onnxruntime-web": "/ort/ort.bundle.min.mjs",
+    "onnxruntime-web/webgpu": "/ort/ort.webgpu.bundle.min.mjs",
+    // ort.bundle.min.mjs importe onnxruntime-common par specifier nu (feuille ESM).
+    "onnxruntime-common": "/ort/common/index.js",
+  },
+};
+
+/** Déclare l'import map (une seule fois, AVANT tout chargement de module). */
+function injecterImportMap(): void {
+  if (document.querySelector('script[type="importmap"][data-scrutoir-transformers]')) return;
+  const im = document.createElement("script");
+  im.type = "importmap";
+  im.setAttribute("data-scrutoir-transformers", "1");
+  im.textContent = JSON.stringify(IMPORT_MAP);
+  document.head.appendChild(im);
+}
+
+let libP: Promise<any> | null = null;
+let extractorP: Promise<any> | null = null;
+
+/** Charge (une seule fois) la lib transformers.js hors Metro, via balise <script>. */
+function chargerLib(): Promise<any> {
+  if (libP) return libP;
+  libP = new Promise<any>((resolve, reject) => {
+    if (typeof window === "undefined" || typeof document === "undefined") {
+      reject(new Error("transformers indisponible hors navigateur"));
+      return;
+    }
+    // Déjà chargée (ex. réinjection après hot reload) ?
+    if ((window as any).__transformers) {
+      resolve((window as any).__transformers);
+      return;
+    }
+    const onReady = () => resolve((window as any).__transformers);
+    window.addEventListener("transformers:ready", onReady, { once: true });
+
+    // L'import map DOIT précéder le chargement du module loader.
+    injecterImportMap();
+
+    // Réutilise la balise si déjà injectée (évite un double <script> au hot reload).
+    if (!document.querySelector(`script[type="module"][data-scrutoir-transformers]`)) {
+      const s = document.createElement("script");
+      s.type = "module";
+      s.src = LOADER_SRC;
+      s.setAttribute("data-scrutoir-transformers", "1");
+      s.onerror = () => {
+        window.removeEventListener("transformers:ready", onReady);
+        reject(new Error("Échec de chargement de " + LOADER_SRC));
+      };
+      document.head.appendChild(s);
+    }
+  });
+  // Pas de mise en cache d'un échec : permet un nouvel essai (repli lexical entre-temps).
+  libP.catch(() => {
+    libP = null;
+  });
+  return libP;
+}
+
+/** Charge (une seule fois) le pipeline d'extraction de features (modèle local). */
 export function chargerEmbedder(): Promise<any> {
   if (!extractorP) {
     extractorP = (async () => {
-      const tf: any = await import("@huggingface/transformers");
+      const tf: any = await chargerLib();
       // Jamais d'appel externe : tout est servi en local (même origine).
       tf.env.allowRemoteModels = false;
       tf.env.allowLocalModels = true;
@@ -27,6 +100,10 @@ export function chargerEmbedder(): Promise<any> {
       }
       return tf.pipeline("feature-extraction", "Xenova/multilingual-e5-small", { dtype: "q8" });
     })();
+    // Idem : un échec d'init du modèle ne doit pas figer un rejet en cache.
+    extractorP.catch(() => {
+      extractorP = null;
+    });
   }
   return extractorP as Promise<any>;
 }
