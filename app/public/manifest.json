@@ -1,7 +1,7 @@
 {
   "name": "Scrutoir — votes des députés",
   "short_name": "Scrutoir",
-  "description": "Ce que votent réellement les députés français, à partir de l'Open Data de l'Assemblée nationale. Neutre, gratuit, sans pub.",
+  "description": "Comment votent les députés français, à partir des données officielles de l'Assemblée nationale. Neutre, gratuit, sans pub.",
   "lang": "fr",
   "dir": "ltr",
   "start_url": "/?source=pwa",

@@ -26,9 +26,9 @@ export function AProposScreen({ nav }: { nav: Nav }) {
       </Text>
       <Text style={[T.body, { color: C.text, marginTop: 6 }]}>
         Scrutoir aide à comparer le discours des politiques à leurs actes. L'app rend lisibles les
-        votes réels des députés à l'Assemblée : cherchez un élu et voyez comment il ou elle a
-        voté par thème, ouvrez un scrutin pour comprendre le texte, confrontez deux élus sur leurs
-        accords et désaccords, ou retrouvez votre député par commune. Le tout de façon neutre —
+        votes réels des députés à l'Assemblée : cherche un élu et vois comment il ou elle a
+        voté par thème, ouvre un scrutin pour comprendre le texte, confronte deux élus sur leurs
+        accords et désaccords, ou retrouve ton député par commune. Le tout de façon neutre —
         aucune couleur de parti n'est mise en avant, seul le vote parle.
       </Text>
 
@@ -93,7 +93,7 @@ export function AProposScreen({ nav }: { nav: Nav }) {
       <Bloc titre="Consigne du groupe (pas de score de loyauté)">
         Plutôt qu'un score de loyauté agrégé — qui se prête à un jugement hâtif — on affiche la
         consigne du groupe (position majoritaire fournie par l'Assemblée) à côté de chaque vote, et
-        les écarts sont listés dans les « dissidences ». À vous de lire l'écart.
+        les écarts sont listés dans les « dissidences ». À toi de lire l'écart.
       </Bloc>
 
       <Bloc titre="Confronter deux élus">
@@ -133,7 +133,7 @@ export function AProposScreen({ nav }: { nav: Nav }) {
       <Bloc titre="Mesure d'audience">
         Scrutoir mesure de façon anonyme ce qui est consulté sur l'application (élus, duels,
         partis, thèmes), afin d'améliorer le service et de dégager des tendances d'intérêt
-        agrégées. Aucune donnée ne permet de vous identifier individuellement. Nous ne
+        agrégées. Aucune donnée ne permet de t'identifier individuellement. Nous ne
         profilons personne et nous ne vendons aucune donnée d'usage à des partis ou à des
         candidats. Aucun compte n'est nécessaire pour utiliser Scrutoir.
       </Bloc>
@@ -142,7 +142,7 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         Pas de cookie ni de traceur publicitaire. Aucune adresse IP ni identifiant n'est
         conservé. Les mesures se limitent à des compteurs agrégés — « combien de fois tel
         contenu est consulté ou suivi » — jamais reliés à une personne. Et la liste des
-        élus et partis que vous suivez, elle, reste sur votre appareil : elle n'est
+        élus et partis que tu suis, elle, reste sur ton appareil : elle n'est
         envoyée à personne.
       </Bloc>
 
@@ -160,7 +160,7 @@ export function AProposScreen({ nav }: { nav: Nav }) {
           Scrutoir · version {APP_VERSION}
         </Text>
         <Text style={[T.small, { fontFamily: F.regular, color: C.textFaint, marginTop: 2 }]}>
-          Indiquez ce numéro avec vos retours pour situer la version concernée.
+          Indique ce numéro avec tes retours pour situer la version concernée.
         </Text>
       </View>
       </ScrollView>

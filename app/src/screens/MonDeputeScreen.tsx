@@ -63,7 +63,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
       <Text style={[T.title, { color: C.text }]}>Mon député</Text>
       <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
-        Cherchez votre commune ou votre code postal — on vous amène à votre département.
+        Cherche ta commune ou ton code postal — on t'amène à ton département.
       </Text>
 
       {loading ? (
@@ -78,7 +78,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
           </TouchableOpacity>
           {sel.circos > 1 && (
             <Text style={[T.small, { color: C.textFaint, marginBottom: 10 }]}>
-              {sel.circos} circonscriptions dans ce département. Choisissez la vôtre (le lien officiel ci-dessous
+              {sel.circos} circonscriptions dans ce département. Choisis la tienne (le lien officiel ci-dessous
               aide à l'identifier précisément).
             </Text>
           )}
@@ -113,7 +113,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
             <TextInput
               value={q}
               onChangeText={setQ}
-              placeholder="Votre commune ou code postal…"
+              placeholder="Ta commune ou code postal…"
               placeholderTextColor={C.textFaint}
               style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
               autoCorrect={false}
@@ -145,7 +145,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
 
           {q.trim().length >= 2 && !chercheCommune && communes.length === 0 && (
             <Text style={[T.small, { color: C.textMuted, marginTop: 14, textAlign: "center" }]}>
-              Aucune commune trouvée. Essayez le code postal complet, ou parcourez par département.
+              Aucune commune trouvée. Essaie le code postal complet, ou parcours par département.
             </Text>
           )}
 
@@ -177,9 +177,9 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
       )}
 
       <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 20 }]}>
-        La recherche commune/code postal s'appuie sur l'API Géo officielle (geo.api.gouv.fr) et vous amène
-        à votre département. Les grandes villes comptent plusieurs circonscriptions : le lien officiel
-        ci-dessus permet d'identifier précisément la vôtre.
+        La recherche commune/code postal s'appuie sur l'API Géo officielle (geo.api.gouv.fr) et t'amène
+        à ton département. Les grandes villes comptent plusieurs circonscriptions : le lien officiel
+        ci-dessus permet d'identifier précisément la tienne.
       </Text>
     </ScrollView>
   );

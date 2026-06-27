@@ -140,7 +140,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
 
       {!pret && (
         <Text style={[T.body, { color: C.textFaint, marginTop: 16 }]}>
-          Choisissez deux élus pour comparer leurs votes.
+          Choisis deux élus pour comparer leurs votes.
         </Text>
       )}
 
@@ -153,7 +153,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, nav }: { a?: s
       {/* Shuffle — juste sous la rangée des sélecteurs. Re-clic = nouveau tirage. */}
       <View style={{ borderTopWidth: 1, borderTopColor: C.border, marginTop: 18 }} />
       <View style={{ alignItems: "center", marginTop: 14, gap: 9 }}>
-        <Text style={[T.small, { color: C.textMuted }]}>Pas d'idée ? Laissez-vous surprendre.</Text>
+        <Text style={[T.small, { color: C.textMuted }]}>Pas d'idée ? Laisse-toi surprendre.</Text>
         <TouchableOpacity
           onPress={lancerShuffle}
           disabled={shuffling}
@@ -305,7 +305,7 @@ function Resultats({ data, depA, depB, periode, shuffleAngle, nav }: { data: Con
         <View style={{ marginTop: 22 }}>
           <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Accord par thème</Text>
           <Text style={[T.small, { color: C.textFaint, marginTop: 2, marginBottom: 11 }]}>
-            Du plus divergent au plus convergent. Touchez un thème pour le détail.
+            Du plus divergent au plus convergent. Touche un thème pour le détail.
           </Text>
           <View style={{ gap: 9 }}>
             {fiables.map((t) => (

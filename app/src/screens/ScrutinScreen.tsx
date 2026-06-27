@@ -130,7 +130,7 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <Chiffre label="Abst." valeur={s.abstention} color={C.abstention} onPress={() => goVotants("abstention")} />
       </View>
       <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 7 }]}>
-        Touchez un chiffre pour voir qui a voté.
+        Touche un chiffre pour voir qui a voté.
       </Text>
 
       <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 22, marginBottom: 11 }]}>Position par groupe</Text>

@@ -54,7 +54,7 @@ export function ThemesScreen({ nav }: { nav: Nav }) {
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
         <Text style={[T.title, { color: C.text }]}>Thèmes</Text>
         <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
-          Parcourez les scrutins par grand sujet
+          Parcours les scrutins par grand sujet
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>

@@ -20,7 +20,7 @@ function ThemeSelector() {
     <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
       <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Apparence</Text>
       <Text style={[T.small, { color: C.textMuted, marginTop: 2, marginBottom: 12 }]}>
-        « Auto » suit le réglage clair/sombre de votre appareil.
+        « Auto » suit le réglage clair/sombre de ton appareil.
       </Text>
       <View style={{ flexDirection: "row", gap: 4, padding: 4, backgroundColor: C.surfaceAlt, borderRadius: 12 }}>
         {opts.map((o) => {
@@ -59,7 +59,7 @@ function GroupAvatarSelector() {
         <View style={{ flex: 1 }}>
           <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Avatars des groupes</Text>
           <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]}>
-            Logos officiels des groupes, ou sigles (plus lisibles). S'applique à vos suivis.
+            Logos officiels des groupes, ou sigles (plus lisibles). S'applique à tes suivis.
           </Text>
         </View>
       </View>
@@ -96,7 +96,7 @@ export function ParametresScreen(_props: { nav: Nav }) {
       <View style={{ marginTop: 22, alignItems: "center" }}>
         <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>Scrutoir · version {APP_VERSION}</Text>
         <Text style={[T.small, { fontFamily: F.regular, color: C.textFaint, marginTop: 2, textAlign: "center" }]}>
-          Indiquez ce numéro avec vos retours pour situer la version concernée.
+          Indique ce numéro avec tes retours pour situer la version concernée.
         </Text>
       </View>
     </ScrollView>

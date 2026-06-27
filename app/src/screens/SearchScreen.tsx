@@ -35,7 +35,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
           </TouchableOpacity>
         </View>
         <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
-          Comment votent vraiment vos élus
+          Tes députés votent comment ?
         </Text>
       </View>
 

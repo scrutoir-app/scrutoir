@@ -47,7 +47,7 @@ export function MentionsScreen() {
         Scrutoir ne demande aucun compte et ne collecte aucune donnée personnelle. La mesure
         d'audience est strictement anonyme : pas de cookie, aucune adresse IP conservée, aucun
         profilage. Seules des statistiques agrégées (jamais reliées à une personne) sont produites,
-        pour améliorer le service. La liste des élus et partis que vous suivez reste sur votre
+        pour améliorer le service. La liste des élus et partis que tu suis reste sur ton
         appareil et n'est transmise à personne. Nous ne vendons aucune donnée d'usage à des partis
         ou à des candidats. Pour toute question : <Mail />.
       </Bloc>

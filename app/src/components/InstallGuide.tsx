@@ -102,7 +102,7 @@ export function InstallGuide({ visible, onClose }: { visible: boolean; onClose: 
                   </Demo>
                 }
               >
-                Touchez <Text style={{ fontFamily: F.bold }}>« ••• »</Text> à droite de la barre d'adresse.
+                Touche <Text style={{ fontFamily: F.bold }}>« ••• »</Text> à droite de la barre d'adresse.
               </Step>
 
               <Step
@@ -132,7 +132,7 @@ export function InstallGuide({ visible, onClose }: { visible: boolean; onClose: 
                   </Demo>
                 }
               >
-                Dans le menu, touchez <Text style={{ fontFamily: F.bold }}>« Partager »</Text>.
+                Dans le menu, touche <Text style={{ fontFamily: F.bold }}>« Partager »</Text>.
               </Step>
 
               <Step
@@ -160,7 +160,7 @@ export function InstallGuide({ visible, onClose }: { visible: boolean; onClose: 
                   </Demo>
                 }
               >
-                Faites défiler la liste, puis touchez <Text style={{ fontFamily: F.bold }}>« Sur l'écran d'accueil »</Text>.
+                Fais défiler la liste, puis touche <Text style={{ fontFamily: F.bold }}>« Sur l'écran d'accueil »</Text>.
               </Step>
 
               <Step
@@ -177,7 +177,7 @@ export function InstallGuide({ visible, onClose }: { visible: boolean; onClose: 
                   </Demo>
                 }
               >
-                Touchez <Text style={{ fontFamily: F.bold }}>« Ajouter »</Text> en haut à droite.
+                Touche <Text style={{ fontFamily: F.bold }}>« Ajouter »</Text> en haut à droite.
               </Step>
 
               <View style={{ flexDirection: "row", gap: 7, marginTop: 2, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border }}>

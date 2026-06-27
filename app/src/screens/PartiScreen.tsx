@@ -141,7 +141,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       </View>
 
       <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 4 }]}>Positions par thème</Text>
-      <Text style={[T.small, { color: C.textMuted, marginBottom: 12 }]}>Touchez un thème pour le détail des votes du groupe</Text>
+      <Text style={[T.small, { color: C.textMuted, marginBottom: 12 }]}>Touche un thème pour le détail des votes du groupe</Text>
       <View style={{ gap: 9 }}>
         {data.categories.map((c) => (
           <PartiThemeRow
