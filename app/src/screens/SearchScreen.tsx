@@ -112,7 +112,13 @@ function Hero({ q, setQ, compact, inputRef, autoFocus }: { q: string; setQ: (s: 
       <SearchPill q={q} setQ={setQ} inputRef={inputRef} autoFocus={autoFocus} />
 
       {!compact && (
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 13 }}>
+        // Une seule ligne : défilement horizontal (sinon le héros devient trop haut).
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginTop: 13 }}
+          contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+        >
           {EXEMPLES.map((ex) => (
             <TouchableOpacity
               key={ex}
@@ -123,7 +129,7 @@ function Hero({ q, setQ, compact, inputRef, autoFocus }: { q: string; setQ: (s: 
               <Text style={[T.small, { fontFamily: F.semibold, color: h.tagFg }]}>{ex}</Text>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
       )}
     </View>
   );
