@@ -32,7 +32,7 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "prepare:embeddings": "node scripts/prepare-embeddings-assets.mjs",
-    "build:web": "node scripts/prepare-embeddings-assets.mjs && expo export -p web && node scripts/patch-pwa.mjs && node scripts/prerender-seo.mjs",
+    "build:web": "node scripts/prepare-embeddings-assets.mjs && expo export -p web && node scripts/patch-pwa.mjs && node scripts/prerender-seo.mjs && node scripts/strip-model-for-pages.mjs",
     "check:data": "node scripts/check-data-freshness.mjs",
     "deploy:pages": "node scripts/check-data-freshness.mjs && npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true"
   },

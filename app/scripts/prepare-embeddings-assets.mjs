@@ -103,6 +103,34 @@ const r3 = modelCache
   : { ok: false, label: `models/${MODEL_ID}`, src: cacheDirs.join(" | ") };
 if (!r3.ok) missing.push(r3);
 
+// 3b) DÉCOUPAGE du modèle ONNX en morceaux < 24 Mio. Cloudflare Pages refuse tout
+//     fichier > 25 Mio ; le modèle q8 fait ~113 Mio. On garde le fichier ENTIER pour le
+//     dev (Expo sert public/, pas de SW) et on génère des parts + manifeste : en prod, le
+//     SW réassemble le fichier entier à partir des parts (cf. app/public/sw.js), et le
+//     fichier entier est retiré du dist avant déploiement (scripts/strip-model-for-pages.mjs).
+const CHUNK = 24 * 1024 * 1024;
+if (r3.ok) {
+  const onnx = path.join(PUBLIC, "models", MODEL_ID, "onnx", "model_quantized.onnx");
+  if (fs.existsSync(onnx)) {
+    const buf = fs.readFileSync(onnx);
+    const dir = path.dirname(onnx);
+    // Nettoie d'anciennes parts éventuelles.
+    for (const f of fs.readdirSync(dir)) {
+      if (/^model_quantized\.onnx\.part\d+$/.test(f)) fs.unlinkSync(path.join(dir, f));
+    }
+    const n = Math.ceil(buf.length / CHUNK);
+    for (let i = 0; i < n; i++) {
+      const part = buf.subarray(i * CHUNK, Math.min((i + 1) * CHUNK, buf.length));
+      fs.writeFileSync(path.join(dir, `model_quantized.onnx.part${String(i).padStart(3, "0")}`), part);
+    }
+    fs.writeFileSync(
+      path.join(dir, "model_quantized.onnx.parts.json"),
+      JSON.stringify({ parts: n, bytes: buf.length, chunk: CHUNK })
+    );
+    console.log(`  ✓ model_quantized.onnx découpé en ${n} parts < 24 Mio (+ manifeste)`);
+  }
+}
+
 if (missing.length) {
   console.error("\n❌ Sources manquantes :");
   for (const m of missing) console.error(`   - ${m.label}  (attendu : ${m.src})`);

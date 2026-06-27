@@ -122,5 +122,3 @@ export async function embedQuery(texte: string): Promise<Float32Array> {
   return out.data as Float32Array;
 }
 
-// Sonde DEV (à retirer avant prod) : tester depuis la console — await window.__embedQuery("LGBT")
-if (typeof window !== "undefined") (window as any).__embedQuery = embedQuery;

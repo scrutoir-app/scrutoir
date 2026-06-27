@@ -7,6 +7,20 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.1.0 — 2026-06-27
+- **Recherche en langage naturel (« Sujet »)** : en plus de la recherche exacte (élu, loi,
+  parti, n°), une section **Sujet** trouve les scrutins **liés au thème même sans le mot exact**
+  (« droits LGBT » → loi homosexualité/thérapies de conversion). 100 % côté navigateur, hors-ligne,
+  gratuit : embeddings open-source **multilingual-e5-small** (index `embeddings.bin` pré-calculé) +
+  couche déterministe (normalisation, **alias** PMA/49.3/…, correction **« Tu voulais dire »**,
+  suggestions de **thèmes** à la frappe). Top-K + coupure relative ; **dédup par dossier** (priorité
+  au texte entier) ; **repli LEXICAL** par mot-clé sur l'exposé d'amendement (rattrape
+  « carburant »/« essence » et marche même sans le modèle), chip **« Mentionne … »**. Modèle ~113 Mo
+  **découpé en parts < 24 Mo réassemblées par le service worker** (limite Cloudflare Pages 25 Mio/fichier).
+- **Tutoiement** : tous les textes Scrutoir adressent l'utilisateur en « tu » (interface, états vides,
+  messages, onboarding, métas de partage). Le contenu de l'Assemblée nationale (intitulés de loi, noms,
+  votes) reste affiché **à l'identique**. Nouvelle accroche « Tes députés votent comment ? ».
+
 ## 1.0.66 — 2026-06-25
 - **Analytics (interne)** : mesure d'engagement **anonyme** du test de proximité — `test_start` /
   `test_done` avec le thème (ou « complet »), **jamais** les réponses ni le parti compatible (opinion

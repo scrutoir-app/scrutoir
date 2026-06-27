@@ -129,6 +129,3 @@ export async function rechercheSemantique(
   }
   return out;
 }
-
-// Sonde DEV (à retirer avant prod) : await window.__rechercheSemantique("droits LGBT")
-if (typeof window !== "undefined") (window as any).__rechercheSemantique = rechercheSemantique;

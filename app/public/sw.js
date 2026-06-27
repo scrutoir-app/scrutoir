@@ -18,7 +18,7 @@
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const SHELL_VERSION = "v16";
+const SHELL_VERSION = "v17";
 const DATA_VERSION = "v2";
 // MODEL : modèle e5-small (~118 Mo) + runtime onnxruntime (/ort) + bundle (/vendor) de la
 // recherche sémantique. Gros et IMMUABLES par version → cache-first dédié, JAMAIS
@@ -95,6 +95,38 @@ async function staleWhileRevalidate(request, cacheName) {
   return cached || network;
 }
 
+// Réassemble le modèle ONNX (~113 Mio) à partir de ses parts < 24 Mio. Cloudflare Pages
+// refuse les fichiers > 25 Mio : on ne déploie que les parts (model_quantized.onnx.partNNN)
+// + un manifeste, et le SW reconstruit le fichier entier ici, à la volée, puis le met en
+// cache. Transparent pour transformers.js, qui croit charger un seul fichier.
+async function assembleModel(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  if (cached) return cached;
+
+  const base = request.url; // …/model_quantized.onnx
+  const manifest = await fetch(base + ".parts.json").then((r) => r.json());
+  const buffers = [];
+  for (let i = 0; i < manifest.parts; i++) {
+    const part = base + ".part" + String(i).padStart(3, "0");
+    const res = await fetch(part);
+    if (!res.ok) throw new Error("part manquante: " + part);
+    buffers.push(new Uint8Array(await res.arrayBuffer()));
+  }
+  const total = buffers.reduce((n, b) => n + b.length, 0);
+  const out = new Uint8Array(total);
+  let off = 0;
+  for (const b of buffers) {
+    out.set(b, off);
+    off += b.length;
+  }
+  const response = new Response(out, {
+    headers: { "Content-Type": "application/octet-stream", "Content-Length": String(total) },
+  });
+  cache.put(request, response.clone());
+  return response;
+}
+
 async function networkFirst(request, cacheName, fallbackUrl) {
   const cache = await caches.open(cacheName);
   try {
@@ -133,7 +165,12 @@ self.addEventListener("fetch", (event) => {
   }
 
   // 3) Recherche sémantique : modèle e5 (/models), runtime (/ort), bundle (/vendor).
-  //    Gros + immuables par version → cache-first dédié (pas de re-fetch en tâche de fond).
+  //    Le modèle entier dépasse 25 Mio (limite Pages) → réassemblé depuis ses parts.
+  //    Le reste : cache-first dédié (gros + immuables, pas de re-fetch en tâche de fond).
+  if (url.pathname.endsWith("/model_quantized.onnx")) {
+    event.respondWith(assembleModel(request, MODEL_CACHE));
+    return;
+  }
   if (
     url.pathname.startsWith("/models/") ||
     url.pathname.startsWith("/ort/") ||
