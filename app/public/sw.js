@@ -20,8 +20,13 @@
  */
 const SHELL_VERSION = "v16";
 const DATA_VERSION = "v2";
+// MODEL : modèle e5-small (~118 Mo) + runtime onnxruntime (/ort) + bundle (/vendor) de la
+// recherche sémantique. Gros et IMMUABLES par version → cache-first dédié, JAMAIS
+// re-téléchargés en tâche de fond. Bumper si la version du modèle/index change.
+const MODEL_VERSION = "v1";
 const SHELL_CACHE = `scrutoir-shell-${SHELL_VERSION}`;
 const DATA_CACHE = `scrutoir-data-${DATA_VERSION}`;
+const MODEL_CACHE = `scrutoir-model-${MODEL_VERSION}`;
 const OFFLINE_URL = "/index.html";
 
 // Pré-cache minimal : la coquille de navigation + le manifest + les icônes.
@@ -50,7 +55,7 @@ self.addEventListener("activate", (event) => {
       .then((keys) =>
         Promise.all(
           keys
-            .filter((k) => k !== SHELL_CACHE && k !== DATA_CACHE)
+            .filter((k) => k !== SHELL_CACHE && k !== DATA_CACHE && k !== MODEL_CACHE)
             .map((k) => caches.delete(k))
         )
       )
@@ -127,7 +132,18 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 3) Données.
+  // 3) Recherche sémantique : modèle e5 (/models), runtime (/ort), bundle (/vendor).
+  //    Gros + immuables par version → cache-first dédié (pas de re-fetch en tâche de fond).
+  if (
+    url.pathname.startsWith("/models/") ||
+    url.pathname.startsWith("/ort/") ||
+    url.pathname.startsWith("/vendor/")
+  ) {
+    event.respondWith(cacheFirst(request, MODEL_CACHE));
+    return;
+  }
+
+  // 4) Données.
   if (url.pathname.startsWith("/data/")) {
     if (url.pathname === "/data/version.json") {
       event.respondWith(networkFirst(request, DATA_CACHE));
@@ -139,6 +155,6 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // 4) Autres assets même origine (icônes, favicon, manifest) → SWR.
+  // 5) Autres assets même origine (icônes, favicon, manifest) → SWR.
   event.respondWith(staleWhileRevalidate(request, SHELL_CACHE));
 });
