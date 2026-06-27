@@ -54,7 +54,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
           <TextInput
             value={q}
             onChangeText={setQ}
-            placeholder="Recherche député, parti, loi…"
+            placeholder="Un sujet, un nom, une loi… ex. logement, santé, agriculture"
             placeholderTextColor={C.textMuted}
             style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
             autoCorrect={false}
@@ -62,7 +62,7 @@ export function SearchScreen({ nav }: { nav: Nav }) {
         </View>
       </View>
 
-      {!enRecherche ? <Accueil nav={nav} /> : <SearchResultsList q={q} nav={nav} />}
+      {!enRecherche ? <Accueil nav={nav} /> : <SearchResultsList q={q} nav={nav} onCorriger={setQ} />}
     </View>
   );
 }

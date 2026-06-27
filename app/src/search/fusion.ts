@@ -81,10 +81,10 @@ export function dedupParDossier(list: ScrutinResume[]): ScrutinResume[] {
 export async function rechercherSujet(
   q: string,
   exactScrutins: ScrutinResume[]
-): Promise<{ sujet: ScrutinResume[]; semantiqueDispo: boolean }> {
+): Promise<{ sujet: ScrutinResume[]; semantiqueDispo: boolean; lexicalUids: string[] }> {
   const intent = routerIntention(q);
   // Sémantique/lexical seulement pour les requêtes « sujet » (pas n° de scrutin ni parti exact).
-  if (intent.type !== "sujet") return { sujet: [], semantiqueDispo: false };
+  if (intent.type !== "sujet") return { sujet: [], semantiqueDispo: false, lexicalUids: [] };
 
   // 1) SÉMANTIQUE (peut échouer = modèle/hors-ligne → on garde le lexical comme repli).
   let semUids: string[] = [];
@@ -106,7 +106,7 @@ export async function rechercherSujet(
     /* corpus indispo → on s'en passe */
   }
 
-  if (!semUids.length && !lexUids.length) return { sujet: [], semantiqueDispo };
+  if (!semUids.length && !lexUids.length) return { sujet: [], semantiqueDispo, lexicalUids: [] };
 
   const uidsExacts = new Set(exactScrutins.map((s) => s.uid));
   const dossiersExacts = new Set(exactScrutins.map((s) => cleDossier(s.titre)));
@@ -121,7 +121,11 @@ export async function rechercherSujet(
   const sujet = dedupParDossier([...semScrutins, ...lexScrutins].filter((s) => !uidsExacts.has(s.uid)))
     .filter((s) => !dossiersExacts.has(cleDossier(s.titre)))
     .slice(0, MAX_SUJET);
-  return { sujet, semantiqueDispo };
+  // Résultats issus du LEXICAL seul (mot-clé trouvé, mais pas remontés par le sémantique)
+  // → la carte affichera « Mentionne … » pour expliquer le rattachement.
+  const lexSet = new Set(lexUids);
+  const lexicalUids = sujet.filter((s) => lexSet.has(s.uid) && !dejaSem.has(s.uid)).map((s) => s.uid);
+  return { sujet, semantiqueDispo, lexicalUids };
 }
 
 /** Recherche complète exact + Sujet en un appel (tests / usage non incrémental). */

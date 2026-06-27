@@ -4,6 +4,9 @@ import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { rechercher } from "../api";
 import { dedupParDossier, rechercherSujet } from "../search/fusion";
+import { routerIntention } from "../search/intent";
+import { motsCles } from "../search/normalize";
+import { embedderEstPret } from "../search/embedder";
 import { track } from "../analytics";
 import type { DeputeResume, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
@@ -12,19 +15,28 @@ import { ScrutinCard } from "./ScrutinCard";
 type Item =
   | { kind: "header"; label: string; caption?: string }
   | { kind: "depute"; data: DeputeResume }
-  | { kind: "scrutin"; data: ScrutinResume }
-  | { kind: "sujetLoading" };
+  | { kind: "scrutin"; data: ScrutinResume; motCle?: string }
+  | { kind: "sujetLoading"; premier: boolean };
 
 /**
  * Liste de résultats de recherche pour une requête `q` contrôlée par le parent.
  * Rendu EN DEUX TEMPS : les résultats EXACTS (députés/scrutins) s'affichent tout de suite ;
- * la section « Sujet » (recherche sémantique) s'ajoute quand le modèle a répondu — elle peut
- * être plus lente au 1er usage (chargement du modèle) et est silencieusement absente si le
- * modèle est indisponible (repli lexical). Recherche débouncée.
+ * la section « Sujet » (sémantique + lexical) s'ajoute quand le moteur a répondu — plus lente
+ * au 1er usage (chargement du modèle), silencieusement absente si le modèle est indisponible
+ * (repli lexical). `onCorriger` permet de relancer sur la suggestion « Tu voulais dire ».
  */
-export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
+export function SearchResultsList({
+  q,
+  nav,
+  onCorriger,
+}: {
+  q: string;
+  nav: Nav;
+  onCorriger?: (q: string) => void;
+}) {
   const [base, setBase] = useState<Item[]>([]); // députés + scrutins exacts
   const [sujet, setSujet] = useState<Item[]>([]); // section « Sujet » (ou ligne de chargement)
+  const [correction, setCorrection] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const reqId = useRef(0);
@@ -35,6 +47,10 @@ export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
     setSujet([]);
     const id = ++reqId.current;
     const terme = q.trim();
+
+    // Suggestion « Tu voulais dire » (déterministe, immédiate).
+    const sugg = routerIntention(terme).suggestion;
+    setCorrection(sugg && sugg !== terme ? sugg : null);
 
     timer.current = setTimeout(async () => {
       // Phase 1 — exact (instantané).
@@ -62,15 +78,19 @@ export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
         if (id === reqId.current) setLoading(false);
       }
 
-      // Phase 2 — section « Sujet » (sémantique), ajoutée quand prête.
+      // Phase 2 — section « Sujet » (sémantique + lexical), ajoutée quand prête.
       if (terme.length >= 2) {
-        setSujet([{ kind: "sujetLoading" }]);
+        setSujet([{ kind: "sujetLoading", premier: !embedderEstPret() }]);
         try {
-          const { sujet: scrs } = await rechercherSujet(terme, exactScrutins);
+          const { sujet: scrs, lexicalUids } = await rechercherSujet(terme, exactScrutins);
           if (id !== reqId.current) return;
           if (scrs.length) {
+            const lexSet = new Set(lexicalUids);
+            const motCle = motsCles(terme).join(", ");
             const sec: Item[] = [{ kind: "header", label: "Sujet", caption: "Scrutins liés, même sans le mot exact" }];
-            scrs.forEach((s) => sec.push({ kind: "scrutin", data: s }));
+            scrs.forEach((s) =>
+              sec.push({ kind: "scrutin", data: s, motCle: lexSet.has(s.uid) ? motCle : undefined })
+            );
             setSujet(sec);
           } else {
             setSujet([]);
@@ -92,10 +112,24 @@ export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
       }
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32 }}
+      ListHeaderComponent={
+        correction ? (
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => onCorriger?.(correction)}
+            disabled={!onCorriger}
+            style={{ paddingVertical: 8 }}
+          >
+            <Text style={[T.small, { color: C.textMuted }]}>
+              Tu voulais dire : <Text style={{ fontFamily: F.bold, color: C.accent }}>{correction}</Text> ?
+            </Text>
+          </TouchableOpacity>
+        ) : null
+      }
       ListEmptyComponent={
         !loading ? (
           <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 40, fontFamily: F.medium }}>
-            Aucun résultat pour « {q.trim()} »
+            Rien de probant. Reformule, ou essaie un thème plus large.
           </Text>
         ) : null
       }
@@ -115,7 +149,9 @@ export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
           return (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 16, marginBottom: 4 }}>
               <ActivityIndicator size="small" color={C.textFaint} />
-              <Text style={[T.small, { color: C.textFaint }]}>Recherche par sujet…</Text>
+              <Text style={[T.small, { color: C.textFaint }]}>
+                {item.premier ? "Premier lancement de la recherche, patiente deux secondes." : "Recherche par sujet…"}
+              </Text>
             </View>
           );
         if (item.kind === "depute") {
@@ -137,6 +173,12 @@ export function SearchResultsList({ q, nav }: { q: string; nav: Nav }) {
         }
         return (
           <View style={{ marginBottom: 10 }}>
+            {item.motCle ? (
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 4, marginBottom: 4 }}>
+                <Feather name="file-text" size={11} color={C.textFaint} />
+                <Text style={[T.small, { color: C.textFaint }]}>Mentionne « {item.motCle} »</Text>
+              </View>
+            ) : null}
             <ScrutinCard scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />
           </View>
         );

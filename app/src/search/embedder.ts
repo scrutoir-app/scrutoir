@@ -108,10 +108,17 @@ export function chargerEmbedder(): Promise<any> {
   return extractorP as Promise<any>;
 }
 
+let pret = false;
+/** Le modèle a-t-il déjà produit un embedding ? (pour le message « premier lancement »). */
+export function embedderEstPret(): boolean {
+  return pret;
+}
+
 /** Vectorise une requête utilisateur (préfixe e5 « query: », vecteur normalisé 384 dims). */
 export async function embedQuery(texte: string): Promise<Float32Array> {
   const extractor = await chargerEmbedder();
   const out = await extractor("query: " + texte, { pooling: "mean", normalize: true });
+  pret = true;
   return out.data as Float32Array;
 }
 

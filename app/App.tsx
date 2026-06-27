@@ -184,7 +184,7 @@ function AppInner() {
               <TextInput
                 value={gq}
                 onChangeText={setGq}
-                placeholder="Recherche député, parti, loi…"
+                placeholder="Un sujet, un nom, une loi… ex. logement, santé, agriculture"
                 placeholderTextColor={C.textMuted}
                 style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
                 autoCorrect={false}
@@ -200,7 +200,7 @@ function AppInner() {
 
         <View style={{ flex: 1 }}>
           {enRechercheGlobale ? (
-            <SearchResultsList q={gq} nav={nav} />
+            <SearchResultsList q={gq} nav={nav} onCorriger={setGq} />
           ) : (
             <>
           {current.name === "search" && <SearchScreen nav={nav} />}
