@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.3.1 — 2026-06-27
+- Titre du héros de recherche : « Sur quoi tu veux les voir voter ? » → **« Sur quoi ils
+  ont voté ? »**.
+- **« Duel du jour »** passe en **carte bordée** avec une **flamme** en picto d'accroche
+  (au lieu d'une simple ligne de texte). Les deux boutons « Lancer un duel » / « Duel au
+  hasard » au-dessus restent inchangés.
+
 ## 1.3.0 — 2026-06-27
 - **Refonte de l'Accueil autour de la recherche** (retours terrain : recherche invisible,
   accueil trop chargé). La recherche devient le **héros** : un seul aplat encre (titre « Sur

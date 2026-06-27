@@ -102,7 +102,7 @@ function Hero({ q, setQ, compact, inputRef, autoFocus }: { q: string; setQ: (s: 
     >
       {!compact && (
         <>
-          <Text style={[T.heading, { color: h.title }]}>Sur quoi tu veux les voir voter ?</Text>
+          <Text style={[T.heading, { color: h.title }]}>Sur quoi ils ont voté ?</Text>
           <Text style={[T.small, { color: h.sub, marginTop: 5, marginBottom: 13 }]}>
             Tape un sujet, un nom ou une loi
           </Text>
@@ -316,13 +316,14 @@ function BlocDuel({ nav }: { nav: Nav }) {
 
       {duel && (
         <TouchableOpacity
-          activeOpacity={0.7}
+          activeOpacity={0.8}
           onPress={() => nav.push({ name: "confrontation", a: duel.a.uid, b: duel.b.uid })}
-          style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 11, paddingHorizontal: 2 }}
+          style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 11, backgroundColor: C.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.borderStrong, paddingVertical: 12, paddingHorizontal: 14, ...shadowCard }}
         >
-          <Text style={[T.small, { color: C.textMuted, flex: 1 }]} numberOfLines={1}>
-            <Text style={{ fontFamily: F.bold, color: C.textMuted }}>Duel du jour : </Text>
-            {duel.a.nom_complet} × {duel.b.nom_complet} · d'accord à {duel.tauxAccord}&nbsp;%
+          <MaterialCommunityIcons name="fire" size={20} color="#E0703A" />
+          <Text style={[T.small, { color: C.text, flex: 1 }]} numberOfLines={1}>
+            <Text style={{ fontFamily: F.bold }}>Duel du jour : </Text>
+            {duel.a.nom_complet} × {duel.b.nom_complet} · d'accord à {duel.tauxAccord}%
           </Text>
           <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir ›</Text>
         </TouchableOpacity>
