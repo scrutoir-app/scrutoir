@@ -148,8 +148,8 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, nav }:
 
       {/* Sélecteurs symétriques */}
       <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-        <DeputeSlot depute={depA} onPick={choisirA} onClear={viderA} />
-        <DeputeSlot depute={depB} onPick={choisirB} onClear={viderB} />
+        <DeputeSlot depute={depA} onPick={choisirA} onClear={viderA} onOpen={(d) => nav.push({ name: "depute", uid: d.uid })} />
+        <DeputeSlot depute={depB} onPick={choisirB} onClear={viderB} onOpen={(d) => nav.push({ name: "depute", uid: d.uid })} />
       </View>
 
       {/* Shuffle — juste sous la rangée des sélecteurs. Re-clic = nouveau tirage. */}
@@ -193,7 +193,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, nav }:
 
 /* ------------------------------------------------------------------ Sélecteur */
 
-function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; onPick: (d: DeputeResume) => void; onClear: () => void }) {
+function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume | null; onPick: (d: DeputeResume) => void; onClear: () => void; onOpen: (d: DeputeResume) => void }) {
   const [q, setQ] = useState("");
   const [res, setRes] = useState<DeputeResume[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -209,9 +209,18 @@ function DeputeSlot({ depute, onPick, onClear }: { depute: DeputeResume | null; 
   if (depute) {
     return (
       <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, alignItems: "center", ...shadowCard }}>
-        <Image source={{ uri: depute.photo_url ?? undefined }} style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: C.surfaceAlt }} />
-        <Text style={[T.body, { fontFamily: F.bold, color: C.text, marginTop: 7, textAlign: "center" }]} numberOfLines={2}>{depute.nom_complet}</Text>
-        <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 1 }]}>{depute.abrev ?? "—"}</Text>
+        {/* Photo + nom → fiche de l'élu (un visage est tappable par convention). */}
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => onOpen(depute)}
+          accessibilityRole="button"
+          accessibilityLabel={`Voir la fiche de ${depute.nom_complet}`}
+          style={{ alignItems: "center" }}
+        >
+          <Image source={{ uri: depute.photo_url ?? undefined }} style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: C.surfaceAlt }} />
+          <Text style={[T.body, { fontFamily: F.bold, color: C.text, marginTop: 7, textAlign: "center" }]} numberOfLines={2}>{depute.nom_complet}</Text>
+          <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 1 }]}>{depute.abrev ?? "—"}</Text>
+        </TouchableOpacity>
         <TouchableOpacity onPress={onClear} style={{ marginTop: 7 }}>
           <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Changer</Text>
         </TouchableOpacity>

@@ -12,6 +12,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
   champ que les autres onglets** (carré ardoise + loupe blanche + placeholder réel « Un sujet,
   un nom, une loi… »), et **apparaît un peu plus tôt** (dès que le champ atteint le haut, sans
   attendre que tout le héros ait défilé).
+- **Confrontation** : un tap sur la **carte d'un élu** (photo / nom) ouvre désormais sa **fiche
+  Député** ; « Changer » reste l'action de résélection. Vaut pour les duels ouverts depuis
+  « Duel du jour » / « Duel au hasard » comme pour une sélection manuelle.
 
 ## 1.3.2 — 2026-06-27
 - **Partage du résultat du test de proximité** : le message vu côté destinataire devient
