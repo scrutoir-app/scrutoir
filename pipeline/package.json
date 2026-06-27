@@ -14,11 +14,13 @@
     "build-test-data": "tsx src/buildTestData.ts",
     "test-score": "tsx --test ../app/src/testProximite/score.test.ts",
     "export:static": "tsx src/exportStatic.ts",
+    "embeddings": "tsx src/embeddings.ts",
     "link-amendements": "tsx src/linkAmendements.ts",
     "query": "tsx src/query.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.32.1",
+    "@huggingface/transformers": "^4.2.0",
     "better-sqlite3": "^11.8.1",
     "node-stream-zip": "^1.15.0"
   },

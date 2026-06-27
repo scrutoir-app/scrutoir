@@ -7,3 +7,5 @@ app/node_modules/
 api/node_modules/
 app/public/data/*
 !app/public/data/test-proximite.json
+app/public/models/
+app/public/ort/
