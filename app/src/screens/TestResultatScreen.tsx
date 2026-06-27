@@ -26,11 +26,15 @@ function rgba(hex: string | null | undefined, a: number): string {
   return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
 }
 
-async function partager(url: string): Promise<"shared" | "copied" | "manual"> {
+// Partage 100 % client (geste explicite de l'utilisateur). Le message vu côté destinataire
+// est « Voici mon résultat … et toi ? » : le « et toi ? » est le ressort qui invite à faire
+// le test. Style neutre, aucune couleur de parti, aucune donnée d'usage dans le lien (l'URL
+// n'encode que les réponses/poids, recalculés à l'ouverture — cf. urlPartage/encoderPartage).
+async function partager(url: string, texte: string): Promise<"shared" | "copied" | "manual"> {
   try {
     const nav: any = typeof navigator !== "undefined" ? navigator : null;
-    if (nav?.share) { await nav.share({ title: "Mon test de proximité — Scrutoir", url }); return "shared"; }
-    if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(url); return "copied"; }
+    if (nav?.share) { await nav.share({ title: "Test de proximité — Scrutoir", text: texte, url }); return "shared"; }
+    if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(`${texte}\n${url}`); return "copied"; }
   } catch { /* annulé / indisponible */ }
   return "manual";
 }
@@ -89,8 +93,19 @@ export function TestResultatScreen({
   // Colonnes de la matrice : groupes présents, dans l'ordre gauche→droite.
   const colonnes = ORDRE_HEMICYCLE.filter((a) => partis.some((p) => p.abrev === a));
 
+  // Résumé NEUTRE et honnête : le groupe le plus proche, seulement s'il est fiable
+  // (≥ 2 votes comparés, comme la matrice). Sinon, message sans groupe (pas de faux verdict).
+  const resumePartage = (): string => {
+    const top = [...resultat.global]
+      .filter((g) => comparableTotal(g.abrev) >= 2)
+      .sort((a, b) => b.pct - a.pct)[0];
+    return top
+      ? `Voici mon résultat : proche du groupe ${top.abrev} à ${Math.round(top.pct * 100)} %. Et toi ?`
+      : `Voici mon résultat au test de proximité Scrutoir. Et toi ?`;
+  };
+
   const onShare = async () => {
-    const r = await partager(urlPartage(reponses, poids));
+    const r = await partager(urlPartage(reponses, poids), resumePartage());
     setPartageMsg(r === "copied" ? "Lien copié !" : r === "shared" ? null : "Copie indisponible");
     if (r) setTimeout(() => setPartageMsg(null), 2500);
   };

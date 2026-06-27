@@ -7,6 +7,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.3.2 — 2026-06-27
+- **Partage du résultat du test de proximité** : le message vu côté destinataire devient
+  **« Voici mon résultat : proche du groupe X à N %. Et toi ? »** (le « et toi ? » invite à
+  faire le test → ressort de partage). Résumé **neutre et honnête** : le groupe le plus
+  proche n'est cité que s'il est **fiable** (≥ 2 votes comparés), sinon message sans groupe.
+  100 % client (geste explicite), **aucune couleur de parti**, **aucune donnée d'usage ni
+  identifiant** dans le lien (l'URL n'encode que les réponses, recalculées à l'ouverture).
+  Aperçu visuel du lien (OG/Twitter) volontairement **générique** (texte client, sans Worker)
+  — choix archi assumé pour rester 100 % statique et gratuit.
+
 ## 1.3.1 — 2026-06-27
 - Titre du héros de recherche : « Sur quoi tu veux les voir voter ? » → **« Sur quoi ils
   ont voté ? »**.
