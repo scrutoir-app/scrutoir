@@ -10,6 +10,8 @@ import { useFollow } from "../follows";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
 import { BadgeProximite } from "../components/BadgeProximite";
 import { HemicyclePicto } from "../components/HemicyclePicto";
+import { PartyLogo, aLogoOfficiel } from "../components/PartyLogo";
+import { usePartyLogos } from "../prefs";
 import type { PartiResume } from "../types";
 import type { ProfilParti, PartiCategorie, Periode } from "../types";
 import type { Nav } from "../nav";
@@ -27,6 +29,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [followed, toggleFollow] = useFollow(uid);
   const [partis, setPartis] = useState<PartiResume[]>([]);
+  const [logosOn] = usePartyLogos();
   const je = useJe();
 
   useEffect(() => { getPartis().then(setPartis); }, []);
@@ -52,7 +55,11 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
       {/* En-tête parti */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 13, marginBottom: 16 }}>
-        <HemicyclePicto groupes={partis} activeAbrev={p.abrev} color={p.couleur ?? C.textFaint} size={64} />
+        {logosOn && aLogoOfficiel(p.abrev) ? (
+          <PartyLogo abrev={p.abrev} couleur={p.couleur} size={64} />
+        ) : (
+          <HemicyclePicto groupes={partis} activeAbrev={p.abrev} color={p.couleur ?? C.textFaint} size={64} />
+        )}
         <View style={{ flex: 1 }}>
           <Text style={[T.title, { color: C.text }]}>{p.abrev ?? p.libelle}</Text>
           <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]} numberOfLines={2}>

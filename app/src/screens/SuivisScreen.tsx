@@ -1,9 +1,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
+import { C, F, T, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition, couleurGroupe } from "../theme";
 import { catUI } from "../categoryUI";
-import { PartyLogo } from "../components/PartyLogo";
 import { ProximiteDeputePastille } from "../components/BadgeProximite";
 import { getVotesSuivis, getPartis } from "../api";
 import { useFollows, getLastSeen, markSeen } from "../follows";
@@ -91,7 +90,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
                 onPress={() => nav.push({ name: "parti", uid: p.uid })}
                 style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: C.surface, borderRadius: 999, paddingVertical: 7, paddingHorizontal: 12, ...shadowCard }}
               >
-                <PartyLogo abrev={p.abrev} couleur={p.couleur} size={22} />
+                <View style={{ width: 12, height: 12, borderRadius: 4, backgroundColor: couleurGroupe(p.couleur) }} />
                 <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{p.abrev ?? p.libelle}</Text>
               </TouchableOpacity>
             ))}

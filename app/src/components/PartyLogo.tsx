@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text, Image } from "react-native";
-import { C, F } from "../theme";
+import { C, F, getScheme } from "../theme";
 import { usePartyLogos } from "../prefs";
 
 /**
@@ -24,8 +24,16 @@ const LOGO_FILE: Record<string, string> = {
   liot: "liot.png",
   uddplr: "uddplr.svg",
   gdr: "gdr.svg",
-  // NI : pas de logo de groupe → monogramme.
+  // NI : pas de logo de groupe → repli.
 };
+
+// Variantes BLANCHES pour fond sombre (à poser sur carte sombre, jamais sur blanc).
+const LOGO_DARK: Record<string, string> = { hor: "hor-dark.svg" };
+
+/** Un logo officiel existe-t-il pour ce groupe ? (sinon repli PictoGroupe à l'appel.) */
+export function aLogoOfficiel(abrev?: string | null): boolean {
+  return !!LOGO_FILE[(abrev ?? "").toLowerCase().trim()];
+}
 
 export function PartyLogo({
   abrev,
@@ -38,9 +46,11 @@ export function PartyLogo({
 }) {
   const [logosOn] = usePartyLogos();
   const key = (abrev ?? "").toLowerCase().trim();
-  const file = logosOn ? LOGO_FILE[key] : undefined; // opt-in : sinon monogramme (prod)
-  // Carré à coins arrondis (comme les thèmes) → distingue visuellement un GROUPE suivi
-  // d'un DÉPUTÉ (dont l'avatar reste rond).
+  const dark = getScheme() === "dark";
+  // En sombre, on préfère la variante BLANCHE si elle existe (HOR) → carte sombre ;
+  // sinon le logo normal sur carte blanche (jamais un logo sombre sur fond sombre).
+  const file = logosOn ? (dark && LOGO_DARK[key]) || LOGO_FILE[key] : undefined;
+  const surFondSombre = !!(file && dark && LOGO_DARK[key]);
   const rad = Math.round(size * 0.28);
 
   if (file) {
@@ -49,7 +59,8 @@ export function PartyLogo({
       <View
         style={{
           width: size, height: size, borderRadius: rad,
-          backgroundColor: "#FFFFFF", borderWidth: 1, borderColor: C.borderStrong,
+          backgroundColor: surFondSombre ? C.surfaceAlt : "#FFFFFF",
+          borderWidth: 1, borderColor: C.borderStrong,
           alignItems: "center", justifyContent: "center", overflow: "hidden",
         }}
       >
