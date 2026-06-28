@@ -7,6 +7,8 @@ import type { PartiResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { phraseAlignement } from "../testProximite/phrase";
+import { chargerTest } from "../testProximite/storage";
+import { questionsNeuves, N_AFFINER } from "../testProximite/config";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
 import { track } from "../analytics";
 
@@ -48,8 +50,11 @@ function tirer(all: QuestionProximite[], mode: "theme" | "complet", theme?: stri
   return picked;
 }
 
-export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet"; theme?: string; themeLibelle?: string; nav: Nav }) {
+export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "affiner"; theme?: string; themeLibelle?: string; nav: Nav }) {
   const [all, setAll] = useState<QuestionProximite[] | null>(null);
+  // Test déjà fait (pour le mode « affiner » : on sert les votes NON répondus et on
+  // fusionne les réponses à l'arrivée — chaque session approfondit le même « je »).
+  const dejaFait = useMemo(() => (mode === "affiner" ? chargerTest() : null), [mode]);
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
   const [idx, setIdx] = useState(0);
@@ -58,7 +63,7 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet"; th
 
   // Engagement anonyme : « un test a commencé/terminé » + le thème (ou « complet »).
   // JAMAIS les réponses ni le parti compatible (opinion politique = RGPD art. 9).
-  const testKey = mode === "theme" ? theme ?? "theme" : "complet";
+  const testKey = mode === "affiner" ? "affiner" : mode === "theme" ? theme ?? "theme" : "complet";
   useEffect(() => {
     track("test_start", testKey);
   }, []);
@@ -72,7 +77,11 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet"; th
   }, []);
 
   // Tirage figé une fois les questions chargées (ne pas re-tirer à chaque rendu).
-  const questions = useMemo(() => (all ? tirer(all, mode, theme) : []), [all, mode, theme]);
+  const questions = useMemo(() => {
+    if (!all) return [];
+    if (mode === "affiner") return questionsNeuves(all, dejaFait?.reponses ?? {}, dejaFait?.poids, theme).slice(0, N_AFFINER);
+    return tirer(all, mode, theme);
+  }, [all, mode, theme, dejaFait]);
   const seats = useMemo(() => Object.fromEntries(partis.map((p) => [p.abrev, p.nb_deputes])), [partis]);
   const libelleTheme = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
 
@@ -89,7 +98,11 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet"; th
     if (idx + 1 >= total) {
       track("test_done", testKey);
       const themesJoues = [...new Set(questions.map((x) => x.theme))];
-      nav.push({ name: "testResultat", reponses: { ...reponses, [q.id]: rep! }, themesJoues });
+      // En « affiner », on FUSIONNE avec les réponses déjà enregistrées (et on garde les poids).
+      const base = mode === "affiner" ? dejaFait?.reponses ?? {} : {};
+      const merged = { ...base, ...reponses, [q.id]: rep! };
+      const poids = mode === "affiner" ? dejaFait?.poids : undefined;
+      nav.push({ name: "testResultat", reponses: merged, poids, themesJoues });
     } else {
       setIdx(idx + 1);
       setRevealed(false);
