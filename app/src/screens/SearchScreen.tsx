@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, inputText, RADIUS, shadowCard, positionLabel, couleurPosition, getScheme } from "../theme";
+import { C, F, T, tnum, inputText, RADIUS, shadowCard, positionLabel, couleurPosition, couleurGroupe, getScheme } from "../theme";
 import { getVotesSuivis, getVotesPartisSuivis, getPartis, getTestProximite, getScrutinsRecents } from "../api";
 import { catUI } from "../categoryUI";
-import { useFollows } from "../follows";
+import { useFollows, getLastSeen } from "../follows";
 import { chargerTest } from "../testProximite/storage";
 import { useJe, useProximiteDepute, scoreGroupeJe, type ContexteJe, type ProximiteScore } from "../testProximite/jeProximite";
 import { nbNeuves, SEUIL_AFFINER } from "../testProximite/config";
@@ -37,13 +37,13 @@ function Masthead({ nav }: { nav: Nav }) {
     <View style={{ paddingHorizontal: SIDE, paddingTop: 14, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
       <ScrutoirLogo wordHeight={31} color={C.text} accent={C.accent} />
       <TouchableOpacity
-        onPress={() => nav.push({ name: "suivis" })}
+        onPress={() => nav.push({ name: "parametres" })}
         accessibilityRole="button"
-        accessibilityLabel="Mes suivis"
+        accessibilityLabel="Préférences"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={{ width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.borderStrong, ...shadowCard }}
       >
-        <Feather name="bell" size={18} color={C.accent} />
+        <Feather name="settings" size={18} color={C.accent} />
       </TouchableOpacity>
     </View>
   );
@@ -120,9 +120,10 @@ export function SearchScreen({ nav }: { nav: Nav }) {
 function Avatar({ photo, nom, couleur, size = 42 }: { photo: string | null; nom: string; couleur: string | null; size?: number }) {
   if (photo) return <Image source={{ uri: photo }} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.surfaceAlt }} />;
   const initiales = nom.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]).join("").toUpperCase();
+  const col = couleurGroupe(couleur);
   return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: (couleur || C.accent) + "26", alignItems: "center", justifyContent: "center" }}>
-      <Text style={[T.small, { fontFamily: F.extra, color: couleur || C.accent }]}>{initiales || "?"}</Text>
+    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
+      <Text style={[T.small, { fontFamily: F.extra, color: col }]}>{initiales || "?"}</Text>
     </View>
   );
 }
@@ -132,8 +133,8 @@ function GroupChip({ abrev, couleur }: { abrev: string | null; couleur: string |
   if (!abrev) return null;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start", marginTop: 3, backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 8, paddingVertical: 2 }}>
-      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: couleur ?? C.textFaint }} />
-      <Text style={[T.micro, { fontFamily: F.bold, color: "#4B5159" }]}>{abrev}</Text>
+      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: couleurGroupe(couleur) }} />
+      <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>{abrev}</Text>
     </View>
   );
 }
@@ -285,17 +286,20 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
 
   const poids = je?.poids ?? {};
   const w = (cat: string | null | undefined) => poids[cat ?? ""] ?? 1;
-  // Un vote par entité (poids fort d'abord, sinon récent), puis tri du bloc (poids puis date).
-  const trier = (items: VoteSuivi[] | null) => {
+  // DIGEST : seulement les votes postérieurs à la dernière visite des Suivis (le flux complet
+  // vit dans l'écran Suivis). Un vote par entité, priorité aux thèmes Fort, à égalité chrono.
+  const lastSeen = getLastSeen();
+  const estNouveau = (v: VoteSuivi) => !lastSeen || (!!v.date && v.date > lastSeen);
+  const trier = (items: VoteSuivi[] | null, cap: number) => {
     const best = new Map<string, VoteSuivi>();
-    for (const v of items ?? []) {
+    for (const v of (items ?? []).filter(estNouveau)) {
       const cur = best.get(v.deputeUid);
       if (!cur || w(v.categorie) > w(cur.categorie) || (w(v.categorie) === w(cur.categorie) && (v.date || "") > (cur.date || ""))) best.set(v.deputeUid, v);
     }
-    return [...best.values()].sort((a, b) => w(b.categorie) - w(a.categorie) || (b.date || "").localeCompare(a.date || "")).slice(0, 4);
+    return [...best.values()].sort((a, b) => w(b.categorie) - w(a.categorie) || (b.date || "").localeCompare(a.date || "")).slice(0, cap);
   };
-  const filDeputes = trier(votesDeputes);
-  const filPartis = trier(votesPartis);
+  const filDeputes = trier(votesDeputes, 3);
+  const filPartis = trier(votesPartis, 2);
 
   // Découverte : scrutins récents sur les thèmes marqués Fort (priorité Fort, puis chrono).
   const fortThemes = new Set(Object.entries(poids).filter(([, v]) => v >= FORT).map(([t]) => t));
@@ -327,17 +331,29 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
   const neuves = aTest && questions.length ? nbNeuves(questions, test!.reponses) : 0;
   const affinerDispo = aTest && neuves >= SEUIL_AFFINER;
   const chargement = votesDeputes === null || votesPartis === null;
-  const filVide = !filDeputes.length && !filPartis.length && !decouverte.length;
+  const digestVide = !filDeputes.length && !filPartis.length;
+  const voirSuivis = (
+    <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "suivis" })} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, marginTop: 2, marginBottom: 18 }}>
+      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir tous tes suivis</Text>
+      <Feather name="chevron-right" size={16} color={C.accent} />
+    </TouchableOpacity>
+  );
 
   return (
     <View style={{ paddingHorizontal: SIDE }}>
       <Text style={[T.title, { fontFamily: F.extra, color: C.text, marginTop: 6 }]}>Depuis ta dernière visite</Text>
-      <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 16 }]}>Les votes qui te concernent</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 16 }]}>Le digest de tes suivis — l'essentiel d'abord</Text>
 
       {chargement ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 20, marginBottom: 20 }} />
-      ) : filVide ? (
-        <Text style={[T.small, { color: C.textMuted, marginBottom: 16 }]}>Aucun vote nominatif récent pour tes suivis.</Text>
+      ) : digestVide ? (
+        <>
+          <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 16, borderWidth: 1, borderColor: C.border, ...shadowCard }}>
+            <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Rien de neuf chez tes suivis</Text>
+            <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]}>Tu es à jour. Les nouveaux votes de tes suivis apparaîtront ici.</Text>
+          </View>
+          {voirSuivis}
+        </>
       ) : (
         <>
           {filDeputes.length > 0 && (
@@ -350,12 +366,15 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
               {filPartis.map((v) => <CarteParti key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />)}
             </Bloc>
           )}
-          {decouverte.length > 0 && (
-            <Bloc titre="Sur tes thèmes forts">
-              {decouverte.map((s) => <CarteDecouverte key={s.uid} s={s} nav={nav} />)}
-            </Bloc>
-          )}
+          {voirSuivis}
         </>
+      )}
+
+      {/* Découverte : thématique (≠ digest des suivis), section à part. */}
+      {decouverte.length > 0 && (
+        <Bloc titre="Sur tes thèmes forts">
+          {decouverte.map((s) => <CarteDecouverte key={s.uid} s={s} nav={nav} />)}
+        </Bloc>
       )}
 
       <HeroRecherche q={q} setQ={setQ} />

@@ -1,7 +1,6 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS } from "../theme";
 import { APP_VERSION } from "../config";
 import type { Nav } from "../nav";
 
@@ -21,19 +20,6 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         <Text style={[T.title, { color: C.text }]}>À propos & limites</Text>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-
-      {/* Accès Paramètres (déménagé ici depuis l'en-tête d'accueil, devenu la cloche Suivis). */}
-      <TouchableOpacity
-        activeOpacity={0.7}
-        onPress={() => nav.push({ name: "parametres" })}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginTop: 6, marginBottom: 18, borderWidth: 1, borderColor: C.border, ...shadowCard }}
-      >
-        <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
-          <Feather name="settings" size={18} color={C.accent} />
-        </View>
-        <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>Paramètres</Text>
-        <Feather name="chevron-right" size={18} color={C.textFaint} />
-      </TouchableOpacity>
 
       <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 6 }]}>
         À quoi sert Scrutoir ?
