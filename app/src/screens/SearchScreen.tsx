@@ -12,6 +12,8 @@ import type { Nav } from "../nav";
 import { SearchResultsList } from "../components/SearchResultsList";
 import { ScrutoirLogo } from "../components/brand/ScrutoirLogo";
 import { ParcoursLoi } from "../components/ParcoursLoi";
+import { ProximiteDeputePastille } from "../components/BadgeProximite";
+import { relancerOnboarding } from "../onboardingPrefs";
 
 // Aplat « encre » du héros, volontairement contrasté dans les DEUX thèmes (poster).
 // En clair : ardoise très sombre sur fond clair. En sombre : panneau ardoise NETTEMENT
@@ -283,6 +285,15 @@ function AccueilContent({ nav }: { nav: Nav }) {
         <Text style={[T.small, { color: C.accent, fontFamily: F.semibold }]}>Trouver mon député</Text>
       </TouchableOpacity>
 
+      {/* Relancer l'onboarding « je » (présentation) — discret. */}
+      <TouchableOpacity
+        activeOpacity={0.7}
+        onPress={relancerOnboarding}
+        style={{ alignItems: "center", marginTop: 14 }}
+      >
+        <Text style={[T.small, { color: C.textMuted, fontFamily: F.medium }]}>Revoir la présentation</Text>
+      </TouchableOpacity>
+
       {/* Pied : fraîcheur des données. */}
       <Text style={[T.micro, { color: C.textFaint, textAlign: "center", marginTop: 18 }]}>
         {ingestedAt ? `À jour ${frais(ingestedAt)} · en direct` : "En direct"}
@@ -381,6 +392,13 @@ function SlotSuivis({ nav }: { nav: Nav }) {
 
   const isNew = (date: string | null) => !!lastSeen && !!date && date > lastSeen;
 
+  // « comme toi » seulement à la 1re ligne de chaque élu (le feed le répète sur ses votes).
+  const premiereLigne = new Set<string>();
+  const vusDeputes = new Set<string>();
+  (items ?? []).forEach((v) => {
+    if (!vusDeputes.has(v.deputeUid)) { vusDeputes.add(v.deputeUid); premiereLigne.add(v.deputeUid + v.scrutinUid); }
+  });
+
   // Nouveau (aucun élu suivi) : invite, pas un feed vide.
   if (!deputeUids.length) {
     return (
@@ -440,6 +458,11 @@ function SlotSuivis({ nav }: { nav: Nav }) {
                     </View>
                   )}
                 </View>
+                {premiereLigne.has(v.deputeUid + v.scrutinUid) && (
+                  <View style={{ marginTop: 7 }}>
+                    <ProximiteDeputePastille uid={v.deputeUid} couleur={v.couleur} />
+                  </View>
+                )}
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginTop: 9 }}>
                   {cat && (
                     <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: cat.bg, alignItems: "center", justifyContent: "center" }}>

@@ -7,6 +7,8 @@ import { PositionCells } from "../components/PositionCells";
 import { BarreDivergente } from "../components/BarreDivergente";
 import { getParti } from "../api";
 import { useFollow } from "../follows";
+import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
+import { BadgeProximite } from "../components/BadgeProximite";
 import type { ProfilParti, PartiCategorie, Periode } from "../types";
 import type { Nav } from "../nav";
 
@@ -22,6 +24,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [loading, setLoading] = useState(true);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [followed, toggleFollow] = useFollow(uid);
+  const je = useJe();
 
   useEffect(() => {
     let vivant = true;
@@ -59,6 +62,9 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
           <Feather name="bell" size={18} color={followed ? "#fff" : C.textMuted} />
         </TouchableOpacity>
       </View>
+
+      {/* « Tu votes comme X% » — issu du test de proximité (rien sans « je »). */}
+      <BadgeProximite score={scoreGroupeJe(je, p.abrev)} couleur={p.couleur} />
 
       {/* Président du groupe */}
       {data.president && (

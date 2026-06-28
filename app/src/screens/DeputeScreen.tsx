@@ -5,6 +5,7 @@ import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { getProfil } from "../api";
 import type { ProfilDepute, Periode } from "../types";
 import { CategoryVoteCard } from "../components/CategoryVoteCard";
+import { ProximiteDeputeBadge } from "../components/BadgeProximite";
 import { useFollow } from "../follows";
 import type { Nav } from "../nav";
 
@@ -70,6 +71,9 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
           Suivi — notifications de nouveaux votes à l'arrivée de la version en ligne.
         </Text>
       )}
+
+      {/* « Tu votes comme X% » de cet élu — issu du test de proximité (rien sans « je »). */}
+      <ProximiteDeputeBadge uid={d.uid} couleur={d.couleur} />
 
       {/* Participation (relative) — pas de score de loyauté agrégé (cf. consigne par scrutin) */}
       <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 16, ...shadowCard }}>

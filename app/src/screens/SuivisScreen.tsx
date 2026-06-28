@@ -1,9 +1,10 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
 import { catUI } from "../categoryUI";
 import { PartyLogo } from "../components/PartyLogo";
+import { ProximiteDeputePastille } from "../components/BadgeProximite";
 import { getVotesSuivis, getPartis } from "../api";
 import { useFollows, getLastSeen, markSeen } from "../follows";
 import type { VoteSuivi, PartiResume } from "../types";
@@ -57,6 +58,16 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
   useEffect(() => { markSeen(); }, []);
 
   const isNew = (date: string | null) => !!lastSeen.current && !!date && date > lastSeen.current;
+
+  // Le feed répète un élu sur plusieurs votes : on ne montre « comme toi » qu'à sa 1re ligne.
+  const premiereLigne = useMemo(() => {
+    const vus = new Set<string>();
+    const ok = new Set<string>();
+    (items ?? []).forEach((v) => {
+      if (!vus.has(v.deputeUid)) { vus.add(v.deputeUid); ok.add(v.deputeUid + v.scrutinUid); }
+    });
+    return ok;
+  }, [items]);
 
   return (
     <View style={{ flex: 1 }}>
@@ -137,6 +148,11 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
                     <Text style={[T.small, { color: C.textFaint, marginTop: 1 }]}>
                       {v.abrev ? v.abrev + " · " : ""}{formatDate(v.date)}
                     </Text>
+                    {premiereLigne.has(v.deputeUid + v.scrutinUid) && (
+                      <View style={{ marginTop: 4 }}>
+                        <ProximiteDeputePastille uid={v.deputeUid} couleur={v.couleur} />
+                      </View>
+                    )}
                   </View>
                   {isNew(v.date) && (
                     <View style={{ backgroundColor: C.accent, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 }}>
