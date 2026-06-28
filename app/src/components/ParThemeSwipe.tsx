@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, TouchableOpacity, Animated } from "react-native";
+import { View, Text, TouchableOpacity, Animated, PanResponder } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe } from "../theme";
 import { HemicyclePicto } from "./HemicyclePicto";
@@ -75,9 +75,25 @@ export function ParThemeSwipe({
     return () => anim.stop();
   }, [idx]);
 
-  if (!courant) return null;
-  const col = couleurGroupe(couleur(courant.abrev));
+  const col = couleurGroupe(couleur(courant?.abrev ?? ""));
   const aller = (d: number) => setI((v) => (((Math.min(v, n - 1) + d) % n) + n) % n);
+
+  // Swipe gauche/droite (en plus des flèches) : on garde la dernière `aller` dans une ref pour
+  // que le PanResponder (créé une seule fois) appelle toujours la version à jour.
+  const allerRef = useRef(aller);
+  allerRef.current = aller;
+  const pan = useRef(
+    PanResponder.create({
+      // Ne capture QUE les glissements franchement horizontaux (laisse le scroll vertical + les taps).
+      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 16 && Math.abs(g.dx) > Math.abs(g.dy) * 1.5,
+      onPanResponderRelease: (_e, g) => {
+        if (g.dx <= -40) allerRef.current(1); // glisse vers la gauche → suivant
+        else if (g.dx >= 40) allerRef.current(-1); // vers la droite → précédent
+      },
+    })
+  ).current;
+
+  if (!courant) return null;
 
   return (
     <View>
@@ -86,8 +102,8 @@ export function ParThemeSwipe({
         <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>{idx + 1} / {n}</Text>
       </View>
 
-      {/* Carte du groupe courant + flèches */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      {/* Carte du groupe courant + flèches — swipe gauche/droite actif sur toute la rangée. */}
+      <View {...pan.panHandlers} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <TouchableOpacity
           onPress={() => aller(-1)}
           disabled={n < 2}
