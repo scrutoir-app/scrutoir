@@ -42,8 +42,7 @@ export function OnboardingOverlay({
             Et toi, tu votes comment ?
           </Text>
           <Text style={[T.body, { color: C.textMuted, textAlign: "center", marginTop: 12 }]}>
-            Réponds à quelques scrutins réels de l'Assemblée. On te dit ensuite de quels groupes
-            et de quels députés tu es le plus proche — un spectre, jamais un verdict.
+            Réponds à de vrais votes de l'Assemblée. On te situe face à chaque groupe, thème par thème.
           </Text>
 
           <TouchableOpacity

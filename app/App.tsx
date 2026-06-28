@@ -143,7 +143,7 @@ function AppInner() {
     parametres: "Paramètres",
     testIntro: "Test de proximité",
     test: "Test de proximité",
-    testResultat: "Ton résultat",
+    testResultat: "Ta proximité",
   };
   const showHeader = stack.length > 1;
 

@@ -8,7 +8,7 @@ import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
 import { HemicyclePicto } from "../components/HemicyclePicto";
-import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
+import { ParThemeSwipe } from "../components/ParThemeSwipe";
 import { sauverTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [
@@ -16,15 +16,6 @@ const NIVEAUX = [
   { label: "Normal", v: 1 },
   { label: "Fort", v: 2 },
 ];
-
-/** hex → rgba avec alpha (teinte de la matrice à l'opacité de la proximité). */
-function rgba(hex: string | null | undefined, a: number): string {
-  if (!hex) return `rgba(140,150,165,${a})`;
-  const h = hex.replace("#", "");
-  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
-  const n = parseInt(full, 16);
-  return `rgba(${(n >> 16) & 255},${(n >> 8) & 255},${n & 255},${a})`;
-}
 
 // Partage 100 % client (geste explicite de l'utilisateur). Le message vu côté destinataire
 // est « Voici mon résultat … et toi ? » : le « et toi ? » est le ressort qui invite à faire
@@ -90,9 +81,6 @@ export function TestResultatScreen({
     themes.reduce((s, t) => s + (resultat.parTheme[t]?.[abrev]?.comparable ?? 0), 0);
   const nbVotes = Object.values(reponses).filter((r) => r === "pour" || r === "contre").length;
 
-  // Colonnes de la matrice : groupes présents, dans l'ordre gauche→droite.
-  const colonnes = ORDRE_HEMICYCLE.filter((a) => partis.some((p) => p.abrev === a));
-
   // Résumé NEUTRE et honnête : le groupe le plus proche, seulement s'il est fiable
   // (≥ 2 votes comparés, comme la matrice). Sinon, message sans groupe (pas de faux verdict).
   const resumePartage = (): string => {
@@ -112,12 +100,10 @@ export function TestResultatScreen({
 
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
-      <Text style={[T.title, { fontFamily: F.extra, color: C.text }]}>Ton spectre</Text>
-      <View style={{ backgroundColor: C.surfaceAlt, borderRadius: RADIUS.md, padding: 12, marginTop: 10, marginBottom: 18 }}>
-        <Text style={[T.small, { color: C.textMuted }]}>
-          Un spectre, pas un verdict. Calculé sur les seuls votes où tu t'es prononcé·e ({nbVotes}).
-        </Text>
-      </View>
+      <Text style={[T.title, { fontFamily: F.extra, color: C.text }]}>Ton point de départ</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 6, marginBottom: 16 }]}>
+        De qui tu es proche, selon ce qu'ils ont voté. Un spectre, pas un verdict — calculé sur les {nbVotes} votes où tu t'es prononcé·e.
+      </Text>
 
       {/* Classement global — jamais un gagnant unique mis en avant. */}
       {resultat.global.map((g) => {
@@ -140,42 +126,10 @@ export function TestResultatScreen({
         );
       })}
 
-      {/* Matrice thème × groupe : la pièce maîtresse (on n'est pas réductible à un parti). */}
-      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 22, marginBottom: 4 }]}>Par thème</Text>
-      <Text style={[T.small, { color: C.textMuted, marginBottom: 12 }]}>
-        Ta proximité avec chaque groupe, thème par thème. Plus c'est foncé, plus tu es d'accord.
-      </Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <View>
-          {/* En-têtes de colonnes */}
-          <View style={{ flexDirection: "row", marginLeft: 92 }}>
-            {colonnes.map((a) => (
-              <Text key={a} style={[T.micro, { width: 30, textAlign: "center", color: C.textMuted, fontFamily: F.semibold }]} numberOfLines={1}>
-                {a.replace("-NFP", "")}
-              </Text>
-            ))}
-          </View>
-          {themes.map((t) => (
-            <View key={t} style={{ flexDirection: "row", alignItems: "center", marginTop: 4 }}>
-              <Text style={[T.micro, { width: 88, color: C.text, fontFamily: F.semibold }]} numberOfLines={2}>{libelle(t)}</Text>
-              {colonnes.map((a) => {
-                const cell = resultat.parTheme[t]?.[a];
-                const pct = cell?.pct;
-                return (
-                  <View
-                    key={a}
-                    style={{
-                      width: 28, height: 28, marginHorizontal: 1, borderRadius: 6,
-                      backgroundColor: pct == null ? "transparent" : rgba(couleur(a), 0.12 + 0.88 * pct),
-                      borderWidth: pct == null ? 1 : 0, borderColor: C.border,
-                    }}
-                  />
-                );
-              })}
-            </View>
-          ))}
-        </View>
-      </ScrollView>
+      {/* Par thème : UN groupe à la fois (swipe), du plus proche au plus éloigné. */}
+      <View style={{ marginTop: 22 }}>
+        <ParThemeSwipe resultat={resultat} partis={partis} cats={cats} />
+      </View>
 
       {/* Pondération par thème → recalcul du global en direct. */}
       <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 24, marginBottom: 4 }]}>Ce qui compte pour toi</Text>
