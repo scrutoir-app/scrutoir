@@ -1,89 +1,59 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, ScrollView, Image, TouchableOpacity, ActivityIndicator } from "react-native";
+import React, { useEffect, useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition, couleurGroupe } from "../theme";
-import { catUI } from "../categoryUI";
-import { ProximiteDeputePastille } from "../components/BadgeProximite";
-import { getVotesSuivis, getPartis } from "../api";
-import { useFollows, getLastSeen, markSeen } from "../follows";
+import { C, F, T, shadowCard, couleurGroupe } from "../theme";
+import { getVotesSuivis, getVotesPartisSuivis, getPartis } from "../api";
+import { useFollows, markSeen } from "../follows";
+import { useJe } from "../testProximite/jeProximite";
+import { CarteSuivi } from "../components/CarteSuivi";
 import type { VoteSuivi, PartiResume } from "../types";
 import type { Nav } from "../nav";
 
-function Avatar({ uri, couleur, size = 34 }: { uri: string | null; couleur: string | null; size?: number }) {
-  if (uri) {
-    return <Image source={{ uri }} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.surfaceSunken }} />;
-  }
-  return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: (couleur || C.accent) + "22", alignItems: "center", justifyContent: "center" }}>
-      <MaterialCommunityIcons name="account" size={size * 0.6} color={couleur || C.accent} />
-    </View>
-  );
-}
-
-function PositionPill({ position }: { position: string }) {
-  const col = couleurPosition(position);
-  return (
-    <View style={{ backgroundColor: col + "1F", paddingHorizontal: 9, paddingVertical: 3, borderRadius: 999 }}>
-      <Text style={[T.small, { fontFamily: F.bold, color: col }]}>{positionLabel(position)}</Text>
-    </View>
-  );
-}
-
+/**
+ * Écran Suivis = flux COMPLET et persistant des suivis (élus + partis). Mêmes cartes que le
+ * digest d'accueil (composant partagé CarteSuivi). C'est ici que vit l'exhaustif.
+ */
 export function SuivisScreen({ nav }: { nav: Nav }) {
   const follows = useFollows();
   const deputeUids = follows.filter((u) => u.startsWith("PA"));
   const partiUids = follows.filter((u) => u.startsWith("PO"));
+  const je = useJe();
   const [items, setItems] = useState<VoteSuivi[] | null>(null);
   const [partis, setPartis] = useState<PartiResume[]>([]);
-  // Date de la dernière visite, capturée une fois (pour le marquage « nouveau »).
-  const lastSeen = useRef(getLastSeen());
 
   useEffect(() => {
     let alive = true;
     setItems(null);
-    getVotesSuivis(deputeUids).then((r) => {
-      if (alive) setItems(r);
+    getPartis().then((all) => { if (alive) setPartis(all); });
+    Promise.all([getVotesSuivis(deputeUids), getVotesPartisSuivis(partiUids)]).then(([d, p]) => {
+      if (!alive) return;
+      const merged = [...d, ...p].sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.numero ?? 0) - (a.numero ?? 0));
+      setItems(merged);
     });
-    if (partiUids.length) {
-      getPartis().then((all) => { if (alive) setPartis(all.filter((p) => partiUids.includes(p.uid))); });
-    } else {
-      setPartis([]);
-    }
     return () => { alive = false; };
-    // re-charge si la liste des suivis change
   }, [follows.join(",")]);
 
-  // Marque comme vu (au montage) → les « nouveau » d'aujourd'hui ne le seront plus demain.
+  // Marque comme vu (au montage) → le digest d'accueil ne re-déroule pas ces votes.
   useEffect(() => { markSeen(); }, []);
 
-  const isNew = (date: string | null) => !!lastSeen.current && !!date && date > lastSeen.current;
-
-  // Le feed répète un élu sur plusieurs votes : on ne montre « comme toi » qu'à sa 1re ligne.
-  const premiereLigne = useMemo(() => {
-    const vus = new Set<string>();
-    const ok = new Set<string>();
-    (items ?? []).forEach((v) => {
-      if (!vus.has(v.deputeUid)) { vus.add(v.deputeUid); ok.add(v.deputeUid + v.scrutinUid); }
-    });
-    return ok;
-  }, [items]);
+  const partisSuivis = partis.filter((p) => partiUids.includes(p.uid));
 
   return (
     <View style={{ flex: 1 }}>
       <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
         <Text style={[T.title, { color: C.text }]}>Suivis</Text>
         <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
-          Les derniers votes des élus que tu suis.
+          Les derniers votes des élus et groupes que tu suis.
         </Text>
       </View>
       <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
 
       {/* Partis suivis (raccourci vers leur fiche) */}
-      {partis.length > 0 && (
+      {partisSuivis.length > 0 && (
         <View style={{ marginTop: 16 }}>
           <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginBottom: 10 }]}>Partis suivis</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 9, paddingRight: 8 }}>
-            {partis.map((p) => (
+            {partisSuivis.map((p) => (
               <TouchableOpacity
                 key={p.uid}
                 activeOpacity={0.7}
@@ -106,7 +76,7 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
             Tu ne suis personne pour l'instant
           </Text>
           <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted, marginTop: 6, textAlign: "center" }]}>
-            Ouvre la fiche d'un député et touche la cloche « Suivre ».
+            Ouvre la fiche d'un député ou d'un groupe et touche la cloche « Suivre ».
             Ses derniers votes apparaîtront ici.
           </Text>
         </View>
@@ -117,67 +87,18 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
       )}
 
-      {/* Feed */}
+      {/* Feed (cartes partagées avec l'accueil) */}
       {follows.length > 0 && items !== null && items.length === 0 && (
         <Text style={[T.small, { color: C.textMuted, marginTop: 24, textAlign: "center" }]}>
-          Aucun vote nominatif récent pour ces élus.
+          Aucun vote nominatif récent pour tes suivis.
         </Text>
       )}
 
       {items && items.length > 0 && (
         <View style={{ marginTop: 16, gap: 9 }}>
-          {items.map((v) => {
-            const cat = v.categorie ? catUI(v.categorie) : null;
-            return (
-              <TouchableOpacity
-                key={v.deputeUid + v.scrutinUid}
-                activeOpacity={0.6}
-                onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })}
-                style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, ...shadowCard }}
-              >
-                {/* En-tête : élu + date (+ badge nouveau) */}
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 9 }}>
-                  <TouchableOpacity onPress={() => nav.push({ name: "depute", uid: v.deputeUid })} activeOpacity={0.6}>
-                    <Avatar uri={v.photo} couleur={v.couleur} />
-                  </TouchableOpacity>
-                  <View style={{ flex: 1 }}>
-                    <Text style={[T.body, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>
-                      {v.nom}
-                    </Text>
-                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 1 }}>
-                      {v.abrev && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: v.couleur ?? C.textFaint }} />}
-                      <Text style={[T.small, { color: C.textFaint }]}>
-                        {v.abrev ? v.abrev + " · " : ""}{formatDate(v.date)}
-                      </Text>
-                    </View>
-                    {premiereLigne.has(v.deputeUid + v.scrutinUid) && (
-                      <View style={{ marginTop: 4 }}>
-                        <ProximiteDeputePastille uid={v.deputeUid} couleur={v.couleur} />
-                      </View>
-                    )}
-                  </View>
-                  {isNew(v.date) && (
-                    <View style={{ backgroundColor: C.accent, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 999 }}>
-                      <Text style={[T.micro, { fontFamily: F.bold, color: "#fff" }]}>Nouveau</Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Scrutin + position */}
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginTop: 10 }}>
-                  {cat && (
-                    <View style={{ width: 26, height: 26, borderRadius: 8, backgroundColor: cat.bg, alignItems: "center", justifyContent: "center" }}>
-                      <MaterialCommunityIcons name={cat.icon as any} size={15} color={cat.fg} />
-                    </View>
-                  )}
-                  <Text style={[T.small, { flex: 1, color: C.text }]} numberOfLines={2}>
-                    {v.titre}
-                  </Text>
-                  <PositionPill position={v.position} />
-                </View>
-              </TouchableOpacity>
-            );
-          })}
+          {items.map((v) => (
+            <CarteSuivi key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />
+          ))}
         </View>
       )}
       </ScrollView>

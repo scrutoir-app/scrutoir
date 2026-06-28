@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView, Image } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, inputText, RADIUS, shadowCard, positionLabel, couleurPosition, couleurGroupe, getScheme } from "../theme";
+import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { C, F, T, inputText, RADIUS, shadowCard, getScheme } from "../theme";
 import { getVotesSuivis, getVotesPartisSuivis, getPartis, getTestProximite, getScrutinsRecents } from "../api";
 import { catUI } from "../categoryUI";
 import { useFollows, getLastSeen } from "../follows";
 import { chargerTest } from "../testProximite/storage";
-import { useJe, useProximiteDepute, scoreGroupeJe, type ContexteJe, type ProximiteScore } from "../testProximite/jeProximite";
+import { useJe } from "../testProximite/jeProximite";
 import { nbNeuves, SEUIL_AFFINER } from "../testProximite/config";
 import type { QuestionProximite } from "../testProximite/score";
 import type { VoteSuivi, PartiResume, ScrutinResume } from "../types";
@@ -14,6 +14,7 @@ import type { Nav } from "../nav";
 import { SearchResultsList } from "../components/SearchResultsList";
 import { ScrutoirLogo } from "../components/brand/ScrutoirLogo";
 import { HemicyclePicto } from "../components/HemicyclePicto";
+import { CarteSuivi, ThemePicto } from "../components/CarteSuivi";
 
 const SIDE = 18;
 const EXEMPLES = ["Pouvoir d'achat", "Santé", "Europe", "Médicaments", "Logement", "Écologie"];
@@ -122,122 +123,20 @@ export function SearchScreen({ nav }: { nav: Nav }) {
   );
 }
 
-// --- Petits éléments de carte -------------------------------------------------
+// --- Carte « découverte » (le bloc « thèmes forts » garde, lui, son motif) ----------
 
-/** Identité d'une personne : photo, ou avatar à initiales en repli. */
-function Avatar({ photo, nom, couleur, size = 42 }: { photo: string | null; nom: string; couleur: string | null; size?: number }) {
-  if (photo) return <Image source={{ uri: photo }} style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.surfaceAlt }} />;
-  const initiales = nom.split(/\s+/).filter(Boolean).slice(0, 2).map((s) => s[0]).join("").toUpperCase();
-  const col = couleurGroupe(couleur);
-  return (
-    <View style={{ width: size, height: size, borderRadius: size / 2, backgroundColor: C.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
-      <Text style={[T.small, { fontFamily: F.extra, color: col }]}>{initiales || "?"}</Text>
-    </View>
-  );
-}
-
-/** Groupe en SECOND, à côté du nom : pastille couleur + abrev (jamais le picto principal). */
-function GroupChip({ abrev, couleur }: { abrev: string | null; couleur: string | null }) {
-  if (!abrev) return null;
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start", marginTop: 3, backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 8, paddingVertical: 2 }}>
-      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: couleurGroupe(couleur) }} />
-      <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>{abrev}</Text>
-    </View>
-  );
-}
-
-/** Picto du THÈME du scrutin (catUI partagé avec les grilles de thèmes). */
-function ThemePicto({ categorie, size = 28 }: { categorie: string | null | undefined; size?: number }) {
-  if (!categorie) return null;
-  const ui = catUI(categorie);
-  return (
-    <View style={{ width: size, height: size, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
-      <MaterialCommunityIcons name={ui.icon as any} size={size * 0.56} color={ui.fg} />
-    </View>
-  );
-}
-
-/** Score de proximité GLOBALE (≠ accord sur le vote affiché) — libellé explicite. */
-function ProximiteGlobale({ score }: { score: ProximiteScore | null }) {
-  if (!score) return null;
-  return (
-    <View style={{ alignItems: "flex-end", marginLeft: 4 }}>
-      <Text style={[T.heading, tnum, { fontFamily: F.extra, color: C.text }]}>{Math.round(score.pct * 100)}%</Text>
-      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>proximité globale</Text>
-    </View>
-  );
-}
-
-/** Kicker « pourquoi cette carte est là ». */
-function Motif({ texte }: { texte: string }) {
-  return <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }]}>{texte}</Text>;
-}
-
-/** Ligne de vote d'une PERSONNE (identité à gauche) — fil « élus suivis ». */
-function CarteDepute({ v, nav }: { v: VoteSuivi; nav: Nav }) {
-  const score = useProximiteDepute(v.deputeUid);
-  return (
-    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })} style={carteStyle()}>
-      <Motif texte={`Tu suis ${v.nom}`} />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
-        <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "depute", uid: v.deputeUid })}>
-          <Avatar photo={v.photo} nom={v.nom} couleur={v.couleur} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[T.body, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{v.nom}</Text>
-          <GroupChip abrev={v.abrev} couleur={v.couleur} />
-        </View>
-        <ProximiteGlobale score={score} />
-      </View>
-      <LigneDuVote v={v} />
-    </TouchableOpacity>
-  );
-}
-
-/** Ligne de vote d'un GROUPE (PictoGroupe à gauche — c'est une ligne de groupe). */
-function CarteParti({ v, partis, je, nav }: { v: VoteSuivi; partis: PartiResume[]; je: ContexteJe | null; nav: Nav }) {
-  return (
-    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })} style={carteStyle()}>
-      <Motif texte="Tu suis ce groupe" />
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
-        <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "parti", uid: v.deputeUid })}>
-          <HemicyclePicto groupes={partis} activeAbrev={v.abrev} color={v.couleur ?? C.textFaint} size={44} />
-        </TouchableOpacity>
-        <View style={{ flex: 1, minWidth: 0 }}>
-          <Text style={[T.body, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{v.abrev ?? v.nom}</Text>
-          <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]} numberOfLines={1}>{v.nom}</Text>
-        </View>
-        <ProximiteGlobale score={scoreGroupeJe(je, v.abrev)} />
-      </View>
-      <LigneDuVote v={v} />
-    </TouchableOpacity>
-  );
-}
-
-/** Le vote précis (picto thème + position colorée + intitulé) — distinct de l'identité. */
-function LigneDuVote({ v }: { v: VoteSuivi }) {
-  return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginTop: 11 }}>
-      <ThemePicto categorie={v.categorie} />
-      <Text style={[T.small, { flex: 1, color: C.text }]} numberOfLines={2}>
-        <Text style={{ fontFamily: F.bold, color: couleurPosition(v.position) }}>{positionLabel(v.position)}</Text>
-        {v.titre ? ` · ${v.titre}` : ""}
-      </Text>
-    </View>
-  );
-}
-
-/** Carte « découverte » : un scrutin notable sur un thème marqué Fort (sans suivi requis). */
+/** Un scrutin notable sur un thème marqué Fort (sans suivi requis). */
 function CarteDecouverte({ s, nav }: { s: ScrutinResume; nav: Nav }) {
   const adopte = (s.sort_code ?? "").toLowerCase().includes("adopt");
   const ui = s.categorie ? catUI(s.categorie) : null;
   return (
-    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} style={carteStyle()}>
-      <Motif texte={`Thème qui t'intéresse · ${ui?.court ?? ""}`} />
+    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+      <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }]}>
+        Thème qui t'intéresse · {ui?.court ?? ""}
+      </Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
         <ThemePicto categorie={s.categorie ?? null} size={42} />
-        <Text style={[T.small, { flex: 1, color: C.text }]} numberOfLines={3}>{s.titre}</Text>
+        <Text style={[T.small, { fontFamily: F.medium, flex: 1, color: C.text }]} numberOfLines={3}>{s.titre}</Text>
         {s.sort_code != null && (
           <View style={{ backgroundColor: adopte ? C.adopteBg : C.rejeteBg, borderRadius: RADIUS.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
             <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>{adopte ? "Adopté" : "Rejeté"}</Text>
@@ -247,11 +146,6 @@ function CarteDecouverte({ s, nav }: { s: ScrutinResume; nav: Nav }) {
     </TouchableOpacity>
   );
 }
-
-// Fonction (pas une constante) : `C` et `shadowCard` sont des palettes VIVANTES réécrites au
-// changement de thème → il faut relire leurs valeurs à CHAQUE rendu, sinon le style reste figé
-// sur le thème actif au chargement du module (cartes sombres en clair, et inversement).
-const carteStyle = () => ({ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard });
 
 /** Bloc nommé du fil. */
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
@@ -369,12 +263,12 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
         <>
           {filDeputes.length > 0 && (
             <Bloc titre="Tes élus suivis">
-              {filDeputes.map((v) => <CarteDepute key={v.deputeUid + v.scrutinUid} v={v} nav={nav} />)}
+              {filDeputes.map((v) => <CarteSuivi key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />)}
             </Bloc>
           )}
           {filPartis.length > 0 && (
             <Bloc titre="Tes groupes suivis">
-              {filPartis.map((v) => <CarteParti key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />)}
+              {filPartis.map((v) => <CarteSuivi key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />)}
             </Bloc>
           )}
           {voirSuivis}
