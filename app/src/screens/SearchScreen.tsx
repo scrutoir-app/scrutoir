@@ -170,7 +170,7 @@ function Motif({ texte }: { texte: string }) {
 function CarteDepute({ v, nav }: { v: VoteSuivi; nav: Nav }) {
   const score = useProximiteDepute(v.deputeUid);
   return (
-    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })} style={carteStyle}>
+    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })} style={carteStyle()}>
       <Motif texte={`Tu suis ${v.nom}`} />
       <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "depute", uid: v.deputeUid })}>
@@ -190,7 +190,7 @@ function CarteDepute({ v, nav }: { v: VoteSuivi; nav: Nav }) {
 /** Ligne de vote d'un GROUPE (PictoGroupe à gauche — c'est une ligne de groupe). */
 function CarteParti({ v, partis, je, nav }: { v: VoteSuivi; partis: PartiResume[]; je: ContexteJe | null; nav: Nav }) {
   return (
-    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })} style={carteStyle}>
+    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })} style={carteStyle()}>
       <Motif texte="Tu suis ce groupe" />
       <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
         <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "parti", uid: v.deputeUid })}>
@@ -225,7 +225,7 @@ function CarteDecouverte({ s, nav }: { s: ScrutinResume; nav: Nav }) {
   const adopte = (s.sort_code ?? "").toLowerCase().includes("adopt");
   const ui = s.categorie ? catUI(s.categorie) : null;
   return (
-    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} style={carteStyle}>
+    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} style={carteStyle()}>
       <Motif texte={`Thème qui t'intéresse · ${ui?.court ?? ""}`} />
       <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
         <ThemePicto categorie={s.categorie ?? null} size={42} />
@@ -240,7 +240,10 @@ function CarteDecouverte({ s, nav }: { s: ScrutinResume; nav: Nav }) {
   );
 }
 
-const carteStyle = { backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard } as const;
+// Fonction (pas une constante) : `C` et `shadowCard` sont des palettes VIVANTES réécrites au
+// changement de thème → il faut relire leurs valeurs à CHAQUE rendu, sinon le style reste figé
+// sur le thème actif au chargement du module (cartes sombres en clair, et inversement).
+const carteStyle = () => ({ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard });
 
 /** Bloc nommé du fil. */
 function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
