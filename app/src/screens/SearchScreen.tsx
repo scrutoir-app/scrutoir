@@ -330,7 +330,7 @@ function BlocDuel({ nav }: { nav: Nav }) {
       {duel && (
         <TouchableOpacity
           activeOpacity={0.8}
-          onPress={() => nav.push({ name: "confrontation", a: duel.a.uid, b: duel.b.uid })}
+          onPress={() => nav.push({ name: "confrontation", a: duel.a.uid, b: duel.b.uid, angle: duel.angle })}
           style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 11, backgroundColor: C.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.borderStrong, paddingVertical: 12, paddingHorizontal: 14, ...shadowCard }}
         >
           <MaterialCommunityIcons name="fire" size={20} color="#E0703A" />

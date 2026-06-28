@@ -1,4 +1,4 @@
-import type { ConfrontationScrutin, DeputeResume } from "./types";
+import type { ConfrontationScrutin, DeputeResume, AngleShuffle } from "./types";
 import type { Reponse } from "./testProximite/score";
 
 export type Route =
@@ -46,7 +46,7 @@ export type Route =
       groupeLibelle?: string;
     }
   | { name: "apropos" }
-  | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m"; hasard?: boolean }
+  | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m"; hasard?: boolean; angle?: AngleShuffle }
   | {
       name: "confrontationListe";
       kind: "accord" | "desaccord";

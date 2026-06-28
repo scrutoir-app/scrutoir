@@ -94,7 +94,7 @@ export function DuelVedette({ nav }: { nav: Nav }) {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity activeOpacity={0.85} onPress={() => nav.push({ name: "confrontation", a: duel.a.uid, b: duel.b.uid })}>
+      <TouchableOpacity activeOpacity={0.85} onPress={() => nav.push({ name: "confrontation", a: duel.a.uid, b: duel.b.uid, angle: duel.angle })}>
         <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
           <Elu d={duel.a} />
           <View style={{ width: 84, alignItems: "center", paddingTop: 8 }}>

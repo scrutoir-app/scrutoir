@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.3.4 — 2026-06-27
+- **Duel du jour** : il affiche désormais le bandeau **« Pourquoi ce duel »** (l'angle neutre :
+  même bord / bords opposés / dossier par dossier), comme un tirage shuffle. L'angle transite
+  par la route (`confrontation.angle`) et est persisté à l'aller-retour vers la liste détaillée.
+  Avant, le duel du jour ouvrait la Confrontation **sans explication explicite**.
+
 ## 1.3.3 — 2026-06-27
 - **Barre de recherche sticky de l'Accueil** : au scroll, elle adopte désormais **le même
   champ que les autres onglets** (carré ardoise + loupe blanche + placeholder réel « Un sujet,

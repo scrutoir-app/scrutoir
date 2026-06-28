@@ -34,7 +34,7 @@ const ANGLE_ICON: Record<AngleShuffle, keyof typeof Feather.glyphMap> = {
 };
 const ANGLES_SHUFFLE: AngleShuffle[] = ["fracture_interne", "alliance_contre_nature", "faux_duel"];
 
-export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, nav }: { a?: string; b?: string; periode?: Periode; hasard?: boolean; nav: Nav }) {
+export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle, nav }: { a?: string; b?: string; periode?: Periode; hasard?: boolean; angle?: AngleShuffle; nav: Nav }) {
   const [depA, setDepA] = useState<DeputeResume | null>(null);
   const [depB, setDepB] = useState<DeputeResume | null>(null);
   const [periode, setPeriode] = useState<Periode>(periodeInit ?? "all");
@@ -79,18 +79,21 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, nav }:
 
   // Pré-sélection éventuelle (uid passés en route) → on récupère le résumé via une recherche légère.
   // « Duel au hasard » (depuis l'accueil) : aucun élu fourni → on lance directement un tirage.
+  // « Duel du jour » : la paire arrive avec son `angle` (route) → on rétablit le bandeau « Pourquoi
+  // ce duel » comme pour un tirage shuffle (sinon le duel du jour n'a aucune explication explicite).
   useEffect(() => {
     if (a && !depA) hydrate(a, setDepA);
     if (b && !depB) hydrate(b, setDepB);
     if (hasard && !a && !b) lancerShuffle();
+    if (angle && a && b) setShuffleAngle(angle);
   }, []);
 
   // Persiste le duel dans la route : en naviguant vers la liste détaillée puis en
   // revenant, l'écran est démonté/remonté ; les uids dans la route le restaurent
   // (via `hydrate` ci-dessus) au lieu de repartir d'une page vide.
   useEffect(() => {
-    if (depA && depB) nav.replace({ name: "confrontation", a: depA.uid, b: depB.uid, periode });
-  }, [depA?.uid, depB?.uid, periode]);
+    if (depA && depB) nav.replace({ name: "confrontation", a: depA.uid, b: depB.uid, periode, angle: shuffleAngle ?? undefined });
+  }, [depA?.uid, depB?.uid, periode, shuffleAngle]);
 
   useEffect(() => {
     if (!depA || !depB) { setData(null); return; }
