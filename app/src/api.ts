@@ -103,6 +103,18 @@ export const getPartis = () => j<PartiResume[]>("partis");
 export const getProfil = (uid: string, periode: Periode) => depute(uid).then((d) => d.profils[periode]);
 export const getScrutin = (uid: string) => j<DetailScrutin>(`scrutin/${uid}`);
 export const getDissidences = (uid: string) => depute(uid).then((d) => d.dissidences);
+/**
+ * Votes bruts d'un élu : { scrutin_uid: position }. Sert au test de proximité pour
+ * comparer le « je » de l'utilisateur au vote INDIVIDUEL du député (la question du test
+ * porte le n° de scrutin → uid = `VTANR5L17V<id>`). Réutilise le fichier élu déjà mis en
+ * cache (aucun appel réseau supplémentaire quand la fiche / le feed l'ont déjà chargé).
+ */
+export const getVotesBruts = (uid: string): Promise<Record<string, string>> =>
+  depute(uid).then((d) =>
+    Object.fromEntries(
+      Object.entries(d.votes || {}).map(([su, t]) => [su, Array.isArray(t) ? t[0] : (t as unknown as string)])
+    )
+  );
 export const getParti = (uid: string, periode: Periode) =>
   j<Record<Periode, ProfilParti>>(`parti/${uid}`).then((p) => p[periode]);
 

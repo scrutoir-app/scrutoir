@@ -36,7 +36,7 @@ export interface ResultatProximite {
   global: ResultatGlobal[]; // trié par pct décroissant
 }
 
-const tranche = (p: PositionGroupe | Reponse | undefined): p is "pour" | "contre" =>
+const tranche = (p: string | undefined): p is "pour" | "contre" =>
   p === "pour" || p === "contre";
 
 /**
@@ -105,4 +105,39 @@ export function calculerProximite(
   global.sort((a, b) => b.pct - a.pct || a.abrev.localeCompare(b.abrev));
 
   return { parTheme, global };
+}
+
+/** Score affiché : ratio d'accord (0..1) et base (nb de scrutins comparés). */
+export interface ProximiteScore {
+  pct: number;
+  comparable: number;
+}
+
+// id de question (= n° de scrutin) → uid de scrutin (clé des votes d'un élu).
+export const scrutinUidDeId = (id: number): string => `VTANR5L17V${id}`;
+
+/**
+ * Proximité du « je » avec un VOTANT quelconque (un député, via ses votes bruts
+ * { scrutin_uid: position }). On réutilise EXACTEMENT le moteur des groupes — même
+ * pondération par thème, mêmes règles de comparabilité — en fabriquant un « groupe
+ * virtuel » dont la position sur chaque scrutin est le vote individuel du votant.
+ * Abstention / absence / non-votant ⇒ non comparable. null si rien de comparable.
+ */
+export function scoreVotant(
+  questions: QuestionProximite[],
+  reponses: Record<number, Reponse>,
+  poids: Record<string, number>,
+  votes: Record<string, string>
+): ProximiteScore | null {
+  const CLE = "__moi";
+  const qs = questions.map((q) => {
+    const v = votes[scrutinUidDeId(q.id)];
+    const pos: PositionGroupe = tranche(v) ? v : "abstention"; // non comparable sinon
+    return { ...q, positions: { [CLE]: pos } };
+  });
+  const res = calculerProximite(qs, reponses, poids, [{ abrev: CLE }]);
+  const g = res.global.find((x) => x.abrev === CLE);
+  const comparable = Object.values(res.parTheme).reduce((s, t) => s + (t[CLE]?.comparable ?? 0), 0);
+  if (!g || comparable < 1) return null;
+  return { pct: g.pct, comparable };
 }
