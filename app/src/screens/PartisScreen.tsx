@@ -66,7 +66,7 @@ export function PartisScreen({ nav }: { nav: Nav }) {
                   {score ? (
                     <>
                       <Text style={[T.title, tnum, { fontFamily: F.extra, color: C.text }]}>{Math.round(score.pct * 100)}<Text style={[T.small, { fontFamily: F.bold, color: C.textFaint }]}>%</Text></Text>
-                      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>proximité</Text>
+                      <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint }]}>proximité · {p.nb_deputes} élus</Text>
                     </>
                   ) : (
                     <>
