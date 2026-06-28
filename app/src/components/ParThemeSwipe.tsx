@@ -3,6 +3,7 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { HemicyclePicto } from "./HemicyclePicto";
+import { SEUIL_FIABLE } from "../testProximite/jeProximite";
 import type { PartiResume, CategorieRef } from "../types";
 import type { ResultatProximite } from "../testProximite/score";
 
@@ -23,8 +24,15 @@ export function ParThemeSwipe({
 }) {
   const [i, setI] = useState(0);
 
-  // Groupes classés par proximité (resultat.global est déjà trié décroissant).
-  const groupes = resultat.global;
+  // Groupes classés par proximité (resultat.global est déjà trié décroissant), limités
+  // aux groupes FIABLES (≥ SEUIL_FIABLE votes comparés) pour ne pas exposer de base trop
+  // faible ; repli sur tous si aucun n'atteint le seuil.
+  const groupes = useMemo(() => {
+    const comparable = (abrev: string) =>
+      Object.values(resultat.parTheme).reduce((s, t) => s + (t[abrev]?.comparable ?? 0), 0);
+    const fiables = resultat.global.filter((g) => comparable(g.abrev) >= SEUIL_FIABLE);
+    return fiables.length ? fiables : resultat.global;
+  }, [resultat]);
   const n = groupes.length;
   const idx = Math.min(i, Math.max(0, n - 1));
   const courant = groupes[idx];

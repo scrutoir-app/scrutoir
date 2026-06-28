@@ -20,13 +20,13 @@ function Masthead({ nav }: { nav: Nav }) {
     <View style={{ paddingHorizontal: SIDE, paddingTop: 14, paddingBottom: 8, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
       <ScrutoirLogo wordHeight={31} color={C.text} accent={C.accent} />
       <TouchableOpacity
-        onPress={() => nav.push({ name: "parametres" })}
+        onPress={() => nav.push({ name: "suivis" })}
         accessibilityRole="button"
-        accessibilityLabel="Paramètres"
+        accessibilityLabel="Mes suivis"
         hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
         style={{ width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: C.surface, borderWidth: 0.5, borderColor: C.borderStrong, ...shadowCard }}
       >
-        <Feather name="settings" size={18} color={C.accent} />
+        <Feather name="bell" size={18} color={C.accent} />
       </TouchableOpacity>
     </View>
   );

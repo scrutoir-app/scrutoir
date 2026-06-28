@@ -53,7 +53,8 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   // « themes » conservée (invisible à l'utilisateur) pour éviter toute régression de nav.
   { root: "themes", label: "Scrutins", icon: "grid" },
   { root: "partis", label: "Partis", icon: "users" },
-  { root: "suivis", label: "Suivis", icon: "bell" },
+  // « Suivis » n'a plus d'onglet : le fil vit sur l'accueil, l'écran complet est atteint
+  // par la cloche de l'en-tête d'accueil (refonte « je »).
   { root: "apropos", label: "Infos", icon: "info" },
 ];
 
