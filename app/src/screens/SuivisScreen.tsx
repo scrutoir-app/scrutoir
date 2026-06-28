@@ -145,9 +145,12 @@ export function SuivisScreen({ nav }: { nav: Nav }) {
                     <Text style={[T.body, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>
                       {v.nom}
                     </Text>
-                    <Text style={[T.small, { color: C.textFaint, marginTop: 1 }]}>
-                      {v.abrev ? v.abrev + " · " : ""}{formatDate(v.date)}
-                    </Text>
+                    <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 1 }}>
+                      {v.abrev && <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: v.couleur ?? C.textFaint }} />}
+                      <Text style={[T.small, { color: C.textFaint }]}>
+                        {v.abrev ? v.abrev + " · " : ""}{formatDate(v.date)}
+                      </Text>
+                    </View>
                     {premiereLigne.has(v.deputeUid + v.scrutinUid) && (
                       <View style={{ marginTop: 4 }}>
                         <ProximiteDeputePastille uid={v.deputeUid} couleur={v.couleur} />

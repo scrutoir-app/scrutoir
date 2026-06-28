@@ -66,7 +66,10 @@ export function VotantsScreen({
           />
           <View style={{ flex: 1 }}>
             <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{item.nom_complet}</Text>
-            <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{item.abrev ?? "—"}</Text>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 }}>
+              <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: item.couleur ?? C.textFaint }} />
+              <Text style={[T.small, { color: C.textMuted }]}>{item.abrev ?? "—"}</Text>
+            </View>
           </View>
           <Feather name="chevron-right" size={18} color={C.textFaint} />
         </TouchableOpacity>

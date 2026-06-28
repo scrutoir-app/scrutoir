@@ -47,7 +47,7 @@ export function PastilleProximite({ score, couleur }: { score: ProximiteScore | 
       }}
     >
       <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: col }} />
-      <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.text }]}>{pourcent(score.pct)} comme toi</Text>
+      <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.text }]}>{pourcent(score.pct)} de proximité</Text>
     </View>
   );
 }
