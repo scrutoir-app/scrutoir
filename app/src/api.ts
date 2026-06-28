@@ -178,6 +178,43 @@ export async function getVotesSuivis(uids: string[], limit = 80): Promise<VoteSu
   return items.slice(0, limit);
 }
 
+/**
+ * Feed des PARTIS suivis : positions majoritaires les plus récentes des groupes suivis,
+ * remises dans la même forme que les votes d'élus (VoteSuivi) pour fusionner le fil
+ * d'accueil. `deputeUid` porte l'uid du parti (PO…) → la carte sait router vers la fiche.
+ */
+export async function getVotesPartisSuivis(partiUids: string[], limit = 80): Promise<VoteSuivi[]> {
+  if (!partiUids.length) return [];
+  const [partis, scrMap] = await Promise.all([getPartis(), scrutinsMap()]);
+  const byUid = new Map(partis.map((p) => [p.uid, p]));
+  const positions = await Promise.all(partiUids.map((u) => groupePositions(u).catch(() => ({} as Record<string, string>))));
+  const items: VoteSuivi[] = [];
+  partiUids.forEach((u, i) => {
+    const p = byUid.get(u);
+    if (!p) return;
+    for (const [scrUid, pos] of Object.entries(positions[i])) {
+      const sc = scrMap.get(scrUid);
+      if (!sc) continue;
+      items.push({
+        deputeUid: u,
+        nom: p.libelle,
+        photo: null,
+        abrev: p.abrev,
+        couleur: p.couleur,
+        scrutinUid: scrUid,
+        titre: sc.titre ?? null,
+        date: sc.date ?? null,
+        numero: sc.numero ?? null,
+        position: pos,
+        sort_code: sc.sort_code ?? null,
+        categorie: sc.categorie ?? null,
+      });
+    }
+  });
+  items.sort((a, b) => (b.date || "").localeCompare(a.date || "") || (b.numero ?? 0) - (a.numero ?? 0));
+  return items.slice(0, limit);
+}
+
 /** Tous les élus actifs d'un groupe (pour la liste « élus du parti »), triés par nom. */
 export async function getDeputesParti(groupeUid: string): Promise<DeputeResume[]> {
   const deps = await deputesIndex();
