@@ -147,11 +147,19 @@ function CarteDecouverte({ s, nav }: { s: ScrutinResume; nav: Nav }) {
   );
 }
 
-/** Bloc nommé du fil. */
-function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
+/** Bloc nommé du fil, avec un lien d'action « Voir tout › » optionnel aligné à droite. */
+function Bloc({ titre, onVoirTout, children }: { titre: string; onVoirTout?: () => void; children: React.ReactNode }) {
   return (
     <View style={{ marginBottom: 18 }}>
-      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 11 }]}>{titre}</Text>
+      <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginBottom: 11 }}>
+        <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>{titre}</Text>
+        {onVoirTout && (
+          <TouchableOpacity onPress={onVoirTout} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }} style={{ flexDirection: "row", alignItems: "center", gap: 3 }}>
+            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir tout</Text>
+            <Feather name="chevron-right" size={15} color={C.accent} />
+          </TouchableOpacity>
+        )}
+      </View>
       <View style={{ gap: 9 }}>{children}</View>
     </View>
   );
@@ -237,12 +245,6 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
   const affinerDispo = aTest && neuves >= SEUIL_AFFINER;
   const chargement = votesDeputes === null || votesPartis === null;
   const digestVide = !filDeputes.length && !filPartis.length;
-  const voirSuivis = (
-    <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "suivis" })} style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 5, marginTop: 2, marginBottom: 18 }}>
-      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir tous tes suivis</Text>
-      <Feather name="chevron-right" size={16} color={C.accent} />
-    </TouchableOpacity>
-  );
 
   return (
     <View style={{ paddingHorizontal: SIDE }}>
@@ -252,32 +254,36 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
       {chargement ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 20, marginBottom: 20 }} />
       ) : digestVide ? (
-        <>
-          <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 16, borderWidth: 1, borderColor: C.border, ...shadowCard }}>
+        // Rien de neuf : la carte EST le lien vers le flux complet (plus de lien flottant).
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => nav.push({ name: "suivis" })}
+          style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 18, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 16, borderWidth: 1, borderColor: C.border, ...shadowCard }}
+        >
+          <View style={{ flex: 1 }}>
             <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Rien de neuf chez tes suivis</Text>
-            <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]}>Tu es à jour. Les nouveaux votes de tes suivis apparaîtront ici.</Text>
+            <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]}>Tu es à jour. Vois tous tes suivis et leurs derniers votes.</Text>
           </View>
-          {voirSuivis}
-        </>
+          <Feather name="chevron-right" size={20} color={C.textFaint} />
+        </TouchableOpacity>
       ) : (
         <>
           {filDeputes.length > 0 && (
-            <Bloc titre="Tes élus suivis">
+            <Bloc titre="Tes élus suivis" onVoirTout={() => nav.push({ name: "suivis", source: "deputes" })}>
               {filDeputes.map((v) => <CarteSuivi key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />)}
             </Bloc>
           )}
           {filPartis.length > 0 && (
-            <Bloc titre="Tes groupes suivis">
+            <Bloc titre="Tes groupes suivis" onVoirTout={() => nav.push({ name: "suivis", source: "partis" })}>
               {filPartis.map((v) => <CarteSuivi key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />)}
             </Bloc>
           )}
-          {voirSuivis}
         </>
       )}
 
-      {/* Découverte : thématique (≠ digest des suivis), section à part. */}
+      {/* Découverte : thématique (≠ digest des suivis), section à part → onglet Scrutins. */}
       {decouverte.length > 0 && (
-        <Bloc titre="Sur tes thèmes forts">
+        <Bloc titre="Sur tes thèmes forts" onVoirTout={() => nav.push({ name: "themes" })}>
           {decouverte.map((s) => <CarteDecouverte key={s.uid} s={s} nav={nav} />)}
         </Bloc>
       )}

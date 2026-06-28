@@ -58,7 +58,8 @@ export type Route =
       communs: number; // total de scrutins communs du thème (pour le taux affiché)
     }
   | { name: "monDepute" }
-  | { name: "suivis" }
+  // source : pré-filtre l'écran Suivis sur une catégorie de suivis (élus / partis).
+  | { name: "suivis"; source?: "deputes" | "partis" }
   | { name: "mentions" }
   | { name: "parametres" }
   // Test de proximité : intro (animation + choix du mode), déroulé, résultat.

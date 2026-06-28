@@ -78,9 +78,14 @@ function CommeToi({ match }: { match: boolean | null }) {
 /** Zone du vote : filet + picto thème + position/marqueur + intitulé COMPLET + date. */
 function ZoneVote({ v, maPosition }: { v: VoteSuivi; maPosition: Reponse | undefined }) {
   const court = v.categorie ? catUI(v.categorie).court : undefined;
+  // Marqueur d'alignement UNIQUEMENT sur les votes de TEXTE ENTIER (« l'ensemble de la
+  // proposition / du projet de loi… »), jamais sur un amendement NI un article : leur sens
+  // dépend trop du détail, un « comme toi » y donnerait une fausse image. (Le test ne porte,
+  // lui, que sur des textes entiers → cohérent.)
+  const texteEntier = !!v.titre && /^\s*l['']ensemble\b/i.test(v.titre);
   // Match avec MA position enregistrée sur CE scrutin (rien si je ne m'y suis pas positionné).
   const match: boolean | null =
-    estTranche(maPosition) && estTranche(v.position) ? maPosition === v.position : null;
+    texteEntier && estTranche(maPosition) && estTranche(v.position) ? maPosition === v.position : null;
   return (
     <View style={{ flexDirection: "row", gap: 10, marginTop: 11, paddingTop: 11, borderTopWidth: 1, borderTopColor: C.border }}>
       <ThemePicto categorie={v.categorie} />

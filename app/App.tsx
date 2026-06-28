@@ -250,7 +250,7 @@ function AppInner() {
           )}
           {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
           {current.name === "parametres" && <ParametresScreen nav={nav} />}
-          {current.name === "suivis" && <SuivisScreen nav={nav} />}
+          {current.name === "suivis" && <SuivisScreen source={current.source} nav={nav} />}
           {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "test" && <TestScreen mode={current.mode} theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} poids={current.poids} partage={current.partage} themesJoues={current.themesJoues} nav={nav} />}
