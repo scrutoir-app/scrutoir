@@ -61,12 +61,15 @@ export function PartisScreen({ nav }: { nav: Nav }) {
                   <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]} numberOfLines={2}>
                     {p.libelle}
                   </Text>
+                  {score && (
+                    <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint, marginTop: 3 }]}>{p.nb_deputes} élus</Text>
+                  )}
                 </View>
                 <View style={{ alignItems: "flex-end", marginRight: 4 }}>
                   {score ? (
                     <>
                       <Text style={[T.title, tnum, { fontFamily: F.extra, color: C.text }]}>{Math.round(score.pct * 100)}<Text style={[T.small, { fontFamily: F.bold, color: C.textFaint }]}>%</Text></Text>
-                      <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint }]}>proximité · {p.nb_deputes} élus</Text>
+                      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>proximité</Text>
                     </>
                   ) : (
                     <>
