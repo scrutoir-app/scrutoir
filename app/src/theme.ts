@@ -49,6 +49,10 @@ export const LIGHT = {
   watermarkFocal: "rgba(60,70,84,0.13)",
   hairline: "rgba(60,70,84,0.10)",
   hairlineStrong: "rgba(60,70,84,0.40)",
+
+  // Sièges neutres du PictoGroupe (non colorés) + point focal central — déclinés par mode.
+  siege: "#D2D6DE",
+  siegeFocal: "#AEB4BE",
 };
 
 // Palette SOMBRE — même langage, couleurs de vote relevées pour rester lisibles.
@@ -88,6 +92,10 @@ export const DARK: typeof LIGHT = {
   watermarkFocal: "rgba(255,255,255,0.11)",
   hairline: "rgba(255,255,255,0.09)",
   hairlineStrong: "rgba(255,255,255,0.35)",
+
+  // Sièges neutres + focal en sombre (gris froids relevés, lisibles sur fond encre).
+  siege: "#39424E",
+  siegeFocal: "#5A6573",
 };
 
 // Familles de police Manrope (chargées dans App via useFonts)
@@ -195,6 +203,27 @@ export function positionLabel(p: string | null): string {
     case "absent": return "Absent";
     default: return "—";
   }
+}
+
+/**
+ * Couleur d'IDENTITÉ d'un groupe, rendue lisible sur fond sombre. En clair : inchangée.
+ * En sombre : les couleurs très foncées (RN bleu marine, GDR bordeaux) se fondraient sur
+ * le fond encre → on les éclaircit (mélange vers le blanc, proportionnel à leur obscurité).
+ * À utiliser partout où la couleur de parti sert d'aplat/identité (picto, barres, pastilles).
+ */
+export function couleurGroupe(hex: string | null | undefined): string {
+  if (!hex) return C.textFaint;
+  if (_scheme !== "dark") return hex;
+  const h = hex.replace("#", "");
+  const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
+  const n = parseInt(full, 16);
+  if (Number.isNaN(n)) return hex;
+  const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255;
+  const lum = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
+  if (lum >= 0.5) return hex; // déjà clair → ne pas délaver
+  const t = 0.3 + (0.5 - lum) * 0.7; // plus c'est sombre, plus on éclaircit
+  const mix = (c: number) => Math.round(c + (255 - c) * t);
+  return `rgb(${mix(r)},${mix(g)},${mix(b)})`;
 }
 
 export function couleurPosition(p: string): string {

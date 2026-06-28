@@ -1,7 +1,7 @@
 import React, { useRef, useEffect, useMemo } from "react";
 import { View, Text, TouchableOpacity, Animated, Easing, AccessibilityInfo } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS, shadowCard, couleurGroupe } from "../theme";
 import { ownersFor, type GroupeGeo } from "./hemicycleGeo";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -62,7 +62,7 @@ export function IntroQuestionMark({
           x: cx + R * Math.cos(t),
           y: cyb - R * Math.sin(t),
           r: DOT_R,
-          color: (owners[dome.length] && couleurDe.get(owners[dome.length]!)) || "#D2D6DE",
+          color: (owners[dome.length] && couleurGroupe(couleurDe.get(owners[dome.length]!))) || C.siege,
           delay: f * DOME_DUR,
         });
       }

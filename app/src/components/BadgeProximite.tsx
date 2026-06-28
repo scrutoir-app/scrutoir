@@ -1,6 +1,6 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { C, F, T, tnum, RADIUS } from "../theme";
+import { C, F, T, tnum, RADIUS, couleurGroupe } from "../theme";
 import { SEUIL_FIABLE, useProximiteDepute, type ProximiteScore } from "../testProximite/jeProximite";
 
 // Affichage transverse du « tu votes comme X% » issu du test de proximité. La COULEUR
@@ -21,7 +21,7 @@ const pourcent = (p: number) => `${Math.round(p * 100)} %`;
 /** Barre de proximité + % (pour une ligne de liste, ex. classement des partis). */
 export function BarreProximite({ score, couleur }: { score: ProximiteScore | null; couleur?: string | null }) {
   if (!score) return null;
-  const col = couleur ?? C.accent;
+  const col = couleur ? couleurGroupe(couleur) : C.accent;
   const faible = score.comparable < SEUIL_FIABLE;
   return (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 6 }}>
@@ -38,7 +38,7 @@ export function BarreProximite({ score, couleur }: { score: ProximiteScore | nul
 /** Pastille compacte « 78 % comme toi » (lignes de suivis, strips). */
 export function PastilleProximite({ score, couleur }: { score: ProximiteScore | null; couleur?: string | null }) {
   if (!score) return null;
-  const col = couleur ?? C.accent;
+  const col = couleur ? couleurGroupe(couleur) : C.accent;
   return (
     <View
       style={{
@@ -55,7 +55,7 @@ export function PastilleProximite({ score, couleur }: { score: ProximiteScore | 
 /** Badge « profil » : carte mise en avant (fiche député / groupe). */
 export function BadgeProximite({ score, couleur }: { score: ProximiteScore | null; couleur?: string | null }) {
   if (!score) return null;
-  const col = couleur ?? C.accent;
+  const col = couleur ? couleurGroupe(couleur) : C.accent;
   const faible = score.comparable < SEUIL_FIABLE;
   const n = score.comparable;
   return (

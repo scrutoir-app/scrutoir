@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe } from "../theme";
 import { HemicyclePicto } from "./HemicyclePicto";
 import { SEUIL_FIABLE } from "../testProximite/jeProximite";
 import type { PartiResume, CategorieRef } from "../types";
@@ -76,7 +76,7 @@ export function ParThemeSwipe({
   }, [idx]);
 
   if (!courant) return null;
-  const col = couleur(courant.abrev);
+  const col = couleurGroupe(couleur(courant.abrev));
   const aller = (d: number) => setI((v) => (((Math.min(v, n - 1) + d) % n) + n) % n);
 
   return (

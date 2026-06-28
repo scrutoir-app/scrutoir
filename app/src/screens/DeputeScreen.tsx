@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe } from "../theme";
 import { getProfil } from "../api";
 import type { ProfilDepute, Periode } from "../types";
 import { CategoryVoteCard } from "../components/CategoryVoteCard";
@@ -49,8 +49,8 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <View style={{ flex: 1 }}>
           <Text style={[T.title, { color: C.text }]}>{d.nom_complet}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6, alignSelf: "flex-start", backgroundColor: C.surfaceAlt, paddingHorizontal: 10, paddingVertical: 3, borderRadius: 20 }}>
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: d.couleur ?? C.textFaint }} />
-            <Text style={[T.small, { fontFamily: F.semibold, color: "#4B5159" }]}>{d.abrev ?? d.groupe ?? "—"}</Text>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: couleurGroupe(d.couleur) }} />
+            <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{d.abrev ?? d.groupe ?? "—"}</Text>
           </View>
           {!!d.departement && d.circo && (
             <Text style={[T.small, { color: C.textFaint, marginTop: 5 }]}>

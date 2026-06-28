@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe } from "../theme";
 import { getTestProximite, getPartis, getCategories } from "../api";
 import type { PartiResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
@@ -158,7 +158,7 @@ export function TestResultatScreen({
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{g.abrev}</Text>
               <View style={{ height: 7, borderRadius: 4, backgroundColor: C.surfaceAlt, marginTop: 5, overflow: "hidden" }}>
-                {fiable && <View style={{ height: 7, borderRadius: 4, width: `${Math.round(g.pct * 100)}%`, backgroundColor: couleur(g.abrev) }} />}
+                {fiable && <View style={{ height: 7, borderRadius: 4, width: `${Math.round(g.pct * 100)}%`, backgroundColor: couleurGroupe(couleur(g.abrev)) }} />}
               </View>
               <Text style={[T.micro, { color: C.textFaint, marginTop: 3 }]}>{n} vote{n > 1 ? "s" : ""} comparé{n > 1 ? "s" : ""}</Text>
             </View>
