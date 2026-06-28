@@ -7,6 +7,28 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.4.0 — 2026-06-28
+Refonte centrée sur le **« je »** de l'utilisateur (le test de proximité irrigue toute l'app).
+- **Accueil = digest des suivis** : « Depuis ta dernière visite » ne montre que les votes
+  postérieurs à ta dernière consultation, plafonné, en blocs nommés (**Tes élus suivis** /
+  **Tes groupes suivis** / **Sur tes thèmes forts**), chaque section avec un « Voir tout › ».
+  État « Rien de neuf » quand tu es à jour. Héros de recherche relégué sous le fil.
+- **Cartes de suivi** : identité (photo/PictoGroupe) + groupe + **proximité globale** ;
+  zone vote séparée avec **picto du thème**, intitulé complet, et un marqueur **« comme toi /
+  pas comme toi »** (uniquement sur les votes de texte entier, jamais sur un amendement).
+- **Suivre des partis** (pas que des élus) ; le fil mêle les deux.
+- **Écran Suivis** : flux complet + **filtres** combinables (période, issue adopté/rejeté,
+  par qui).
+- **« Tu votes comme X% »** transverse (partis triés par proximité, fiches groupe/député).
+- **Résultat du test** « Ton point de départ » : CTA « Suivre [groupe le plus proche] »,
+  bloc explore, **« Par thème » en swipe** (accessible aussi via l'onglet Scrutins) avec la
+  couverture par thème.
+- **« Affiner »** : approfondir avec de **nouveaux** votes (jamais rejouer l'existant) ;
+  les **poids de thèmes** sont persistés et **ne se réinitialisent plus** à chaque passage.
+- **Préférences** (roue en haut de l'accueil) : thème **Clair / Sombre / Auto** et logos
+  officiels des groupes. Dark mode fiabilisé (couleurs de groupe lisibles, PictoGroupe et
+  logo Scrutoir adaptés).
+
 ## 1.3.4 — 2026-06-27
 - **Duel du jour** : il affiche désormais le bandeau **« Pourquoi ce duel »** (l'angle neutre :
   même bord / bords opposés / dossier par dossier), comme un tirage shuffle. L'angle transite
