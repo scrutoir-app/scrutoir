@@ -2,11 +2,16 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, ScrollView, FlatList, ActivityIndicator, TouchableOpacity, LayoutChangeEvent } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard, formatDate } from "../theme";
-import { getCategories, getScrutinsRecents } from "../api";
+import { getCategories, getScrutinsRecents, getPartis, getTestProximite } from "../api";
 import { catUI } from "../categoryUI";
 import { HeroCard, useReduceMotion } from "../components/HeroScrutins";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
-import type { CategorieRef, ScrutinResume } from "../types";
+import { ParThemeSwipe } from "../components/ParThemeSwipe";
+import { useJe } from "../testProximite/jeProximite";
+import { neuvesParTheme } from "../testProximite/config";
+import { chargerTest } from "../testProximite/storage";
+import type { CategorieRef, ScrutinResume, PartiResume } from "../types";
+import type { QuestionProximite } from "../testProximite/score";
 import type { Nav } from "../nav";
 
 const SIDE = 18; // marge écran (alignée sur le contenu de l'accueil / du carrousel d'origine)
@@ -146,17 +151,34 @@ function VueRecents({ nav }: { nav: Nav }) {
   );
 }
 
-/** Vue « Par thème » : la liste de thèmes (lignes riches), inchangée. */
+/**
+ * Vue « Par thème » : si un résultat de test existe, on ouvre EN TÊTE « Ta proximité par
+ * thème » (le swipe ParThemeSwipe — accessible ici sans repasser par le résultat), puis la
+ * navigation par catégories en dessous.
+ */
 function VueThemes({ nav }: { nav: Nav }) {
   const [cats, setCats] = useState<CategorieRef[]>([]);
+  const [partis, setPartis] = useState<PartiResume[]>([]);
+  const [questions, setQuestions] = useState<QuestionProximite[]>([]);
   const [loading, setLoading] = useState(true);
+  const je = useJe();
 
   useEffect(() => {
-    getCategories().then(setCats).finally(() => setLoading(false));
+    Promise.all([getCategories(), getPartis()]).then(([cs, ps]) => { setCats(cs); setPartis(ps); }).finally(() => setLoading(false));
+    getTestProximite().then(setQuestions).catch(() => setQuestions([]));
   }, []);
+
+  const neuf = je ? neuvesParTheme(questions, je.reponses) : undefined;
 
   return (
     <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+      {je && partis.length > 0 && (
+        <View style={{ marginBottom: 22 }}>
+          <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 12 }]}>Ta proximité par thème</Text>
+          <ParThemeSwipe resultat={je.resultat} partis={partis} cats={cats} nav={nav} neufParTheme={neuf} />
+        </View>
+      )}
+      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 12 }]}>Parcourir par sujet</Text>
       {loading ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
       ) : (
@@ -174,7 +196,11 @@ function VueThemes({ nav }: { nav: Nav }) {
  * et « Par thème » (la liste de thèmes historique). Clé de route « themes » conservée.
  */
 export function ThemesScreen({ nav }: { nav: Nav }) {
-  const [vue, setVue] = useState<Vue>("recents");
+  // Si un test existe, ouvrir d'emblée « Par thème » (le swipe « Ta proximité » est en tête).
+  const [vue, setVue] = useState<Vue>(() => {
+    const t = chargerTest();
+    return t && Object.keys(t.reponses).length ? "themes" : "recents";
+  });
 
   return (
     <View style={{ flex: 1 }}>

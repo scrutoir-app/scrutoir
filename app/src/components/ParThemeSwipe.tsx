@@ -1,11 +1,12 @@
-import React, { useMemo, useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, TouchableOpacity, Animated } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { HemicyclePicto } from "./HemicyclePicto";
 import { SEUIL_FIABLE } from "../testProximite/jeProximite";
 import type { PartiResume, CategorieRef } from "../types";
 import type { ResultatProximite } from "../testProximite/score";
+import type { Nav } from "../nav";
 
 /**
  * « Par thème » — UN groupe à la fois, dans l'ordre de proximité décroissante (le plus
@@ -17,10 +18,15 @@ export function ParThemeSwipe({
   resultat,
   partis,
   cats,
+  nav,
+  neufParTheme,
 }: {
   resultat: ResultatProximite;
   partis: PartiResume[];
   cats: CategorieRef[];
+  nav?: Nav;
+  // Nb de questions NON répondues par thème (pour proposer d'approfondir un thème peu couvert).
+  neufParTheme?: Record<string, number>;
 }) {
   const [i, setI] = useState(0);
 
@@ -44,14 +50,30 @@ export function ParThemeSwipe({
   const libelleCourt = (id: string) => libelleCat(id).split(/\s*[&,]\s*/)[0];
 
   // Convergence par thème pour le groupe courant (seuls les thèmes comparables), triée
-  // par ordre alphabétique du libellé.
+  // par ordre alphabétique du libellé. On garde la base (comparable) pour afficher la
+  // couverture : un 100 % sur 1 vote ne vaut pas un 100 % sur 12.
   const lignes = useMemo(() => {
     if (!courant) return [];
     return Object.entries(resultat.parTheme)
-      .map(([theme, parGroupe]) => ({ theme, pct: parGroupe[courant.abrev]?.pct ?? null }))
+      .map(([theme, parGroupe]) => ({ theme, pct: parGroupe[courant.abrev]?.pct ?? null, comparable: parGroupe[courant.abrev]?.comparable ?? 0 }))
       .filter((l) => l.pct != null)
-      .sort((a, b) => libelleCourt(a.theme).localeCompare(libelleCourt(b.theme), "fr")) as { theme: string; pct: number }[];
+      .sort((a, b) => libelleCourt(a.theme).localeCompare(libelleCourt(b.theme), "fr")) as { theme: string; pct: number; comparable: number }[];
   }, [courant, resultat, cats]);
+
+  // Fondu doux à chaque changement de groupe (et à l'apparition) : la carte n'entre plus
+  // de façon abrupte. Léger glissement vertical en complément.
+  const fade = useRef(new Animated.Value(0)).current;
+  const slide = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    fade.setValue(0);
+    slide.setValue(6);
+    const anim = Animated.parallel([
+      Animated.timing(fade, { toValue: 1, duration: 220, useNativeDriver: true }),
+      Animated.timing(slide, { toValue: 0, duration: 220, useNativeDriver: true }),
+    ]);
+    anim.start();
+    return () => anim.stop();
+  }, [idx]);
 
   if (!courant) return null;
   const col = couleur(courant.abrev);
@@ -75,7 +97,7 @@ export function ParThemeSwipe({
           <Feather name="chevron-left" size={20} color={C.text} />
         </TouchableOpacity>
 
-        <View style={{ flex: 1, alignItems: "center", backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 16, paddingHorizontal: 12, ...shadowCard }}>
+        <Animated.View style={{ flex: 1, alignItems: "center", backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 16, paddingHorizontal: 12, opacity: fade, transform: [{ translateY: slide }], ...shadowCard }}>
           <HemicyclePicto groupes={partis} activeAbrev={courant.abrev} color={col} size={64} />
           <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 8 }]}>{courant.abrev}</Text>
           <Text style={[T.small, { color: C.textMuted, textAlign: "center", marginTop: 1 }]} numberOfLines={2}>
@@ -85,7 +107,7 @@ export function ParThemeSwipe({
             {Math.round(courant.pct * 100)}<Text style={[T.body, { fontFamily: F.bold, color: C.textFaint }]}> %</Text>
           </Text>
           <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>de convergence</Text>
-        </View>
+        </Animated.View>
 
         <TouchableOpacity
           onPress={() => aller(1)}
@@ -108,17 +130,33 @@ export function ParThemeSwipe({
         </View>
       )}
 
-      {/* Convergence par thème (barres à la couleur du groupe) */}
-      <View style={{ marginTop: 16, gap: 9 }}>
-        {lignes.map((l) => (
-          <View key={l.theme} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Text style={[T.small, { width: 92, color: C.text, fontFamily: F.medium }]} numberOfLines={1}>{libelleCourt(l.theme)}</Text>
-            <View style={{ flex: 1, height: 7, borderRadius: 4, backgroundColor: C.surfaceSunken, overflow: "hidden" }}>
-              <View style={{ height: 7, borderRadius: 4, width: `${Math.round(l.pct * 100)}%`, backgroundColor: col }} />
+      {/* Convergence par thème (barres à la couleur du groupe) + couverture honnête. */}
+      <View style={{ marginTop: 16, gap: 12 }}>
+        {lignes.map((l) => {
+          const faible = l.comparable < SEUIL_FIABLE;
+          const neuf = neufParTheme?.[l.theme] ?? 0;
+          return (
+            <View key={l.theme}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+                <Text style={[T.small, { width: 92, color: C.text, fontFamily: F.medium }]} numberOfLines={1}>{libelleCourt(l.theme)}</Text>
+                <View style={{ flex: 1, height: 7, borderRadius: 4, backgroundColor: C.surfaceSunken, overflow: "hidden" }}>
+                  <View style={{ height: 7, borderRadius: 4, width: `${Math.round(l.pct * 100)}%`, backgroundColor: faible ? C.textFaint : col }} />
+                </View>
+                <Text style={[T.small, tnum, { fontFamily: F.bold, color: faible ? C.textMuted : C.text, minWidth: 38, textAlign: "right" }]}>{Math.round(l.pct * 100)} %</Text>
+              </View>
+              <View style={{ flexDirection: "row", alignItems: "center", marginLeft: 102, marginTop: 3 }}>
+                <Text style={[T.micro, tnum, { color: C.textFaint, flex: 1 }]}>
+                  {faible ? "couverture faible" : `${l.comparable} votes comparés`}
+                </Text>
+                {nav && neuf > 0 && (
+                  <TouchableOpacity onPress={() => nav.push({ name: "test", mode: "affiner", theme: l.theme, themeLibelle: libelleCat(l.theme) })} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
+                    <Text style={[T.micro, { fontFamily: F.bold, color: C.accent }]}>+{neuf} à te positionner</Text>
+                  </TouchableOpacity>
+                )}
+              </View>
             </View>
-            <Text style={[T.small, tnum, { fontFamily: F.bold, color: C.text, minWidth: 38, textAlign: "right" }]}>{Math.round(l.pct * 100)} %</Text>
-          </View>
-        ))}
+          );
+        })}
       </View>
     </View>
   );
