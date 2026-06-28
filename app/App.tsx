@@ -36,6 +36,7 @@ import { MentionsScreen } from "./src/screens/MentionsScreen";
 import { TestIntroScreen } from "./src/screens/TestIntroScreen";
 import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
+import { TestParThemeScreen } from "./src/screens/TestParThemeScreen";
 import { lireHashPartage } from "./src/testProximite/storage";
 import { InstallPrompt } from "./src/components/InstallPrompt";
 import { ParcoursLoi } from "./src/components/ParcoursLoi";
@@ -144,6 +145,7 @@ function AppInner() {
     testIntro: "Test de proximité",
     test: "Test de proximité",
     testResultat: "Ta proximité",
+    testParTheme: "Par thème",
   };
   const showHeader = stack.length > 1;
 
@@ -251,6 +253,7 @@ function AppInner() {
           {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "test" && <TestScreen mode={current.mode} theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} themesJoues={current.themesJoues} nav={nav} />}
+          {current.name === "testParTheme" && <TestParThemeScreen nav={nav} />}
             </>
           )}
         </View>

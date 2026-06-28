@@ -8,13 +8,25 @@ import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
 import { HemicyclePicto } from "../components/HemicyclePicto";
-import { ParThemeSwipe } from "../components/ParThemeSwipe";
+import { ScrutoirMark } from "../components/ScrutoirMark";
+import { useFollow } from "../follows";
 import { sauverTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [
   { label: "Peu", v: 0.5 },
   { label: "Normal", v: 1 },
   { label: "Fort", v: 2 },
+];
+
+// Nom court d'un groupe (1ʳᵉ partie avant « & » / « , ») pour le CTA « Suivre … ».
+const nomCourt = (libelle: string) => libelle.split(/\s*[&,]\s*/)[0];
+
+// Bloc « Et maintenant, explore » : 4 portes de sortie vers les autres lectures.
+const EXPLORE: { label: string; icon?: string; picto?: boolean; route: { name: string } }[] = [
+  { label: "Par thème", icon: "grid", route: { name: "testParTheme" } },
+  { label: "Par scrutin", icon: "file-text", route: { name: "themes" } },
+  { label: "Par parti", picto: true, route: { name: "partis" } },
+  { label: "Par député", icon: "user", route: { name: "monDepute" } },
 ];
 
 // Partage 100 % client (geste explicite de l'utilisateur). Le message vu côté destinataire
@@ -73,6 +85,17 @@ export function TestResultatScreen({
     if (jouees.length && Object.keys(poids).length) sauverTest({ reponses, poids });
   }, [reponses, poids, jouees.length]);
 
+  // Groupe le plus proche (FIABLE : ≥ 2 votes comparés) — cible du CTA « Suivre ».
+  const topAbrev = useMemo(() => {
+    if (!resultat) return null;
+    const comparable = (abrev: string) =>
+      Object.values(resultat.parTheme).reduce((s, t) => s + (t[abrev]?.comparable ?? 0), 0);
+    const fiables = resultat.global.filter((g) => comparable(g.abrev) >= 2);
+    return (fiables[0] ?? resultat.global[0])?.abrev ?? null;
+  }, [resultat]);
+  const topParti = topAbrev ? partis.find((p) => p.abrev === topAbrev) : null;
+  const [suiviTop, toggleSuiviTop] = useFollow(topParti?.uid ?? "");
+
   if (!resultat) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
   const couleur = (abrev: string) => partis.find((p) => p.abrev === abrev)?.couleur ?? C.textFaint;
@@ -126,9 +149,38 @@ export function TestResultatScreen({
         );
       })}
 
-      {/* Par thème : UN groupe à la fois (swipe), du plus proche au plus éloigné. */}
-      <View style={{ marginTop: 22 }}>
-        <ParThemeSwipe resultat={resultat} partis={partis} cats={cats} />
+      {/* CTA : suivre le groupe le plus proche (cloche = suivi, comme partout dans l'app). */}
+      {topParti && (
+        <TouchableOpacity
+          onPress={toggleSuiviTop}
+          activeOpacity={0.85}
+          style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 18, paddingVertical: 15, borderRadius: RADIUS.pill, backgroundColor: suiviTop ? C.surfaceAlt : C.accent, borderWidth: suiviTop ? 1 : 0, borderColor: C.borderStrong, ...shadowCard }}
+        >
+          <Feather name={suiviTop ? "check" : "bell"} size={18} color={suiviTop ? C.text : "#fff"} />
+          <Text style={[T.body, { fontFamily: F.bold, color: suiviTop ? C.text : "#fff" }]}>
+            {suiviTop ? `Tu suis ${nomCourt(topParti.libelle)}` : `Suivre ${nomCourt(topParti.libelle)}`}
+          </Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Bloc explore : prolonge le « je » vers les autres lectures. */}
+      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 26, marginBottom: 12 }]}>Et maintenant, explore</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
+        {EXPLORE.map((e) => (
+          <TouchableOpacity
+            key={e.label}
+            activeOpacity={0.8}
+            onPress={() => nav.push(e.route as any)}
+            style={{ width: "47.8%", flexGrow: 1, alignItems: "center", gap: 8, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 18, borderWidth: 1, borderColor: C.border, ...shadowCard }}
+          >
+            {e.picto ? (
+              <ScrutoirMark size={26} color={C.text} accent={C.accent} />
+            ) : (
+              <Feather name={e.icon as any} size={22} color={C.accent} />
+            )}
+            <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{e.label}</Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       {/* Pondération par thème → recalcul du global en direct. */}
