@@ -49,22 +49,30 @@ function Masthead({ nav }: { nav: Nav }) {
   );
 }
 
-function SearchPill({ q, setQ, autoFocus }: { q: string; setQ: (s: string) => void; autoFocus?: boolean }) {
+/**
+ * Champ de recherche. `clair` = pill blanc volontaire (posé sur le héros SOMBRE, contraste
+ * dans les deux thèmes). Sans `clair` (champ utilisé seul, ex. mode résultats), il suit le
+ * thème via les tokens — sinon une pastille blanche resterait sur fond sombre en dark.
+ */
+function SearchPill({ q, setQ, autoFocus, clair }: { q: string; setQ: (s: string) => void; autoFocus?: boolean; clair?: boolean }) {
+  const bg = clair ? "#FFFFFF" : C.surface;
+  const fg = clair ? "#171A1F" : C.text;
+  const ph = clair ? "#8A8F98" : C.textMuted;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, height: 52, backgroundColor: "#FFFFFF", borderRadius: RADIUS.md, paddingHorizontal: 13 }}>
-      <Feather name="search" size={19} color="#171A1F" />
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, height: 52, backgroundColor: bg, borderRadius: RADIUS.md, paddingHorizontal: 13, ...(clair ? {} : { borderWidth: 1, borderColor: C.borderStrong }) }}>
+      <Feather name="search" size={19} color={clair ? "#171A1F" : C.textMuted} />
       <TextInput
         value={q}
         onChangeText={setQ}
         autoFocus={autoFocus}
         placeholder="Sur quoi ils ont voté ?"
-        placeholderTextColor="#8A8F98"
-        style={[inputText, { flex: 1, color: "#171A1F", outlineStyle: "none" }] as any}
+        placeholderTextColor={ph}
+        style={[inputText, { flex: 1, color: fg, outlineStyle: "none" }] as any}
         autoCorrect={false}
       />
       {q.length > 0 && (
         <TouchableOpacity onPress={() => setQ("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="x" size={18} color="#8A8F98" />
+          <Feather name="x" size={18} color={ph} />
         </TouchableOpacity>
       )}
     </View>
@@ -77,7 +85,7 @@ function HeroRecherche({ q, setQ }: { q: string; setQ: (s: string) => void }) {
     <View style={{ backgroundColor: h.bg, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: h.border, paddingHorizontal: 14, paddingTop: 16, paddingBottom: 14, ...shadowCard }}>
       <Text style={[T.heading, { color: h.title }]}>Sur quoi ils ont voté ?</Text>
       <Text style={[T.small, { color: h.sub, marginTop: 4, marginBottom: 12 }]}>Tape un sujet, un nom ou une loi</Text>
-      <SearchPill q={q} setQ={setQ} />
+      <SearchPill q={q} setQ={setQ} clair />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12 }} contentContainerStyle={{ gap: 8, paddingRight: 4 }}>
         {EXEMPLES.map((ex) => (
           <TouchableOpacity key={ex} activeOpacity={0.7} onPress={() => setQ(ex)} style={{ paddingVertical: 7, paddingHorizontal: 13, borderRadius: RADIUS.pill, backgroundColor: h.tagBg, borderWidth: 1, borderColor: h.tagBorder }}>

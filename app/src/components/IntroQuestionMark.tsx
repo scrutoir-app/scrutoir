@@ -13,7 +13,8 @@ const VBW = 220, VBH = 300;
 const cx = 110, cyb = 120; // centre + ligne de base de la coupole
 const RINGS = [62, 42]; // deux arcs (≠ géométrie du picto, ici en unités du viewBox 220)
 const DOT_R = 4.6, FINAL_R = 7.6;
-const GRIS_QUEUE = "#3C4654";
+// La queue du « ? » = l'ardoise neutre, lue via le token (décline clair/sombre) au lieu d'un
+// hex figé (sinon trop sombre / invisible sur fond sombre).
 
 // Tempo identique à la maquette (secondes → ms).
 const DOME_DUR = 950; // étalement de la coupole (délai = f * DOME_DUR)
@@ -78,11 +79,11 @@ export function IntroQuestionMark({
     ];
     const queue: Pt[] = [];
     rows.forEach((row, idx) => {
-      for (const x of row.xs) queue.push({ x, y: row.y, r: DOT_R, color: GRIS_QUEUE, delay: BASE + idx * ROW_STEP });
+      for (const x of row.xs) queue.push({ x, y: row.y, r: DOT_R, color: C.accent, delay: BASE + idx * ROW_STEP });
     });
 
     // Point final centré dessous, plus gros.
-    const final: Pt = { x: cx, y: 254, r: FINAL_R, color: GRIS_QUEUE, delay: FINAL_DELAY };
+    const final: Pt = { x: cx, y: 254, r: FINAL_R, color: C.accent, delay: FINAL_DELAY };
 
     return [...dome, ...queue, final];
   }, [groupes]);
