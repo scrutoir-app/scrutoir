@@ -194,7 +194,7 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
   const neuves = aTest && questions.length ? nbNeuves(questions, test!.reponses) : 0;
   const affinerDispo = aTest && neuves >= SEUIL_AFFINER;
   const ouvrirProximite = () =>
-    aTest ? nav.push({ name: "testResultat", reponses: test!.reponses, poids: test!.poids }) : nav.push({ name: "testIntro" });
+    aTest ? nav.push({ name: "testResultat" }) : nav.push({ name: "testIntro" });
 
   return (
     <View style={{ paddingHorizontal: SIDE }}>

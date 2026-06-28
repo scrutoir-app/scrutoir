@@ -10,7 +10,7 @@ import { calculerProximite } from "../testProximite/score";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { ScrutoirMark } from "../components/ScrutoirMark";
 import { useFollow } from "../follows";
-import { sauverTest, urlPartage } from "../testProximite/storage";
+import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [
   { label: "Peu", v: 0.5 },
@@ -43,20 +43,27 @@ async function partager(url: string, texte: string): Promise<"shared" | "copied"
 }
 
 export function TestResultatScreen({
-  reponses,
-  poids: poidsInitial,
+  reponses: reponsesProp,
+  poids: poidsProp,
+  partage = false,
   nav,
 }: {
-  reponses: Record<number, Reponse>;
+  reponses?: Record<number, Reponse>;
   themesJoues?: string[];
   poids?: Record<string, number>;
+  partage?: boolean;
   nav: Nav;
 }) {
   const [all, setAll] = useState<QuestionProximite[] | null>(null);
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
-  const [poids, setPoids] = useState<Record<string, number>>({});
   const [partageMsg, setPartageMsg] = useState<string | null>(null);
+
+  // Source des réponses : lien PARTAGÉ → la prop (lecture seule) ; sinon → MES réponses
+  // accumulées dans le stockage local. Figées au montage (le résultat ne se réécrit pas seul).
+  const reponses = useMemo(() => (partage ? reponsesProp ?? {} : chargerTest()?.reponses ?? {}), [partage, reponsesProp]);
+  // Poids : partagé → ceux du lien ; sinon → MES poids persistés (jamais remis à zéro ici).
+  const [poids, setPoids] = useState<Record<string, number>>(() => (partage ? { ...(poidsProp ?? {}) } : { ...chargerPoids() }));
 
   useEffect(() => {
     Promise.all([getTestProximite(), getPartis(), getCategories()]).then(([qs, ps, cs]) => {
@@ -68,22 +75,35 @@ export function TestResultatScreen({
   const jouees = useMemo(() => (all ? all.filter((q) => reponses[q.id] != null) : []), [all, reponses]);
   const themes = useMemo(() => [...new Set(jouees.map((q) => q.theme))].sort(), [jouees]);
 
-  // Initialise les poids (lien partagé > défaut 1) une fois les thèmes connus.
+  // Complète les poids des thèmes pas encore réglés (défaut « Normal » = 1) SANS jamais
+  // toucher aux thèmes déjà pondérés. Un passage de test ne réinitialise donc rien.
   useEffect(() => {
     if (!themes.length) return;
-    setPoids((prev) => (Object.keys(prev).length ? prev : Object.fromEntries(themes.map((t) => [t, poidsInitial?.[t] ?? 1]))));
+    setPoids((prev) => {
+      const next = { ...prev };
+      let changed = false;
+      for (const t of themes) if (next[t] == null) { next[t] = (partage ? poidsProp?.[t] : undefined) ?? 1; changed = true; }
+      return changed ? next : prev;
+    });
   }, [themes.join("|")]);
+
+  // Changer un poids = choix utilisateur : on le persiste seul (hors mode partagé).
+  const changerPoids = (theme: string, v: number) => {
+    setPoids((prev) => {
+      const next = { ...prev, [theme]: v };
+      if (!partage) sauverPoids(next);
+      return next;
+    });
+  };
+
+  // « Repartir de zéro » : SEUL geste qui efface réponses + poids (jamais en sortie de test).
+  const repartirDeZero = () => { effacerTest(); nav.push({ name: "testIntro" }); };
 
   const groupes = useMemo(() => partis.filter((p) => p.abrev).map((p) => ({ abrev: p.abrev! })), [partis]);
   const resultat = useMemo(
     () => (jouees.length && groupes.length ? calculerProximite(jouees, reponses, poids, groupes) : null),
     [jouees, reponses, poids, groupes]
   );
-
-  // Persistance locale (rien côté serveur) dès qu'on a un état complet.
-  useEffect(() => {
-    if (jouees.length && Object.keys(poids).length) sauverTest({ reponses, poids });
-  }, [reponses, poids, jouees.length]);
 
   // Groupe le plus proche (FIABLE : ≥ 2 votes comparés) — cible du CTA « Suivre ».
   const topAbrev = useMemo(() => {
@@ -193,7 +213,7 @@ export function TestResultatScreen({
             {NIVEAUX.map((n) => {
               const actif = (poids[t] ?? 1) === n.v;
               return (
-                <TouchableOpacity key={n.label} onPress={() => setPoids((p) => ({ ...p, [t]: n.v }))} style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: RADIUS.pill, backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : {}) }}>
+                <TouchableOpacity key={n.label} onPress={() => changerPoids(t, n.v)} style={{ paddingHorizontal: 12, paddingVertical: 5, borderRadius: RADIUS.pill, backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : {}) }}>
                   <Text style={[T.micro, { fontFamily: actif ? F.bold : F.medium, color: actif ? C.text : C.textMuted }]}>{n.label}</Text>
                 </TouchableOpacity>
               );
@@ -207,8 +227,8 @@ export function TestResultatScreen({
         <Feather name="share-2" size={18} color="#fff" />
         <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>{partageMsg ?? "Partager mon résultat"}</Text>
       </TouchableOpacity>
-      <TouchableOpacity onPress={() => nav.push({ name: "testIntro" })} activeOpacity={0.7} style={{ alignItems: "center", marginTop: 14 }}>
-        <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Recommencer</Text>
+      <TouchableOpacity onPress={repartirDeZero} activeOpacity={0.7} style={{ alignItems: "center", marginTop: 14 }}>
+        <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>Repartir de zéro</Text>
       </TouchableOpacity>
     </ScrollView>
   );

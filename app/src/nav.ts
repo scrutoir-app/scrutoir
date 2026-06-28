@@ -64,7 +64,9 @@ export type Route =
   // Test de proximité : intro (animation + choix du mode), déroulé, résultat.
   | { name: "testIntro"; theme?: string; themeLibelle?: string }
   | { name: "test"; mode: "theme" | "complet" | "affiner"; theme?: string; themeLibelle?: string }
-  | { name: "testResultat"; reponses: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number> }
+  // reponses/poids absents = résultat de L'UTILISATEUR (lu depuis le stockage local).
+  // partage=true (+ reponses/poids) = résultat d'un LIEN partagé : lecture seule, rien n'est persisté.
+  | { name: "testResultat"; reponses?: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number>; partage?: boolean }
   | { name: "testParTheme" };
 
 export interface Nav {

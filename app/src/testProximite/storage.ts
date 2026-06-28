@@ -37,6 +37,28 @@ export function effacerTest(): void {
   } catch { /* ignore */ }
 }
 
+// --- Trois états persistés INDÉPENDAMMENT (cf. correction « poids ») ----------------
+// Les réponses s'ACCUMULENT (un passage de test AJOUTE, n'efface rien). Les poids sont un
+// choix utilisateur persisté, JAMAIS remis à zéro par un passage du test (seul un reset
+// explicite via effacerTest() les efface). La proximité est dérivée (recalculée ailleurs).
+
+/** Fusionne de nouvelles réponses dans l'état stocké, en gardant les poids tels quels. */
+export function fusionnerReponses(nouvelles: Record<number, Reponse>): void {
+  const cur = chargerTest();
+  sauverTest({ reponses: { ...(cur?.reponses ?? {}), ...nouvelles }, poids: cur?.poids ?? {} });
+}
+
+/** Poids de thèmes persistés (vide si jamais réglés). */
+export function chargerPoids(): Record<string, number> {
+  return chargerTest()?.poids ?? {};
+}
+
+/** Enregistre les poids sans toucher aux réponses (choix utilisateur, persisté seul). */
+export function sauverPoids(poids: Record<string, number>): void {
+  const cur = chargerTest();
+  sauverTest({ reponses: cur?.reponses ?? {}, poids });
+}
+
 // --- Partage : encodage compact des réponses (+ poids) dans un hash d'URL ----------
 // Aucun stockage distant, aucun compte. Le lien recalcule tout à l'ouverture.
 

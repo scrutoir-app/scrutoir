@@ -7,7 +7,7 @@ import type { PartiResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { phraseAlignement } from "../testProximite/phrase";
-import { chargerTest } from "../testProximite/storage";
+import { chargerTest, fusionnerReponses } from "../testProximite/storage";
 import { questionsNeuves, N_AFFINER } from "../testProximite/config";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
 import { track } from "../analytics";
@@ -97,12 +97,10 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
   const suivant = () => {
     if (idx + 1 >= total) {
       track("test_done", testKey);
-      const themesJoues = [...new Set(questions.map((x) => x.theme))];
-      // En « affiner », on FUSIONNE avec les réponses déjà enregistrées (et on garde les poids).
-      const base = mode === "affiner" ? dejaFait?.reponses ?? {} : {};
-      const merged = { ...base, ...reponses, [q.id]: rep! };
-      const poids = mode === "affiner" ? dejaFait?.poids : undefined;
-      nav.push({ name: "testResultat", reponses: merged, poids, themesJoues });
+      // Les réponses s'ACCUMULENT (tous modes), les poids ne sont PAS touchés. Le résultat
+      // « mes résultats » relit réponses + poids depuis le stockage (rien passé en param).
+      fusionnerReponses({ ...reponses, [q.id]: rep! });
+      nav.push({ name: "testResultat" });
     } else {
       setIdx(idx + 1);
       setRevealed(false);

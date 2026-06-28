@@ -79,7 +79,7 @@ function AppInner() {
   useEffect(() => {
     const partage = lireHashPartage();
     if (partage && Object.keys(partage.reponses).length) {
-      setStack([{ name: "search" }, { name: "testResultat", reponses: partage.reponses, poids: partage.poids }]);
+      setStack([{ name: "search" }, { name: "testResultat", reponses: partage.reponses, poids: partage.poids, partage: true }]);
     }
   }, []);
 
@@ -253,7 +253,7 @@ function AppInner() {
           {current.name === "suivis" && <SuivisScreen nav={nav} />}
           {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "test" && <TestScreen mode={current.mode} theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
-          {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} themesJoues={current.themesJoues} nav={nav} />}
+          {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} poids={current.poids} partage={current.partage} themesJoues={current.themesJoues} nav={nav} />}
           {current.name === "testParTheme" && <TestParThemeScreen nav={nav} />}
             </>
           )}

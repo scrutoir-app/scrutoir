@@ -48,7 +48,7 @@ export function TestIntroScreen({ theme, themeLibelle, nav }: { theme?: string; 
       {dernier && Object.keys(dernier.reponses).length > 0 && (
         <TouchableOpacity
           activeOpacity={0.85}
-          onPress={() => nav.push({ name: "testResultat", reponses: dernier.reponses, poids: dernier.poids })}
+          onPress={() => nav.push({ name: "testResultat" })}
           style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 12, paddingHorizontal: 15, marginTop: 6, marginBottom: 6, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
         >
           <Feather name="rotate-ccw" size={18} color={C.accent} />
