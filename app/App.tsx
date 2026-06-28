@@ -40,6 +40,8 @@ import { lireHashPartage } from "./src/testProximite/storage";
 import { InstallPrompt } from "./src/components/InstallPrompt";
 import { ParcoursLoi } from "./src/components/ParcoursLoi";
 import { useInterstitielParcours } from "./src/parcoursLoiPrefs";
+import { OnboardingOverlay } from "./src/components/OnboardingOverlay";
+import { useOnboardingVisible, fermerOnboarding } from "./src/onboardingPrefs";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
 import { ThemeProvider, useThemeMode } from "./src/themeMode";
 import { track } from "./src/analytics";
@@ -90,6 +92,10 @@ function AppInner() {
   // Interstitiel pédagogique « parcours d'une loi » : montré UNE fois par installation
   // (re-proposé si le contenu change), rejetable. Persistance locale (cf. parcoursLoiPrefs).
   const [interstitiel, setInterstitiel] = useState(useInterstitielParcours());
+
+  // Overlay d'onboarding « je » : visible au tout premier lancement (aucun suivi/test),
+  // ou relancé depuis l'accueil. Piloté par un store local (cf. onboardingPrefs).
+  const onboardingVisible = useOnboardingVisible();
 
   const nav: Nav = {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
@@ -252,8 +258,17 @@ function AppInner() {
         {/* Bandeau d'installation PWA, en bas de l'Accueil (masqué si clavier ouvert) */}
         {root === "search" && !keyboardOpen && <InstallPrompt />}
 
-        {/* Interstitiel pédagogique au 1er lancement (une fois par installation). */}
-        <ParcoursLoi visible={interstitiel} onClose={() => setInterstitiel(false)} source="interstitiel" />
+        {/* Interstitiel pédagogique au 1er lancement (une fois par installation).
+            Masqué tant que l'onboarding « je » est à l'écran (pas deux modales empilées). */}
+        <ParcoursLoi visible={interstitiel && !onboardingVisible} onClose={() => setInterstitiel(false)} source="interstitiel" />
+
+        {/* Overlay d'onboarding « je » (1re connexion / relancé depuis l'accueil), au-dessus. */}
+        <OnboardingOverlay
+          visible={onboardingVisible}
+          onStart={() => { fermerOnboarding(); nav.push({ name: "testIntro" }); }}
+          onExplore={fermerOnboarding}
+          onClose={fermerOnboarding}
+        />
 
         {/* Barre d'onglets : positionnement d'origine (avant v1.0.25), paddingBottom fixe.
             Pas de viewport-fit=cover/safe-area (déréglait la position en app installée).
