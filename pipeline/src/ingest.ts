@@ -4,6 +4,7 @@ import { chargerGroupes, chargerDeputes } from "./parseActeurs.js";
 import { chargerScrutins } from "./parseScrutins.js";
 import { seedCategories, classifierTout } from "./classify.js";
 import { lierAmendements } from "./linkAmendements.js";
+import { agregerAmendementsDossier } from "./amendementsDossier.js";
 import { calculerParticipation } from "./participation.js";
 import { calculerPropositions, lierDossiers } from "./activiteGroupes.js";
 import { localiserPhotos } from "./photos.js";
@@ -48,6 +49,8 @@ async function main() {
   if (okZip) {
     const { lies, total } = await lierAmendements(db);
     console.log(`     ${lies}/${total} scrutins sur amendement reliés (+ amendements/groupe)`);
+    const ag = await agregerAmendementsDossier(db);
+    console.log(`     ${ag.lignes} lignes d'agrégats sur ${ag.dossiers} dossiers (amendements déposés par auteur)`);
   }
   const okDoss = await assurerDossiersZip(dl);
   if (okDoss) {

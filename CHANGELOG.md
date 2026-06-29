@@ -7,6 +7,26 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.5.0 — 2026-06-29
+Refonte de la **page d'un scrutin** + nouvelle activité d'**amendements** par texte.
+- **Page scrutin en accordéon** : Résultat (barre de vote standard de l'app, divergente
+  centrée avec « écart de N voix ») et Objet du texte toujours visibles ; **Position par
+  groupe** et **Amendements sur ce texte** en sections pliables (repliées par défaut), avec
+  plis à deux niveaux, **« Tout déplier / replier »** global et par section.
+- **Amendements sur ce texte** : pour chaque texte de loi, combien d'amendements chaque
+  groupe a déposés et ce qu'ils sont devenus (adoptés / rejetés / sans suite), barre de sort,
+  **écart à la moyenne des groupes** (badge neutre), **concentration par article**, détail au
+  dépli + lien vers la source AN. Le Gouvernement et la commission apparaissent en lignes
+  neutres, comptés dans le total mais hors moyenne. Section absente si le texte n'a pas
+  d'amendements. Encart ⓘ rappelant que le volume ne mesure pas la qualité du travail.
+- **Pictos hémicycle** (`HemicyclePicto`) pour identifier chaque groupe, jamais une pastille.
+- **Ordre des groupes selon ta proximité** (test de proximité) sur les deux sections, sinon
+  ordre hémicycle neutre ; tri « Par groupe / Par nombre » sur les amendements.
+- **Pipeline** : nouveau module d'agrégats d'amendements par dossier (`amendementsDossier.ts`),
+  agrégats compacts pré-calculés et rattachés au JSON du scrutin (aucun amendement unitaire
+  exporté). Garde-fou : dataset vide/cassé → agrégats existants conservés.
+- **Infos** : source AN complétée (amendements = même Open Data) + sous-section « Les amendements ».
+
 ## 1.4.0 — 2026-06-28
 Refonte centrée sur le **« je »** de l'utilisateur (le test de proximité irrigue toute l'app).
 - **Accueil = digest des suivis** : « Depuis ta dernière visite » ne montre que les votes

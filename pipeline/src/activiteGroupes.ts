@@ -64,24 +64,25 @@ export async function lierDossiers(db: Database.Database): Promise<number> {
   const zip = new (StreamZip as any).async({ file: DOSSIERS_ZIP });
   const noms = Object.keys(await zip.entries()).filter((n) => n.endsWith(".json"));
 
-  // scrutin uid -> titre officiel du dossier qui le référence
-  const titreParScrutin = new Map<string, string>();
+  // scrutin uid -> { titre officiel, uid du dossier } du dossier qui le référence
+  const parScrutin = new Map<string, { titre: string; ref: string | null }>();
   for (const nom of noms) {
     const raw = (await zip.entryData(nom)).toString("utf8");
     if (!raw.includes("VTANR")) continue; // dossier sans vote nominatif
     const d = JSON.parse(raw).dossierParlementaire;
     const titre = d?.titreDossier?.titre;
     if (!titre) continue;
+    const ref = d?.uid ?? null; // DLR… → jointure avec les agrégats d'amendements
     for (const m of raw.matchAll(/VTANR[A-Z0-9]+/g)) {
-      if (!titreParScrutin.has(m[0])) titreParScrutin.set(m[0], titre);
+      if (!parScrutin.has(m[0])) parScrutin.set(m[0], { titre, ref });
     }
   }
   await zip.close();
 
-  const upd = db.prepare("UPDATE scrutins SET dossier_titre = ? WHERE uid = ?");
+  const upd = db.prepare("UPDATE scrutins SET dossier_titre = ?, dossier_ref = ? WHERE uid = ?");
   let n = 0;
   db.transaction(() => {
-    for (const [uid, titre] of titreParScrutin) n += upd.run(titre, uid).changes;
+    for (const [uid, { titre, ref }] of parScrutin) n += upd.run(titre, ref, uid).changes;
   })();
   return n;
 }

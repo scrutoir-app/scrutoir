@@ -160,6 +160,63 @@ for (const d of deputes as any[]) {
   if (++nd % 100 === 0) console.log(`  députés ${nd}/${deputes.length}`);
 }
 
+// 6) Amendements déposés sur le dossier : agrégat compact PAR DOSSIER, calculé une
+//    seule fois puis rattaché à CHAQUE scrutin du dossier (pas de fichier par dossier →
+//    on reste sous le plafond de fichiers de Cloudflare Pages, et aucune requête en plus).
+//    On n'exporte JAMAIS d'amendements unitaires, seulement ces lignes agrégées.
+const groupeInfo = new Map<string, { abrev: string | null; libelle: string; couleur: string | null }>(
+  (db.prepare("SELECT uid, abrev, libelle, couleur FROM groupes").all() as any[]).map((g) => [
+    g.uid,
+    { abrev: g.abrev, libelle: g.libelle, couleur: g.couleur },
+  ])
+);
+const amendLignes = db.prepare("SELECT * FROM dossier_amendements WHERE dossier = ?");
+const amendTotaux = db.prepare("SELECT * FROM dossier_amendements_totaux WHERE dossier = ?");
+const amendCache = new Map<string, any | null>();
+function amendementsDuDossier(ref: string | null): any | null {
+  if (!ref) return null;
+  if (amendCache.has(ref)) return amendCache.get(ref);
+  const tot = amendTotaux.get(ref) as any | undefined;
+  if (!tot || !tot.total) {
+    amendCache.set(ref, null);
+    return null;
+  }
+  const rows = amendLignes.all(ref) as any[];
+  const groupes: any[] = [];
+  const institutionnels: any[] = [];
+  for (const r of rows) {
+    const compact = {
+      total: r.total,
+      adoptes: r.adoptes,
+      rejetes: r.rejetes,
+      tombes: r.tombes,
+      retires: r.retires,
+      irrecevables: r.irrecevables,
+      articleTop: r.article_top ?? null,
+      articleTopN: r.article_top_n ?? 0,
+      articlesDistincts: r.articles_distincts ?? 0,
+    };
+    if (r.groupe === "__gouv__") institutionnels.push({ kind: "gouv", ...compact });
+    else if (r.groupe === "__commission__") institutionnels.push({ kind: "commission", ...compact });
+    else {
+      const g = groupeInfo.get(r.groupe);
+      if (!g) continue; // ref d'organe inconnue : déjà comptée dans le total, pas de ligne
+      groupes.push({ groupe: r.groupe, abrev: g.abrev, libelle: g.libelle, couleur: g.couleur, ...compact });
+    }
+  }
+  const out = {
+    dossierRef: ref,
+    total: tot.total,
+    adoptes: tot.adoptes,
+    nbGroupes: tot.nb_groupes,
+    moyenne: tot.nb_groupes ? Math.round(tot.total_groupes / tot.nb_groupes) : 0,
+    groupes,
+    institutionnels,
+  };
+  amendCache.set(ref, out);
+  return out;
+}
+
 // 6) Scrutins : détail (ventilation par groupe + amendement) + votants groupés
 const votantsStmt = db.prepare(
   `SELECT v.position, v.groupe_uid, d.uid, d.nom_complet, d.photo_url, g.abrev, g.libelle AS groupe, g.couleur
@@ -180,7 +237,8 @@ for (const { uid } of allScrutinUids) {
       abrev: v.abrev, groupe: v.groupe, couleur: v.couleur, groupe_uid: v.groupe_uid,
     });
   }
-  write(`scrutin/${uid}.json`, { ...detail, votants });
+  const amendements = amendementsDuDossier(detail.scrutin?.dossier_ref ?? null);
+  write(`scrutin/${uid}.json`, { ...detail, amendements, votants });
   if (++ns % 1000 === 0) console.log(`  scrutins ${ns}/${allScrutinUids.length}`);
 }
 

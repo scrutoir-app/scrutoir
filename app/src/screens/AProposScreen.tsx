@@ -117,9 +117,20 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         sur 10, sinon l'exposé n'est pas affiché.
       </Bloc>
 
+      <Bloc titre="Les amendements">
+        Pour chaque texte de loi, Scrutoir indique combien d'amendements chaque groupe a déposés, et
+        ce qu'ils sont devenus : adoptés, rejetés, ou restés sans suite. Ces données proviennent du
+        même Open Data de l'Assemblée nationale. Un grand nombre d'amendements ne dit rien de la
+        qualité du travail. Selon les cas, c'est un texte réécrit en profondeur, ou un même amendement
+        répété de nombreuses fois pour ralentir le débat. Nous affichons le nombre, le sort et
+        l'article visé côte à côte, pour que vous fassiez la part des choses, sans porter de jugement
+        à votre place.
+      </Bloc>
+
       <Bloc titre="Source & période">
         Open Data de l'Assemblée Nationale (licence Etalab, mise à jour quotidienne), 17ᵉ
-        législature (depuis juin 2024). Données non officielles, à titre informatif.
+        législature (depuis juin 2024). Les amendements déposés sur les textes proviennent du même
+        Open Data de l'Assemblée nationale. Données non officielles, à titre informatif.
       </Bloc>
 
       <Bloc titre="Tes réponses restent chez toi">

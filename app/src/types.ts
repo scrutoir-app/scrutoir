@@ -85,6 +85,38 @@ export interface Amendement {
   expose: string | null;
 }
 
+// Agrégat des amendements DÉPOSÉS sur un texte, par auteur (pré-calculé au pipeline,
+// rattaché au scrutin via son dossier législatif). Aucun amendement unitaire n'est exporté.
+export interface AmendSorts {
+  total: number;
+  adoptes: number;
+  rejetes: number;
+  tombes: number;
+  retires: number;
+  irrecevables: number;
+  articleTop: string | null; // désignation courte de l'article le plus visé (ex. "ART. 4")
+  articleTopN: number; // nb d'amendements sur cet article
+  articlesDistincts: number; // nb d'articles distincts visés
+}
+export interface AmendGroupe extends AmendSorts {
+  groupe: string; // uid d'organe (PO…)
+  abrev: string | null;
+  libelle: string;
+  couleur: string | null;
+}
+export interface AmendInstitutionnel extends AmendSorts {
+  kind: "gouv" | "commission";
+}
+export interface AmendementsDossier {
+  dossierRef: string; // uid du dossier (DLR…) → lien source AN
+  total: number; // tous auteurs (groupes + gouv + commission + refs inconnues)
+  adoptes: number; // tous auteurs
+  nbGroupes: number; // groupes parlementaires ayant déposé
+  moyenne: number; // total déposé par les groupes / nbGroupes (repère d'écart)
+  groupes: AmendGroupe[];
+  institutionnels: AmendInstitutionnel[];
+}
+
 export interface DetailScrutin {
   scrutin: ScrutinResume & {
     type_vote: string | null;
@@ -93,9 +125,11 @@ export interface DetailScrutin {
     abstention: number;
     nonvotant: number;
     dossier_titre: string | null; // intitulé officiel du dossier législatif (Open Data AN)
+    dossier_ref?: string | null; // uid du dossier (DLR…)
   };
   groupes: GroupeVentilation[];
   amendement: Amendement | null;
+  amendements?: AmendementsDossier | null; // agrégat des amendements déposés sur le texte
 }
 
 export interface CategorieRef {

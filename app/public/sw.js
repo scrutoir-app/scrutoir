@@ -18,8 +18,8 @@
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const SHELL_VERSION = "v22";
-const DATA_VERSION = "v2";
+const SHELL_VERSION = "v23";
+const DATA_VERSION = "v3";
 // MODEL : modèle e5-small (~118 Mo) + runtime onnxruntime (/ort) + bundle (/vendor) de la
 // recherche sémantique. Gros et IMMUABLES par version → cache-first dédié, JAMAIS
 // re-téléchargés en tâche de fond. Bumper si la version du modèle/index change.

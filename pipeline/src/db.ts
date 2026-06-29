@@ -59,7 +59,8 @@ export function createSchema(db: Database.Database): void {
       contre       INTEGER DEFAULT 0,
       abstention   INTEGER DEFAULT 0,
       nonvotant    INTEGER DEFAULT 0,
-      dossier_titre TEXT                  -- intitulé officiel du dossier législatif (titreDossier.titre)
+      dossier_titre TEXT,                 -- intitulé officiel du dossier législatif (titreDossier.titre)
+      dossier_ref   TEXT                  -- uid du dossier législatif (DLR…) → jointure agrégats amendements
     );
 
     CREATE TABLE IF NOT EXISTS votes (
@@ -114,6 +115,37 @@ export function createSchema(db: Database.Database): void {
       expose         TEXT    -- exposé sommaire (justification)
     );
 
+    -- Agrégats compacts des amendements DÉPOSÉS sur un dossier législatif, par auteur
+    -- (groupe parlementaire, ou pseudo-auteur '__gouv__' / '__commission__'). PRÉ-CALCULÉ
+    -- au pipeline : on n'exporte JAMAIS les amendements unitaires (dizaines de milliers),
+    -- seulement ces lignes. La colonne groupe = uid d'organe (PO… connu) ou pseudo-auteur ; les refs
+    -- d'organes inconnus/dissous sont fondues dans la ligne de totaux (cf. dossier_amendements_totaux),
+    -- jamais affichées en ligne (pas de picto de groupe possible).
+    CREATE TABLE IF NOT EXISTS dossier_amendements (
+      dossier           TEXT NOT NULL,        -- uid du dossier (DLR…)
+      groupe            TEXT NOT NULL,        -- uid d'organe (PO…) | '__gouv__' | '__commission__'
+      total             INTEGER NOT NULL DEFAULT 0,
+      adoptes           INTEGER NOT NULL DEFAULT 0,
+      rejetes           INTEGER NOT NULL DEFAULT 0,
+      tombes            INTEGER NOT NULL DEFAULT 0,
+      retires           INTEGER NOT NULL DEFAULT 0,
+      irrecevables      INTEGER NOT NULL DEFAULT 0,
+      article_top       TEXT,                 -- désignation courte de l'article le plus visé (ex. "ART. 4")
+      article_top_n     INTEGER DEFAULT 0,    -- nb d'amendements sur cet article
+      articles_distincts INTEGER DEFAULT 0,   -- nb d'articles distincts visés
+      PRIMARY KEY (dossier, groupe)
+    );
+
+    -- Une ligne de totaux par dossier (tous auteurs confondus, gouv + commission + refs
+    -- inconnues incluses) + repères pour la "moyenne des groupes" (parlementaires seuls).
+    CREATE TABLE IF NOT EXISTS dossier_amendements_totaux (
+      dossier        TEXT PRIMARY KEY,
+      total          INTEGER NOT NULL DEFAULT 0,   -- tous auteurs
+      adoptes        INTEGER NOT NULL DEFAULT 0,   -- tous auteurs
+      total_groupes  INTEGER NOT NULL DEFAULT 0,   -- somme sur les groupes parlementaires connus
+      nb_groupes     INTEGER NOT NULL DEFAULT 0    -- nb de groupes parlementaires ayant déposé
+    );
+
     -- Paires de députés pré-calculées pour le « shuffle » de la confrontation.
     -- Trois angles, chacun porteur d'une surprise (cf. shuffleConfrontation.ts) ;
     -- on ne stocke que les meilleurs candidats par angle, jamais toute la matrice.
@@ -150,6 +182,11 @@ export function createSchema(db: Database.Database): void {
   }
   try {
     db.exec("ALTER TABLE scrutins ADD COLUMN dossier_titre TEXT");
+  } catch {
+    /* colonne déjà présente */
+  }
+  try {
+    db.exec("ALTER TABLE scrutins ADD COLUMN dossier_ref TEXT");
   } catch {
     /* colonne déjà présente */
   }

@@ -8,7 +8,7 @@
  *   - MINEUR   (1.x.0) : nouvelle fonctionnalité visible.
  *   - MAJEUR   (x.0.0) : refonte importante.
  */
-export const APP_VERSION = "1.4.0";
+export const APP_VERSION = "1.5.0";
 
 /**
  * Seuil minimal de votes nominatifs exprimés (pour + contre + abstention) pour
@@ -21,6 +21,12 @@ export const SEUIL_FIABILITE = 5;
 /** URL publique d'un scrutin sur le site de l'Assemblée Nationale (source vérifiable). */
 export function scrutinSourceUrl(numero: number | null | undefined): string | null {
   return numero ? `https://www.assemblee-nationale.fr/dyn/17/scrutins/${numero}` : null;
+}
+
+/** Page publique du dossier législatif sur l'Assemblée Nationale (où sont listés les
+ *  amendements déposés sur le texte). L'uid de dossier (DLR…) est l'identifiant d'URL. */
+export function dossierSourceUrl(ref: string | null | undefined): string | null {
+  return ref ? `https://www.assemblee-nationale.fr/dyn/17/dossiers/${ref}` : null;
 }
 
 /** Portail officiel « Vos députés » (pour aider à identifier sa circonscription). */
