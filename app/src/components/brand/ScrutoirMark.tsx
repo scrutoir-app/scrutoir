@@ -56,11 +56,9 @@ export function ScrutoirMark({
           <Circle key={i} cx={d.x} cy={d.y} r={dotR} fill={color} />
         )
       )}
-      {dark ? (
-        <Circle cx={cx} cy={cy} r={size * 0.1} fill={C.bg} stroke={accent} strokeWidth={Math.max(1, size * 0.013)} />
-      ) : (
-        <Circle cx={cx} cy={cy} r={size * 0.1} fill={accent} />
-      )}
+      {/* Point focal : disque PLEIN. En clair = ardoise (accent) ; en sombre = blanc, pour
+          être le vrai NÉGATIF du logo clair (≠ creux). */}
+      <Circle cx={cx} cy={cy} r={size * 0.1} fill={dark ? "#FFFFFF" : accent} />
     </Svg>
   );
 }
