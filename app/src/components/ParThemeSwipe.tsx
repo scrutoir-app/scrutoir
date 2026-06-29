@@ -102,8 +102,11 @@ export function ParThemeSwipe({
         <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>{idx + 1} / {n}</Text>
       </View>
 
-      {/* Carte du groupe courant + flèches — swipe gauche/droite actif sur toute la rangée. */}
-      <View {...pan.panHandlers} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+      {/* Carte du groupe courant + flèches — swipe gauche/droite actif sur toute la rangée.
+          userSelect:none → un vrai drag souris ne déclenche pas la sélection de texte (sinon
+          le navigateur vole le geste) ; touchAction:pan-y → le tactile garde le scroll vertical
+          mais laisse le geste horizontal au carrousel. */}
+      <View {...pan.panHandlers} style={[{ flexDirection: "row", alignItems: "center", gap: 8 }, { userSelect: "none", touchAction: "pan-y", cursor: "grab" }] as any}>
         <TouchableOpacity
           onPress={() => aller(-1)}
           disabled={n < 2}
