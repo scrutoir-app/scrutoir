@@ -7,6 +7,27 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.7.0 — 2026-06-30
+Tour guidé de la navigation + refonte de la vue **« Par thème »** (Scrutins) + sortie de fin de test.
+- **Vue « Par thème » (onglet Scrutins)** : la convergence électeur ↔ parti par thème est dite en
+  **mots + couleur** (plus de pourcentage par ligne, le % global reste dans le carrousel). Lignes
+  alignées sur le composant de thème de référence : tuile-icône de catégorie, **nom complet (jamais
+  tronqué)**, **barre d'affichage** colorée selon la convergence (vert « Comme toi » `C.pour` ≥ 67 %,
+  neutre « Entre les deux » 34-66 %, rouge « Pas comme toi » `C.contre` ≤ 33 %), triplet narratif
+  (actif en gras teinté). La couleur encode la **donnée**, jamais un parti. Thème peu couvert =
+  état **« pas encore de données »** distinct (barre pointillée neutre, jamais un rouge trompeur) +
+  invite **« +N à te positionner »** vers le test.
+- **Tour guidé de la nav** : depuis le résultat du test, **« Découvrir l'appli »** (sans suivi)
+  ouvre un overlay par-dessus la page — voile sombre sauf la barre d'onglets, **anneau pulsant** +
+  **bulle** par onglet réel (Accueil / Scrutins / Partis / Infos), « Suivant » / « Passer » /
+  compteur, dernier = « Terminer ». Aucun routing ne change, résultat conservé. Au lancement,
+  l'app **suit le groupe le plus proche** (pour que l'accueil ne soit pas vide) et le signifie.
+- **Sortie de fin de test** : footer remis en hiérarchie — **« Voir mon accueil »** (si déjà des
+  suivis) ou **« Découvrir l'appli »** primaire, « Partager mon résultat » en secondaire contour,
+  « Repartir de zéro » en lien. Bloc **« Et maintenant, explore »** retiré.
+- **Cohérence** : icône « shuffle » du bouton « Laisse-toi surprendre » (Confrontation) alignée
+  sur celle de la carte Duels (`shuffle-variant`).
+
 ## 1.6.0 — 2026-06-30
 Accueil : nouvelle **carte Duels** + refonte de la page **« Ton point de départ »** (proximité).
 - **Carte Duels** sur l'accueil (sous « Ta proximité »), affichée seulement quand le digest des

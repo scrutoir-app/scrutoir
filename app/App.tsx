@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { View, Text, TextInput, TouchableOpacity, SafeAreaView, StatusBar, Platform, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import {
@@ -43,6 +43,8 @@ import { ParcoursLoi } from "./src/components/ParcoursLoi";
 import { useInterstitielParcours } from "./src/parcoursLoiPrefs";
 import { OnboardingOverlay } from "./src/components/OnboardingOverlay";
 import { useOnboardingVisible, fermerOnboarding } from "./src/onboardingPrefs";
+import { TourNavigation } from "./src/components/TourNavigation";
+import { useTourNavVisible, fermerTourNav, getTourNote } from "./src/tour";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
 import { ThemeProvider, useThemeMode } from "./src/themeMode";
 import { track } from "./src/analytics";
@@ -57,6 +59,15 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   // par la cloche de l'en-tête d'accueil (refonte « je »).
   { root: "apropos", label: "Infos", icon: "info" },
 ];
+
+// Tour guidé de la nav : une phrase par onglet RÉEL (ordre = TABS). Le suivi d'un député
+// n'a pas d'onglet → rattaché à l'Accueil (sa recherche « Sur quoi ils ont voté ? »).
+const TOUR_PHRASES: Record<string, string> = {
+  search: "Ton fil « Depuis ta dernière visite », et la recherche pour trouver et suivre un député.",
+  themes: "Tous les votes de l'Assemblée, en récents ou par thème.",
+  partis: "Les groupes classés selon ta proximité. Ouvre la fiche d'un parti pour le suivre, ou ne plus le suivre.",
+  apropos: "La méthode, les sources et les limites de Scrutoir.",
+};
 
 export default function App() {
   return (
@@ -85,6 +96,8 @@ function AppInner() {
 
   const root = stack[0].name;
   const keyboardOpen = useKeyboardOpen(); // masque la barre d'onglets quand le clavier est ouvert
+  const tourVisible = useTourNavVisible(); // tour guidé de la nav (lancé depuis le résultat du test)
+  const tabRefs = useRef<any[]>([]); // nœuds des onglets, mesurés par le tour
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
   const [gq, setGq] = useState("");
   const ongletAvecRecherche = ["themes", "partis", "suivis", "apropos"].includes(root);
@@ -103,6 +116,7 @@ function AppInner() {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
     pop: useCallback(() => setStack((s) => (s.length > 1 ? s.slice(0, -1) : s)), []),
     replace: useCallback((route: Route) => setStack((s) => [...s.slice(0, -1), route]), []),
+    reset: useCallback((route: Route) => setStack([route]), []),
   };
   const goTab = (name: Route["name"]) => setStack([{ name } as Route]);
 
@@ -279,16 +293,26 @@ function AppInner() {
             Masquée quand le clavier est ouvert (sinon il la recouvre à moitié). */}
         {!keyboardOpen && (
           <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
-            {TABS.map((t) => {
+            {TABS.map((t, i) => {
               const actif = root === t.root;
               return (
-                <TouchableOpacity key={t.root} onPress={() => goTab(t.root)} style={{ flex: 1, alignItems: "center", gap: 3 }}>
+                <TouchableOpacity ref={(el) => { tabRefs.current[i] = el; }} key={t.root} onPress={() => goTab(t.root)} style={{ flex: 1, alignItems: "center", gap: 3 }}>
                   <Feather name={t.icon} size={21} color={actif ? C.text : C.textFaint} />
                   <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 10.5, color: actif ? C.text : C.textFaint }}>{t.label}</Text>
                 </TouchableOpacity>
               );
             })}
           </View>
+        )}
+
+        {/* Tour guidé de la nav : overlay par-dessus la page de résultat, pointe les onglets RÉELS. */}
+        {tourVisible && (
+          <TourNavigation
+            items={TABS.map((t) => ({ label: t.label, phrase: TOUR_PHRASES[t.root] ?? "" }))}
+            tabNodes={tabRefs.current}
+            onClose={fermerTourNav}
+            note={getTourNote()}
+          />
         )}
       </View>
     </SafeAreaView>

@@ -8,8 +8,8 @@ import type { PartiResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
-import { ScrutoirMark } from "../components/ScrutoirMark";
-import { useFollow } from "../follows";
+import { useFollow, useFollows } from "../follows";
+import { ouvrirTourNav } from "../tour";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [
@@ -59,14 +59,6 @@ function CurseurPoids({ valeur, onChange }: { valeur: number; onChange: (v: numb
 
 // Nom court d'un groupe (1ʳᵉ partie avant « & » / « , ») pour le CTA « Suivre … ».
 const nomCourt = (libelle: string) => libelle.split(/\s*[&,]\s*/)[0];
-
-// Bloc « Et maintenant, explore » : 4 portes de sortie vers les autres lectures.
-const EXPLORE: { label: string; icon?: string; picto?: boolean; route: { name: string } }[] = [
-  { label: "Par thème", icon: "grid", route: { name: "testParTheme" } },
-  { label: "Par scrutin", icon: "file-text", route: { name: "themes" } },
-  { label: "Par parti", picto: true, route: { name: "partis" } },
-  { label: "Par député", icon: "user", route: { name: "monDepute" } },
-];
 
 // Partage 100 % client (geste explicite de l'utilisateur). Le message vu côté destinataire
 // est « Voici mon résultat … et toi ? » : le « et toi ? » est le ressort qui invite à faire
@@ -169,6 +161,10 @@ export function TestResultatScreen({
   }, [resultat]);
   const topParti = topAbrev ? partis.find((p) => p.abrev === topAbrev) : null;
   const [suiviTop, toggleSuiviTop] = useFollow(topParti?.uid ?? "");
+  // Sortie de fin de parcours : si l'utilisateur suit déjà au moins un parti/député, son
+  // accueil aura du contenu → « Voir mon accueil » ; sinon « Découvrir l'appli » (pas de
+  // promesse d'un feed vide). Réactif : suivre le groupe ci-dessus bascule le libellé.
+  const aSuivi = useFollows().length > 0;
 
   if (!resultat) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
@@ -287,26 +283,6 @@ export function TestResultatScreen({
         </TouchableOpacity>
       </View>
 
-      {/* Bloc explore : prolonge le « je » vers les autres lectures. */}
-      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 24, marginBottom: 12 }]}>Et maintenant, explore</Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
-        {EXPLORE.map((e) => (
-          <TouchableOpacity
-            key={e.label}
-            activeOpacity={0.8}
-            onPress={() => nav.push(e.route as any)}
-            style={{ width: "47.8%", flexGrow: 1, alignItems: "center", gap: 8, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 18, borderWidth: 1, borderColor: C.border, ...shadowCard }}
-          >
-            {e.picto ? (
-              <ScrutoirMark size={26} color={C.text} accent={C.accent} />
-            ) : (
-              <Feather name={e.icon as any} size={22} color={C.accent} />
-            )}
-            <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{e.label}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
-
       {/* Ce qui compte pour toi : accordéon REPLIÉ par défaut (réglage ponctuel, ne doit pas
           occuper la page). À l'ouverture : segmentés Peu/Normal/Fort, recalcul du global en direct. */}
       <View style={{ marginTop: 24 }}>
@@ -357,10 +333,32 @@ export function TestResultatScreen({
         )}
       </View>
 
-      {/* Partage (100 % client) + recommencer */}
-      <TouchableOpacity onPress={onShare} activeOpacity={0.85} style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 9, marginTop: 22, backgroundColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 14, ...shadowCard }}>
-        <Feather name="share-2" size={18} color="#fff" />
-        <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>{partageMsg ?? "Partager mon résultat"}</Text>
+      {/* Sortie de fin de parcours : le test est un point d'entrée → action claire pour entrer
+          dans l'appli. Primaire plein = accueil (« Voir mon accueil » si déjà des suivis, sinon
+          « Découvrir l'appli »). Partage en secondaire contour. Repartir de zéro en lien discret. */}
+      <TouchableOpacity
+        onPress={() => {
+          if (aSuivi) { nav.reset({ name: "search" }); return; }
+          // Sans suivi, l'accueil resterait vide (il renvoie au test). On suit donc, pour
+          // l'instant, le groupe le plus proche → l'accueil a du contenu ; le message le
+          // confirme et renvoie à l'écran Partis pour gérer ses suivis.
+          if (topParti) {
+            if (!suiviTop) toggleSuiviTop();
+            ouvrirTourNav(`Tu suis ${nomCourt(topParti.libelle)}, le groupe le plus proche de toi. Tu pourras gérer tes suivis de partis sur l'écran « Partis ».`);
+          } else {
+            ouvrirTourNav("Suis un groupe pour remplir ton accueil. Tu gères tes suivis sur l'écran « Partis ».");
+          }
+        }}
+        activeOpacity={0.85}
+        style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 9, marginTop: 24, backgroundColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 14, ...shadowCard }}
+      >
+        <Feather name={aSuivi ? "home" : "compass"} size={18} color="#fff" />
+        <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>{aSuivi ? "Voir mon accueil" : "Découvrir l'appli"}</Text>
+        <Feather name="arrow-right" size={18} color="#fff" />
+      </TouchableOpacity>
+      <TouchableOpacity onPress={onShare} activeOpacity={0.85} style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 9, marginTop: 10, borderWidth: 1, borderColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 13 }}>
+        <Feather name="share-2" size={17} color={C.accent} />
+        <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>{partageMsg ?? "Partager mon résultat"}</Text>
       </TouchableOpacity>
       <TouchableOpacity onPress={repartirDeZero} activeOpacity={0.7} style={{ alignItems: "center", marginTop: 14 }}>
         <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>Repartir de zéro</Text>

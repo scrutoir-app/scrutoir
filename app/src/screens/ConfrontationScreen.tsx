@@ -168,7 +168,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
             backgroundColor: C.surface, alignItems: "center", justifyContent: "center", ...shadowCard,
           }}
         >
-          {shuffling ? <ActivityIndicator size="small" color={C.accent} /> : <Feather name="shuffle" size={20} color={C.accent} />}
+          {shuffling ? <ActivityIndicator size="small" color={C.accent} /> : <MaterialCommunityIcons name="shuffle-variant" size={20} color={C.accent} />}
         </TouchableOpacity>
       </View>
 

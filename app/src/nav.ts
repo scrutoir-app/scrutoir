@@ -76,4 +76,7 @@ export interface Nav {
   /** Remplace la route au sommet de la pile (sans empiler) — sert à persister un
    *  contexte d'écran (ex. la sélection d'un duel) pour le retrouver au retour. */
   replace: (route: Route) => void;
+  /** Réinitialise la pile sur une route racine (= bascule d'onglet). Sert aux sorties
+   *  de fin de parcours (ex. « Voir mon accueil » depuis le résultat du test). */
+  reset: (route: Route) => void;
 }
