@@ -1,15 +1,15 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, inputText, RADIUS, shadowCard, getScheme } from "../theme";
-import { getVotesSuivis, getVotesPartisSuivis, getPartis, getTestProximite, getScrutinsRecents } from "../api";
+import { getVotesSuivis, getVotesPartisSuivis, getPartis, getTestProximite, getScrutinsRecents, getDuelDuJour } from "../api";
 import { catUI } from "../categoryUI";
 import { useFollows, getLastSeen } from "../follows";
 import { chargerTest } from "../testProximite/storage";
 import { useJe } from "../testProximite/jeProximite";
 import { nbNeuves, SEUIL_AFFINER } from "../testProximite/config";
 import type { QuestionProximite } from "../testProximite/score";
-import type { VoteSuivi, PartiResume, ScrutinResume } from "../types";
+import type { VoteSuivi, PartiResume, ScrutinResume, ShuffleConfrontation } from "../types";
 import type { Nav } from "../nav";
 import { SearchResultsList } from "../components/SearchResultsList";
 import { ScrutoirLogo } from "../components/brand/ScrutoirLogo";
@@ -165,6 +165,67 @@ function Bloc({ titre, onVoirTout, children }: { titre: string; onVoirTout?: () 
   );
 }
 
+// --- Carte « Duels » (état rien de neuf) ---------------------------------------
+
+/** Nom de famille à partir du nom complet (1er token = prénom, le reste = patronyme,
+ *  particules incluses : « Marine Le Pen » → « Le Pen »). Garde la ligne du jour compacte. */
+const nomFamille = (n: string) => {
+  const p = n.trim().split(/\s+/);
+  return p.length > 1 ? p.slice(1).join(" ") : n;
+};
+
+/**
+ * Tuile d'action de la carte Duels. `primaire` = tuile BLANCHE (action principale), même
+ * traitement que le champ blanc du héros : fond #FFFFFF, encre sombre fixe (lisible en clair
+ * comme en sombre, puisque la carte est sombre dans les deux modes). Sinon : tuile sombre
+ * (action secondaire), un cran au-dessus du fond de carte.
+ */
+function TuileDuel({ icon, label, onPress, primaire }: { icon: keyof typeof MaterialCommunityIcons.glyphMap; label: string; onPress: () => void; primaire?: boolean }) {
+  const bg = primaire ? "#FFFFFF" : C.duelTileBg;
+  const fg = primaire ? "#171A1F" : "#FFFFFF";
+  return (
+    <TouchableOpacity
+      activeOpacity={0.7}
+      onPress={onPress}
+      style={{ flex: 1, backgroundColor: bg, borderWidth: 1, borderColor: primaire ? "#FFFFFF" : C.duelTileBorder, borderRadius: 12, paddingVertical: 11, paddingHorizontal: 8, alignItems: "center", gap: 6 }}
+    >
+      <MaterialCommunityIcons name={icon} size={21} color={fg} />
+      <Text style={[T.small, { fontFamily: F.bold, color: fg, textAlign: "center" }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * Carte « Duels » de l'accueil, rendue UNIQUEMENT dans l'état « rien de neuf » (digest des
+ * suivis à jour). Ardoise (C.accent), jamais rouge : la couleur n'encode pas un parti.
+ * Deux actions (lancer / hasard) + la ligne « Duel du jour » (paire stable sur la journée,
+ * via getDuelDuJour). Le hasard et le duel du jour sont délégués à l'écran confrontation.
+ */
+function CarteDuels({ duel, nav }: { duel: ShuffleConfrontation | null; nav: Nav }) {
+  return (
+    <View style={{ marginTop: 12, backgroundColor: C.duelBg, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+      <Text style={[T.heading, { color: "#FFFFFF", marginBottom: 8 }]}>Duels</Text>
+      <View style={{ flexDirection: "row", gap: 8 }}>
+        <TuileDuel icon="swap-horizontal" label="Lancer un duel" primaire onPress={() => nav.push({ name: "confrontation" })} />
+        <TuileDuel icon="shuffle-variant" label="Duel au hasard" onPress={() => nav.push({ name: "confrontation", hasard: true })} />
+      </View>
+      {duel && (
+        <TouchableOpacity
+          activeOpacity={0.7}
+          onPress={() => nav.push({ name: "confrontation", a: duel.a.uid, b: duel.b.uid, angle: duel.angle })}
+          style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 8, backgroundColor: C.duelTileBg, borderWidth: 1, borderColor: C.duelTileBorder, borderRadius: RADIUS.sm, paddingVertical: 9, paddingHorizontal: 11 }}
+        >
+          <MaterialCommunityIcons name="fire" size={16} color="#FFFFFF" style={{ flexShrink: 0 }} />
+          <Text style={[T.small, { flex: 1, fontFamily: F.semibold, color: "rgba(255,255,255,0.74)" }]} numberOfLines={2}>
+            Duel du jour : <Text style={{ fontFamily: F.semibold, color: "#FFFFFF" }}>{nomFamille(duel.a.nom_complet)} × {nomFamille(duel.b.nom_complet)}</Text> · d'accord à <Text style={{ fontFamily: F.extra, color: "#FFFFFF" }}>{duel.tauxAccord}%</Text>
+          </Text>
+          <Text style={[T.small, { fontFamily: F.bold, color: "#FFFFFF", flexShrink: 0 }]}>Voir ›</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+}
+
 /**
  * Accueil allégé. Revenant : le fil agrège TROIS sources présentées SÉPARÉMENT et étiquetées —
  * « Tes élus suivis », « Tes groupes suivis », puis « Sur tes thèmes forts » (découverte, élus/
@@ -181,11 +242,13 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
   const [recents, setRecents] = useState<ScrutinResume[]>([]);
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [questions, setQuestions] = useState<QuestionProximite[]>([]);
+  const [duelDuJour, setDuelDuJour] = useState<ShuffleConfrontation | null>(null);
 
   useEffect(() => {
     getPartis().then(setPartis);
     getTestProximite().then(setQuestions).catch(() => setQuestions([]));
     getScrutinsRecents(120).then(setRecents).catch(() => setRecents([]));
+    getDuelDuJour().then(setDuelDuJour).catch(() => setDuelDuJour(null));
   }, []);
 
   useEffect(() => {
@@ -308,6 +371,11 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
           </View>
         )}
       </TouchableOpacity>
+
+      {/* Carte Duels : seulement quand l'accueil n'a RIEN de neuf à montrer — digest des
+          suivis à jour ET aucun scrutin sur tes thèmes forts. Sinon on n'alourdit pas la
+          page. Ardoise, jamais rouge (cf. theme.ts). */}
+      {!chargement && digestVide && decouverte.length === 0 && <CarteDuels duel={duelDuJour} nav={nav} />}
     </View>
   );
 }

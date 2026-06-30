@@ -23,6 +23,15 @@ export const LIGHT = {
 
   accent: "#3C4654", // ardoise neutre (actions, états actifs)
   accentSoft: "#EAEDF1",
+  // Fond de la carte Duels : quasi-noir, ALIGNÉ sur le héros « Sur quoi ils ont voté ? »
+  // (cf. heroTokens) → les deux cartes sombres de l'accueil sont cohérentes. Texte blanc
+  // lisible dans les deux modes. Toujours neutre, jamais une couleur de parti.
+  duelBg: "#161A20",
+  // Tuiles internes de la carte Duels : un cran clair NET au-dessus du fond (solide, pas un
+  // voile translucide qui compositerait différemment selon le fond). Calé par mode pour un
+  // rendu identique en clair et sombre.
+  duelTileBg: "#2A313C",
+  duelTileBorder: "#3A4350",
 
   // Sémantique de vote (tons sourds, lecture "donnée")
   pour: "#4F9D83",
@@ -70,6 +79,9 @@ export const DARK: typeof LIGHT = {
 
   accent: "#8A93A1", // ardoise claire (lisible en texte ET en fond d'action)
   accentSoft: "#252C35",
+  duelBg: "#2A323E", // aligné sur le héros sombre (heroTokens) — texte blanc lisible
+  duelTileBg: "#39424F", // tuiles : un cran clair au-dessus du fond sombre
+  duelTileBorder: "#49535F",
 
   pour: "#57A98D",
   contre: "#D17F6B",

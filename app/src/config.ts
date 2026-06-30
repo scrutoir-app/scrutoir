@@ -8,7 +8,7 @@
  *   - MINEUR   (1.x.0) : nouvelle fonctionnalité visible.
  *   - MAJEUR   (x.0.0) : refonte importante.
  */
-export const APP_VERSION = "1.5.0";
+export const APP_VERSION = "1.6.0";
 
 /**
  * Seuil minimal de votes nominatifs exprimés (pour + contre + abstention) pour

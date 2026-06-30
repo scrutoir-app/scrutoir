@@ -7,6 +7,24 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.6.0 — 2026-06-30
+Accueil : nouvelle **carte Duels** + refonte de la page **« Ton point de départ »** (proximité).
+- **Carte Duels** sur l'accueil (sous « Ta proximité »), affichée seulement quand le digest des
+  suivis est **vide ET sans thèmes forts** (rien de neuf) — pour ne pas alourdir la page.
+  Fond quasi-noir aligné sur le héros « Sur quoi ils ont voté ? ». Trois entrées : « Lancer un
+  duel » (tuile primaire **blanche**), « Duel au hasard » (tirage délégué à l'écran), et la
+  ligne **« Duel du jour »** (paire stable sur la journée, via `getDuelDuJour`). Ardoise neutre,
+  jamais une couleur de parti. Entrée de duel canonique : `DuelVedette` retiré de l'écran Partis.
+- **Page proximité refondue** (`TestResultatScreen`) : résultat en tête (rangées compactes
+  pastille · nom · barre · %, top-N + « Voir les N partis », nombre de votes comparés et pastille
+  **faible échantillon < 7**, fiabilité ≥ 2 votes conservée), bloc **« Reste au courant »** (suivi
+  parti le plus proche + « Trouver ton député »), grille « Et maintenant, explore », et
+  pondérations **« Ce qui compte pour toi » en accordéon replié** par défaut.
+- **Curseur « écart au neutre »** par thème (Peu / Normal / Fort) : rail divergent rempli depuis
+  le centre (logique de `BarreDivergente`), tuile-icône de catégorie neutre, valeur courante,
+  repli « Voir les N thèmes » + « Réinitialiser les poids ». Recalcul du classement **en direct**,
+  100 % client. Standards UI : plancher 12 px, cibles tactiles ≥ 44 px.
+
 ## 1.5.0 — 2026-06-29
 Refonte de la **page d'un scrutin** + nouvelle activité d'**amendements** par texte.
 - **Page scrutin en accordéon** : Résultat (barre de vote standard de l'app, divergente
