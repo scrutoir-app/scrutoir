@@ -17,11 +17,9 @@ permissions:
   contents: read
   issues: write # pour ouvrir une issue d'alerte si le refresh échoue
 
-env:
-  # Origine des données : projet Pages DÉDIÉ « scrutoir-data » (plafond Cloudflare de
-  # 20 000 fichiers PAR projet — un seul projet saturait fin 2026). Bakée dans le bundle
-  # par `expo export` ; le SW (DATA_ORIGINS) et la CSP (connect-src) l'autorisent.
-  EXPO_PUBLIC_DATA_BASE: https://data.scrutoir.fr
+# NB : EXPO_PUBLIC_DATA_BASE est posée UNIQUEMENT sur l'étape de build (voir plus bas),
+# PAS en env global : les tests de recherche comptent sur des fetch de données qui
+# échouent en Node (repli lexical/sémantique) — une base joignable les ferait dériver.
 
 jobs:
   refresh:
@@ -89,6 +87,11 @@ jobs:
 
       - name: Build web + patch PWA (manifest/SW dans dist)
         working-directory: app
+        env:
+          # Origine des données : projet Pages DÉDIÉ « scrutoir-data » (plafond Cloudflare
+          # de 20 000 fichiers PAR projet). Bakée dans le bundle par `expo export` ; le SW
+          # (DATA_ORIGINS) et la CSP (connect-src) l'autorisent.
+          EXPO_PUBLIC_DATA_BASE: https://data.scrutoir.fr
         run: npm run build:web
 
       # Garde anti-régression : refuse de déployer des données plus anciennes ou plus
