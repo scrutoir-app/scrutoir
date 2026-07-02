@@ -43,11 +43,33 @@ const db = openDb();
   const nbDep = (db.prepare("SELECT COUNT(*) AS c FROM deputes WHERE actif = 1").get() as any).c as number;
   const nbScr = (db.prepare("SELECT COUNT(*) AS c FROM scrutins").get() as any).c as number;
   const nbPar = (db.prepare("SELECT COUNT(*) AS c FROM groupes").get() as any).c as number;
-  const MIN_DEP = 400, MIN_SCR = 1000, MIN_PAR = 5;
-  if (nbDep < MIN_DEP || nbScr < MIN_SCR || nbPar < MIN_PAR) {
+  // Les VOTES et CONSIGNES sont vérifiés aussi : un renommage de champ dans le JSON AN
+  // peut laisser passer 7 000 scrutins « vides » (profils/participation à zéro) — les
+  // seuls comptages députés/scrutins/groupes n'y verraient rien.
+  const nbVotes = (db.prepare("SELECT COUNT(*) AS c FROM votes").get() as any).c as number;
+  const nbGp = (db.prepare("SELECT COUNT(*) AS c FROM groupe_positions").get() as any).c as number;
+  const nbAmend = (db.prepare("SELECT COUNT(*) AS c FROM amendements").get() as any).c as number;
+  // Ordres de grandeur réels (juil. 2026) : 1 179 670 votes, 90 756 consignes, 5 915 exposés.
+  const MIN_DEP = 400, MIN_SCR = 1000, MIN_PAR = 5, MIN_VOTES = 900_000, MIN_GP = 50_000, MIN_AMEND = 3_000;
+  if (nbDep < MIN_DEP || nbScr < MIN_SCR || nbPar < MIN_PAR || nbVotes < MIN_VOTES || nbGp < MIN_GP || nbAmend < MIN_AMEND) {
     console.error(
-      `❌ GARDE-FOU : données suspectes (${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes).\n` +
-      `   Seuils minimaux : ${MIN_DEP}/${MIN_SCR}/${MIN_PAR}. Export ANNULÉ pour ne pas écraser les données en ligne.`
+      `❌ GARDE-FOU : données suspectes (${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes, ` +
+      `${nbVotes} votes, ${nbGp} consignes, ${nbAmend} exposés d'amendements).\n` +
+      `   Seuils minimaux : ${MIN_DEP}/${MIN_SCR}/${MIN_PAR}/${MIN_VOTES}/${MIN_GP}/${MIN_AMEND}. ` +
+      `Export ANNULÉ pour ne pas écraser les données en ligne.`
+    );
+    process.exit(1);
+  }
+  // FRAÎCHEUR : si l'AN déplace une URL, le mode refresh « réussit » sur données figées
+  // et version.json se met à jour quand même — la prod vieillirait en silence. Le dernier
+  // scrutin ne doit pas dater de plus de 120 jours (marge large pour l'intersession d'été).
+  const maxDate = (db.prepare("SELECT MAX(date) AS d FROM scrutins").get() as any).d as string | null;
+  const MAX_AGE_JOURS = 120;
+  const age = maxDate ? Math.floor((Date.now() - Date.parse(maxDate)) / 86_400_000) : Infinity;
+  if (age > MAX_AGE_JOURS) {
+    console.error(
+      `❌ GARDE-FOU : dernier scrutin daté du ${maxDate} (${age} jours) > ${MAX_AGE_JOURS} jours.\n` +
+      `   Source AN probablement figée (URL déplacée ? 304 permanent ?). Export ANNULÉ.`
     );
     process.exit(1);
   }
@@ -61,7 +83,10 @@ const db = openDb();
     );
     process.exit(1);
   }
-  console.log(`Garde-fou OK : ${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes, 0 stub.`);
+  console.log(
+    `Garde-fou OK : ${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes, ${nbVotes} votes, ` +
+    `${nbGp} consignes, ${nbAmend} exposés, 0 stub, dernier scrutin ${maxDate} (${age} j).`
+  );
 }
 
 fs.mkdirSync(OUT, { recursive: true });

@@ -1,0 +1,68 @@
+name: CI (typecheck + tests + build)
+
+# Filet de validation sur CHAQUE push/PR : sans lui, une casse (types, moteur de
+# recherche/proximité/stats, export Expo) n'était détectée qu'au cron du lendemain
+# matin — données périmées en prod le temps du diagnostic. Ici : ~5 min après le push.
+#
+# ⚠️ Ne pose PAS EXPO_PUBLIC_DATA_BASE en env global : les tests comptent sur des
+# fetch de données qui échouent en Node (replis lexical/sémantique) — une base
+# joignable les ferait dériver (incident du 2026-07-02).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  valider:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+          cache-dependency-path: |
+            pipeline/package-lock.json
+            app/package-lock.json
+            api/package-lock.json
+
+      - name: Installer les dépendances (pipeline)
+        working-directory: pipeline
+        run: npm ci
+
+      - name: Installer les dépendances (app)
+        working-directory: app
+        run: npm ci
+
+      - name: Installer les dépendances (api)
+        working-directory: api
+        run: npm ci
+
+      - name: Typecheck (pipeline + app + api)
+        run: |
+          (cd pipeline && npx tsc --noEmit)
+          (cd app && npx tsc --noEmit)
+          (cd api && npx tsc --noEmit)
+
+      # stats (chiffres politiques) + score (proximité) + recherche (déterministe/fusion).
+      - name: Tests (stats + score + recherche)
+        working-directory: pipeline
+        run: npm test
+
+      # Export Expo « à blanc » : attrape un bundle web qui ne compile plus. Les données
+      # (public/data, git-ignorées) ne sont pas requises ; on ne lance PAS prerender-seo
+      # (qui exige dist/data) — le cron quotidien le couvre.
+      - name: Export web à blanc (expo export + patch PWA)
+        working-directory: app
+        run: npx expo export -p web && node scripts/patch-pwa.mjs

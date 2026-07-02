@@ -52,6 +52,11 @@ async function main() {
     console.log(`     ${lies}/${total} scrutins sur amendement reliés (+ amendements/groupe)`);
     const ag = await agregerAmendementsDossier(db);
     console.log(`     ${ag.lignes} lignes d'agrégats sur ${ag.dossiers} dossiers (amendements déposés par auteur)`);
+  } else if (refresh) {
+    // En CI la base part de zéro : sauter cette étape publierait une prod SANS exposés
+    // d'amendements ni agrégats, en silence. On préfère échouer (la prod d'hier reste
+    // en ligne, l'issue d'alerte s'ouvre, le run suivant réessaie).
+    throw new Error("Amendements.json.zip indisponible en mode refresh — ingestion abandonnée (prod intacte).");
   }
   const okDoss = await assurerDossiersZip(dl);
   if (okDoss) {
@@ -59,6 +64,8 @@ async function main() {
     console.log(`     propositions de loi comptées pour ${n} groupes`);
     const t = await lierDossiers(db);
     console.log(`     ${t} scrutins reliés à l'intitulé officiel de leur dossier`);
+  } else if (refresh) {
+    throw new Error("Dossiers_Legislatifs.json.zip indisponible en mode refresh — ingestion abandonnée (prod intacte).");
   }
 
   console.log("     · viviers du shuffle de confrontation");

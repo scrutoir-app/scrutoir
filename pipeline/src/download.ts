@@ -40,11 +40,25 @@ const SOURCES = {
  */
 export type DownloadOpts = { force?: boolean; refresh?: boolean };
 
+const ESSAIS = 3; // tentatives par téléchargement (le serveur AN coupe parfois en plein corps)
+const attendre = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
 async function telecharger(url: string, dest: string): Promise<void> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`Echec telechargement ${url} : ${res.status}`);
-  const buf = Buffer.from(await res.arrayBuffer());
-  fs.writeFileSync(dest, buf);
+  for (let essai = 1; ; essai++) {
+    try {
+      const res = await fetch(url);
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      // La lecture du corps peut AUSSI échouer (socket coupée à mi-fichier) → dans le retry.
+      const buf = Buffer.from(await res.arrayBuffer());
+      fs.writeFileSync(dest, buf);
+      return;
+    } catch (e) {
+      if (essai >= ESSAIS) throw new Error(`Echec telechargement ${url} : ${(e as Error).message}`);
+      const ms = essai * 5000;
+      console.warn(`  ⚠ ${url} (essai ${essai}/${ESSAIS}) : ${(e as Error).message} — nouvel essai dans ${ms / 1000}s`);
+      await attendre(ms);
+    }
+  }
 }
 
 type CondResult = "updated" | "unchanged" | "failed";
@@ -60,28 +74,55 @@ async function telechargerConditionnel(url: string, dest: string): Promise<CondR
   if (fs.existsSync(dest) && fs.existsSync(etagPath)) {
     headers["If-None-Match"] = fs.readFileSync(etagPath, "utf8").trim();
   }
-  let res: Response;
+  for (let essai = 1; essai <= ESSAIS; essai++) {
+    try {
+      const res = await fetch(url, { headers });
+      if (res.status === 304) {
+        console.log(`  ✓ ${path.basename(dest)} inchangé (304)`);
+        return "unchanged";
+      }
+      if (!res.ok) {
+        // 5xx = transitoire → retry ; le reste (404…) ne se réessaie pas.
+        if (res.status >= 500 && essai < ESSAIS) throw new Error(`HTTP ${res.status}`);
+        console.warn(`  ⚠ ${url} : ${res.status}`);
+        return fs.existsSync(dest) ? "unchanged" : "failed";
+      }
+      // La lecture du corps peut échouer (socket coupée à mi-fichier) → dans le retry.
+      const buf = Buffer.from(await res.arrayBuffer());
+      fs.writeFileSync(dest, buf);
+      const etag = res.headers.get("etag");
+      if (etag) fs.writeFileSync(etagPath, etag);
+      else if (fs.existsSync(etagPath)) fs.rmSync(etagPath); // pas d'ETag → ne pas garder un sidecar périmé
+      console.log(`  ↓ ${path.basename(dest)} mis à jour (${(buf.length / 1e6).toFixed(1)} Mo)`);
+      return "updated";
+    } catch (e) {
+      if (essai >= ESSAIS) {
+        console.warn(`  ⚠ Réseau ${url} : ${(e as Error).message}`);
+        return fs.existsSync(dest) ? "unchanged" : "failed";
+      }
+      const ms = essai * 5000;
+      console.warn(`  ⚠ ${url} (essai ${essai}/${ESSAIS}) : ${(e as Error).message} — nouvel essai dans ${ms / 1000}s`);
+      await attendre(ms);
+    }
+  }
+  return fs.existsSync(dest) ? "unchanged" : "failed";
+}
+
+/**
+ * Vérifie l'intégrité d'une archive (`unzip -t`). Un zip tronqué NE DOIT PAS survivre :
+ * son sidecar .etag ferait répondre 304 au run suivant → échec en boucle jusqu'à purge
+ * manuelle du cache CI. On purge zip + etag → le prochain run re-télécharge (auto-réparation).
+ */
+function verifierZip(zipPath: string): void {
   try {
-    res = await fetch(url, { headers });
-  } catch (e) {
-    console.warn(`  ⚠ Réseau ${url} : ${(e as Error).message}`);
-    return fs.existsSync(dest) ? "unchanged" : "failed";
+    execSync(`unzip -t -qq "${zipPath}"`, { stdio: "pipe" });
+  } catch {
+    fs.rmSync(zipPath, { force: true });
+    fs.rmSync(`${zipPath}.etag`, { force: true });
+    throw new Error(
+      `Archive corrompue : ${path.basename(zipPath)} — purgée (zip + etag), re-téléchargée au prochain run.`
+    );
   }
-  if (res.status === 304) {
-    console.log(`  ✓ ${path.basename(dest)} inchangé (304)`);
-    return "unchanged";
-  }
-  if (!res.ok) {
-    console.warn(`  ⚠ ${url} : ${res.status}`);
-    return fs.existsSync(dest) ? "unchanged" : "failed";
-  }
-  const buf = Buffer.from(await res.arrayBuffer());
-  fs.writeFileSync(dest, buf);
-  const etag = res.headers.get("etag");
-  if (etag) fs.writeFileSync(etagPath, etag);
-  else if (fs.existsSync(etagPath)) fs.rmSync(etagPath); // pas d'ETag → ne pas garder un sidecar périmé
-  console.log(`  ↓ ${path.basename(dest)} mis à jour (${(buf.length / 1e6).toFixed(1)} Mo)`);
-  return "updated";
 }
 
 /**
@@ -107,6 +148,11 @@ export async function assurerDonneesBrutes(opts: DownloadOpts = {}): Promise<voi
     }
     if (downloaded || !fs.existsSync(path.join(outDir, "json"))) {
       console.log(`  ⇪ Extraction ${src.zip} ...`);
+      verifierZip(zipPath); // AVANT de purger l'existant (un zip tronqué ne détruit rien)
+      // Purge du dossier extrait : `unzip -o` écrase mais ne supprime jamais les entrées
+      // disparues du dump (scrutin annulé, acteur retiré) — sans purge, des fichiers
+      // fantômes persistent via le cache CI et rendent l'ingestion non déterministe.
+      fs.rmSync(outDir, { recursive: true, force: true });
       fs.mkdirSync(outDir, { recursive: true });
       execSync(`unzip -o -q "${zipPath}" -d "${outDir}"`);
     }
@@ -123,7 +169,8 @@ export async function assurerAmendementsZip(opts: DownloadOpts = {}): Promise<bo
   fs.mkdirSync(RAW_DIR, { recursive: true });
   if (refresh) {
     const r = await telechargerConditionnel(AMENDEMENTS_URL, AMENDEMENTS_ZIP);
-    return r !== "failed";
+    if (r === "updated") verifierZip(AMENDEMENTS_ZIP); // lu en streaming plus tard : valider ICI
+    return r !== "failed" && fs.existsSync(AMENDEMENTS_ZIP);
   }
   if (!force && fs.existsSync(AMENDEMENTS_ZIP)) {
     console.log("  ✓ Amendements.json.zip deja present");
@@ -132,6 +179,7 @@ export async function assurerAmendementsZip(opts: DownloadOpts = {}): Promise<bo
   console.log("  ↓ Telechargement Amendements.json.zip (~270 Mo) ...");
   try {
     await telecharger(AMENDEMENTS_URL, AMENDEMENTS_ZIP);
+    verifierZip(AMENDEMENTS_ZIP);
     return true;
   } catch (e) {
     console.warn("  ⚠ Echec telechargement amendements :", (e as Error).message);
@@ -148,7 +196,8 @@ export async function assurerDossiersZip(opts: DownloadOpts = {}): Promise<boole
   fs.mkdirSync(RAW_DIR, { recursive: true });
   if (refresh) {
     const r = await telechargerConditionnel(DOSSIERS_URL, DOSSIERS_ZIP);
-    return r !== "failed";
+    if (r === "updated") verifierZip(DOSSIERS_ZIP);
+    return r !== "failed" && fs.existsSync(DOSSIERS_ZIP);
   }
   if (!force && fs.existsSync(DOSSIERS_ZIP)) {
     console.log("  ✓ Dossiers.json.zip deja present");
@@ -157,6 +206,7 @@ export async function assurerDossiersZip(opts: DownloadOpts = {}): Promise<boole
   console.log("  ↓ Telechargement Dossiers.json.zip ...");
   try {
     await telecharger(DOSSIERS_URL, DOSSIERS_ZIP);
+    verifierZip(DOSSIERS_ZIP);
     return true;
   } catch (e) {
     console.warn("  ⚠ Echec telechargement dossiers :", (e as Error).message);

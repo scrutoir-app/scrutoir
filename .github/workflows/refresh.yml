@@ -58,12 +58,13 @@ jobs:
         working-directory: pipeline
         run: npm ci
 
-      # Garde : tests purs de la recherche (normalisation, alias, intention, dédup
-      # dossier, repli). Rapides et déterministes → bloque un déploiement si le code
-      # de recherche est cassé. (Le test sémantique, plus lent, se lance à la main.)
-      - name: Tests recherche (déterministe + fusion)
+      # Garde : typecheck + tests purs (stats = chiffres politiques, score = proximité,
+      # recherche = normalisation/alias/intention/dédup/repli). Rapides et déterministes
+      # → bloque un déploiement si le code est cassé. (Le test sémantique, plus lent,
+      # se lance à la main.)
+      - name: Garde — typecheck + tests (stats, score, recherche)
         working-directory: pipeline
-        run: npm run test-search
+        run: npx tsc --noEmit && npm test
 
       - name: Ré-ingestion (téléchargement conditionnel ETag)
         working-directory: pipeline
