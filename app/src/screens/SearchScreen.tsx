@@ -60,20 +60,35 @@ function SearchPill({ q, setQ, autoFocus, clair }: { q: string; setQ: (s: string
   const bg = clair ? "#FFFFFF" : C.surface;
   const fg = clair ? "#171A1F" : C.text;
   const ph = clair ? "#8A8F98" : C.textMuted;
+  // Focus VISIBLE au clavier (l'outline navigateur est désactivée) : bordure accent.
+  const [focus, setFocus] = useState(false);
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 10, height: 52, backgroundColor: bg, borderRadius: RADIUS.md, paddingHorizontal: 13, ...(clair ? {} : { borderWidth: 1, borderColor: C.borderStrong }) }}>
+    <View
+      style={{
+        flexDirection: "row", alignItems: "center", gap: 10, height: 52, backgroundColor: bg,
+        borderRadius: RADIUS.md, paddingHorizontal: 13,
+        borderWidth: 1, borderColor: focus ? C.accent : clair ? "transparent" : C.borderStrong,
+      }}
+    >
       <Feather name="search" size={19} color={clair ? "#171A1F" : C.textMuted} />
       <TextInput
         value={q}
         onChangeText={setQ}
         autoFocus={autoFocus}
+        onFocus={() => setFocus(true)}
+        onBlur={() => setFocus(false)}
         placeholder="Sur quoi ils ont voté ?"
         placeholderTextColor={ph}
         style={[inputText, { flex: 1, color: fg, outlineStyle: "none" }] as any}
         autoCorrect={false}
       />
       {q.length > 0 && (
-        <TouchableOpacity onPress={() => setQ("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+        <TouchableOpacity
+          onPress={() => setQ("")}
+          accessibilityRole="button"
+          accessibilityLabel="Effacer la recherche"
+          hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }}
+        >
           <Feather name="x" size={18} color={ph} />
         </TouchableOpacity>
       )}

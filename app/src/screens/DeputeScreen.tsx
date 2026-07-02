@@ -58,6 +58,9 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <TouchableOpacity
           onPress={toggleFollow}
           activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityLabel={followed ? `Ne plus suivre ${d.nom_complet}` : `Suivre ${d.nom_complet}`}
+          accessibilityState={{ selected: followed }}
           style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: followed ? C.accent : C.surfaceAlt }}
         >
           <Feather name="bell" size={18} color={followed ? "#fff" : C.textMuted} />

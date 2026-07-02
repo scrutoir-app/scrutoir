@@ -11,6 +11,7 @@ import type { Nav } from "../nav";
 export function MonDeputeScreen({ nav }: { nav: Nav }) {
   const [depts, setDepts] = useState<Departement[]>([]);
   const [q, setQ] = useState("");
+  const [qFocus, setQFocus] = useState(false); // focus clavier visible sur le champ
   const [communes, setCommunes] = useState<Commune[]>([]);
   const [chercheCommune, setChercheCommune] = useState(false);
   const [parcourir, setParcourir] = useState(false); // repli "par département"
@@ -107,12 +108,14 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
         </>
       ) : (
         <>
-          {/* Recherche commune / code postal */}
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 9, height: 46, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 14, marginTop: 14, borderWidth: 1, borderColor: C.borderStrong }}>
+          {/* Recherche commune / code postal (bordure accent au focus = focus clavier visible) */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 9, height: 46, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 14, marginTop: 14, borderWidth: 1, borderColor: qFocus ? C.accent : C.borderStrong }}>
             <Feather name="map-pin" size={17} color={C.textFaint} />
             <TextInput
               value={q}
               onChangeText={setQ}
+              onFocus={() => setQFocus(true)}
+              onBlur={() => setQFocus(false)}
               placeholder="Ta commune ou code postal…"
               placeholderTextColor={C.textFaint}
               style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}

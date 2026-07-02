@@ -7,6 +7,18 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.11.0 — 2026-07-02
+Accessibilité : lecteurs d'écran, clavier et contrastes.
+- **Contrastes WCAG AA** : `textFaint` (labels d'onglets inactifs, captions, messages) passe de
+  2,4:1 à **5,0:1** en clair (`#68707C`) et de 3,5:1 à **5,3:1** en sombre (`#8A919B`) ;
+  `textMuted` clair ajusté (`#5B626E`) pour garder la hiérarchie text > muted > faint.
+- **Lecteurs d'écran** : rôle + état sur les onglets (`aria-selected`), labels sur le Retour,
+  la cloche Suivre (avec état), la croix d'effacement, les cartes scrutin et les lignes député
+  des résultats ; les **barres de vote** annoncent les chiffres (« X pour, Y contre… ») au lieu
+  d'être muettes (VoteBarDivergenteCentree).
+- **Clavier** : focus VISIBLE restauré sur les 4 champs de recherche (bordure accent au focus —
+  l'outline navigateur était désactivée partout) ; cibles tactiles élargies (Retour, croix).
+
 ## 1.10.0 — 2026-07-02
 Mises à jour douces : fini le rechargement forcé en pleine session.
 - **Bandeau « Mise à jour disponible »** : le service worker n'active plus une nouvelle version

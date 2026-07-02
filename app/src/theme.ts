@@ -18,8 +18,11 @@ export const LIGHT = {
   borderStrong: "#DCE0E6",
 
   text: "#171A1F",
-  textMuted: "#6B727E",
-  textFaint: "#A0A6B0",
+  // Contrastes WCAG AA (≥ 4,5:1 sur fond #F2F4F7 ET sur cartes blanches) : textFaint
+  // porte du texte de SENS (labels d'onglets inactifs, captions, messages) — l'ancien
+  // #A0A6B0 tombait à 2,4:1. Hiérarchie conservée : text > textMuted > textFaint.
+  textMuted: "#5B626E",
+  textFaint: "#68707C",
 
   accent: "#3C4654", // ardoise neutre (actions, états actifs)
   accentSoft: "#EAEDF1",
@@ -75,7 +78,8 @@ export const DARK: typeof LIGHT = {
 
   text: "#EAEDF1",
   textMuted: "#9AA2AE",
-  textFaint: "#697079",
+  // Idem clair : ≥ 4,5:1 sur fond #0F1318 ET sur cartes #191E26 (ancien #697079 : 3,5:1).
+  textFaint: "#8A919B",
 
   accent: "#8A93A1", // ardoise claire (lisible en texte ET en fond d'action)
   accentSoft: "#252C35",

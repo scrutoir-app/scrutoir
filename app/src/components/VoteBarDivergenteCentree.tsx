@@ -110,7 +110,12 @@ export function VoteBarDivergenteCentree({
     progress.interpolate({ inputRange: [0, 1], outputRange: [0, tw * frac] });
 
   return (
-    <View>
+    <View
+      // La couleur seule est muette pour un lecteur d'écran : on dit les chiffres
+      // (même règle que l'aria-label des pages SEO).
+      accessible
+      accessibilityLabel={`${pour} pour, ${contre} contre, ${abstention} abstentions`}
+    >
       {/* Écart de voix, au-dessus, centré, discret (optionnel) */}
       {avecEcart && (
         <Text style={[T.micro, tnum, { textAlign: "center", color: C.textMuted, marginBottom: 6 }]}>

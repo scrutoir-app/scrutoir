@@ -154,6 +154,7 @@ function AppInner() {
   const tabRefs = useRef<any[]>([]); // nœuds des onglets, mesurés par le tour
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
   const [gq, setGq] = useState("");
+  const [gqFocus, setGqFocus] = useState(false); // focus visible (bordure accent, cf. plus bas)
   const ongletAvecRecherche = ["themes", "partis", "suivis", "apropos"].includes(root);
   const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
   useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
@@ -242,7 +243,13 @@ function AppInner() {
               borderBottomWidth: 1, borderBottomColor: C.border, paddingHorizontal: 8, backgroundColor: C.surface,
             }}
           >
-            <TouchableOpacity onPress={nav.pop} style={{ padding: 8, flexDirection: "row", alignItems: "center" }}>
+            <TouchableOpacity
+              onPress={nav.pop}
+              accessibilityRole="button"
+              accessibilityLabel="Retour à l'écran précédent"
+              hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}
+              style={{ padding: 8, flexDirection: "row", alignItems: "center" }}
+            >
               <Text style={{ fontSize: 24, color: C.accent, marginTop: -2 }}>‹</Text>
               <Text style={{ fontSize: 15, color: C.accent, marginLeft: 2, fontFamily: F.semibold }}>Retour</Text>
             </TouchableOpacity>
@@ -260,7 +267,9 @@ function AppInner() {
               style={{
                 flexDirection: "row", alignItems: "center", gap: 11, height: 54,
                 backgroundColor: C.surface, borderRadius: RADIUS.md, paddingLeft: 8, paddingRight: 15,
-                borderWidth: 1, borderColor: C.borderStrong, ...shadowCard,
+                // Focus VISIBLE au clavier (l'outline navigateur est désactivée sur l'input) :
+                // la bordure du conteneur passe à l'accent quand le champ a le focus.
+                borderWidth: 1, borderColor: gqFocus ? C.accent : C.borderStrong, ...shadowCard,
               }}
             >
               <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
@@ -269,13 +278,20 @@ function AppInner() {
               <TextInput
                 value={gq}
                 onChangeText={setGq}
+                onFocus={() => setGqFocus(true)}
+                onBlur={() => setGqFocus(false)}
                 placeholder="Un sujet, un nom, une loi… ex. logement, santé, agriculture"
                 placeholderTextColor={C.textMuted}
                 style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
                 autoCorrect={false}
               />
               {gq.length > 0 && (
-                <TouchableOpacity onPress={() => setGq("")} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
+                <TouchableOpacity
+                  onPress={() => setGq("")}
+                  accessibilityRole="button"
+                  accessibilityLabel="Effacer la recherche"
+                  hitSlop={{ top: 13, bottom: 13, left: 13, right: 13 }}
+                >
                   <Feather name="x" size={18} color={C.textFaint} />
                 </TouchableOpacity>
               )}
@@ -370,7 +386,16 @@ function AppInner() {
             {TABS.map((t, i) => {
               const actif = root === t.root;
               return (
-                <TouchableOpacity ref={(el) => { tabRefs.current[i] = el; }} key={t.root} onPress={() => goTab(t.root)} style={{ flex: 1, alignItems: "center", gap: 3 }}>
+                <TouchableOpacity
+                  ref={(el) => { tabRefs.current[i] = el; }}
+                  key={t.root}
+                  onPress={() => goTab(t.root)}
+                  accessibilityRole="button"
+                  accessibilityLabel={`Onglet ${t.label}`}
+                  accessibilityState={{ selected: actif }}
+                  aria-selected={actif}
+                  style={{ flex: 1, alignItems: "center", gap: 3 }}
+                >
                   <Feather name={t.icon} size={21} color={actif ? C.text : C.textFaint} />
                   <Text style={{ fontFamily: actif ? F.bold : F.medium, fontSize: 10.5, color: actif ? C.text : C.textFaint }}>{t.label}</Text>
                 </TouchableOpacity>

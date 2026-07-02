@@ -20,6 +20,11 @@ export function VoteBar({
     v > 0 ? <View key={color} style={{ flex: v / total, backgroundColor: color }} /> : null;
   return (
     <View
+      // La couleur seule est muette pour un lecteur d'écran : on dit les chiffres
+      // (même règle que l'aria-label des pages SEO, cf. prerender-seo.mjs).
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={`${pour} pour, ${contre} contre, ${abstention} abstentions, ${absent} absents ou non votants`}
       style={{
         flexDirection: "row",
         height,

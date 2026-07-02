@@ -20,6 +20,8 @@ export function ScrutinCard({ scrutin, onPress }: { scrutin: ScrutinResume; onPr
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
+      accessibilityRole="button"
+      accessibilityLabel={`Scrutin ${adopte ? "adopté" : "rejeté"} : ${scrutin.titre || scrutin.objet || ""}`}
       style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>

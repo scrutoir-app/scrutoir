@@ -286,6 +286,8 @@ export function SearchResultsList({
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => nav.push({ name: "depute", uid: d.uid })}
+              accessibilityRole="button"
+              accessibilityLabel={`Voir la fiche de ${d.nom_complet}${d.abrev ? `, ${d.abrev}` : ""}`}
               style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, marginBottom: 9, ...shadowCard }}
             >
               <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />

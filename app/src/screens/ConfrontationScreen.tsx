@@ -207,6 +207,7 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
 
 function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume | null; onPick: (d: DeputeResume) => void; onClear: () => void; onOpen: (d: DeputeResume) => void }) {
   const [q, setQ] = useState("");
+  const [qFocus, setQFocus] = useState(false); // focus clavier visible sur le champ
   const [res, setRes] = useState<DeputeResume[]>([]);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -242,11 +243,14 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
 
   return (
     <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 10, ...shadowCard }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.sm, paddingHorizontal: 10, height: 38 }}>
+      {/* Bordure accent au focus = focus clavier visible (l'outline navigateur est désactivée). */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.sm, paddingHorizontal: 10, height: 38, borderWidth: 1, borderColor: qFocus ? C.accent : "transparent" }}>
         <Feather name="search" size={15} color={C.textFaint} />
         <TextInput
           value={q}
           onChangeText={setQ}
+          onFocus={() => setQFocus(true)}
+          onBlur={() => setQFocus(false)}
           placeholder="Un élu…"
           placeholderTextColor={C.textFaint}
           style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
