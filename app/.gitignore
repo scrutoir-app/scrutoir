@@ -9,6 +9,9 @@ dist/
 web-build/
 expo-env.d.ts
 
+# Site Pages « scrutoir-data » (dist/data déplacé par scripts/split-data-site.mjs)
+.data-site/
+
 # Native
 .kotlin/
 *.orig.*

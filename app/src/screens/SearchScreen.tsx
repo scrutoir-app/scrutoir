@@ -12,6 +12,7 @@ import type { QuestionProximite } from "../testProximite/score";
 import type { VoteSuivi, PartiResume, ScrutinResume, ShuffleConfrontation } from "../types";
 import type { Nav } from "../nav";
 import { SearchResultsList } from "../components/SearchResultsList";
+import { ErreurChargement } from "../components/ErreurChargement";
 import { ScrutoirLogo } from "../components/brand/ScrutoirLogo";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { CarteSuivi, ThemePicto } from "../components/CarteSuivi";
@@ -244,8 +245,13 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
   const [questions, setQuestions] = useState<QuestionProximite[]>([]);
   const [duelDuJour, setDuelDuJour] = useState<ShuffleConfrontation | null>(null);
 
+  // Échec du digest (index/fichiers suivis inaccessibles) : sans lui, le spinner
+  // tournait pour toujours (`chargement` reste vrai tant que les votes sont null).
+  const [digestErreur, setDigestErreur] = useState(false);
+  const [essaiDigest, setEssaiDigest] = useState(0);
+
   useEffect(() => {
-    getPartis().then(setPartis);
+    getPartis().then(setPartis).catch(() => {});
     getTestProximite().then(setQuestions).catch(() => setQuestions([]));
     getScrutinsRecents(120).then(setRecents).catch(() => setRecents([]));
     getDuelDuJour().then(setDuelDuJour).catch(() => setDuelDuJour(null));
@@ -253,12 +259,17 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
 
   useEffect(() => {
     let alive = true;
-    if (deputeUids.length) { setVotesDeputes(null); getVotesSuivis(deputeUids, 60).then((r) => alive && setVotesDeputes(r)); }
-    else setVotesDeputes([]);
-    if (partiUids.length) { setVotesPartis(null); getVotesPartisSuivis(partiUids, 60).then((r) => alive && setVotesPartis(r)); }
-    else setVotesPartis([]);
+    setDigestErreur(false);
+    if (deputeUids.length) {
+      setVotesDeputes(null);
+      getVotesSuivis(deputeUids, 60).then((r) => alive && setVotesDeputes(r)).catch(() => alive && setDigestErreur(true));
+    } else setVotesDeputes([]);
+    if (partiUids.length) {
+      setVotesPartis(null);
+      getVotesPartisSuivis(partiUids, 60).then((r) => alive && setVotesPartis(r)).catch(() => alive && setDigestErreur(true));
+    } else setVotesPartis([]);
     return () => { alive = false; };
-  }, [deputeUids.join(","), partiUids.join(",")]);
+  }, [deputeUids.join(","), partiUids.join(","), essaiDigest]);
 
   const poids = je?.poids ?? {};
   const w = (cat: string | null | undefined) => poids[cat ?? ""] ?? 1;
@@ -315,7 +326,11 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
       <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 16 }]}>Le digest de tes suivis — l'essentiel d'abord</Text>
 
       {chargement ? (
-        <ActivityIndicator color={C.textMuted} style={{ marginTop: 20, marginBottom: 20 }} />
+        digestErreur ? (
+          <ErreurChargement compact onRetry={() => setEssaiDigest((n) => n + 1)} />
+        ) : (
+          <ActivityIndicator color={C.textMuted} style={{ marginTop: 20, marginBottom: 20 }} />
+        )
       ) : digestVide ? (
         // Rien de neuf : la carte EST le lien vers le flux complet (plus de lien flottant).
         <TouchableOpacity

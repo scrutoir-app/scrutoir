@@ -7,6 +7,32 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.8.0 — 2026-07-02
+Fiabilité réseau, consentement au modèle de recherche, données déplacées sur un second projet Pages.
+- **Recherche par sujet : activation explicite.** Le modèle (~120 Mo) n'est plus téléchargé à
+  l'insu de l'utilisateur dès la saisie : carte **« Recherche par sujet »** dans la section Sujet
+  (poids annoncé, « une seule fois, Wi-Fi conseillé », bouton **Activer**) ; sans activation, la
+  section vit sur le repli lexical seul. Modèle déjà en cache = activé d'office. À l'activation :
+  `storage.persist()` (contre l'éviction iOS) + vérification du quota disponible. Pendant le
+  téléchargement, **progression réelle** (« Téléchargement du modèle… X / Y Mo », messages du SW)
+  au lieu du trompeur « patiente deux secondes ».
+- **SW / modèle : téléchargement repris et vérifié.** Les parts du modèle sont mises en cache
+  individuellement (une coupure ne reperd plus ~96 Mo, reprise où on en était), la taille totale
+  est vérifiée contre le manifeste (un déploiement croisé ne peut plus figer un modèle corrompu
+  en cache), pic mémoire du réassemblage réduit de moitié (~1 part au lieu de 2× le modèle).
+- **Erreurs réseau : fini les pages blanches.** Un échec de chargement (hors-ligne, 404) affiche
+  un message + bouton **« Réessayer »** (hook `useData` + composant `ErreurChargement`) sur les
+  fiches Député / Parti / Scrutin / Duel ; le spinner infini du digest de l'accueil est corrigé ;
+  `api.ts` ne fige plus les promesses rejetées dans son cache (un écran touché par une coupure
+  redevient accessible dès que le réseau revient).
+- **Données sur `data.scrutoir.fr`** (2ᵉ projet Pages `scrutoir-data`) : contourne le plafond
+  Cloudflare de **20 000 fichiers PAR projet** (saturation prévue à la reprise d'octobre 2026).
+  Bundle configuré par `EXPO_PUBLIC_DATA_BASE`, SW multi-origines (`DATA_ORIGINS`,
+  `DATA_CACHE` v4), CSP `connect-src` élargie, **301** depuis `scrutoir.fr/data/*` (anciens
+  clients), déploiement CI en deux temps (**données d'abord**, app ensuite) via
+  `split-data-site.mjs`, garde anti-régression `check-data-freshness.mjs` désormais branchée
+  en CI, garde-fou de comptage par projet dans `prerender-seo.mjs`.
+
 ## 1.7.0 — 2026-06-30
 Tour guidé de la navigation + refonte de la vue **« Par thème »** (Scrutins) + sortie de fin de test.
 - **Vue « Par thème » (onglet Scrutins)** : la convergence électeur ↔ parti par thème est dite en

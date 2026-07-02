@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe } from "../theme";
 import { getProfil } from "../api";
-import type { ProfilDepute, Periode } from "../types";
+import { useData } from "../hooks/useData";
+import { ErreurChargement } from "../components/ErreurChargement";
+import type { Periode } from "../types";
 import { CategoryVoteCard } from "../components/CategoryVoteCard";
 import { ProximiteDeputeBadge } from "../components/BadgeProximite";
 import { useFollow } from "../follows";
@@ -17,19 +19,9 @@ const PERIODES: { id: Periode; label: string }[] = [
 
 export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
-  const [profil, setProfil] = useState<ProfilDepute | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: profil, loading, error, retry } = useData(() => getProfil(uid, periode), [uid, periode]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [followed, toggleFollow] = useFollow(uid);
-
-  useEffect(() => {
-    let vivant = true;
-    setLoading(true);
-    getProfil(uid, periode)
-      .then((p) => vivant && setProfil(p))
-      .finally(() => vivant && setLoading(false));
-    return () => { vivant = false; };
-  }, [uid, periode]);
 
   if (loading && !profil)
     return (
@@ -37,7 +29,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <ActivityIndicator color={C.textMuted} />
       </View>
     );
-  if (!profil) return null;
+  if (!profil) return error ? <ErreurChargement onRetry={retry} /> : null;
 
   const { depute: d, participation_pct, participation_rang_pct, categories } = profil;
 

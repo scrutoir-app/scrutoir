@@ -25,6 +25,11 @@ function j<T>(rel: string): Promise<T> {
       return r.json();
     });
     cache.set(rel, p);
+    // Ne JAMAIS figer un échec en cache : une coupure réseau passagère rendrait
+    // la ressource définitivement inaccessible jusqu'au rechargement de la page.
+    p.catch(() => {
+      if (cache.get(rel) === p) cache.delete(rel);
+    });
   }
   return p as Promise<T>;
 }
@@ -37,7 +42,12 @@ const deputesIndex = () => j<DeputeResume[]>("deputes");
 const scrutinsIndex = () => j<ScrutinIdx[]>("scrutins");
 let scrMapP: Promise<Map<string, ScrutinIdx>> | null = null;
 function scrutinsMap() {
-  if (!scrMapP) scrMapP = scrutinsIndex().then((l) => new Map(l.map((s) => [s.uid, s])));
+  if (!scrMapP) {
+    scrMapP = scrutinsIndex().then((l) => new Map(l.map((s) => [s.uid, s])));
+    scrMapP.catch(() => {
+      scrMapP = null; // même règle que `j()` : pas d'échec figé en cache
+    });
+  }
   return scrMapP;
 }
 const inCat = (s: ScrutinIdx, id: string) => (s.cats?.length ? s.cats.includes(id) : s.categorie === id);

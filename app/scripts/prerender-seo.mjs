@@ -29,9 +29,10 @@ const COL = { pour: "#2F8F5B", contre: "#C44536", abstention: "#D6A43C" };
 
 // Lot 6 — pages député×thème. DEUX contraintes :
 //  1) Qualité (anti thin content, audit §5) : au moins ce nombre de votes EXPRIMÉS sur le thème.
-//  2) Budget fichiers : Cloudflare Pages plafonne à 20 000 fichiers/déploiement, et l'app pèse
-//     déjà ~8 700 fichiers (JSON data + photos) + 7 422 pages scrutin. On limite donc chaque
-//     député à ses N thèmes les plus actifs (sinon ~6 200 pages → dépassement de la limite).
+//  2) Budget fichiers : Cloudflare Pages plafonne à 20 000 fichiers PAR projet. Depuis la
+//     séparation en deux projets (split-data-site.mjs : /data → « scrutoir-data »), le projet
+//     app ne porte plus que le bundle + les pages SEO (~1 page/scrutin) — DEPUTE_THEME_MAX
+//     peut être relevé si le comptage en fin de script laisse de la marge.
 const DEPUTE_THEME_INDEX_MIN = 10;
 const DEPUTE_THEME_MAX = 3;
 const CF_PAGES_FILE_LIMIT = 20000;
@@ -683,19 +684,29 @@ async function main() {
       `${dtIndexed} pages député×thème (top ${DEPUTE_THEME_MAX}/député) + 4 hubs → ${n} URLs au sitemap.`,
   );
 
-  // Garde-fou : Cloudflare Pages refuse > 20 000 fichiers. On échoue tôt, avec un message clair,
-  // plutôt que de laisser `wrangler pages deploy` planter en fin de CI.
-  let fileCount = 0;
-  const walk = async (dir) => {
+  // Garde-fou : Cloudflare Pages refuse > 20 000 fichiers PAR projet. Le déploiement est
+  // séparé en deux projets (split-data-site.mjs) : `scrutoir` = dist HORS /data (app +
+  // pages SEO), `scrutoir-data` = /data. On compte chaque projet et on échoue tôt, avec
+  // un message clair, plutôt que de laisser `wrangler pages deploy` planter en fin de CI.
+  const compter = async (dir) => {
+    let n = 0;
     for (const e of await readdir(dir, { withFileTypes: true })) {
-      if (e.isDirectory()) await walk(join(dir, e.name));
-      else fileCount++;
+      if (e.isDirectory()) n += await compter(join(dir, e.name));
+      else n++;
     }
+    return n;
   };
-  await walk(distDir);
-  console.log(`[prerender-seo] dist contient ${fileCount} fichiers (limite Cloudflare Pages : ${CF_PAGES_FILE_LIMIT}).`);
-  if (fileCount > CF_PAGES_FILE_LIMIT) {
-    console.error(`[prerender-seo] ERREUR : ${fileCount} > ${CF_PAGES_FILE_LIMIT} fichiers — réduire DEPUTE_THEME_MAX ou sortir /data du déploiement Pages.`);
+  const nData = await compter(dataDir);
+  const nApp = (await compter(distDir)) - nData;
+  console.log(
+    `[prerender-seo] projet app (dist hors /data) : ${nApp} fichiers ; projet data : ${nData} ` +
+      `(limite Cloudflare Pages : ${CF_PAGES_FILE_LIMIT} PAR projet).`,
+  );
+  if (nApp > CF_PAGES_FILE_LIMIT || nData > CF_PAGES_FILE_LIMIT) {
+    console.error(
+      `[prerender-seo] ERREUR : ${Math.max(nApp, nData)} > ${CF_PAGES_FILE_LIMIT} fichiers sur un projet — ` +
+        `réduire DEPUTE_THEME_MAX (app) ou regrouper les JSON scrutins en paquets (data).`,
+    );
     process.exit(1);
   }
 }

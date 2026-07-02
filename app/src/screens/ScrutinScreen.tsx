@@ -6,6 +6,8 @@ import {
 } from "../theme";
 import { scrutinSourceUrl, dossierSourceUrl } from "../config";
 import { getScrutin, getPartis } from "../api";
+import { useData } from "../hooks/useData";
+import { ErreurChargement } from "../components/ErreurChargement";
 import { track } from "../analytics";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
@@ -76,9 +78,13 @@ function repartitionArticles(a: { articleTop: string | null; articleTopN: number
 }
 
 export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
-  const [data, setData] = useState<DetailScrutin | null>(null);
-  const [partis, setPartis] = useState<PartiResume[]>([]);
-  const [loading, setLoading] = useState(true);
+  // `partis` (picto hémicycle) est décoratif : son échec ne bloque pas l'écran.
+  const { data: charge, loading, error, retry } = useData(
+    () => Promise.all([getScrutin(uid), getPartis().catch(() => [] as PartiResume[])]),
+    [uid]
+  );
+  const data = charge?.[0] ?? null;
+  const partis = charge?.[1] ?? [];
   const [briefOuvert, setBriefOuvert] = useState(false);
   const [parcours, setParcours] = useState(false);
   const [open, setOpen] = useState<Set<string>>(new Set()); // plis ouverts (sections + lignes)
@@ -86,16 +92,8 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const je = useJe(); // résultat du test de proximité (pour ordonner les groupes au plus proche)
 
   useEffect(() => {
-    let vivant = true;
-    setLoading(true);
     setOpen(new Set());
     setBriefOuvert(false);
-    Promise.all([getScrutin(uid), getPartis().catch(() => [])]).then(([d, p]) => {
-      if (!vivant) return;
-      setData(d);
-      setPartis(p);
-    }).finally(() => vivant && setLoading(false));
-    return () => { vivant = false; };
   }, [uid]);
 
   const am = data?.amendements ?? null;
@@ -136,7 +134,7 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <ActivityIndicator color={C.textMuted} />
       </View>
     );
-  if (!data) return null;
+  if (!data) return error ? <ErreurChargement onRetry={retry} /> : null;
 
   const s = data.scrutin;
   const adopte = s.sort_code === "adopte";

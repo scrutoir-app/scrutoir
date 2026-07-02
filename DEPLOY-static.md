@@ -1,20 +1,32 @@
 # Déploiement — architecture 100 % statique (Cloudflare Pages)
 
 Scrutoir est servi en **statique** : la base SQLite est pré-générée en ~8 000 fichiers
-JSON, et l'app web (PWA) + ces JSON sont déposés sur **Cloudflare Pages** (gratuit,
-egress gratuit, pas de serveur always-on). **Aucun Worker / D1 / R2.** L'API Express
-(`api/`) est **dev-only** (développement local uniquement, non déployée).
+JSON, et l'ensemble est déposé sur **DEUX projets Cloudflare Pages** (gratuit, egress
+gratuit, pas de serveur always-on) — le plafond de **20 000 fichiers s'applique PAR
+projet**, et un projet unique saturait fin 2026 (~2 fichiers par scrutin) :
+
+- **`scrutoir`** (scrutoir.fr) : l'app web (PWA) + les pages SEO pré-rendues, SANS `/data`.
+- **`scrutoir-data`** (data.scrutoir.fr) : les JSON `/data/**` seulement, servis avec
+  CORS ouvert (`app/data-project/_headers`). L'app les lit via `EXPO_PUBLIC_DATA_BASE`
+  (bakée au build) ; le SW les met en cache (`DATA_ORIGINS` dans `app/public/sw.js`) ;
+  l'ancienne URL `scrutoir.fr/data/**` redirige en 301 (`_redirects`) pour les clients
+  pré-migration.
+
+**Aucun Worker / D1 / R2.** L'API Express (`api/`) est **dev-only** (non déployée).
 
 ## Vue d'ensemble du pipeline de déploiement
 
 ```
-pipeline/  npm run ingest:refresh   # Open Data AN → data/votes.db (ETag conditionnel)
+pipeline/  npm run ingest:refresh    # Open Data AN → data/votes.db (ETag conditionnel)
 pipeline/  npm run export:static     # votes.db → app/public/data/*.json (+ version.json)
-app/       npm run build:web         # expo export -p web + patch PWA → app/dist/
-                                      #   (copie public/ → dist/ : data, manifest, sw.js,
-                                      #    icons, _headers, _redirects)
-wrangler   pages deploy app/dist      # → https://scrutoir.pages.dev
+app/       npm run build:web         # expo export -p web + patch PWA + pages SEO → app/dist/
+app/       check-data-freshness.mjs  # garde anti-régression (version.json local vs prod)
+app/       split-data-site.mjs       # dist/data → .data-site/ (+ _headers CORS)
+wrangler   pages deploy app/.data-site --project-name=scrutoir-data   # 1/2 : les données
+wrangler   pages deploy app/dist       --project-name=scrutoir        # 2/2 : l'app
 ```
+L'ordre importe : **les données d'abord** (les pages SEO du site app référencent des
+scrutins qui doivent déjà exister côté data).
 
 Tout est automatisé quotidiennement par **`.github/workflows/refresh.yml`** (cron 05:10 UTC
 + lancement manuel). L'AN publie un dump complet → la ré-ingestion est **idempotente**.
@@ -58,11 +70,29 @@ Deux options :
 Pages → projet `scrutoir` → **Custom domains** → ajouter `scrutoir.fr`
 (une fois le nom sécurisé : INPI cl. 9 & 42 + domaine).
 
+### 6. Projet données « scrutoir-data » (à faire une fois — plafond 20 000 fichiers)
+1. Dashboard → **Workers & Pages** → **Create application › Pages › Direct Upload** →
+   nom **`scrutoir-data`** (doit matcher `--project-name=scrutoir-data` du workflow).
+   Alternative CLI : `npx wrangler pages project create scrutoir-data --production-branch=main`.
+2. Projet `scrutoir-data` → **Custom domains** → ajouter **`data.scrutoir.fr`**
+   (le domaine étant déjà sur Cloudflare, le CNAME est posé automatiquement).
+3. C'est tout : le token API existant (permission Pages › Edit au niveau du compte)
+   couvre le nouveau projet. Au prochain run du workflow, les données partent sur
+   `scrutoir-data` et l'app (sans `/data`) sur `scrutoir`.
+
+⚠️ À faire **avant** de merger/lancer le workflow modifié : le build bake
+`EXPO_PUBLIC_DATA_BASE=https://data.scrutoir.fr` — si le projet ou le domaine n'existe
+pas, l'app déployée ne trouvera pas ses données (le SW accepte aussi le repli
+`https://scrutoir-data.pages.dev`, changer la variable dans `refresh.yml` si besoin).
+
 ## Détails techniques
 
-- **Limites Pages** : 20 000 fichiers / déploiement (on est à ~8 000 + assets), 25 Mo/fichier
-  (les JSON sont petits). Le dossier `app/public/data/` (~370 Mo) est **git-ignoré** et
-  régénéré à chaque build (jamais committé).
+- **Limites Pages** : 20 000 fichiers **par projet** (d'où la séparation app / data —
+  chaque projet garde ainsi des années de marge), 25 Mio/fichier (les JSON sont petits ;
+  le modèle sémantique est découpé en parts, cf. `strip-model-for-pages.mjs`). Le dossier
+  `app/public/data/` (~370 Mo) est **git-ignoré** et régénéré à chaque build.
+  `prerender-seo.mjs` compte les fichiers des deux projets et bloque le build en cas de
+  dépassement.
 - **PWA** : `manifest.json` + `sw.js` (SW vanilla) injectés dans `dist/index.html` par
   `app/scripts/patch-pwa.mjs` (lancé par `npm run build:web`). Installable + offline.
 - **Cache** :

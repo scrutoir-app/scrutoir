@@ -6,7 +6,10 @@
 # est ignoré). Conséquence assumée : un chemin arbitraire inexistant fait 404 — sans
 # impact, l'app garde toujours l'URL « / » (navigation en mémoire, aucun lien profond).
 /_expo/*  /404.html  404
-/data/*   /404.html  404
+# Les données vivent sur le projet Pages dédié « scrutoir-data » : on redirige les
+# anciens clients (bundle pré-migration qui fetch encore scrutoir.fr/data/**) vers la
+# nouvelle origine. Les nouveaux bundles y vont directement (EXPO_PUBLIC_DATA_BASE).
+/data/*   https://data.scrutoir.fr/data/:splat   301
 # Namespaces des pages SEO pré-rendues (lot 2). Les fichiers réels priment ; une entité
 # inexistante (ex. /depute/inconnu/) fait un VRAI 404 au lieu d'un soft-404 (home en 200).
 /depute/*   /404.html  404

@@ -1,0 +1,21 @@
+# En-têtes du projet Cloudflare Pages « scrutoir-data » (data.scrutoir.fr) : il ne sert
+# QUE les JSON pré-générés /data/** (copiés ici par scripts/split-data-site.mjs).
+# Séparé du site app pour contourner le plafond de 20 000 fichiers PAR projet Pages.
+#
+# CORS ouvert en lecture : les données sont publiques et en lecture seule ; l'app vit
+# sur une autre origine (scrutoir.fr) et les préviews *.pages.dev doivent aussi lire.
+# Règle plus spécifique en dernier = elle l'emporte (même convention que app/public/_headers).
+
+# Données mutables (index, depute/*, parti/*, categories) : toujours revalider.
+/*
+  Access-Control-Allow-Origin: *
+  X-Content-Type-Options: nosniff
+  Cache-Control: public, max-age=0, must-revalidate
+
+# Détail des scrutins : immuable une fois publié.
+/data/scrutin/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# version.json : jamais en cache (sert à détecter un nouveau déploiement).
+/data/version.json
+  Cache-Control: no-cache

@@ -17,6 +17,12 @@ permissions:
   contents: read
   issues: write # pour ouvrir une issue d'alerte si le refresh échoue
 
+env:
+  # Origine des données : projet Pages DÉDIÉ « scrutoir-data » (plafond Cloudflare de
+  # 20 000 fichiers PAR projet — un seul projet saturait fin 2026). Bakée dans le bundle
+  # par `expo export` ; le SW (DATA_ORIGINS) et la CSP (connect-src) l'autorisent.
+  EXPO_PUBLIC_DATA_BASE: https://data.scrutoir.fr
+
 jobs:
   refresh:
     runs-on: ubuntu-latest
@@ -85,7 +91,29 @@ jobs:
         working-directory: app
         run: npm run build:web
 
-      - name: Déployer sur Cloudflare Pages
+      # Garde anti-régression : refuse de déployer des données plus anciennes ou plus
+      # pauvres que la prod (les seuils statiques de l'export ne suffisent pas —
+      # incident déjà vécu sur un déploiement manuel).
+      - name: Garde anti-régression des données (version.json local vs prod)
+        working-directory: app
+        run: node scripts/check-data-freshness.mjs
+
+      # Deux sites Pages : dist/data → .data-site (+ _headers CORS), dist reste l'app.
+      - name: Séparer les données du site app
+        working-directory: app
+        run: node scripts/split-data-site.mjs
+
+      # 1/2 — les DONNÉES d'abord : les pages SEO fraîchement générées référencent des
+      # scrutins qui doivent déjà exister côté data quand l'app est publiée.
+      - name: Déployer les données (projet scrutoir-data)
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          command: pages deploy app/.data-site --project-name=scrutoir-data --branch=main
+
+      # 2/2 — l'app (bundle + pages SEO), sans /data.
+      - name: Déployer l'app (projet scrutoir)
         uses: cloudflare/wrangler-action@v3
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}

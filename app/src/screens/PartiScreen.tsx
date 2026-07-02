@@ -6,6 +6,8 @@ import { catUI } from "../categoryUI";
 import { PositionCells } from "../components/PositionCells";
 import { BarreDivergente } from "../components/BarreDivergente";
 import { getParti, getPartis } from "../api";
+import { useData } from "../hooks/useData";
+import { ErreurChargement } from "../components/ErreurChargement";
 import { useFollow } from "../follows";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
 import { BadgeProximite } from "../components/BadgeProximite";
@@ -24,22 +26,15 @@ const PERIODES: { id: Periode; label: string }[] = [
 
 export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [periode, setPeriode] = useState<Periode>("all");
-  const [data, setData] = useState<ProfilParti | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data, loading, error, retry } = useData(() => getParti(uid, periode), [uid, periode]);
   const [expanded, setExpanded] = useState<Record<string, boolean>>({});
   const [followed, toggleFollow] = useFollow(uid);
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [logosOn] = usePartyLogos();
   const je = useJe();
 
-  useEffect(() => { getPartis().then(setPartis); }, []);
-
-  useEffect(() => {
-    let vivant = true;
-    setLoading(true);
-    getParti(uid, periode).then((d) => vivant && setData(d)).finally(() => vivant && setLoading(false));
-    return () => { vivant = false; };
-  }, [uid, periode]);
+  // Décoratif (picto hémicycle) : un échec ne bloque pas l'écran.
+  useEffect(() => { getPartis().then(setPartis).catch(() => {}); }, []);
 
   if (loading && !data)
     return (
@@ -47,7 +42,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <ActivityIndicator color={C.textMuted} />
       </View>
     );
-  if (!data) return null;
+  if (!data) return error ? <ErreurChargement onRetry={retry} /> : null;
 
   const p = data.parti;
 

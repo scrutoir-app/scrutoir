@@ -13,22 +13,12 @@
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
   Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
-  Content-Security-Policy: default-src 'self'; img-src 'self' https://www2.assemblee-nationale.fr data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self' https://scrutoir-analytics.anthony-627.workers.dev https://geo.api.gouv.fr; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
+  Content-Security-Policy: default-src 'self'; img-src 'self' https://www2.assemblee-nationale.fr data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self' https://data.scrutoir.fr https://scrutoir-data.pages.dev https://scrutoir-analytics.anthony-627.workers.dev https://geo.api.gouv.fr; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 # En-têtes de cache Cloudflare Pages (1ère visite + visiteurs non-PWA ; le SW gère
 # les visites répétées en PWA). Règle plus spécifique en dernier = elle l'emporte.
-
-# Données mutables (index, depute/*, parti/*, categories) : toujours revalider.
-/data/*
-  Cache-Control: public, max-age=0, must-revalidate
-
-# Détail des scrutins : immuable une fois publié.
-/data/scrutin/*
-  Cache-Control: public, max-age=31536000, immutable
-
-# version.json : jamais en cache (sert à détecter un nouveau déploiement).
-/data/version.json
-  Cache-Control: no-cache
+# ⚠️ Les données /data/** sont servies par le projet Pages DÉDIÉ « scrutoir-data »
+# (data.scrutoir.fr, cf. app/data-project/_headers) — plus aucun fichier /data ici.
 
 # Bundle JS/CSS au nom hashé : immuable.
 /_expo/static/*

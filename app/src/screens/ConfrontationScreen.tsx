@@ -9,6 +9,7 @@ import { catUI } from "../categoryUI";
 import { rechercher, getConfrontation, getConfrontationShuffle } from "../api";
 import { BarreDivergente } from "../components/BarreDivergente";
 import { DuelDeputesBar } from "../components/DuelDeputesBar";
+import { ErreurChargement } from "../components/ErreurChargement";
 import { PositionCells } from "../components/PositionCells";
 import { track } from "../analytics";
 import type { DeputeResume, Confrontation, ConfrontationScrutin, ConfrontationTheme, Periode, AngleShuffle } from "../types";
@@ -40,6 +41,8 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
   const [periode, setPeriode] = useState<Periode>(periodeInit ?? "all");
   const [data, setData] = useState<Confrontation | null>(null);
   const [loading, setLoading] = useState(false);
+  const [erreur, setErreur] = useState(false);
+  const [essai, setEssai] = useState(0); // bump = « Réessayer » (relance le chargement du duel)
   // Angle du dernier tirage shuffle (null dès qu'un sélecteur est touché à la main).
   const [shuffleAngle, setShuffleAngle] = useState<AngleShuffle | null>(null);
   const [shuffling, setShuffling] = useState(false);
@@ -97,11 +100,15 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
 
   useEffect(() => {
     if (!depA || !depB) { setData(null); return; }
+    let vivant = true;
     setLoading(true);
+    setErreur(false);
     getConfrontation(depA.uid, depB.uid, periode)
-      .then(setData)
-      .finally(() => setLoading(false));
-  }, [depA?.uid, depB?.uid, periode]);
+      .then((d) => vivant && setData(d))
+      .catch(() => vivant && setErreur(true))
+      .finally(() => vivant && setLoading(false));
+    return () => { vivant = false; };
+  }, [depA?.uid, depB?.uid, periode, essai]);
 
   // Analytics : un duel regardé (paire triée, une fois par paire).
   useEffect(() => {
@@ -187,6 +194,8 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
       )}
 
       {loading && <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />}
+
+      {pret && erreur && !loading && <ErreurChargement compact onRetry={() => setEssai((n) => n + 1)} />}
 
       {pret && data && !loading && <Resultats data={data} depA={depA!} depB={depB!} periode={periode} shuffleAngle={shuffleAngle} nav={nav} />}
       </Animated.ScrollView>

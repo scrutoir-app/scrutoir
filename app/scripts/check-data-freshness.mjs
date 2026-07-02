@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 /**
- * Garde anti-régression de données avant un déploiement Pages MANUEL.
+ * Garde anti-régression de données avant un déploiement Pages (manuel OU cron CI).
  *
- * `wrangler pages deploy dist` pousse AUSSI `dist/data/**` (copié de app/public/data,
- * la base LOCALE). Si la base locale est en retard sur le cron quotidien, le déploiement
- * FAIT RÉGRESSER les données en prod (incident déjà vécu). Ce script compare le
- * `version.json` qu'on s'apprête à pousser à celui en prod et REFUSE (exit 1) si le
- * local est plus ancien ou plus pauvre.
+ * Le déploiement pousse `dist/data/**` (copié de app/public/data, la base LOCALE en
+ * manuel) vers le projet Pages « scrutoir-data ». Si cette base est en retard sur la
+ * prod, le déploiement FAIT RÉGRESSER les données (incident déjà vécu). Ce script
+ * compare le `version.json` qu'on s'apprête à pousser à celui en prod et REFUSE
+ * (exit 1) si le local est plus ancien ou plus pauvre.
  *
  * Usage :
  *   node scripts/check-data-freshness.mjs            # vérifie dist/data/version.json
@@ -19,7 +19,14 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 
-const PROD_URL = "https://scrutoir.fr/data/version.json";
+// Les données vivent sur le projet Pages dédié « scrutoir-data » : on essaie dans
+// l'ordre domaine custom → repli *.pages.dev → ancienne origine (valable avant la
+// bascule, puis via la redirection 301 de _redirects). Premier succès = référence.
+const PROD_URLS = [
+  "https://data.scrutoir.fr/data/version.json",
+  "https://scrutoir-data.pages.dev/data/version.json",
+  "https://scrutoir.fr/data/version.json",
+];
 const force = process.argv.includes("--force");
 const dataDir = process.env.DATA_DIR || "dist/data";
 const localPath = resolve(process.cwd(), dataDir, "version.json");
@@ -40,13 +47,20 @@ try {
   fail(`version.json local introuvable (${localPath}). As-tu lancé "npm run build:web" ?`);
 }
 
-let prod;
-try {
-  const res = await fetch(PROD_URL, { signal: AbortSignal.timeout(10000) });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  prod = await res.json();
-} catch (e) {
-  console.warn(`\n⚠️  Prod injoignable (${e.message}) — vérification ignorée, déploiement autorisé.\n`);
+let prod = null;
+let derniereErreur = "aucune URL essayée";
+for (const url of PROD_URLS) {
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    prod = await res.json();
+    break;
+  } catch (e) {
+    derniereErreur = `${url} → ${e.message}`;
+  }
+}
+if (!prod) {
+  console.warn(`\n⚠️  Prod injoignable (${derniereErreur}) — vérification ignorée, déploiement autorisé.\n`);
   process.exit(0);
 }
 

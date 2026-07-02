@@ -80,21 +80,26 @@ export function dedupParDossier(list: ScrutinResume[]): ScrutinResume[] {
  */
 export async function rechercherSujet(
   q: string,
-  exactScrutins: ScrutinResume[]
+  exactScrutins: ScrutinResume[],
+  opts: { sansModele?: boolean } = {}
 ): Promise<{ sujet: ScrutinResume[]; semantiqueDispo: boolean; lexicalUids: string[] }> {
   const intent = routerIntention(q);
   // Sémantique/lexical seulement pour les requêtes « sujet » (pas n° de scrutin ni parti exact).
   if (intent.type !== "sujet") return { sujet: [], semantiqueDispo: false, lexicalUids: [] };
 
   // 1) SÉMANTIQUE (peut échouer = modèle/hors-ligne → on garde le lexical comme repli).
+  //    `sansModele` = pas de consentement au téléchargement du modèle (~120 Mo, cf.
+  //    search/consent.ts) : on s'en tient au lexical, sans JAMAIS déclencher le modèle.
   let semUids: string[] = [];
   let semantiqueDispo = false;
-  try {
-    const sem = await rechercheSemantique(q); // classés par cosinus décroissant
-    semantiqueDispo = true;
-    if (sem.length > 0 && sem[0].score >= SEUIL_SUJET) semUids = sem.map((r) => r.uid);
-  } catch {
-    semantiqueDispo = false;
+  if (!opts.sansModele) {
+    try {
+      const sem = await rechercheSemantique(q); // classés par cosinus décroissant
+      semantiqueDispo = true;
+      if (sem.length > 0 && sem[0].score >= SEUIL_SUJET) semUids = sem.map((r) => r.uid);
+    } catch {
+      semantiqueDispo = false;
+    }
   }
 
   // 2) LEXICAL mot-clé sur l'exposé (complément + repli) — rattrape « carburant »,
