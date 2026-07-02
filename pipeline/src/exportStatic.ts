@@ -51,7 +51,17 @@ const db = openDb();
     );
     process.exit(1);
   }
-  console.log(`Garde-fou OK : ${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes.`);
+  // Aucun votant ne doit rester anonyme : un stub (nom_complet = uid, cf. parseScrutins)
+  // signifierait qu'un député manque des dumps AMO10 + AMO20 → « PAxxxxxx » en prod.
+  const stubs = db.prepare("SELECT uid FROM deputes WHERE nom_complet = uid").all() as { uid: string }[];
+  if (stubs.length > 0) {
+    console.error(
+      `❌ GARDE-FOU : ${stubs.length} député(s) sans identité (stub) : ${stubs.slice(0, 10).map((s) => s.uid).join(", ")}${stubs.length > 10 ? "…" : ""}.\n` +
+      `   Vérifier l'ingestion AMO20 (chargerDeputesSortis). Export ANNULÉ.`
+    );
+    process.exit(1);
+  }
+  console.log(`Garde-fou OK : ${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes, 0 stub.`);
 }
 
 fs.mkdirSync(OUT, { recursive: true });
@@ -142,23 +152,39 @@ const votesStmt = db.prepare(
    WHERE v.depute_uid = ?`
 );
 const mandatStmt = db.prepare("SELECT mandat_debut, mandat_fin, groupe_uid FROM deputes WHERE uid = ?");
-let nd = 0;
-for (const d of deputes as any[]) {
+function exporterDepute(uid: string) {
   const profils: Record<string, unknown> = {};
-  for (const per of PERIODES) profils[per] = profilDepute(db, d.uid, per);
-  const m = mandatStmt.get(d.uid) as any;
+  for (const per of PERIODES) profils[per] = profilDepute(db, uid, per);
+  const m = mandatStmt.get(uid) as any;
   const votes: Record<string, [string, string | null]> = {};
-  for (const v of votesStmt.all(d.uid) as any[]) votes[v.scrutin_uid] = [v.position, v.consigne ?? null];
-  write(`depute/${d.uid}.json`, {
+  for (const v of votesStmt.all(uid) as any[]) votes[v.scrutin_uid] = [v.position, v.consigne ?? null];
+  write(`depute/${uid}.json`, {
     mandat_debut: m?.mandat_debut ?? null,
     mandat_fin: m?.mandat_fin ?? null,
     groupe_uid: m?.groupe_uid ?? null,
     profils,
-    dissidences: dissidences(db, d.uid, 100),
+    dissidences: dissidences(db, uid, 100),
     votes,
   });
+}
+let nd = 0;
+for (const d of deputes as any[]) {
+  exporterDepute(d.uid);
   if (++nd % 100 === 0) console.log(`  députés ${nd}/${deputes.length}`);
 }
+
+// 5 bis) Députés SORTIS en cours de législature (actif=0, cf. chargerDeputesSortis) :
+// hors de l'index de recherche, mais leur fiche doit exister — les listes de votants
+// des scrutins y mènent (sinon lien mort). Seuls ceux ayant réellement voté comptent.
+const sortis = db
+  .prepare(
+    `SELECT d.uid FROM deputes d
+     WHERE d.actif = 0 AND EXISTS (SELECT 1 FROM votes v WHERE v.depute_uid = d.uid)
+     ORDER BY d.uid`
+  )
+  .all() as { uid: string }[];
+for (const d of sortis) exporterDepute(d.uid);
+if (sortis.length) console.log(`  + ${sortis.length} députés sortis en cours de législature`);
 
 // 6) Amendements déposés sur le dossier : agrégat compact PAR DOSSIER, calculé une
 //    seule fois puis rattaché à CHAQUE scrutin du dossier (pas de fichier par dossier →

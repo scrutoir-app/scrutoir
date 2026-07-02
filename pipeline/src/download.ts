@@ -19,6 +19,15 @@ const SOURCES = {
     zip: "AMO10.json.zip",
     dir: "amo",
   },
+  // AMO20 = députés/sénateurs/ministres de la législature, TOUS mandats (y compris
+  // terminés). Sert à identifier les députés SORTIS en cours de législature (remplacés,
+  // nommés au gouvernement…), absents d'AMO10 mais présents dans les votes — sinon ils
+  // s'affichent « PAxxxxxx » en prod. Petit (~2,3 Mo).
+  amoTous: {
+    url: `${BASE}/amo/deputes_senateurs_ministres_legislature/AMO20_dep_sen_min_tous_mandats_et_organes.json.zip`,
+    zip: "AMO20.json.zip",
+    dir: "amo-tous",
+  },
 } as const;
 
 /**
@@ -158,3 +167,4 @@ export async function assurerDossiersZip(opts: DownloadOpts = {}): Promise<boole
 export const SCRUTINS_DIR = path.join(RAW_DIR, "scrutins", "json");
 export const ACTEURS_DIR = path.join(RAW_DIR, "amo", "json", "acteur");
 export const ORGANES_DIR = path.join(RAW_DIR, "amo", "json", "organe");
+export const ACTEURS_TOUS_DIR = path.join(RAW_DIR, "amo-tous", "json", "acteur");

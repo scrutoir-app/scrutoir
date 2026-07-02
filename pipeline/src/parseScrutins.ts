@@ -36,8 +36,10 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
      VALUES (@scrutin_uid, @depute_uid, @position, @groupe_uid)
      ON CONFLICT(scrutin_uid, depute_uid) DO UPDATE SET position=excluded.position`
   );
-  // Stub pour un depute reference par un vote mais absent du fichier des actifs
-  // (ex: depute remplace en cours de legislature). Marque actif=0.
+  // FILET DE SÉCURITÉ : stub pour un depute reference par un vote mais absent des
+  // dumps AMO10 (actifs) ET AMO20 (tous acteurs de la legislature, cf. parseActeurs
+  // chargerDeputesSortis). Ne devrait plus arriver — le garde-fou d'exportStatic
+  // echoue si un stub subsiste (nom_complet = uid s'afficherait en prod).
   const insStub = db.prepare(
     `INSERT OR IGNORE INTO deputes (uid, prenom, nom, nom_complet, actif)
      VALUES (?, '', '', ?, 0)`

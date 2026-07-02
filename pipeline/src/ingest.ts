@@ -1,6 +1,6 @@
 import { openDb, createSchema } from "./db.js";
 import { assurerDonneesBrutes, assurerAmendementsZip, assurerDossiersZip } from "./download.js";
-import { chargerGroupes, chargerDeputes } from "./parseActeurs.js";
+import { chargerGroupes, chargerDeputes, chargerDeputesSortis } from "./parseActeurs.js";
 import { chargerScrutins } from "./parseScrutins.js";
 import { seedCategories, classifierTout } from "./classify.js";
 import { lierAmendements } from "./linkAmendements.js";
@@ -26,7 +26,8 @@ async function main() {
   console.log("2/5  Groupes politiques + deputes");
   const nGroupes = chargerGroupes(db);
   const nDeputes = chargerDeputes(db);
-  console.log(`     ${nGroupes} groupes, ${nDeputes} deputes actifs`);
+  const nSortis = chargerDeputesSortis(db);
+  console.log(`     ${nGroupes} groupes, ${nDeputes} deputes actifs, ${nSortis} sortis en cours de legislature (AMO20)`);
   console.log("     · photos des députés (rapatriement local)");
   const ph = await localiserPhotos(db);
   console.log(`       ${ph.local} photos locales${ph.manquantes ? `, ${ph.manquantes} manquantes (URL distante gardée)` : ""}`);

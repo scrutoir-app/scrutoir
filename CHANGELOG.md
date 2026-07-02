@@ -7,6 +7,21 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.8.1 — 2026-07-02
+Les député·e·s sorti·e·s en cours de législature retrouvent leur identité.
+- **Fini les votants « PA795958 »** : 66 député·e·s parti·e·s en cours de mandat (nommé·e·s au
+  gouvernement, remplacé·e·s, démissionnaires — 55 010 votes) s'affichaient sous leur identifiant
+  brut dans les votants des scrutins, avec un lien mort vers leur fiche. Cause : le dump AMO10 de
+  l'AN ne contient que les députés **actifs**. Le pipeline ingère désormais aussi **AMO20**
+  (« députés, sénateurs, ministres de la législature », ~2,3 Mo) : identité, groupe au moment du
+  départ, circonscription, photo et **bornes de mandat** (la participation reste calculée sur la
+  seule durée du mandat, `chargerDeputesSortis` dans `parseActeurs.ts`).
+- **Leur fiche existe** (exportée pour les sorti·e·s ayant voté) avec la mention « A quitté
+  l'Assemblée le … — votes de son mandat ». Ils restent **hors index de recherche** (pas de
+  confusion avec « mon député » ni les duels) — on y accède par les votants d'un scrutin.
+- **Garde-fou renforcé** : l'export échoue si un votant sans identité subsiste (plus jamais de
+  « PAxxxxxx » en prod, même si l'AN change ses dumps).
+
 ## 1.8.0 — 2026-07-02
 Fiabilité réseau, consentement au modèle de recherche, données déplacées sur un second projet Pages.
 - **Recherche par sujet : activation explicite.** Le modèle (~120 Mo) n'est plus téléchargé à

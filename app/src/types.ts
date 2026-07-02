@@ -9,6 +9,10 @@ export interface DeputeResume {
   departement?: string | null;
   num_departement?: string | null;
   circo?: string | null;
+  // Présent dans le `depute` des profils (depute/<uid>.json). Non-null = a quitté
+  // l'Assemblée en cours de législature (remplacé, nommé au gouvernement…) : sa
+  // fiche existe (via les votants des scrutins) mais il est hors index de recherche.
+  mandat_fin?: string | null;
 }
 
 export interface Departement {

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe } from "../theme";
+import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe, formatDate } from "../theme";
 import { getProfil } from "../api";
 import { useData } from "../hooks/useData";
 import { ErreurChargement } from "../components/ErreurChargement";
@@ -47,6 +47,11 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
           {!!d.departement && d.circo && (
             <Text style={[T.small, { color: C.textFaint, marginTop: 5 }]}>
               {d.departement} · {d.circo}ᵉ circonscription
+            </Text>
+          )}
+          {!!d.mandat_fin && (
+            <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, marginTop: 5 }]}>
+              A quitté l'Assemblée le {formatDate(d.mandat_fin)} — votes de son mandat.
             </Text>
           )}
         </View>
