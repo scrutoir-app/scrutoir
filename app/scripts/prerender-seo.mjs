@@ -151,7 +151,10 @@ function crumbsHtml(crumbs) {
   );
 }
 
-function shell({ title, description, path, ogImage, ogType = "website", jsonld, crumbs, h1, sub, main, noindex = false }) {
+// `appLink` : cible du CTA « Ouvrir la fiche interactive » — deep-link `/?open=type:uid`
+// lu par l'app au boot (App.tsx) pour ouvrir l'écran correspondant, au lieu de larguer
+// le visiteur sur l'accueil générique. Défaut « / » pour les hubs.
+function shell({ title, description, path, ogImage, ogType = "website", jsonld, crumbs, h1, sub, main, noindex = false, appLink = "/" }) {
   const canonical = SITE + path;
   const ld = [breadcrumbLd(crumbs), ...(jsonld ? [jsonld] : [])];
   return `<!DOCTYPE html>
@@ -182,7 +185,7 @@ ${crumbsHtml(crumbs)}
 <h1>${esc(h1)}</h1>
 ${sub ? `<p class="sub">${sub}</p>` : ""}
 ${main}
-<p class="cta"><a href="/">Ouvrir la fiche interactive dans l'application →</a></p>
+<p class="cta"><a href="${esc(appLink)}">Ouvrir la fiche interactive dans l'application →</a></p>
 </main>
 <footer class="ft">
 Source : <a href="https://data.assemblee-nationale.fr" rel="nofollow noopener">Open Data de l'Assemblée nationale</a> (licence Etalab, mise à jour quotidienne), 17ᵉ législature.
@@ -305,6 +308,7 @@ async function genDeputes(scrutinMap, themesMeta) {
         path,
         ogImage: d.photo_url ? SITE + d.photo_url : undefined,
         ogType: "profile",
+        appLink: `/?open=depute:${d.uid}`,
         jsonld,
         crumbs: [{ name: "Accueil", url: "/" }, { name: "Députés", url: "/deputes/" }, { name: d.nom_complet }],
         h1: d.nom_complet,
@@ -344,6 +348,7 @@ async function genDeputes(scrutinMap, themesMeta) {
           title: `${d.nom_complet} et le thème ${tLib} — ses votes | Scrutoir`,
           description: `Les ${expressed} votes de ${d.nom_complet} (${d.abrev || d.groupe}) sur le thème « ${tLib} » à l'Assemblée nationale : le détail scrutin par scrutin.`,
           path: dtPath,
+          appLink: `/?open=depute:${d.uid}`,
           crumbs: [
             { name: "Accueil", url: "/" },
             { name: "Députés", url: "/deputes/" },
@@ -400,6 +405,7 @@ async function genThemes(grands) {
         description,
         path,
         jsonld,
+        appLink: `/?open=theme:${c.id}`,
         crumbs: [{ name: "Accueil", url: "/" }, { name: "Thèmes", url: "/themes/" }, { name: c.libelle }],
         h1: c.libelle,
         sub: `${c.nb_scrutins} scrutins publics · 17ᵉ législature`,
@@ -466,6 +472,7 @@ async function genPartis() {
         description,
         path,
         jsonld,
+        appLink: `/?open=parti:${pr.uid}`,
         crumbs: [{ name: "Accueil", url: "/" }, { name: "Partis", url: "/partis/" }, { name: pr.abrev || pr.libelle }],
         h1: `${pr.libelle}${pr.abrev ? ` (${pr.abrev})` : ""}`,
         sub: `Groupe parlementaire · ${pr.nb_deputes} députés · 17ᵉ législature`,
@@ -533,6 +540,7 @@ async function genScrutins(scrutinsList) {
         path,
         ogType: "article",
         jsonld,
+        appLink: `/?open=scrutin:${g.uid}`,
         crumbs: [{ name: "Accueil", url: "/" }, { name: "Grands scrutins", url: "/scrutins/" }, { name: `Scrutin n°${g.numero}` }],
         h1: titre,
         sub: `Scrutin public n°${g.numero} · ${fmtDate(g.date)}`,

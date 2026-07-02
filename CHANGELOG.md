@@ -7,6 +7,20 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.9.0 — 2026-07-02
+Le bouton retour du navigateur navigue dans l'app, et les pages SEO ouvrent le bon écran.
+- **Retour navigateur** : le back (geste Android, souris, PWA) **dépile la navigation** au lieu
+  d'éjecter du site — pattern « sentinelle » d'historique dans App.tsx (l'URL reste `/`, une
+  entrée d'historique tient lieu de profondeur ; à la racine d'un onglet, back sort normalement,
+  sans cran mort même après un retour via le bouton in-app).
+- **Deep-links `/?open=type:uid`** : l'app ouvre directement la fiche demandée au boot (député,
+  scrutin, thème, parti), avec l'onglet racine cohérent derrière (le back retombe au bon endroit).
+  Le paramètre est nettoyé de l'URL après ouverture.
+- **Pont SEO → app réparé** : le CTA « Ouvrir la fiche interactive » des ~9 800 pages statiques
+  pointait vers l'accueil générique — il ouvre désormais l'écran de l'entité consultée
+  (`appLink` par type de page dans prerender-seo.mjs ; pages député×thème → fiche du député ;
+  hubs → accueil, inchangé).
+
 ## 1.8.1 — 2026-07-02
 Les député·e·s sorti·e·s en cours de législature retrouvent leur identité.
 - **Fini les votants « PA795958 »** : 66 député·e·s parti·e·s en cours de mandat (nommé·e·s au

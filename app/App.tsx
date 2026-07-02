@@ -38,6 +38,7 @@ import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
 import { TestParThemeScreen } from "./src/screens/TestParThemeScreen";
 import { lireHashPartage } from "./src/testProximite/storage";
+import { getCategories } from "./src/api";
 import { InstallPrompt } from "./src/components/InstallPrompt";
 import { ParcoursLoi } from "./src/components/ParcoursLoi";
 import { useInterstitielParcours } from "./src/parcoursLoiPrefs";
@@ -93,6 +94,57 @@ function AppInner() {
       setStack([{ name: "search" }, { name: "testResultat", reponses: partage.reponses, poids: partage.poids, partage: true }]);
     }
   }, []);
+
+  // Deep-link `/?open=type:uid` (CTA des ~9 800 pages SEO, cf. prerender-seo.mjs) :
+  // ouvre directement l'écran de l'entité au lieu de larguer le visiteur sur l'accueil.
+  // Le paramètre est retiré de l'URL (replaceState) pour ne pas rejouer au refresh.
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    const open = new URLSearchParams(window.location.search).get("open");
+    if (!open) return;
+    const [type, id] = open.split(":");
+    if (!id) return;
+    window.history.replaceState(null, "", window.location.pathname);
+    if (type === "depute") setStack([{ name: "search" }, { name: "depute", uid: id }]);
+    else if (type === "scrutin") setStack([{ name: "themes" }, { name: "scrutin", uid: id }]);
+    else if (type === "parti") setStack([{ name: "partis" }, { name: "parti", uid: id }]);
+    else if (type === "theme")
+      getCategories()
+        .then((cats) => {
+          const c = cats.find((x) => x.id === id);
+          if (c) setStack([{ name: "themes" }, { name: "categorie", id: c.id, libelle: c.libelle }]);
+        })
+        .catch(() => {});
+  }, []);
+
+  // --- Bouton RETOUR du navigateur : dépiler au lieu de quitter le site. ---
+  // La pile de navigation est en mémoire (l'URL reste « / ») : sans ceci, le geste
+  // back (Android/PWA notamment) ÉJECTE du site depuis n'importe quelle profondeur.
+  // Pattern « sentinelle » : dès que la pile dépasse la racine, UNE entrée d'historique
+  // est poussée. Back la consomme → on dépile d'un cran et on la re-pousse tant qu'il
+  // reste de la profondeur. À la racine d'un onglet, back quitte normalement.
+  const sentinelle = useRef(false);
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    const onPop = () => {
+      sentinelle.current = false; // l'entrée vient d'être consommée par le navigateur
+      setStack((s) => (s.length > 1 ? s.slice(0, -1) : s));
+    };
+    window.addEventListener("popstate", onPop);
+    return () => window.removeEventListener("popstate", onPop);
+  }, []);
+  useEffect(() => {
+    if (Platform.OS !== "web" || typeof window === "undefined") return;
+    if (stack.length > 1 && !sentinelle.current) {
+      window.history.pushState({ scrutoir: true }, "");
+      sentinelle.current = true;
+    } else if (stack.length === 1 && sentinelle.current) {
+      // Retour à la racine par le bouton « Retour » in-app : on retire la sentinelle
+      // pour que le PROCHAIN back du navigateur sorte du site sans cran mort.
+      sentinelle.current = false;
+      window.history.back();
+    }
+  }, [stack.length]);
 
   const root = stack[0].name;
   const keyboardOpen = useKeyboardOpen(); // masque la barre d'onglets quand le clavier est ouvert
