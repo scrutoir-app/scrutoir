@@ -40,7 +40,7 @@ jobs:
       # Amendements.json.zip (~270 Mo) n'est re-téléchargé que s'il a changé (ETag 304).
       # Clé unique par run pour toujours sauvegarder ; restore-keys récupère le dernier cache.
       - name: Cache des données brutes AN (data/raw)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: data/raw
           key: raw-${{ github.run_id }}
@@ -51,7 +51,7 @@ jobs:
       # entre runs (sinon re-téléchargé depuis HF à chaque fois). Clé stable (le modèle
       # ne change pas tant que EMBED_MODEL/VERSION ne bougent pas).
       - name: Cache du modèle d'embeddings (.hf-cache)
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .hf-cache
           key: hf-e5-small-v1
