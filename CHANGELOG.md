@@ -7,6 +7,22 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.10.0 — 2026-07-02
+Mises à jour douces : fini le rechargement forcé en pleine session.
+- **Bandeau « Mise à jour disponible »** : le service worker n'active plus une nouvelle version
+  tout seul (avant : `skipWaiting()` + reload immédiat — un test de proximité en cours était
+  perdu si le déploiement de 7 h 10 tombait pendant la session). La nouvelle version **attend** ;
+  un bandeau au-dessus des onglets propose de recharger quand on veut (hook `swUpdate.ts`,
+  `SKIP_WAITING` posté au SW en attente, reload alors voulu).
+- **Données fraîches sans reload** : quand `version.json` change (déploiement quotidien), le SW
+  purge les entrées **mutables** du cache données (index, députés, partis — les scrutins
+  immuables restent) et prévient l'app, qui vide son cache mémoire : les écrans suivants lisent
+  les JSON du jour. Corrige le bandeau « Mis à jour le … » qui affichait la date du jour
+  au-dessus d'un feed servi de la veille par le stale-while-revalidate.
+- **Ouverture rapide en réseau lent** : le network-first (coquille, version.json) sert le cache
+  après 3,5 s au lieu d'attendre l'échec réseau du navigateur (parfois > 30 s en « lie-fi ») ;
+  la requête continue en arrière-plan et met le cache à jour.
+
 ## 1.9.0 — 2026-07-02
 Le bouton retour du navigateur navigue dans l'app, et les pages SEO ouvrent le bon écran.
 - **Retour navigateur** : le back (geste Android, souris, PWA) **dépile la navigation** au lieu

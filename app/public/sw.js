@@ -18,7 +18,7 @@
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const SHELL_VERSION = "v26";
+const SHELL_VERSION = "v27";
 // v4 : les données passent sur le projet Pages dédié (data.scrutoir.fr) — le bump purge
 // les entrées de l'ancienne origine (scrutoir.fr/data/*), devenues inaccessibles.
 const DATA_VERSION = "v4";
@@ -46,12 +46,11 @@ const PRECACHE_URLS = [
 ];
 
 self.addEventListener("install", (event) => {
-  event.waitUntil(
-    caches
-      .open(SHELL_CACHE)
-      .then((cache) => cache.addAll(PRECACHE_URLS))
-      .then(() => self.skipWaiting())
-  );
+  // PAS de skipWaiting() automatique : activer un nouveau SW en pleine session forçait
+  // un reload immédiat (un test de proximité en cours était perdu au déploiement de
+  // 7 h 10). La nouvelle version ATTEND ; l'app affiche « Mise à jour disponible »
+  // (src/swUpdate.ts) et poste SKIP_WAITING quand l'utilisateur accepte.
+  event.waitUntil(caches.open(SHELL_CACHE).then((cache) => cache.addAll(PRECACHE_URLS)));
 });
 
 self.addEventListener("activate", (event) => {
@@ -164,15 +163,27 @@ async function assembleModel(request, cacheName) {
   }
 }
 
-async function networkFirst(request, cacheName, fallbackUrl) {
+// network-first avec TIMEOUT : en « lie-fi » (réseau qui rame sans tomber), on sert le
+// cache après ~3,5 s au lieu d'attendre l'échec réseau du navigateur (parfois > 30 s
+// pour ouvrir la PWA). La requête réseau CONTINUE en arrière-plan et met le cache à
+// jour pour la prochaine navigation.
+async function networkFirst(request, cacheName, fallbackUrl, timeoutMs = 3500) {
   const cache = await caches.open(cacheName);
-  try {
-    const response = await fetch(request);
+  const reseau = fetch(request).then((response) => {
     if (response.ok) cache.put(request, response.clone());
     return response;
+  });
+  const cached = await cache.match(request);
+  if (cached) {
+    const gagnant = await Promise.race([
+      reseau.catch(() => null),
+      new Promise((r) => setTimeout(() => r(null), timeoutMs)),
+    ]);
+    return gagnant || cached;
+  }
+  try {
+    return await reseau;
   } catch (err) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
     if (fallbackUrl) {
       const fallback = await cache.match(fallbackUrl);
       if (fallback) return fallback;
@@ -181,10 +192,52 @@ async function networkFirst(request, cacheName, fallbackUrl) {
   }
 }
 
+/**
+ * version.json (network-first) + DÉTECTION DE DÉPLOIEMENT : quand `generatedAt` change,
+ * les entrées MUTABLES du cache données (index, depute/, parti/, groupe/…) sont purgées
+ * — sinon le stale-while-revalidate peut servir le feed d'HIER sous un bandeau « mis à
+ * jour aujourd'hui ». Les /data/scrutin/* (immuables) sont conservés. Les pages ouvertes
+ * sont prévenues (scrutoir:data-updated) pour vider leur cache mémoire (api.ts) : les
+ * écrans suivants repartent sur du frais, SANS reload forcé.
+ */
+async function versionStrategy(request, url) {
+  const cache = await caches.open(DATA_CACHE);
+  const ancienne = await cache.match(request);
+  const response = await networkFirst(request, DATA_CACHE);
+  if (ancienne) purgerSiNouvelleVersion(ancienne, response.clone(), url.origin);
+  return response;
+}
+
+async function purgerSiNouvelleVersion(ancienneRes, nouvelleRes, origine) {
+  try {
+    const [a, n] = await Promise.all([ancienneRes.json(), nouvelleRes.json()]);
+    if (!a?.generatedAt || !n?.generatedAt || a.generatedAt === n.generatedAt) return;
+    const cache = await caches.open(DATA_CACHE);
+    const cles = await cache.keys();
+    await Promise.all(
+      cles
+        .filter((req) => {
+          const u = new URL(req.url);
+          return (
+            u.origin === origine &&
+            u.pathname.startsWith("/data/") &&
+            !u.pathname.startsWith("/data/scrutin/") &&
+            u.pathname !== "/data/version.json"
+          );
+        })
+        .map((req) => cache.delete(req))
+    );
+    const pages = await self.clients.matchAll({ includeUncontrolled: true });
+    for (const p of pages) p.postMessage({ type: "scrutoir:data-updated" });
+  } catch {
+    /* best-effort : une purge ratée = comportement d'avant (SWR) */
+  }
+}
+
 // Stratégies des données /data/** — identiques quelle que soit l'origine (même origine
 // en dev local, projet Pages dédié en prod).
 function dataStrategy(request, url) {
-  if (url.pathname === "/data/version.json") return networkFirst(request, DATA_CACHE);
+  if (url.pathname === "/data/version.json") return versionStrategy(request, url);
   if (url.pathname.startsWith("/data/scrutin/")) return cacheFirst(request, DATA_CACHE);
   return staleWhileRevalidate(request, DATA_CACHE);
 }

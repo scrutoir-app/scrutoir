@@ -47,6 +47,7 @@ import { useOnboardingVisible, fermerOnboarding } from "./src/onboardingPrefs";
 import { TourNavigation } from "./src/components/TourNavigation";
 import { useTourNavVisible, fermerTourNav, getTourNote } from "./src/tour";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
+import { useMajApp } from "./src/swUpdate";
 import { ThemeProvider, useThemeMode } from "./src/themeMode";
 import { track } from "./src/analytics";
 
@@ -148,6 +149,7 @@ function AppInner() {
 
   const root = stack[0].name;
   const keyboardOpen = useKeyboardOpen(); // masque la barre d'onglets quand le clavier est ouvert
+  const { majDispo, appliquer: appliquerMaj } = useMajApp(); // bandeau « Mise à jour disponible » (SW en attente)
   const tourVisible = useTourNavVisible(); // tour guidé de la nav (lancé depuis le résultat du test)
   const tabRefs = useRef<any[]>([]); // nœuds des onglets, mesurés par le tour
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
@@ -339,6 +341,26 @@ function AppInner() {
           onExplore={fermerOnboarding}
           onClose={fermerOnboarding}
         />
+
+        {/* Bandeau « Mise à jour disponible » : le SW n'active plus une nouvelle version
+            tout seul (reload forcé en pleine session) — c'est l'utilisateur qui décide. */}
+        {majDispo && !keyboardOpen && (
+          <TouchableOpacity
+            onPress={appliquerMaj}
+            activeOpacity={0.85}
+            accessibilityRole="button"
+            accessibilityLabel="Mettre à jour l'application maintenant"
+            style={{
+              flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8,
+              backgroundColor: C.accent, paddingVertical: 10, paddingHorizontal: 16,
+            }}
+          >
+            <Feather name="refresh-cw" size={14} color="#fff" />
+            <Text style={{ fontFamily: F.bold, fontSize: 13, color: "#fff" }}>
+              Mise à jour disponible — toucher pour recharger
+            </Text>
+          </TouchableOpacity>
+        )}
 
         {/* Barre d'onglets : positionnement d'origine (avant v1.0.25), paddingBottom fixe.
             Pas de viewport-fit=cover/safe-area (déréglait la position en app installée).

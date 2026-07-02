@@ -40,6 +40,16 @@ function j<T>(rel: string): Promise<T> {
 type ScrutinIdx = ScrutinResume & { cats?: string[] };
 const deputesIndex = () => j<DeputeResume[]>("deputes");
 const scrutinsIndex = () => j<ScrutinIdx[]>("scrutins");
+/**
+ * Vide le cache mémoire des données. Appelé quand le SW signale un nouveau déploiement
+ * (message `scrutoir:data-updated`, cf. swUpdate.ts) : les écrans ouverts gardent leur
+ * contenu, mais toute prochaine navigation repart sur les JSON frais.
+ */
+export function viderCacheDonnees(): void {
+  cache.clear();
+  scrMapP = null;
+}
+
 let scrMapP: Promise<Map<string, ScrutinIdx>> | null = null;
 function scrutinsMap() {
   if (!scrMapP) {
