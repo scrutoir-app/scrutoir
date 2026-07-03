@@ -1,5 +1,8 @@
-# En-têtes de SÉCURITÉ (toutes les pages). CSP pragmatique : 'unsafe-inline' nécessaire
-# pour le bundle Expo + react-native-web (styles/scripts inline). img-src autorise les
+# En-têtes de SÉCURITÉ (toutes les pages). CSP : au build, patch-pwa.mjs (durcirCsp)
+# injecte dans le dist/_headers les hash sha256 des scripts inline du index.html final
+# — les navigateurs modernes ignorent alors 'unsafe-inline' (gardé en repli pour les
+# très vieux navigateurs) et n'exécutent QUE les scripts hachés. style-src garde
+# 'unsafe-inline' (styles inline de react-native-web). img-src autorise les
 # photos AN (fallback) + le self-hosting ; connect-src autorise l'envoi d'événements
 # analytics + l'API Géo officielle (geo.api.gouv.fr) pour « Trouver mon député » par
 # commune/code postal. frame-ancestors 'none' = pas d'iframe (anti-clickjacking).

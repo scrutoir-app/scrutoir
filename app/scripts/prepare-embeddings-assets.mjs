@@ -109,10 +109,28 @@ if (!r3.ok) missing.push(r3);
 //     SW réassemble le fichier entier à partir des parts (cf. app/public/sw.js), et le
 //     fichier entier est retiré du dist avant déploiement (scripts/strip-model-for-pages.mjs).
 const CHUNK = 24 * 1024 * 1024;
+// VERROU SUPPLY CHAIN : le modèle vient du repo Hugging Face communautaire
+// `Xenova/multilingual-e5-small` (téléchargé par le pipeline, seul artefact du build
+// non couvert par un lockfile). On épingle son SHA-256 : un modèle modifié/compromis
+// côté HF ferait échouer le build au lieu d'être servi à tous les visiteurs.
+// (À recalculer UNIQUEMENT lors d'un changement de modèle volontaire — avec bump de
+// EMBED_VERSION côté pipeline et MODEL_VERSION côté SW.)
+const MODEL_SHA256 = "f80102d3f2a1229f387d3c81909990d8945513e347b0eab049f7de3c6f98c193";
 if (r3.ok) {
   const onnx = path.join(PUBLIC, "models", MODEL_ID, "onnx", "model_quantized.onnx");
   if (fs.existsSync(onnx)) {
     const buf = fs.readFileSync(onnx);
+    const { createHash } = await import("node:crypto");
+    const sha = createHash("sha256").update(buf).digest("hex");
+    if (sha !== MODEL_SHA256) {
+      console.error(
+        `\n❌ SHA-256 du modèle inattendu :\n   attendu ${MODEL_SHA256}\n   obtenu  ${sha}\n` +
+        `   Le fichier téléchargé depuis Hugging Face a changé — vérifier la provenance avant de\n` +
+        `   mettre à jour MODEL_SHA256 (et bumper EMBED_VERSION / MODEL_VERSION si changement voulu).`
+      );
+      process.exit(1);
+    }
+    console.log(`  ✓ SHA-256 du modèle vérifié (${sha.slice(0, 12)}…)`);
     const dir = path.dirname(onnx);
     // Nettoie d'anciennes parts éventuelles.
     for (const f of fs.readdirSync(dir)) {

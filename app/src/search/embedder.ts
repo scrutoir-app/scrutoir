@@ -31,7 +31,14 @@ const IMPORT_MAP = {
   },
 };
 
-/** Déclare l'import map (une seule fois, AVANT tout chargement de module). */
+/**
+ * Déclare l'import map (une seule fois, AVANT tout chargement de module).
+ * En PROD, la balise est déjà injectée STATIQUEMENT dans index.html par patch-pwa.mjs
+ * (couverte par les hash CSP — une injection runtime serait bloquée) : on la détecte
+ * et on ne fait rien. Cette injection runtime reste le repli du dev Expo (sans CSP).
+ * ⚠️ IMPORT_MAP ci-dessus doit rester EN PHASE avec IMPORT_MAP_JSON de patch-pwa.mjs
+ * (vérifié au build par verifierImportMapSync).
+ */
 function injecterImportMap(): void {
   if (document.querySelector('script[type="importmap"][data-scrutoir-transformers]')) return;
   const im = document.createElement("script");

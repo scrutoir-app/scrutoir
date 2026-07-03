@@ -36,5 +36,9 @@
     "check:data": "node scripts/check-data-freshness.mjs",
     "deploy:pages": "node scripts/check-data-freshness.mjs && node scripts/split-data-site.mjs && npx wrangler pages deploy .data-site --project-name=scrutoir-data --branch=main --commit-dirty=true && npx wrangler pages deploy dist --project-name=scrutoir --branch=main --commit-dirty=true"
   },
-  "private": true
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "AGPL-3.0-only"
 }

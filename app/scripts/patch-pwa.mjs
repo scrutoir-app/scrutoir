@@ -121,6 +121,39 @@ const SPLASH_BODY = `
       })();
     </script>`;
 
+/**
+ * Import map de la recherche sémantique, injecté STATIQUEMENT (et donc couvert par
+ * les hash CSP de durcirCsp) — l'injection au runtime par embedder.ts serait bloquée
+ * par une CSP à hash sur les navigateurs modernes. embedder.ts détecte cette balise
+ * (attribut data-scrutoir-transformers) et saute sa propre injection ; son injection
+ * runtime reste le repli du dev Expo (sans CSP). ⚠️ CONTENU À GARDER EN PHASE avec
+ * IMPORT_MAP dans src/search/embedder.ts — vérifié au build par verifierImportMapSync().
+ */
+const IMPORT_MAP_JSON = JSON.stringify({
+  imports: {
+    "onnxruntime-web": "/ort/ort.bundle.min.mjs",
+    "onnxruntime-web/webgpu": "/ort/ort.webgpu.bundle.min.mjs",
+    "onnxruntime-common": "/ort/common/index.js",
+  },
+});
+const IMPORTMAP_TAG = `
+    <script type="importmap" data-scrutoir-transformers="1">${IMPORT_MAP_JSON}</script>`;
+
+/** Échoue le build si l'import map ci-dessus a divergé de src/search/embedder.ts. */
+async function verifierImportMapSync() {
+  const src = await readFile(join(__dirname, "..", "src", "search", "embedder.ts"), "utf8");
+  const attendu = JSON.parse(IMPORT_MAP_JSON).imports;
+  for (const [spec, url] of Object.entries(attendu)) {
+    if (!src.includes(`"${spec}": "${url}"`)) {
+      console.error(
+        `[patch-pwa] IMPORT MAP DÉSYNCHRONISÉ : « ${spec} → ${url} » absent de src/search/embedder.ts.\n` +
+        `  Mettre à jour IMPORT_MAP_JSON (patch-pwa.mjs) ET IMPORT_MAP (embedder.ts) ensemble.`
+      );
+      process.exit(1);
+    }
+  }
+}
+
 const SW_SCRIPT = `
     <!-- ${MARKER}-sw -->
     <script>
@@ -192,6 +225,49 @@ async function fixVendorFonts() {
   }
 }
 
+/**
+ * Durcit la CSP de dist/_headers : hash sha256 de CHAQUE <script> inline du
+ * index.html FINAL (splash, enregistrement SW, et tout inline qu'Expo ajouterait
+ * un jour — on hache ce qui est réellement servi, pas ce qu'on croit injecter).
+ * `'unsafe-inline'` est CONSERVÉ dans script-src comme repli pour les très vieux
+ * navigateurs : dès qu'un hash est présent, les navigateurs CSP2+ (tous les
+ * navigateurs modernes) l'IGNORENT et n'exécutent que les scripts hachés — une
+ * injection HTML ne peut donc plus exécuter de script inline arbitraire.
+ * Les <script type="application/ld+json"> des pages SEO sont des blocs de
+ * données (jamais exécutés) : la CSP script-src ne s'y applique pas.
+ */
+async function durcirCsp(html) {
+  const { createHash } = await import("node:crypto");
+  const headersPath = join(distDir, "_headers");
+  let headers;
+  try {
+    headers = await readFile(headersPath, "utf8");
+  } catch {
+    console.warn("[patch-pwa] dist/_headers introuvable — CSP non durcie.");
+    return;
+  }
+  const hashes = [];
+  for (const m of html.matchAll(/<script(?![^>]*\bsrc=)([^>]*)>([\s\S]*?)<\/script>/gi)) {
+    const type = (m[1] || "").match(/type="([^"]*)"/i)?.[1];
+    if (type && /json/i.test(type)) continue; // blocs de données (ld+json) — jamais exécutés
+    hashes.push(`'sha256-${createHash("sha256").update(m[2], "utf8").digest("base64")}'`); // scripts + importmap
+  }
+  if (!hashes.length) {
+    console.warn("[patch-pwa] aucun script inline trouvé — CSP laissée telle quelle.");
+    return;
+  }
+  const nouvelle = headers.replace(
+    "script-src 'self' 'unsafe-inline'",
+    `script-src 'self' 'unsafe-inline' ${hashes.join(" ")}`
+  );
+  if (nouvelle === headers) {
+    console.warn("[patch-pwa] motif « script-src 'self' 'unsafe-inline' » introuvable dans _headers — CSP non durcie.");
+    return;
+  }
+  await writeFile(headersPath, nouvelle, "utf8");
+  console.log(`[patch-pwa] CSP durcie : ${hashes.length} hash(es) de script inline injecté(s) dans dist/_headers.`);
+}
+
 async function main() {
   try {
     await access(distHtml);
@@ -208,14 +284,16 @@ async function main() {
 
   if (html.includes(MARKER)) {
     console.log("[patch-pwa] index.html déjà patché, rien à faire.");
+    await durcirCsp(html); // dist/_headers est refait à chaque export : re-hacher quand même
     return;
   }
 
   // lang="fr" (Expo génère lang="en")
   html = html.replace(/<html\s+lang="[^"]*"/i, '<html lang="fr"');
 
-  // Balises <head> avant </head>
-  html = html.replace("</head>", `${HEAD_TAGS}\n  </head>`);
+  // Balises <head> avant </head> (+ import map statique de la recherche sémantique)
+  await verifierImportMapSync();
+  html = html.replace("</head>", `${HEAD_TAGS}${IMPORTMAP_TAG}\n  </head>`);
 
   // Splash de chargement juste après l'ouverture de <body> (s'affiche avant le bundle)
   html = html.replace(/(<body[^>]*>)/i, `$1${SPLASH_BODY}`);
@@ -225,6 +303,7 @@ async function main() {
 
   await writeFile(distHtml, html, "utf8");
   console.log("[patch-pwa] index.html patché (manifest + theme-color + apple meta + SW).");
+  await durcirCsp(html);
 }
 
 main();

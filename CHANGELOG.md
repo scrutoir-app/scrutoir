@@ -7,6 +7,26 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.11.1 — 2026-07-03
+Durcissement sécurité (supply chain, CSP) et hygiène du dépôt — dernier lot de l'audit.
+- **CSP par hash** : au build, `patch-pwa.mjs` (durcirCsp) hache tous les scripts inline du
+  `index.html` final et injecte les `'sha256-…'` dans `dist/_headers` — les navigateurs modernes
+  ignorent alors `'unsafe-inline'` (gardé en repli legacy) : une injection HTML ne peut plus
+  exécuter de script arbitraire. L'**import map** de la recherche sémantique est désormais
+  injectée **statiquement** (hachée aussi) — l'injection runtime restait bloquée par une CSP à
+  hash ; `embedder.ts` la détecte (repli dev inchangé), synchronisation vérifiée au build.
+  Testé en local avec la CSP réellement appliquée : app + activation du modèle + recherche
+  sémantique complètes, 0 violation.
+- **Supply chain** : actions GitHub épinglées par **SHA de commit** (Dependabot les met à jour) ;
+  **SHA-256 du modèle e5-small épinglé** (`prepare-embeddings-assets.mjs`) — un modèle modifié
+  côté Hugging Face fait échouer le build au lieu d'être servi aux visiteurs.
+- **Licence AGPL-3.0** (LICENSE + README + package.json) : le code du dépôt public est
+  officiellement libre, avec obligation de republier les modifications (y compris en service).
+- Hygiène : `.nvmrc` (24) + `engines` dans les 3 paquets, `analytics/.dev.vars` git-ignoré,
+  **6 composants morts supprimés** (~700 lignes : CategoryGrid, CategoryTile, ThemePicker,
+  LoyauteBadge, MesSuivis, VoteBar), CLAUDE.md dépoussiéré (strates « migration en cours »
+  et notes périmées corrigées).
+
 ## 1.11.0 — 2026-07-02
 Accessibilité : lecteurs d'écran, clavier et contrastes.
 - **Contrastes WCAG AA** : `textFaint` (labels d'onglets inactifs, captions, messages) passe de

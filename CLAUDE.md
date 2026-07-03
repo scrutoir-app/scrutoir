@@ -11,7 +11,8 @@ Objectif : confronter discours et actes, de façon **neutre** (aucune couleur de
 - `api/` — API HTTP Express au-dessus de la base (port **4000**).
 - `app/` — app **Expo / React Native** (web + iOS + Android).
 - `data/` — `votes.db` + archives brutes (git-ignoré).
-- Base en SQLite (prototype) ; schéma **portable vers Postgres/Supabase** pour la mise en ligne.
+- Base en SQLite (outil de build : reconstruite à chaque ingestion, jamais déployée — la prod est
+  100 % statique, cf. section architecture).
 
 ## ⚠️ Lancer le projet (Node via nvm — PAS de Docker/Homebrew sur la machine)
 ```bash
@@ -32,14 +33,20 @@ cd ../app && npm run web                            # app -> http://localhost:80
   ```
   ⚠️ Lien **temporaire** (change à chaque lancement, vit tant que le Mac + les 2 process tournent).
 
-## 🚧 MIGRATION EN COURS — ARCHITECTURE CIBLE : TOUT STATIQUE (Cloudflare Pages)
-**Décisions actées (non négociables), coût d'usage ≈ 0 € :**
+## ✅ ARCHITECTURE EN PROD : TOUT STATIQUE (Cloudflare Pages) — journal de construction
+> **État courant (juil. 2026)** : en prod sur **scrutoir.fr**, données sur **data.scrutoir.fr**
+> (2ᵉ projet Pages `scrutoir-data` — plafond de 20 000 fichiers PAR projet, cf. `DEPLOY-static.md`).
+> Version courante : `APP_VERSION` (`app/src/config.ts`) + `CHANGELOG.md`. CI : `refresh.yml`
+> (cron quotidien, gardes + 2 déploiements ordonnés) + `ci.yml` (typecheck/tests sur push/PR).
+> ⚠️ Les blocs « FAIT (étape N) » ci-dessous sont un JOURNAL : des détails ponctuels ont pu
+> évoluer depuis (la référence = le code + README + DEPLOY-static.md + CHANGELOG).
+
+**Décisions actées, coût d'usage ≈ 0 € (et sans carte bancaire) :**
 - **Abandon du serveur Express en prod** (l'API Express devient dev-only). La donnée (lecture seule,
   par lots) est **pré-générée en JSON** et servie en **statique sur Cloudflare Pages** (gratuit, egress
   gratuit, requêtes d'assets non plafonnées). Pas de Worker/D1/R2 (inutile : tout se résout en statique).
-- **Dépôt public**, **refresh quotidien** par GitHub Action, démarrage sur **`scrutoir.pages.dev`**
-  (domaine `scrutoir.fr` plus tard). **v1 = PWA installable** ; apps natives iOS/Android **repoussées**
-  (donc pas de prérequis stores pour l'instant). Push repoussé.
+- **Dépôt public**, **refresh quotidien** par GitHub Action. **v1 = PWA installable** ; apps natives
+  iOS/Android **repoussées** (donc pas de prérequis stores pour l'instant). Push repoussé.
 - ⚠️ NE PAS reconduire le piège « base 174 Mo téléchargée au boot » (archi Render/`DEPLOY.md` obsolète).
 
 **FAIT (étapes 1-2, commit `Archi statique (étapes 1-2)`), vérifié en local :**
@@ -88,8 +95,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   sidecar `data/raw/*.etag`, `If-None-Match`, 304 → garde le local). Nouveau flag `--refresh` +
   script **`npm run ingest:refresh`** (CI). Les modes `force`/défaut sont inchangés (dev local). Signatures
   `assurer*` passées de `(force)` à `({force, refresh})` ; call sites à jour (ingest.ts, linkAmendements.ts).
-  ⚠️ Typecheck : 3 erreurs **préexistantes** restantes sur `propagees` (classify.ts/ingest.ts), sans rapport
-  (tsx ne typecheck pas → runtime OK) — à corriger à part.
+  (Typecheck : `npx tsc --noEmit` passe à 0 erreur dans les 3 paquets — vérifié en CI à chaque push.)
 - **`.github/workflows/refresh.yml`** : cron 05:10 UTC + `workflow_dispatch`. Steps : checkout → node 24 →
   cache `data/raw` (clé `raw-<run_id>` + restore-keys `raw-` → profite du 304 sur Amendements 270 Mo) →
   `npm ci` (pipeline) → `ingest:refresh` → `export:static` → `npm ci` (app) → `build:web` →
@@ -107,7 +113,7 @@ cd ../app && npm run web                            # app -> http://localhost:80
   (`fonzie`/`liberty.ns.cloudflare.com`), zone active, custom domain ajouté au projet Pages `scrutoir`.
   Gandi reste le registrar/facturation. HTTPS auto OK. **`www.scrutoir.fr`** aussi branché (custom domain
   Pages, sert l'app — pas de redirection canonique, raffinable plus tard via Redirect Rules).
-- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos), `CHANGELOG.md`. Version **1.2.0**.
+- Versionnage : `APP_VERSION` dans `app/src/config.ts` (affiché écran Infos) + `CHANGELOG.md` (source de vérité).
 - **Schéma pédagogique « parcours d'une loi »** (v1.2.0) : `components/ParcoursLoi.tsx` (surcouche réutilisable :
   timeline 6 étapes + glossaire, accent unique sur le scrutin public, hémicycle animé, reduce-motion). Contenu dans
   `content/parcoursLoi.ts` (fichier de chaînes UNIQUE, versionné `PARCOURS_VERSION`). Points d'entrée : interstitiel
@@ -136,8 +142,9 @@ cd ../app && npm run web                            # app -> http://localhost:80
   des élu·e·s suivi·e·s (follows.ts), badge « Nouveau » via `getLastSeen`/`markSeen` (localStorage). 100 %
   client-side. ⚠️ Le **push réel** (notif hors-app) reste à faire (nécessite un serveur ; `notifierNouveauxVotes`
   est toujours un stub). PWA iOS 16.4+ supporte le web push mais il faut un serveur d'envoi.
-- Mises à jour auto (plus de réinstall) : SW vérifie au lancement + à chaque réouverture, recharge à la prise
-  de contrôle (script dans `patch-pwa.mjs`). Caches SW séparés SHELL (bump/release) / DATA (stable).
+- Mises à jour douces (v1.10.0) : le SW vérifie au lancement + à chaque réouverture ; une nouvelle version
+  ATTEND (plus de skipWaiting/reload forcé) et l'app affiche un bandeau « Mise à jour disponible »
+  (`src/swUpdate.ts`). Caches SW séparés SHELL (bump/release) / DATA / MODEL.
 - **Refresh quotidien ACTIF** (GitHub Actions) : dépôt **public** `github.com/scrutoir-app/scrutoir`,
   workflow `refresh.yml` (cron 05:10 UTC + `workflow_dispatch`), secrets `CLOUDFLARE_API_TOKEN` (jeton custom
   Pages:Edit) + `CLOUDFLARE_ACCOUNT_ID` posés. 1ʳᵉ exécution manuelle vérifiée OK (4 min, déploie sur Pages).

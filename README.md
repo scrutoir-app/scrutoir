@@ -65,3 +65,9 @@ thématique (12 catégories) est calculée automatiquement à partir de l'intitu
 Données non officielles, à titre informatif, à lire avec nuance. Aucun compte requis, aucune
 donnée personnelle collectée ; mesure d'audience anonyme et agrégée. Détail dans l'app
 (onglet **Infos** → « À propos & limites » + mentions légales).
+
+## Licence
+
+Code sous **[AGPL-3.0](LICENSE)** : réutilisation et contributions bienvenues, à condition que
+toute version modifiée — y compris exploitée comme service en ligne — reste libre sous la même
+licence. Les données proviennent de l'Open Data de l'Assemblée nationale (licence Etalab).

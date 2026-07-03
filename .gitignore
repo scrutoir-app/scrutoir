@@ -11,3 +11,6 @@ app/public/models/
 app/public/ort/
 app/public/vendor/*.min.js
 .hf-cache/
+
+# Secrets locaux wrangler (worker analytics) — jamais committés
+analytics/.dev.vars
