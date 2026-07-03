@@ -110,7 +110,7 @@ jobs:
       # 1/2 — les DONNÉES d'abord : les pages SEO fraîchement générées référencent des
       # scrutins qui doivent déjà exister côté data quand l'app est publiée.
       - name: Déployer les données (projet scrutoir-data)
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -118,7 +118,7 @@ jobs:
 
       # 2/2 — l'app (bundle + pages SEO), sans /data.
       - name: Déployer l'app (projet scrutoir)
-        uses: cloudflare/wrangler-action@9acf94ace14e7dc412b076f2c5c20b8ce93c79cd # v3
+        uses: cloudflare/wrangler-action@ebbaa1584979971c8614a24965b4405ff95890e0 # v4.0.0
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
