@@ -1,7 +1,8 @@
 import React, { useRef, useEffect, useMemo } from "react";
-import { View, Text, TouchableOpacity, Animated, Easing, AccessibilityInfo } from "react-native";
+import { View, Text, Animated, Easing, AccessibilityInfo } from "react-native";
 import Svg, { Circle } from "react-native-svg";
-import { C, F, T, RADIUS, shadowCard, couleurGroupe } from "../theme";
+import { C, F, T, couleurGroupe } from "../theme";
+import { Button } from "./ui";
 import { ownersFor, type GroupeGeo } from "./hemicycleGeo";
 
 const AnimatedCircle = Animated.createAnimatedComponent(Circle);
@@ -141,13 +142,12 @@ export function IntroQuestionMark({
           Et toi, tu votes comment ?
         </Text>
         {!hideCta && (
-          <TouchableOpacity
-            onPress={onStart}
-            activeOpacity={0.85}
-            style={{ marginTop: 16, backgroundColor: C.accent, borderRadius: RADIUS.pill, paddingHorizontal: 26, paddingVertical: 13, ...shadowCard }}
-          >
-            <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>Commencer</Text>
-          </TouchableOpacity>
+          <Button
+            label="Commencer"
+            onPress={() => onStart?.()}
+            variant="primary"
+            style={{ marginTop: 16 }}
+          />
         )}
       </Animated.View>
     </View>

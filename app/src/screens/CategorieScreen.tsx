@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, FlatList, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T } from "../theme";
+import { Card } from "../components/ui";
 import { getScrutinsCategorie, getTestProximite } from "../api";
 import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
@@ -46,23 +47,24 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
           <Text style={[T.title, { color: C.text }]}>{libelle}</Text>
 
           {testActif ? (
-            <TouchableOpacity
-              activeOpacity={0.85}
+            <Card
               onPress={() => nav.push({ name: "testIntro", theme: id, themeLibelle: libelle })}
-              style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 11, paddingHorizontal: 14, marginTop: 14, borderWidth: 1, borderColor: C.border, ...shadowCard }}
+              activeOpacity={0.85}
+              bordered
+              style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 11, marginTop: 14 }}
             >
               <Feather name="help-circle" size={18} color={C.accent} />
               <Text style={[T.small, { flex: 1, fontFamily: F.bold, color: C.text }]} numberOfLines={1}>Teste ta proximité sur {libelle}</Text>
               <Feather name="chevron-right" size={18} color={C.textFaint} />
-            </TouchableOpacity>
+            </Card>
           ) : (
-            <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 11, paddingHorizontal: 14, marginTop: 14, borderWidth: 1, borderColor: C.border, opacity: 0.6 }}>
+            <Card raised={false} bordered style={{ paddingVertical: 11, marginTop: 14, opacity: 0.6 }}>
               <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
                 <Feather name="lock" size={16} color={C.textFaint} />
                 <Text style={[T.small, { flex: 1, fontFamily: F.bold, color: C.textMuted }]} numberOfLines={1}>Teste ta proximité sur {libelle}</Text>
               </View>
               <Text style={[T.micro, { color: C.textFaint, marginTop: 6 }]}>{MSG_THEME_VERROUILLE}</Text>
-            </View>
+            </Card>
           )}
 
           <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginTop: 18, marginBottom: 2 }]}>

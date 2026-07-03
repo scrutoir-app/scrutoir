@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from "react-native";
 import { C, F, T, formatDate, positionLabel } from "../theme";
+import { Chip } from "../components/ui";
 import { getDissidences } from "../api";
 import type { Dissidence } from "../types";
 import type { Nav } from "../nav";
@@ -51,20 +52,12 @@ export function DissidencesScreen({ uid, nom, nav }: { uid: string; nom: string;
             {item.titre || item.objet}
           </Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 6, flexWrap: "wrap" }}>
-            <Pastille texte={`A voté : ${positionLabel(item.position)}`} fg={C.loyalBas} bg={C.loyalBasBg} />
-            <Pastille texte={`Consigne : ${positionLabel(item.consigne)}`} fg={C.textMuted} bg={C.surfaceAlt} />
+            <Chip label={`A voté : ${positionLabel(item.position)}`} fg={C.loyalBas} bg={C.loyalBasBg} radius={8} ph={8} bold={false} />
+            <Chip label={`Consigne : ${positionLabel(item.consigne)}`} fg={C.textMuted} bg={C.surfaceAlt} radius={8} ph={8} bold={false} />
             <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>{formatDate(item.date)}</Text>
           </View>
         </TouchableOpacity>
       )}
     />
-  );
-}
-
-function Pastille({ texte, fg, bg }: { texte: string; fg: string; bg: string }) {
-  return (
-    <View style={{ backgroundColor: bg, paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8 }}>
-      <Text style={[T.micro, { color: fg }]}>{texte}</Text>
-    </View>
   );
 }

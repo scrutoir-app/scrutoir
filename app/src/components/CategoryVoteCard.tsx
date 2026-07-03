@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum } from "../theme";
+import { Card } from "./ui";
 import { catUI } from "../categoryUI";
 import { SEUIL_FIABILITE } from "../config";
 import { PositionCells } from "./PositionCells";
@@ -40,7 +41,7 @@ export function CategoryVoteCard({
   ];
 
   return (
-    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+    <Card padding={13}>
       <TouchableOpacity
         activeOpacity={0.6}
         onPress={onToggle}
@@ -91,6 +92,6 @@ export function CategoryVoteCard({
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </Card>
   );
 }

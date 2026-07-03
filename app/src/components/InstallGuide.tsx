@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, TouchableOpacity, Modal, ScrollView } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
-import { C, F, T, shadowCard } from "../theme";
+import { C, F, T } from "../theme";
+import { Card } from "./ui";
 
 /**
  * Guide illustré « Installer Scrutoir sur iPhone ». Ouvert depuis le bandeau
@@ -64,7 +65,7 @@ export function InstallGuide({ visible, onClose }: { visible: boolean; onClose: 
       >
         {/* Carte : onPress vide pour ne pas fermer quand on tape dedans. */}
         <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ alignSelf: "center", width: "100%", maxWidth: 380 }}>
-          <View style={{ backgroundColor: C.surface, borderRadius: 20, padding: 18, ...shadowCard }}>
+          <Card radius={20} padding={18}>
             <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 3 }}>
               <Text style={[T.heading, { color: C.text, flex: 1 }]}>Installer sur iPhone ou iPad</Text>
               <TouchableOpacity onPress={onClose} hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }} style={{ padding: 2 }}>
@@ -187,7 +188,7 @@ export function InstallGuide({ visible, onClose }: { visible: boolean; onClose: 
                 </Text>
               </View>
             </ScrollView>
-          </View>
+          </Card>
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>

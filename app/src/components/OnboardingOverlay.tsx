@@ -1,7 +1,8 @@
 import React from "react";
 import { Modal, View, Text, TouchableOpacity, SafeAreaView } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T } from "../theme";
+import { Button } from "./ui";
 import { ScrutoirLogo } from "./brand/ScrutoirLogo";
 
 /**
@@ -45,18 +46,22 @@ export function OnboardingOverlay({
             Réponds à de vrais votes de l'Assemblée. On te situe face à chaque groupe, thème par thème.
           </Text>
 
-          <TouchableOpacity
-            activeOpacity={0.85}
+          <Button
+            label="Commencer le test · 2 min"
             onPress={onStart}
-            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 9, marginTop: 34, backgroundColor: C.accent, borderRadius: RADIUS.pill, paddingVertical: 16, ...shadowCard }}
-          >
-            <Feather name="check-circle" size={19} color="#fff" />
-            <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>Commencer le test · 2 min</Text>
-          </TouchableOpacity>
+            variant="primary"
+            fullWidth
+            iconLeft={<Feather name="check-circle" size={19} color="#fff" />}
+            style={{ marginTop: 34 }}
+          />
 
-          <TouchableOpacity activeOpacity={0.7} onPress={onExplore} style={{ alignItems: "center", marginTop: 18 }}>
-            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Explorer les votes d'abord</Text>
-          </TouchableOpacity>
+          <Button
+            label="Explorer les votes d'abord"
+            onPress={onExplore}
+            variant="text"
+            size="sm"
+            style={{ marginTop: 18 }}
+          />
         </View>
       </SafeAreaView>
     </Modal>

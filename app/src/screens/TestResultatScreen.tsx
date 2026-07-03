@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe } from "../theme";
+import { C, F, T, tnum, RADIUS, couleurGroupe } from "../theme";
+import { Card, Button } from "../components/ui";
 import { getTestProximite, getPartis, getCategories } from "../api";
 import { catUI } from "../categoryUI";
 import type { PartiResume, CategorieRef } from "../types";
@@ -213,7 +214,7 @@ export function TestResultatScreen({
 
       {/* Résultat : une carte, des rangées compactes (pastille · nom · barre · %). Top-N replié,
           le reste derrière « Voir les N partis ». Pastille discrète = échantillon faible (< 7). */}
-      <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border, overflow: "hidden", ...shadowCard }}>
+      <Card bordered padding={0} style={{ overflow: "hidden" }}>
         {visibles.map((g, i) => {
           const n = comparableTotal(g.abrev);
           const fiable = n >= 2;
@@ -247,10 +248,10 @@ export function TestResultatScreen({
             </Text>
           </TouchableOpacity>
         )}
-      </View>
+      </Card>
 
       {/* Reste au courant (suivi, version A) : relie explicitement le suivi au digest d'accueil. */}
-      <View style={{ marginTop: 14, backgroundColor: C.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border, padding: 16, ...shadowCard }}>
+      <Card bordered padding={16} style={{ marginTop: 14 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
             <Feather name="bell" size={18} color={C.accent} />
@@ -273,23 +274,26 @@ export function TestResultatScreen({
           </TouchableOpacity>
         )}
         {/* L'app ne mémorise pas le député de l'utilisateur → « Trouver ton député » vers monDepute. */}
-        <TouchableOpacity
+        <Button
+          label="Trouver ton député"
           onPress={() => nav.push({ name: "monDepute" })}
-          activeOpacity={0.8}
-          style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8, paddingVertical: 11, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.accent }}
-        >
-          <Feather name="user" size={17} color={C.accent} />
-          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Trouver ton député</Text>
-        </TouchableOpacity>
-      </View>
+          variant="outline"
+          size="sm"
+          fullWidth
+          iconLeft={<Feather name="user" size={17} color={C.accent} />}
+          style={{ marginTop: 8 }}
+        />
+      </Card>
 
       {/* Ce qui compte pour toi : accordéon REPLIÉ par défaut (réglage ponctuel, ne doit pas
           occuper la page). À l'ouverture : segmentés Peu/Normal/Fort, recalcul du global en direct. */}
       <View style={{ marginTop: 24 }}>
-        <TouchableOpacity
+        <Card
           onPress={() => setPoidsOuvert((v) => !v)}
+          bordered
           activeOpacity={0.8}
-          style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border, padding: 14, ...shadowCard }}
+          accessibilityState={{ expanded: poidsOuvert }}
+          style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
         >
           <Feather name="sliders" size={19} color={C.accent} />
           <View style={{ flex: 1 }}>
@@ -297,11 +301,11 @@ export function TestResultatScreen({
             <Text style={[T.micro, { color: C.textMuted, marginTop: 2 }]}>{resumePoids}</Text>
           </View>
           <Feather name={poidsOuvert ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
-        </TouchableOpacity>
+        </Card>
         {poidsOuvert && (
           <View style={{ marginTop: 12 }}>
             <Text style={[T.small, { color: C.textMuted, marginBottom: 8 }]}>Donne plus ou moins de poids à un thème, le classement se recalcule.</Text>
-            <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.lg, borderWidth: 1, borderColor: C.border, paddingHorizontal: 14, ...shadowCard }}>
+            <Card bordered radius={RADIUS.lg} padding={0} style={{ paddingHorizontal: 14 }}>
               {themesVisibles.map((t, i) => {
                 const dernier = i === themesVisibles.length - 1;
                 return (
@@ -320,15 +324,25 @@ export function TestResultatScreen({
                   </View>
                 );
               })}
-            </View>
+            </Card>
             {themes.length > POIDS_N && (
-              <TouchableOpacity onPress={() => setThemesTous((v) => !v)} activeOpacity={0.7} style={{ alignItems: "center", paddingVertical: 11 }}>
-                <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>{themesTous ? "Réduire" : `Voir les ${themes.length} thèmes ›`}</Text>
-              </TouchableOpacity>
+              <Button
+                label={themesTous ? "Réduire" : `Voir les ${themes.length} thèmes ›`}
+                onPress={() => setThemesTous((v) => !v)}
+                variant="text"
+                size="sm"
+                fullWidth
+              />
             )}
-            <TouchableOpacity onPress={reinitPoids} activeOpacity={0.7} style={{ alignItems: "center", paddingVertical: 6, marginTop: themes.length > POIDS_N ? 0 : 8 }}>
-              <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>Réinitialiser les poids</Text>
-            </TouchableOpacity>
+            <Button
+              label="Réinitialiser les poids"
+              onPress={reinitPoids}
+              variant="text"
+              size="sm"
+              muted
+              fullWidth
+              style={{ marginTop: themes.length > POIDS_N ? 0 : 8 }}
+            />
           </View>
         )}
       </View>
@@ -336,7 +350,8 @@ export function TestResultatScreen({
       {/* Sortie de fin de parcours : le test est un point d'entrée → action claire pour entrer
           dans l'appli. Primaire plein = accueil (« Voir mon accueil » si déjà des suivis, sinon
           « Découvrir l'appli »). Partage en secondaire contour. Repartir de zéro en lien discret. */}
-      <TouchableOpacity
+      <Button
+        label={aSuivi ? "Voir mon accueil" : "Découvrir l'appli"}
         onPress={() => {
           if (aSuivi) { nav.reset({ name: "search" }); return; }
           // Sans suivi, l'accueil resterait vide (il renvoie au test). On suit donc, pour
@@ -349,20 +364,30 @@ export function TestResultatScreen({
             ouvrirTourNav("Suis un groupe pour remplir ton accueil. Tu gères tes suivis sur l'écran « Partis ».");
           }
         }}
-        activeOpacity={0.85}
-        style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 9, marginTop: 24, backgroundColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 14, ...shadowCard }}
-      >
-        <Feather name={aSuivi ? "home" : "compass"} size={18} color="#fff" />
-        <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>{aSuivi ? "Voir mon accueil" : "Découvrir l'appli"}</Text>
-        <Feather name="arrow-right" size={18} color="#fff" />
-      </TouchableOpacity>
-      <TouchableOpacity onPress={onShare} activeOpacity={0.85} style={{ flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 9, marginTop: 10, borderWidth: 1, borderColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 13 }}>
-        <Feather name="share-2" size={17} color={C.accent} />
-        <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>{partageMsg ?? "Partager mon résultat"}</Text>
-      </TouchableOpacity>
-      <TouchableOpacity onPress={repartirDeZero} activeOpacity={0.7} style={{ alignItems: "center", marginTop: 14 }}>
-        <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>Repartir de zéro</Text>
-      </TouchableOpacity>
+        variant="primary"
+        fullWidth
+        iconLeft={<Feather name={aSuivi ? "home" : "compass"} size={18} color="#fff" />}
+        iconRight={<Feather name="arrow-right" size={18} color="#fff" />}
+        style={{ marginTop: 24 }}
+      />
+      <Button
+        label={partageMsg ?? "Partager mon résultat"}
+        onPress={onShare}
+        variant="outline"
+        size="sm"
+        fullWidth
+        iconLeft={<Feather name="share-2" size={17} color={C.accent} />}
+        style={{ marginTop: 10 }}
+      />
+      <Button
+        label="Repartir de zéro"
+        onPress={repartirDeZero}
+        variant="text"
+        size="sm"
+        muted
+        fullWidth
+        style={{ marginTop: 14 }}
+      />
     </ScrollView>
   );
 }

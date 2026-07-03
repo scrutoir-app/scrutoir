@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TouchableOpacity, Platform } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS } from "../theme";
+import { C, F, T } from "../theme";
+import { Button } from "./ui";
 import { ScrutoirMark } from "./ScrutoirMark";
 import { InstallGuide } from "./InstallGuide";
 import { getDeferredPrompt, onPromptChange, promptInstall, isStandalone, isIOS } from "../pwa";
@@ -107,12 +108,7 @@ export function InstallPrompt() {
                 Accès en un tap, hors-ligne, sans passer par un store.
               </Text>
             </View>
-            <TouchableOpacity
-              onPress={install}
-              style={{ backgroundColor: C.accent, paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.pill }}
-            >
-              <Text style={[T.small, { color: "#fff", fontFamily: F.semibold }]}>Installer</Text>
-            </TouchableOpacity>
+            <Button label="Installer" onPress={install} variant="primary" size="sm" />
           </>
         )}
 

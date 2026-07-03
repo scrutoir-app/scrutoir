@@ -2,7 +2,8 @@ import React, { useEffect, useMemo, useRef } from "react";
 import { View, Text, TouchableOpacity, Modal, ScrollView, Animated, Easing, AccessibilityInfo } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS } from "../theme";
+import { Card, Button } from "./ui";
 import { track } from "../analytics";
 import {
   ETAPES,
@@ -132,7 +133,7 @@ export function ParcoursLoi({
         style={{ flex: 1, backgroundColor: "rgba(10,12,15,0.5)", justifyContent: "center", padding: 18 }}
       >
         <TouchableOpacity activeOpacity={1} onPress={() => {}} style={{ alignSelf: "center", width: "100%", maxWidth: 400 }}>
-          <View style={{ backgroundColor: C.surface, borderRadius: 20, ...shadowCard, overflow: "hidden" }}>
+          <Card padding={0} radius={20} style={{ overflow: "hidden" }}>
             {/* En-tête */}
             <View style={{ flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", padding: 18, paddingBottom: 10 }}>
               <View style={{ flex: 1, paddingRight: 10 }}>
@@ -207,15 +208,15 @@ export function ParcoursLoi({
                 ))}
               </View>
 
-              <TouchableOpacity
+              <Button
+                label="J'ai compris"
                 onPress={fermer}
-                activeOpacity={0.85}
-                style={{ marginTop: 6, backgroundColor: C.accent, borderRadius: RADIUS.md, paddingVertical: 13, alignItems: "center" }}
-              >
-                <Text style={{ color: "#fff", fontFamily: F.bold, fontSize: 15 }}>J'ai compris</Text>
-              </TouchableOpacity>
+                variant="primary"
+                fullWidth
+                style={{ marginTop: 6 }}
+              />
             </ScrollView>
-          </View>
+          </Card>
         </TouchableOpacity>
       </TouchableOpacity>
     </Modal>

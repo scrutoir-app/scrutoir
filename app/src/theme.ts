@@ -26,6 +26,10 @@ export const LIGHT = {
 
   accent: "#3C4654", // ardoise neutre (actions, états actifs)
   accentSoft: "#EAEDF1",
+  // Encre/texte POSÉ SUR un aplat `accent` (libellé de CTA, icône). En clair l'accent est
+  // sombre → texte blanc. (En sombre l'accent s'éclaircit : onAccent devient une encre
+  // foncée, cf. palette DARK — contraste WCAG AA rétabli sur le bouton primaire.)
+  onAccent: "#FFFFFF",
   // Fond de la carte Duels : quasi-noir, ALIGNÉ sur le héros « Sur quoi ils ont voté ? »
   // (cf. heroTokens) → les deux cartes sombres de l'accueil sont cohérentes. Texte blanc
   // lisible dans les deux modes. Toujours neutre, jamais une couleur de parti.
@@ -83,6 +87,9 @@ export const DARK: typeof LIGHT = {
 
   accent: "#8A93A1", // ardoise claire (lisible en texte ET en fond d'action)
   accentSoft: "#252C35",
+  // En sombre l'accent est CLAIR → un texte blanc dessus tomberait à ~2:1. Encre foncée =
+  // ~6:1 (WCAG AA). C'est le seul écart volontaire au rendu historique (choix a11y validé).
+  onAccent: "#12161C",
   duelBg: "#2A323E", // aligné sur le héros sombre (heroTokens) — texte blanc lisible
   duelTileBg: "#39424F", // tuiles : un cran clair au-dessus du fond sombre
   duelTileBorder: "#49535F",
@@ -147,6 +154,58 @@ export const tnum: TextStyle = { fontVariant: ["tabular-nums"] };
 export const inputText: TextStyle = { ...T.body, fontSize: 16 };
 
 export const RADIUS = { sm: 10, md: 14, lg: 18, xl: 22, pill: 999 };
+
+// Échelle d'ESPACEMENT — grille 2px (paddings, marges, gaps). Le suffixe = la valeur px
+// ACTUELLE : la migration ne déplace donc aucun pixel, elle remplace juste les nombres en
+// dur par un token lisible (`padding: S.s12`). Source de vérité unique : pour resserrer ou
+// aérer toute l'app d'un geste, on change les valeurs ICI. Les crans dominants du code sont
+// s12 · s8 · s14 · s10 · s16 · s6 · s4. Les micro-décalages d'alignement (3/5/7/9/11 px)
+// restent volontairement en littéral — ce n'est pas du rythme, inutile de les tokeniser.
+export const S = {
+  s0: 0,
+  s2: 2,   // séparateurs internes, micro-nudges
+  s4: 4,   // écart serré (icône ↔ label)
+  s6: 6,
+  s8: 8,   // petit écart standard
+  s10: 10,
+  s12: 12, // padding / gap par défaut (le plus fréquent)
+  s14: 14, // padding de carte
+  s16: 16, // marge de section
+  s18: 18,
+  s20: 20,
+  s24: 24, // respiration entre sections
+  s28: 28,
+  s32: 32,
+  s40: 40, // niveau écran
+  s44: 44, // cible tactile large
+} as const;
+
+// Échelle de TAILLES — pictos (Feather / MaterialCommunityIcons), hauteurs de contrôles,
+// cible tactile minimale a11y. Mêmes valeurs que celles déjà en place, nommées.
+export const ICON = {
+  xs: 13,
+  sm: 15,
+  md: 16,
+  base: 18, // taille d'icône par défaut (la plus fréquente)
+  lg: 20,
+  xl: 22,
+  xxl: 26,
+  hero: 42,
+  mega: 64,
+} as const;
+
+// Hauteurs de contrôles interactifs + plancher tactile (WCAG : 44px de zone touchable).
+export const CONTROL = { sm: 36, md: 44, lg: 48 } as const;
+export const HIT_SLOP_MIN = 44;
+
+// Tokens de MOUVEMENT — durées d'animation (ms). Regroupe les valeurs éparses (héros, etc.)
+// pour caler tempo & ressenti au même endroit.
+export const MOTION = {
+  fast: 150,   // micro-feedback (appui, apparition d'un chip)
+  base: 250,   // transitions standard
+  slow: 450,   // enchaînements marqués
+  hero: 850,   // animation lente du carrousel héros
+} as const;
 
 const SHADOW_LIGHT = { shadowColor: "#141822", shadowOpacity: 0.06, shadowRadius: 8, shadowOffset: { width: 0, height: 2 }, elevation: 2 };
 const SHADOW_DARK = { shadowColor: "#000000", shadowOpacity: 0.4, shadowRadius: 12, shadowOffset: { width: 0, height: 3 }, elevation: 3 };

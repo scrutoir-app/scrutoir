@@ -5,6 +5,7 @@ import {
 } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, formatDate, getScheme } from "../theme";
+import { Card, Chip } from "./ui";
 import { catUI } from "../categoryUI";
 import { HemicycleSeats } from "./HemicycleSeats";
 import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
@@ -90,15 +91,18 @@ export function HeroCard({
   }, [active]);
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.92}
+    <Card
       onPress={onPress}
+      activeOpacity={0.92}
+      radius={RADIUS.lg}
+      padding={0}
+      raised
       style={{
-        width, height: HERO_H, borderRadius: RADIUS.lg, overflow: "hidden",
+        width, height: HERO_H, overflow: "hidden",
         // Surface volontairement plus claire en sombre (panneau surélevé, plus lisible
         // que C.surface qui se fond dans le fond encre). Inchangée en clair (déjà blanc).
         backgroundColor: getScheme() === "dark" ? "#222A35" : C.surface,
-        borderWidth: 0.5, borderColor: getScheme() === "dark" ? C.borderStrong : C.border, ...shadowCard,
+        borderWidth: 0.5, borderColor: getScheme() === "dark" ? C.borderStrong : C.border,
       }}
     >
       {/* Filigrane : hémicycle peuplé de sièges = les députés (suggestion simplifiée),
@@ -131,9 +135,14 @@ export function HeroCard({
         {/* Bas : badge résultat + total + barre divergente (écart + abstention centrée + décompte) */}
         <View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 9, marginBottom: 8 }}>
-            <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
-              <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>{adopte ? "Adopté" : "Rejeté"}</Text>
-            </View>
+            <Chip
+              label={adopte ? "Adopté" : "Rejeté"}
+              bg={adopte ? C.adopteBg : C.rejeteBg}
+              fg={adopte ? C.adopteFg : C.rejeteFg}
+              radius={7}
+              ph={9}
+              pv={3}
+            />
             {votants > 0 && (
               <Text style={[T.small, tnum, { color: C.textMuted }]}>{votantsDisp} votants</Text>
             )}
@@ -143,7 +152,7 @@ export function HeroCard({
           )}
         </View>
       </View>
-    </TouchableOpacity>
+    </Card>
   );
 }
 

@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard, couleurGroupe, formatDate } from "../theme";
+import { C, F, T, tnum, shadowCard, couleurGroupe, formatDate } from "../theme";
+import { Card } from "../components/ui";
 import { getProfil } from "../api";
 import { useData } from "../hooks/useData";
 import { ErreurChargement } from "../components/ErreurChargement";
@@ -76,7 +77,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
       <ProximiteDeputeBadge uid={d.uid} couleur={d.couleur} />
 
       {/* Participation (relative) — pas de score de loyauté agrégé (cf. consigne par scrutin) */}
-      <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 16, ...shadowCard }}>
+      <Card style={{ marginBottom: 16 }}>
         <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
           <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>Participation aux scrutins</Text>
           <Text style={[T.title, tnum, { color: C.text }]}>
@@ -89,7 +90,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 7 }]}>
           {participation_rang_pct != null ? `Plus assidu que ${participation_rang_pct} % des députés (scrutins nominatifs)` : "scrutins publics nominatifs votés"}
         </Text>
-      </View>
+      </Card>
 
       {/* Période */}
       <View style={{ flexDirection: "row", gap: 4, padding: 4, backgroundColor: C.surfaceAlt, borderRadius: 12, marginBottom: 16 }}>
@@ -108,14 +109,15 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
       </View>
 
       {/* Bouton dissidences */}
-      <TouchableOpacity
+      <Card
         onPress={() => nav.push({ name: "dissidences", uid: d.uid, nom: d.nom_complet })}
-        style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, marginBottom: 18, ...shadowCard }}
+        padding={13}
+        style={{ flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 18 }}
       >
         <Feather name="git-branch" size={18} color={C.accent} />
         <Text style={[T.body, { flex: 1, fontFamily: F.semibold, color: C.text }]}>Voir les dissidences</Text>
         <Feather name="chevron-right" size={18} color={C.textFaint} />
-      </TouchableOpacity>
+      </Card>
 
       <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 12 }]}>
         Votes par thème

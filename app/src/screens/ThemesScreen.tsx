@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { View, Text, ScrollView, FlatList, ActivityIndicator, TouchableOpacity, LayoutChangeEvent } from "react-native";
 import { MaterialCommunityIcons, Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard, formatDate } from "../theme";
+import { Card } from "../components/ui";
 import { getCategories, getScrutinsRecents, getPartis, getTestProximite } from "../api";
 import { catUI } from "../categoryUI";
 import { HeroCard, useReduceMotion } from "../components/HeroScrutins";
@@ -24,10 +25,10 @@ function ThemeRow({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
   if (c.derniere_date) meta.push(`dernier le ${formatDate(c.derniere_date)}`);
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <Card
       onPress={onPress}
-      style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, marginBottom: 9, ...shadowCard }}
+      padding={12}
+      style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 9 }}
     >
       <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
         <MaterialCommunityIcons name={ui.icon as any} size={22} color={ui.fg} />
@@ -46,7 +47,7 @@ function ThemeRow({ c, onPress }: { c: CategorieRef; onPress: () => void }) {
         )}
       </View>
       <Feather name="chevron-right" size={20} color={C.textFaint} />
-    </TouchableOpacity>
+    </Card>
   );
 }
 

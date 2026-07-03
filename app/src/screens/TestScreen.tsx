@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T, RADIUS, shadowCard, S } from "../theme";
 import { getTestProximite, getPartis, getCategories } from "../api";
+import { Button } from "../components/ui";
 import type { PartiResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
@@ -145,13 +146,12 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
             )}
           </View>
 
-          <TouchableOpacity
-            activeOpacity={0.85}
+          <Button
+            label={idx + 1 >= total ? "Voir mon résultat" : "Question suivante"}
             onPress={suivant}
-            style={{ marginTop: 18, backgroundColor: C.accent, borderRadius: RADIUS.pill, paddingVertical: 15, alignItems: "center", ...shadowCard }}
-          >
-            <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>{idx + 1 >= total ? "Voir mon résultat" : "Question suivante"}</Text>
-          </TouchableOpacity>
+            fullWidth
+            style={{ marginTop: S.s18 }}
+          />
         </View>
       )}
     </ScrollView>

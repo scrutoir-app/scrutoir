@@ -7,6 +7,7 @@ import { C, F, T, tnum, inputText, RADIUS, shadowCard, formatDate, positionLabel
 import { SEUIL_FIABILITE, scrutinSourceUrl } from "../config";
 import { catUI } from "../categoryUI";
 import { rechercher, getConfrontation, getConfrontationShuffle } from "../api";
+import { Card, Chip } from "../components/ui";
 import { BarreDivergente } from "../components/BarreDivergente";
 import { DuelDeputesBar } from "../components/DuelDeputesBar";
 import { ErreurChargement } from "../components/ErreurChargement";
@@ -221,7 +222,7 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
 
   if (depute) {
     return (
-      <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, alignItems: "center", ...shadowCard }}>
+      <Card padding={11} style={{ flex: 1, alignItems: "center" }}>
         {/* Photo + nom → fiche de l'élu (un visage est tappable par convention). */}
         <TouchableOpacity
           activeOpacity={0.7}
@@ -237,12 +238,12 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
         <TouchableOpacity onPress={onClear} style={{ marginTop: 7 }}>
           <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Changer</Text>
         </TouchableOpacity>
-      </View>
+      </Card>
     );
   }
 
   return (
-    <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 10, ...shadowCard }}>
+    <Card padding={10} style={{ flex: 1 }}>
       {/* Bordure accent au focus = focus clavier visible (l'outline navigateur est désactivée). */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.sm, paddingHorizontal: 10, height: 38, borderWidth: 1, borderColor: qFocus ? C.accent : "transparent" }}>
         <Feather name="search" size={15} color={C.textFaint} />
@@ -266,7 +267,7 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
           </View>
         </TouchableOpacity>
       ))}
-    </View>
+    </Card>
   );
 }
 
@@ -305,7 +306,7 @@ function Resultats({ data, depA, depB, periode, shuffleAngle, nav }: { data: Con
       )}
 
       {/* Carte de synthèse — honnête même sortie de l'app (capture d'écran) */}
-      <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+      <Card>
         <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
           <Synthese n={data.desaccords} label="Désaccords" color={C.contre} />
           <Synthese n={data.accords} label="Accords" color={C.pour} />
@@ -320,7 +321,7 @@ function Resultats({ data, depA, depB, periode, shuffleAngle, nav }: { data: Con
         <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 11, textAlign: "center" }]}>
           {periodeLabel} · scrutins publics nominatifs (17ᵉ législature){"\n"}où {depA.nom_complet} et {depB.nom_complet} ont tous deux voté
         </Text>
-      </View>
+      </Card>
 
       {data.communs === 0 && (
         <Text style={[T.body, { color: C.textMuted, marginTop: 20, textAlign: "center" }]}>
@@ -392,7 +393,7 @@ function ThemeSpectrumRow({ theme, depA, depB, sousTitre, nav }: { theme: Confro
     });
 
   return (
-    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, overflow: "hidden", ...shadowCard }}>
+    <Card padding={0} style={{ overflow: "hidden" }}>
       <TouchableOpacity activeOpacity={0.6} onPress={() => setOpen((o) => !o)} style={{ padding: 13 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
@@ -428,7 +429,7 @@ function ThemeSpectrumRow({ theme, depA, depB, sousTitre, nav }: { theme: Confro
           />
         </View>
       )}
-    </View>
+    </Card>
   );
 }
 
@@ -481,10 +482,14 @@ export function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }
 function PosChip({ pos }: { pos: string }) {
   const col = couleurPosition(pos);
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 4, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.pill, paddingVertical: 3, paddingHorizontal: 8 }}>
-      <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: col }} />
-      <Text style={[T.micro, { fontFamily: F.bold, color: C.text }]}>{positionLabel(pos)}</Text>
-    </View>
+    <Chip
+      label={positionLabel(pos)}
+      bg={C.surfaceSunken}
+      fg={C.text}
+      ph={8}
+      pv={3}
+      icon={<View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: col }} />}
+    />
   );
 }
 

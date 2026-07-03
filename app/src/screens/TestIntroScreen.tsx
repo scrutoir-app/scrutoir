@@ -6,6 +6,7 @@ import { getPartis, getTestProximite } from "../api";
 import type { PartiResume } from "../types";
 import type { Nav } from "../nav";
 import { IntroQuestionMark } from "../components/IntroQuestionMark";
+import { Button } from "../components/ui";
 import { chargerTest } from "../testProximite/storage";
 import { compterParTheme, themeTestActif, MSG_THEME_VERROUILLE } from "../testProximite/config";
 
@@ -82,13 +83,12 @@ export function TestIntroScreen({ theme, themeLibelle, nav }: { theme?: string; 
         onPress={() => setMode("complet")}
       />
 
-      <TouchableOpacity
-        activeOpacity={0.85}
+      <Button
+        label="Commencer"
         onPress={() => nav.push({ name: "test", mode, theme, themeLibelle })}
-        style={{ marginTop: 22, backgroundColor: C.accent, borderRadius: RADIUS.pill, paddingVertical: 15, alignItems: "center", ...shadowCard }}
-      >
-        <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>Commencer</Text>
-      </TouchableOpacity>
+        fullWidth
+        style={{ marginTop: 22 }}
+      />
     </ScrollView>
   );
 }

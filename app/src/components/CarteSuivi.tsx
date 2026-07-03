@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard, couleurPosition, couleurGroupe, positionLabel, formatDate } from "../theme";
+import { C, F, T, tnum, RADIUS, couleurPosition, couleurGroupe, positionLabel, formatDate } from "../theme";
+import { Card, Chip } from "./ui";
 import { catUI } from "../categoryUI";
 import { HemicyclePicto } from "./HemicyclePicto";
 import { useProximiteDepute, scoreGroupeJe, type ContexteJe, type ProximiteScore } from "../testProximite/jeProximite";
@@ -52,9 +53,15 @@ export function ThemePicto({ categorie, size = 30 }: { categorie: string | null 
 function ProximitePill({ score }: { score: ProximiteScore | null }) {
   if (!score) return null;
   return (
-    <View style={{ backgroundColor: C.accentSoft, borderRadius: RADIUS.pill, paddingHorizontal: 9, paddingVertical: 3, marginLeft: 6 }}>
-      <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.accent }]}>{Math.round(score.pct * 100)}% proche</Text>
-    </View>
+    <Chip
+      label={`${Math.round(score.pct * 100)}% proche`}
+      bg={C.accentSoft}
+      fg={C.accent}
+      ph={9}
+      pv={3}
+      textStyle={tnum}
+      style={{ marginLeft: 6 }}
+    />
   );
 }
 
@@ -68,10 +75,15 @@ function CommeToi({ match }: { match: boolean | null }) {
   const fg = match ? C.accent : C.textMuted;
   const bg = match ? C.accentSoft : C.surfaceAlt;
   return (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 3, backgroundColor: bg, borderRadius: RADIUS.pill, paddingHorizontal: 8, paddingVertical: 2 }}>
-      <Feather name={match ? "check" : "x"} size={11} color={fg} />
-      <Text style={[T.micro, { fontFamily: F.bold, color: fg }]}>{match ? "comme toi" : "pas comme toi"}</Text>
-    </View>
+    <Chip
+      label={match ? "comme toi" : "pas comme toi"}
+      bg={bg}
+      fg={fg}
+      ph={8}
+      pv={2}
+      gap={3}
+      icon={<Feather name={match ? "check" : "x"} size={11} color={fg} />}
+    />
   );
 }
 
@@ -122,10 +134,10 @@ interface BaseProps {
 function Base({ v, partis, je, score, estParti, nav }: BaseProps) {
   const maPosition = je && v.numero != null ? je.reponses[v.numero] : undefined;
   return (
-    <TouchableOpacity
-      activeOpacity={0.6}
+    <Card
       onPress={() => nav.push({ name: "scrutin", uid: v.scrutinUid })}
-      style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}
+      activeOpacity={0.6}
+      padding={13}
     >
       {/* Tête : identité + groupe + proximité */}
       <View style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
@@ -148,7 +160,7 @@ function Base({ v, partis, je, score, estParti, nav }: BaseProps) {
       </View>
 
       <ZoneVote v={v} maPosition={maPosition} />
-    </TouchableOpacity>
+    </Card>
   );
 }
 

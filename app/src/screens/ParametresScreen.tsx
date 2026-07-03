@@ -1,7 +1,8 @@
 import React from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T, shadowCard } from "../theme";
+import { Card } from "../components/ui";
 import { APP_VERSION } from "../config";
 import { useThemeMode } from "../themeMode";
 import { usePartyLogos } from "../prefs";
@@ -17,7 +18,7 @@ function ThemeSelector() {
     { v: "auto", label: "Auto", icon: "smartphone" },
   ];
   return (
-    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+    <Card>
       <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Apparence</Text>
       <Text style={[T.small, { color: C.textMuted, marginTop: 2, marginBottom: 12 }]}>
         « Auto » suit le réglage clair/sombre de ton appareil.
@@ -39,7 +40,7 @@ function ThemeSelector() {
           );
         })}
       </View>
-    </View>
+    </Card>
   );
 }
 
@@ -51,7 +52,7 @@ function GroupAvatarSelector() {
     { v: true, label: "Logos officiels" },
   ];
   return (
-    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginTop: 12, ...shadowCard }}>
+    <Card style={{ marginTop: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
           <Feather name="users" size={17} color={C.textMuted} />
@@ -79,7 +80,7 @@ function GroupAvatarSelector() {
           );
         })}
       </View>
-    </View>
+    </Card>
   );
 }
 

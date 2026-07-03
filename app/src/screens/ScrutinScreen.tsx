@@ -2,8 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import {
-  C, F, T, tnum, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition,
+  C, F, T, tnum, RADIUS, formatDate, positionLabel, couleurPosition,
 } from "../theme";
+import { Card } from "../components/ui";
 import { scrutinSourceUrl, dossierSourceUrl } from "../config";
 import { getScrutin, getPartis } from "../api";
 import { useData } from "../hooks/useData";
@@ -186,7 +187,7 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
 
       {/* 1) RÉSULTAT (toujours visible) — barre de vote standard de l'app
           (divergente centrée, abstention sur l'axe, « écart de N voix » + décompte animés). */}
-      <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+      <Card>
         <View
           style={{
             flexDirection: "row", alignItems: "center", gap: 5, alignSelf: "flex-start", borderRadius: RADIUS.sm,
@@ -199,10 +200,10 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
           </Text>
         </View>
         <VoteBarDivergenteCentree pour={s.pour} contre={s.contre} abstention={s.abstention} ecart decompte />
-      </View>
+      </Card>
 
       {/* 2) OBJET DU TEXTE (toujours visible) */}
-      <View style={{ marginTop: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+      <Card style={{ marginTop: 12 }}>
         <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 8 }]}>
           {s.dossier_titre || s.titre || s.objet}
         </Text>
@@ -254,7 +255,7 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
             </Text>
           </View>
         ) : null}
-      </View>
+      </Card>
 
       {/* 3) POSITION PAR GROUPE (pliable, repliée par défaut) */}
       <SectionFold
@@ -335,17 +336,18 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
 
       {/* 5) LIEN SOURCE AN (toujours visible) */}
       {scrutinSourceUrl(s.numero) && (
-        <TouchableOpacity
+        <Card
           activeOpacity={0.7}
           onPress={() => { track("source", String(s.numero ?? "")); Linking.openURL(scrutinSourceUrl(s.numero)!); }}
+          padding={12}
+          accessibilityLabel="Voir le scrutin sur assemblee-nationale.fr"
           style={{
             flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14, minHeight: 44,
-            backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, ...shadowCard,
           }}
         >
           <Feather name="external-link" size={15} color={C.accent} />
           <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir le scrutin sur assemblee-nationale.fr</Text>
-        </TouchableOpacity>
+        </Card>
       )}
 
       <ParcoursLoi visible={parcours} onClose={() => setParcours(false)} source="scrutin" />
@@ -365,7 +367,7 @@ function SectionFold({
   children: React.ReactNode;
 }) {
   return (
-    <View style={{ marginTop: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 14, ...shadowCard }}>
+    <Card padding={0} style={{ marginTop: 12, paddingHorizontal: 14 }}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onToggle}
@@ -386,7 +388,7 @@ function SectionFold({
         </View>
       </TouchableOpacity>
       {open && <View style={{ paddingBottom: 12 }}>{children}</View>}
-    </View>
+    </Card>
   );
 }
 

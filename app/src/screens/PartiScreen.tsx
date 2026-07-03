@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, shadowCard } from "../theme";
+import { Card, Chip } from "../components/ui";
 import { catUI } from "../categoryUI";
 import { PositionCells } from "../components/PositionCells";
 import { BarreDivergente } from "../components/BarreDivergente";
@@ -75,10 +76,10 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
 
       {/* Président du groupe */}
       {data.president && (
-        <TouchableOpacity
-          activeOpacity={0.7}
+        <Card
           onPress={() => nav.push({ name: "depute", uid: data.president!.uid })}
-          style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, marginBottom: 9, ...shadowCard }}
+          padding={12}
+          style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 9 }}
         >
           <Image source={{ uri: data.president.photo_url ?? undefined }} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
           <View style={{ flex: 1 }}>
@@ -86,34 +87,34 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
             <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 1 }]}>{data.president.nom_complet}</Text>
           </View>
           <Feather name="chevron-right" size={18} color={C.textFaint} />
-        </TouchableOpacity>
+        </Card>
       )}
 
       {/* Accès à tous les élus du groupe */}
-      <TouchableOpacity
-        activeOpacity={0.7}
+      <Card
         onPress={() => nav.push({ name: "membresParti", uid: p.uid, libelle: p.abrev ?? p.libelle })}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, marginBottom: 16, ...shadowCard }}
+        padding={13}
+        style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}
       >
         <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
           <Feather name="users" size={18} color={C.accent} />
         </View>
         <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>Voir les {p.nb_deputes} élus du groupe</Text>
         <Feather name="chevron-right" size={18} color={C.textFaint} />
-      </TouchableOpacity>
+      </Card>
 
       {/* Test de proximité (mode complet) */}
-      <TouchableOpacity
-        activeOpacity={0.7}
+      <Card
         onPress={() => nav.push({ name: "testIntro" })}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, marginBottom: 16, ...shadowCard }}
+        padding={13}
+        style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}
       >
         <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
           <Feather name="help-circle" size={18} color={C.accent} />
         </View>
         <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>Es-tu proche de ce groupe ?</Text>
         <Feather name="chevron-right" size={18} color={C.textFaint} />
-      </TouchableOpacity>
+      </Card>
 
       {/* Cohésion & participation, expliquées + repère moyenne des groupes */}
       <StatRow
@@ -180,7 +181,7 @@ function StatRow({ valeur, moy, label, phrase, detail }: { valeur: number | null
   const [open, setOpen] = useState(false);
   const above = valeur != null && moy != null && valeur >= moy;
   return (
-    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginBottom: 9, ...shadowCard }}>
+    <Card style={{ marginBottom: 9 }}>
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{label}</Text>
         <TouchableOpacity onPress={() => setOpen((o) => !o)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
@@ -200,7 +201,7 @@ function StatRow({ valeur, moy, label, phrase, detail }: { valeur: number | null
       {open && (
         <Text style={[T.small, { color: C.textFaint, marginTop: 10 }]}>{detail}</Text>
       )}
-    </View>
+    </Card>
   );
 }
 
@@ -212,11 +213,7 @@ function EcartChip({ ratio }: { ratio: number | null }) {
   else if (ratio > 1.1) { fg = C.loyalMoyen; bg = C.loyalMoyenBg; txt = `×${fmt(ratio)} vs moy.`; }
   else if (ratio >= 0.9) { txt = "≈ moyenne"; }
   else { txt = `×${fmt(ratio)} vs moy.`; }
-  return (
-    <View style={{ backgroundColor: bg, paddingHorizontal: 7, paddingVertical: 2, borderRadius: 7 }}>
-      <Text style={[T.micro, { fontFamily: F.bold, color: fg }]}>{txt}</Text>
-    </View>
-  );
+  return <Chip label={txt} bg={bg} fg={fg} radius={7} ph={7} pv={2} />;
 }
 const fmt = (n: number) => n.toLocaleString("fr-FR");
 
@@ -224,7 +221,7 @@ const fmt = (n: number) => n.toLocaleString("fr-FR");
 function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; label: string; parElu: number | null; ratio: number | null; unite: string }) {
   const color = ratio == null ? C.text : ratio >= 1.5 ? C.loyalBas : ratio > 1.1 ? C.loyalMoyen : C.text;
   return (
-    <View style={{ flex: 1, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
+    <Card style={{ flex: 1 }}>
       <Text style={[T.title, tnum, { color }]}>{total.toLocaleString("fr-FR")}</Text>
       <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, marginTop: 2 }]}>{label}</Text>
       {parElu != null && (
@@ -233,7 +230,7 @@ function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; l
           <EcartChip ratio={ratio} />
         </View>
       )}
-    </View>
+    </Card>
   );
 }
 
@@ -241,7 +238,7 @@ function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; l
 function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: { cat: PartiCategorie; ouvert: boolean; onToggle: () => void; onOpenTheme: () => void; onOpenPosition: (position: string) => void }) {
   const ui = catUI(cat.id);
   return (
-    <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+    <Card padding={13}>
       <TouchableOpacity activeOpacity={0.7} onPress={onToggle} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
           <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
@@ -276,6 +273,6 @@ function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: {
           </TouchableOpacity>
         </View>
       )}
-    </View>
+    </Card>
   );
 }

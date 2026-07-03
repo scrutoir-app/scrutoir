@@ -1,7 +1,8 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS } from "../theme";
+import { C, F, T } from "../theme";
+import { Button } from "./ui";
 
 /**
  * État d'erreur de chargement commun à tous les écrans (couplé au hook useData) :
@@ -27,22 +28,14 @@ export function ErreurChargement({ onRetry, compact }: { onRetry: () => void; co
       <Text style={[T.small, { color: C.textMuted, textAlign: "center", marginTop: 5 }]}>
         Vérifie ta connexion, puis réessaie.
       </Text>
-      <TouchableOpacity
+      <Button
+        label="Réessayer"
         onPress={onRetry}
-        activeOpacity={0.8}
-        accessibilityRole="button"
+        variant="primary"
+        size="sm"
         accessibilityLabel="Réessayer le chargement"
-        style={{
-          marginTop: 16,
-          paddingVertical: 10,
-          paddingHorizontal: 22,
-          borderRadius: RADIUS.pill,
-          backgroundColor: C.accent,
-          alignItems: "center",
-        }}
-      >
-        <Text style={[T.small, { fontFamily: F.bold, color: "#fff" }]}>Réessayer</Text>
-      </TouchableOpacity>
+        style={{ marginTop: 16 }}
+      />
     </View>
   );
 }

@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, inputText, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum, inputText, RADIUS } from "../theme";
+import { Card, Button } from "../components/ui";
 import { AN_DEPUTES_URL } from "../config";
 import { getDepartements, getCirconscription, rechercheCommunes } from "../api";
 import type { Commune } from "../api";
@@ -48,16 +49,14 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
   }
 
   const lienOfficiel = (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <Button
+      variant="text"
+      size="sm"
       onPress={() => Linking.openURL(AN_DEPUTES_URL)}
-      style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 16 }}
-    >
-      <Feather name="external-link" size={14} color={C.accent} />
-      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>
-        Je ne connais pas ma circonscription ?
-      </Text>
-    </TouchableOpacity>
+      iconLeft={<Feather name="external-link" size={14} color={C.accent} />}
+      label="Je ne connais pas ma circonscription ?"
+      style={{ alignSelf: "flex-start", marginTop: 16 }}
+    />
   );
 
   return (
@@ -85,11 +84,11 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
           )}
           <View style={{ gap: 9 }}>
             {elus.map((e) => (
-              <TouchableOpacity
+              <Card
                 key={e.uid}
-                activeOpacity={0.7}
                 onPress={() => nav.push({ name: "depute", uid: e.uid })}
-                style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, ...shadowCard }}
+                padding={11}
+                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
               >
                 <View style={{ width: 30, alignItems: "center" }}>
                   <Text style={[T.callout, tnum, { fontFamily: F.extra, color: C.accent }]}>{e.circo}</Text>
@@ -101,7 +100,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
                   <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{e.abrev ?? e.groupe ?? "—"}</Text>
                 </View>
                 <Feather name="chevron-right" size={18} color={C.textFaint} />
-              </TouchableOpacity>
+              </Card>
             ))}
           </View>
           {lienOfficiel}
@@ -127,11 +126,11 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
           {communes.length > 0 && (
             <View style={{ marginTop: 10, gap: 7 }}>
               {communes.map((c) => (
-                <TouchableOpacity
+                <Card
                   key={c.code}
-                  activeOpacity={0.7}
                   onPress={() => choisirCommune(c)}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 12, ...shadowCard }}
+                  padding={12}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
                 >
                   <Feather name="map-pin" size={15} color={C.accent} />
                   <View style={{ flex: 1 }}>
@@ -141,7 +140,7 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
                     </Text>
                   </View>
                   <Feather name="chevron-right" size={18} color={C.textFaint} />
-                </TouchableOpacity>
+                </Card>
               ))}
             </View>
           )}
@@ -160,17 +159,17 @@ export function MonDeputeScreen({ nav }: { nav: Nav }) {
           {parcourir && (
             <View style={{ marginTop: 10, gap: 8 }}>
               {depts.map((d) => (
-                <TouchableOpacity
+                <Card
                   key={d.num}
-                  activeOpacity={0.7}
                   onPress={() => setSel(d)}
-                  style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}
+                  padding={13}
+                  style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
                 >
                   <Text style={[T.callout, tnum, { fontFamily: F.extra, color: C.accent, width: 34 }]}>{d.num}</Text>
                   <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>{d.nom}</Text>
                   <Text style={[T.small, { color: C.textFaint }]}>{d.circos} circo.</Text>
                   <Feather name="chevron-right" size={18} color={C.textFaint} />
-                </TouchableOpacity>
+                </Card>
               ))}
             </View>
           )}

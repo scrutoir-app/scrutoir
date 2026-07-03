@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { View, Text, TextInput, TouchableOpacity, ActivityIndicator, ScrollView } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, inputText, RADIUS, shadowCard, getScheme } from "../theme";
+import { Card, Chip, Button } from "../components/ui";
 import { getVotesSuivis, getVotesPartisSuivis, getPartis, getTestProximite, getScrutinsRecents, getDuelDuJour } from "../api";
 import { catUI } from "../categoryUI";
 import { useFollows, getLastSeen } from "../follows";
@@ -146,7 +147,7 @@ function CarteDecouverte({ s, nav }: { s: ScrutinResume; nav: Nav }) {
   const adopte = (s.sort_code ?? "").toLowerCase().includes("adopt");
   const ui = s.categorie ? catUI(s.categorie) : null;
   return (
-    <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}>
+    <Card activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} padding={13}>
       <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, letterSpacing: 0.3, textTransform: "uppercase", marginBottom: 8 }]}>
         Thème qui t'intéresse · {ui?.court ?? ""}
       </Text>
@@ -154,12 +155,16 @@ function CarteDecouverte({ s, nav }: { s: ScrutinResume; nav: Nav }) {
         <ThemePicto categorie={s.categorie ?? null} size={42} />
         <Text style={[T.small, { fontFamily: F.medium, flex: 1, color: C.text }]} numberOfLines={3}>{s.titre}</Text>
         {s.sort_code != null && (
-          <View style={{ backgroundColor: adopte ? C.adopteBg : C.rejeteBg, borderRadius: RADIUS.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
-            <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>{adopte ? "Adopté" : "Rejeté"}</Text>
-          </View>
+          <Chip
+            label={adopte ? "Adopté" : "Rejeté"}
+            bg={adopte ? C.adopteBg : C.rejeteBg}
+            fg={adopte ? C.adopteFg : C.rejeteFg}
+            ph={9}
+            pv={3}
+          />
         )}
       </View>
-    </TouchableOpacity>
+    </Card>
   );
 }
 
@@ -318,12 +323,20 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
         <Text style={[T.body, { color: C.textMuted, textAlign: "center", marginTop: 10 }]}>
           Fais le test pour voir de qui tu es proche, ou cherche directement ton député.
         </Text>
-        <TouchableOpacity activeOpacity={0.85} onPress={() => nav.push({ name: "testIntro" })} style={{ alignSelf: "stretch", marginTop: 28, backgroundColor: C.accent, borderRadius: RADIUS.pill, paddingVertical: 16, alignItems: "center", ...shadowCard }}>
-          <Text style={[T.body, { fontFamily: F.bold, color: "#fff" }]}>Faire le test · 2 min</Text>
-        </TouchableOpacity>
-        <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "monDepute" })} style={{ marginTop: 18 }}>
-          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Trouver mon député</Text>
-        </TouchableOpacity>
+        <Button
+          label="Faire le test · 2 min"
+          onPress={() => nav.push({ name: "testIntro" })}
+          variant="primary"
+          fullWidth
+          style={{ marginTop: 28 }}
+        />
+        <Button
+          label="Trouver mon député"
+          onPress={() => nav.push({ name: "monDepute" })}
+          variant="text"
+          size="sm"
+          style={{ marginTop: 18 }}
+        />
       </View>
     );
   }
@@ -348,17 +361,19 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
         )
       ) : digestVide ? (
         // Rien de neuf : la carte EST le lien vers le flux complet (plus de lien flottant).
-        <TouchableOpacity
+        <Card
           activeOpacity={0.8}
           onPress={() => nav.push({ name: "suivis" })}
-          style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 18, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 16, borderWidth: 1, borderColor: C.border, ...shadowCard }}
+          padding={16}
+          bordered
+          style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 18 }}
         >
           <View style={{ flex: 1 }}>
             <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Rien de neuf chez tes suivis</Text>
             <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]}>Tu es à jour. Vois tous tes suivis et leurs derniers votes.</Text>
           </View>
           <Feather name="chevron-right" size={20} color={C.textFaint} />
-        </TouchableOpacity>
+        </Card>
       ) : (
         <>
           {filDeputes.length > 0 && (
@@ -383,10 +398,11 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
 
       <HeroRecherche q={q} setQ={setQ} />
 
-      <TouchableOpacity
+      <Card
         activeOpacity={0.8}
         onPress={() => (aTest ? nav.push({ name: "testResultat" }) : nav.push({ name: "testIntro" }))}
-        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 15, paddingHorizontal: 16, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}
+        padding={0}
+        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 12, paddingVertical: 15, paddingHorizontal: 16, borderWidth: 1, borderColor: C.borderStrong }}
       >
         <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Ta proximité</Text>
         {affinerDispo ? (
@@ -400,7 +416,7 @@ function Accueil({ q, setQ, nav }: { q: string; setQ: (s: string) => void; nav: 
             <Feather name="chevron-right" size={17} color={C.accent} />
           </View>
         )}
-      </TouchableOpacity>
+      </Card>
 
       {/* Carte Duels : seulement quand l'accueil n'a RIEN de neuf à montrer — digest des
           suivis à jour ET aucun scrutin sur tes thèmes forts. Sinon on n'alourdit pas la

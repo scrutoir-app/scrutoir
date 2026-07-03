@@ -1,8 +1,10 @@
 import React from "react";
-import { View, Text, TouchableOpacity } from "react-native";
+import { View, Text } from "react-native";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard, formatDate } from "../theme";
+import { C, F, T, tnum, formatDate } from "../theme";
 import { catUI } from "../categoryUI";
+import { Card } from "./ui/Card";
+import { Chip } from "./ui/Chip";
 import type { ScrutinResume } from "../types";
 
 /** Carte de scrutin façon "fil d'actu" : badge résultat, titre, répartition. */
@@ -17,12 +19,9 @@ export function ScrutinCard({ scrutin, onPress }: { scrutin: ScrutinResume; onPr
   const ui = scrutin.categorie ? catUI(scrutin.categorie) : null;
 
   return (
-    <TouchableOpacity
-      activeOpacity={0.7}
+    <Card
       onPress={onPress}
-      accessibilityRole="button"
       accessibilityLabel={`Scrutin ${adopte ? "adopté" : "rejeté"} : ${scrutin.titre || scrutin.objet || ""}`}
-      style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginBottom: 9 }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
@@ -31,11 +30,14 @@ export function ScrutinCard({ scrutin, onPress }: { scrutin: ScrutinResume; onPr
               <MaterialCommunityIcons name={ui.icon as any} size={15} color={ui.fg} />
             </View>
           )}
-          <View style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 7, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
-            <Text style={[T.micro, { fontFamily: F.bold, color: adopte ? C.adopteFg : C.rejeteFg }]}>
-              {adopte ? "Adopté" : "Rejeté"}
-            </Text>
-          </View>
+          <Chip
+            label={adopte ? "Adopté" : "Rejeté"}
+            bg={adopte ? C.adopteBg : C.rejeteBg}
+            fg={adopte ? C.adopteFg : C.rejeteFg}
+            radius={7}
+            ph={9}
+            pv={3}
+          />
         </View>
         <Text style={[T.small, tnum, { color: C.textFaint }]}>{formatDate(scrutin.date)}</Text>
       </View>
@@ -56,6 +58,6 @@ export function ScrutinCard({ scrutin, onPress }: { scrutin: ScrutinResume; onPr
           </Text>
         </>
       )}
-    </TouchableOpacity>
+    </Card>
   );
 }

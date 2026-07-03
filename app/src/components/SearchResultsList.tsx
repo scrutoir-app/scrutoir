@@ -1,7 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard } from "../theme";
+import { C, F, T, shadowCard } from "../theme";
+import { Card, Button } from "./ui";
 import { rechercher, getCategories } from "../api";
 import { dedupParDossier, rechercherSujet } from "../search/fusion";
 import { routerIntention } from "../search/intent";
@@ -246,10 +247,10 @@ export function SearchResultsList({
           );
         if (item.kind === "sujetOptin")
           return (
-            <View
+            <Card
               style={{
-                backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, marginTop: 16,
-                borderWidth: 1, borderColor: C.borderStrong, ...shadowCard,
+                marginTop: 16,
+                borderWidth: 1, borderColor: C.borderStrong,
               }}
             >
               <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
@@ -265,30 +266,25 @@ export function SearchResultsList({
                   Espace de stockage insuffisant sur cet appareil (~300 Mo nécessaires).
                 </Text>
               ) : (
-                <TouchableOpacity
-                  activeOpacity={0.8}
+                <Button
+                  label="Activer"
                   onPress={activerSujet}
-                  accessibilityRole="button"
+                  variant="primary"
+                  size="sm"
                   accessibilityLabel="Activer la recherche par sujet (téléchargement d'environ 120 mégaoctets)"
-                  style={{
-                    alignSelf: "flex-start", marginTop: 11, backgroundColor: C.accent,
-                    borderRadius: 999, paddingVertical: 8, paddingHorizontal: 18,
-                  }}
-                >
-                  <Text style={[T.small, { fontFamily: F.bold, color: "#fff" }]}>Activer</Text>
-                </TouchableOpacity>
+                  style={{ alignSelf: "flex-start", marginTop: 11 }}
+                />
               )}
-            </View>
+            </Card>
           );
         if (item.kind === "depute") {
           const d = item.data;
           return (
-            <TouchableOpacity
-              activeOpacity={0.7}
+            <Card
               onPress={() => nav.push({ name: "depute", uid: d.uid })}
-              accessibilityRole="button"
+              padding={11}
               accessibilityLabel={`Voir la fiche de ${d.nom_complet}${d.abrev ? `, ${d.abrev}` : ""}`}
-              style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 11, marginBottom: 9, ...shadowCard }}
+              style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 9 }}
             >
               <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
               <View style={{ flex: 1 }}>
@@ -296,7 +292,7 @@ export function SearchResultsList({
                 <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{d.abrev ?? "—"}</Text>
               </View>
               <Feather name="chevron-right" size={20} color={C.textFaint} />
-            </TouchableOpacity>
+            </Card>
           );
         }
         return (

@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
+import { C, F, T, tnum } from "../theme";
+import { Card } from "../components/ui";
 import { getPartis } from "../api";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
@@ -46,11 +47,11 @@ export function PartisScreen({ nav }: { nav: Nav }) {
           {ordered.map((p) => {
             const score = scoreGroupeJe(je, p.abrev);
             return (
-              <TouchableOpacity
+              <Card
                 key={p.uid}
-                activeOpacity={0.7}
                 onPress={() => nav.push({ name: "parti", uid: p.uid })}
-                style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}
+                padding={14}
+                style={{ flexDirection: "row", alignItems: "center", gap: 12 }}
               >
                 <HemicyclePicto groupes={partis} activeAbrev={p.abrev} color={p.couleur ?? C.textFaint} size={46} />
                 <View style={{ flex: 1 }}>
@@ -76,7 +77,7 @@ export function PartisScreen({ nav }: { nav: Nav }) {
                   )}
                 </View>
                 <Feather name="chevron-right" size={18} color={C.textFaint} />
-              </TouchableOpacity>
+              </Card>
             );
           })}
         </View>
