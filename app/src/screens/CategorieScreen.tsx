@@ -8,6 +8,8 @@ import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
+import { TypeScrutinFilter } from "../components/TypeScrutinFilter";
+import { compterParType, filtrerParType, doitAfficherFiltreType, typeEffectif, type TypeScrutin } from "../typeScrutin";
 import { compterParTheme, themeTestActif, MSG_THEME_VERROUILLE } from "../testProximite/config";
 
 export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: string; nav: Nav }) {
@@ -15,6 +17,10 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
   const [loading, setLoading] = useState(true);
   const [testActif, setTestActif] = useState(false);
   const { filtered, Bar } = useScrutinDateFilter(scrutins);
+  const [typeScr, setTypeScr] = useState<TypeScrutin>("tous");
+
+  const comptesType = compterParType(filtered);
+  const visibles = filtrerParType(filtered, typeEffectif(typeScr, comptesType));
 
   useEffect(() => {
     getScrutinsCategorie(id)
@@ -38,7 +44,7 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
 
   return (
     <FlatList
-      data={filtered}
+      data={visibles}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
@@ -68,12 +74,17 @@ export function CategorieScreen({ id, libelle, nav }: { id: string; libelle: str
           )}
 
           <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginTop: 18, marginBottom: 2 }]}>
-            Scrutins ({filtered.length})
+            Scrutins ({visibles.length})
           </Text>
           <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginBottom: 10 }]}>
             Les plus récents d'abord. Classement automatique à partir de l'intitulé.
           </Text>
           {Bar}
+          {doitAfficherFiltreType(comptesType) && (
+            <View style={{ marginTop: 6 }}>
+              <TypeScrutinFilter value={typeScr} onChange={setTypeScr} counts={comptesType} />
+            </View>
+          )}
           <View style={{ height: 11 }} />
         </View>
       }

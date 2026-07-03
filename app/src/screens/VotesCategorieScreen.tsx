@@ -5,6 +5,8 @@ import { getVotesDeputeCategorie } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
+import { TypeScrutinFilter } from "../components/TypeScrutinFilter";
+import { compterParType, filtrerParType, doitAfficherFiltreType, typeEffectif, type TypeScrutin } from "../typeScrutin";
 
 const ORDRE: { pos: string; color: string }[] = [
   { pos: "pour", color: C.pour },
@@ -28,6 +30,7 @@ export function VotesCategorieScreen({
   nav: Nav;
 }) {
   const [votes, setVotes] = useState<VoteScrutin[] | null>(null);
+  const [typeScr, setTypeScr] = useState<TypeScrutin>("tous");
 
   useEffect(() => {
     getVotesDeputeCategorie(uid, categorie, periode).then(setVotes);
@@ -40,10 +43,14 @@ export function VotesCategorieScreen({
       </View>
     );
 
+  // Comptes sur la liste COMPLÈTE (chips stables), filtre AVANT le regroupement par position.
+  const comptesType = compterParType(votes);
+  const visibles = filtrerParType(votes, typeEffectif(typeScr, comptesType));
+
   // Groupe par position, dans l'ordre Pour / Contre / Abstention / Absent.
   const items: Item[] = [];
   for (const { pos, color } of ORDRE) {
-    const sous = votes.filter((v) => v.position === pos);
+    const sous = visibles.filter((v) => v.position === pos);
     if (sous.length === 0) continue;
     items.push({ kind: "section", pos, color, count: sous.length });
     for (const v of sous) items.push({ kind: "scrutin", data: v });
@@ -58,8 +65,13 @@ export function VotesCategorieScreen({
         <View style={{ paddingTop: 14 }}>
           <Text style={[T.title, { color: C.text }]}>{categorieLibelle}</Text>
           <Text style={[T.small, { color: C.textMuted, marginTop: 2, marginBottom: 2 }]}>
-            {nom} · {votes.length} scrutins
+            {nom} · {visibles.length} scrutins
           </Text>
+          {doitAfficherFiltreType(comptesType) && (
+            <View style={{ marginTop: 10 }}>
+              <TypeScrutinFilter value={typeScr} onChange={setTypeScr} counts={comptesType} />
+            </View>
+          )}
         </View>
       }
       ListEmptyComponent={

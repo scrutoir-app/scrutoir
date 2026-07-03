@@ -6,6 +6,8 @@ import type { VoteScrutin } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
+import { TypeScrutinFilter } from "../components/TypeScrutinFilter";
+import { compterParType, filtrerParType, doitAfficherFiltreType, typeEffectif, type TypeScrutin } from "../typeScrutin";
 
 export function VotesListeScreen({
   uid, nom, categorie, categorieLibelle, position, nav,
@@ -20,7 +22,11 @@ export function VotesListeScreen({
   const [scrutins, setScrutins] = useState<VoteScrutin[]>([]);
   const [loading, setLoading] = useState(true);
   const { filtered, Bar } = useScrutinDateFilter(scrutins);
+  const [typeScr, setTypeScr] = useState<TypeScrutin>("tous");
   const voteExprime = position === "pour" || position === "contre" || position === "abstention";
+
+  const comptesType = compterParType(filtered);
+  const visibles = filtrerParType(filtered, typeEffectif(typeScr, comptesType));
 
   useEffect(() => {
     getVotesDepute(uid, categorie, position, "all")
@@ -37,7 +43,7 @@ export function VotesListeScreen({
 
   return (
     <FlatList
-      data={filtered}
+      data={visibles}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
       ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
@@ -49,9 +55,14 @@ export function VotesListeScreen({
               : `${nom} — a voté « ${positionLabel(position)} »`}
           </Text>
           <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 10 }]}>
-            {filtered.length} scrutins en {categorieLibelle}
+            {visibles.length} scrutins en {categorieLibelle}
           </Text>
           {Bar}
+          {doitAfficherFiltreType(comptesType) && (
+            <View style={{ marginTop: 6 }}>
+              <TypeScrutinFilter value={typeScr} onChange={setTypeScr} counts={comptesType} />
+            </View>
+          )}
           <View style={{ height: 11 }} />
         </View>
       }

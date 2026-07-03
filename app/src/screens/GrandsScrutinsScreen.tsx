@@ -6,14 +6,20 @@ import type { ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "../components/ScrutinCard";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
+import { TypeScrutinFilter } from "../components/TypeScrutinFilter";
+import { compterParType, filtrerParType, doitAfficherFiltreType, typeEffectif, type TypeScrutin } from "../typeScrutin";
 
 export function GrandsScrutinsScreen({ nav }: { nav: Nav }) {
   const [scrutins, setScrutins] = useState<ScrutinResume[] | null>(null);
   const { filtered, Bar } = useScrutinDateFilter(scrutins ?? []);
+  const [typeScr, setTypeScr] = useState<TypeScrutin>("tous");
 
   useEffect(() => {
     getGrandsScrutins().then(setScrutins);
   }, []);
+
+  const comptesType = compterParType(filtered);
+  const visibles = filtrerParType(filtered, typeEffectif(typeScr, comptesType));
 
   if (!scrutins)
     return (
@@ -24,7 +30,7 @@ export function GrandsScrutinsScreen({ nav }: { nav: Nav }) {
 
   return (
     <FlatList
-      data={filtered}
+      data={visibles}
       keyExtractor={(s) => s.uid}
       contentContainerStyle={{ padding: 16, paddingBottom: 40 }}
       ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
@@ -32,9 +38,14 @@ export function GrandsScrutinsScreen({ nav }: { nav: Nav }) {
         <View style={{ paddingBottom: 14 }}>
           <Text style={[T.title, { color: C.text }]}>Grands scrutins</Text>
           <Text style={[T.small, { color: C.textMuted, marginTop: 1, marginBottom: 12 }]}>
-            Scrutins solennels et motions de censure ({filtered.length})
+            Scrutins solennels et motions de censure ({visibles.length})
           </Text>
           {Bar}
+          {doitAfficherFiltreType(comptesType) && (
+            <View style={{ marginTop: 6 }}>
+              <TypeScrutinFilter value={typeScr} onChange={setTypeScr} counts={comptesType} />
+            </View>
+          )}
         </View>
       }
       renderItem={({ item }) => (

@@ -14,6 +14,8 @@ import { track } from "../analytics";
 import type { DeputeResume, ScrutinResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import { ScrutinCard } from "./ScrutinCard";
+import { TypeScrutinFilter } from "./TypeScrutinFilter";
+import { classerScrutin, compterParType, filtrerParType, doitAfficherFiltreType, typeEffectif, type TypeScrutin } from "../typeScrutin";
 
 type Item =
   | { kind: "header"; label: string; caption?: string }
@@ -40,7 +42,9 @@ export function SearchResultsList({
   nav: Nav;
   onCorriger?: (q: string) => void;
 }) {
-  const [base, setBase] = useState<Item[]>([]); // députés + scrutins exacts
+  const [deputes, setDeputes] = useState<DeputeResume[]>([]); // résultats députés exacts
+  const [scrutins, setScrutins] = useState<ScrutinResume[]>([]); // résultats scrutins exacts (dédupliqués)
+  const [typeFilter, setTypeFilter] = useState<TypeScrutin>("tous"); // filtre par type de la section « Scrutins »
   const [sujet, setSujet] = useState<Item[]>([]); // section « Sujet » (ou ligne de chargement)
   const [correction, setCorrection] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -113,21 +117,14 @@ export function SearchResultsList({
         const r = await rechercher(terme);
         if (id !== reqId.current) return; // requête périmée
         exactScrutins = r.scrutins;
-        const scrutins = dedupParDossier(r.scrutins);
-        const next: Item[] = [];
-        if (r.deputes.length) {
-          next.push({ kind: "header", label: "Députés" });
-          r.deputes.forEach((d) => next.push({ kind: "depute", data: d }));
-        }
-        if (scrutins.length) {
-          next.push({ kind: "header", label: "Scrutins" });
-          scrutins.forEach((s) => next.push({ kind: "scrutin", data: s }));
-        }
-        setBase(next);
-        track(r.deputes.length + scrutins.length ? "search" : "search_empty", terme.toLowerCase().slice(0, 40));
+        const scrutinsDedup = dedupParDossier(r.scrutins);
+        setDeputes(r.deputes);
+        setScrutins(scrutinsDedup);
+        track(r.deputes.length + scrutinsDedup.length ? "search" : "search_empty", terme.toLowerCase().slice(0, 40));
       } catch {
         if (id !== reqId.current) return;
-        setBase([]);
+        setDeputes([]);
+        setScrutins([]);
       } finally {
         if (id === reqId.current) setLoading(false);
       }
@@ -163,7 +160,35 @@ export function SearchResultsList({
     }, 250);
   }, [q, semActive]);
 
-  const items = [...base, ...sujet];
+  // Nouvelle requête → on repart sur « Tout » (le garde-fou neutralise déjà si < 2 types).
+  useEffect(() => setTypeFilter("tous"), [q]);
+
+  // Filtre par type UNIQUE, sur TOUS les scrutins des résultats : section « Scrutins » exacte
+  // ET section « Sujet » (sémantique/lexicale). Comptes sur l'ensemble → chips stables ; les
+  // « Députés » ne sont jamais filtrés. Le chip est placé en tête (cf. ListHeaderComponent).
+  const sujetScrutins = sujet.flatMap((it) => (it.kind === "scrutin" ? [it.data] : []));
+  const comptesType = compterParType([...scrutins, ...sujetScrutins]);
+  const showTypeFilter = doitAfficherFiltreType(comptesType);
+  const effType = typeEffectif(typeFilter, comptesType);
+
+  const base: Item[] = [];
+  if (deputes.length) {
+    base.push({ kind: "header", label: "Députés" });
+    deputes.forEach((d) => base.push({ kind: "depute", data: d }));
+  }
+  const scrutinsExactsF = filtrerParType(scrutins, effType);
+  if (scrutinsExactsF.length) {
+    base.push({ kind: "header", label: "Scrutins" });
+    scrutinsExactsF.forEach((s) => base.push({ kind: "scrutin", data: s }));
+  }
+
+  // Section « Sujet » : filtre ses scrutins, et retire son en-tête s'il ne reste plus rien.
+  const sujetF = sujet.filter((it) => it.kind !== "scrutin" || effType === "tous" || classerScrutin(it.data) === effType);
+  const sujetClean = sujetF.some((it) => it.kind === "scrutin")
+    ? sujetF
+    : sujetF.filter((it) => !(it.kind === "header" && it.label === "Sujet"));
+
+  const items = [...base, ...sujetClean];
 
   return (
     <FlatList
@@ -177,7 +202,7 @@ export function SearchResultsList({
       keyboardShouldPersistTaps="handled"
       contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 4, paddingBottom: 32 }}
       ListHeaderComponent={
-        correction || themes.length ? (
+        correction || themes.length || showTypeFilter ? (
           <View style={{ paddingTop: 4 }}>
             {correction ? (
               <TouchableOpacity
@@ -208,6 +233,11 @@ export function SearchResultsList({
                     <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{t.libelle}</Text>
                   </TouchableOpacity>
                 ))}
+              </View>
+            ) : null}
+            {showTypeFilter ? (
+              <View style={{ paddingVertical: 8 }}>
+                <TypeScrutinFilter value={typeFilter} onChange={setTypeFilter} counts={comptesType} />
               </View>
             ) : null}
           </View>
