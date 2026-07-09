@@ -102,6 +102,8 @@ export const ALIASES: Alias[] = [
     expansion: "cannabis usage de stupéfiants politique des drogues" },
   { concept: "Peines planchers", cles: ["peines planchers", "peine plancher"], theme: "securite-justice",
     expansion: "peines minimales automatiques peines planchers" },
+  { concept: "Chat control", cles: ["chat control", "csar", "scan des messages", "controle des messageries"], theme: "securite-justice",
+    expansion: "règlement européen de prévention et de lutte contre les abus sexuels sur enfants détection des contenus pédocriminels en ligne analyse des messageries privées chiffrement des communications vie privée" },
 
   // — Solidarités / protection sociale —
   { concept: "Revenu de solidarité active", cles: ["rsa"], theme: "solidarites",
