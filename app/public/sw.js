@@ -18,7 +18,7 @@
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const SHELL_VERSION = "v27";
+const SHELL_VERSION = "v28";
 // v4 : les données passent sur le projet Pages dédié (data.scrutoir.fr) — le bump purge
 // les entrées de l'ancienne origine (scrutoir.fr/data/*), devenues inaccessibles.
 const DATA_VERSION = "v4";
@@ -193,6 +193,35 @@ async function networkFirst(request, cacheName, fallbackUrl, timeoutMs = 3500) {
 }
 
 /**
+ * Navigation (coquille HTML) : réseau d'abord, ON ATTEND. Repli cache/hors-ligne UNIQUEMENT
+ * si le réseau échoue (offline) ou reste muet au-delà de `timeoutMs` (anti-hang lie-fi). But :
+ * qu'un rechargement charge TOUJOURS la dernière version — jamais une coquille périmée. Comme
+ * l'index.html est minuscule, l'attente réseau est négligeable sur une connexion qui répond.
+ */
+async function navigationFraiche(request, timeoutMs = 10000) {
+  const cache = await caches.open(SHELL_CACHE);
+  const repli = async () => (await cache.match(request)) || (await cache.match(OFFLINE_URL));
+  try {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), timeoutMs);
+    let res;
+    try {
+      res = await fetch(request, { signal: ctrl.signal });
+    } finally {
+      clearTimeout(t);
+    }
+    if (res && res.ok) {
+      cache.put(request, res.clone());
+      return res;
+    }
+    return (await repli()) || res;
+  } catch (err) {
+    // offline ou réseau muet > timeout : on sert la dernière coquille connue.
+    return repli();
+  }
+}
+
+/**
  * version.json (network-first) + DÉTECTION DE DÉPLOIEMENT : quand `generatedAt` change,
  * les entrées MUTABLES du cache données (index, depute/, parti/, groupe/…) sont purgées
  * — sinon le stale-while-revalidate peut servir le feed d'HIER sous un bandeau « mis à
@@ -255,9 +284,14 @@ self.addEventListener("fetch", (event) => {
   // Au-delà des données ci-dessus, on ne gère que la même origine (coquille, modèle).
   if (url.origin !== self.location.origin) return;
 
-  // 1) Navigation (coquille HTML) → network-first, repli index.html hors-ligne.
+  // 1) Navigation (coquille HTML) → réseau d'abord et on ATTEND la réponse : après un
+  //    rechargement (y compris un reload provoqué par un crash iOS lié au modèle sémantique),
+  //    on veut TOUJOURS la dernière version, jamais une coquille périmée en cache. Le repli
+  //    cache / hors-ligne ne joue QUE si le réseau échoue vraiment (offline) ou reste muet
+  //    > 10 s. (L'ancien network-first à timeout 3,5 s resservait justement l'ancienne coquille
+  //    sur réseau mobile lent — c'est le bug « l'appli relance une ancienne version ».)
   if (request.mode === "navigate") {
-    event.respondWith(networkFirst(request, SHELL_CACHE, OFFLINE_URL));
+    event.respondWith(navigationFraiche(request));
     return;
   }
 
