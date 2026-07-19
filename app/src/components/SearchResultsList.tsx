@@ -147,7 +147,9 @@ export function SearchResultsList({
             const lexSet = new Set(lexicalUids);
             const motCle = motsCles(terme).join(", ");
             sec.push({ kind: "header", label: "Sujet", caption: "Scrutins liés, même sans le mot exact" });
-            scrs.forEach((s) =>
+            // Plafond : au-delà, la pertinence chute ET la longue liste de cartes alourdit le
+            // rendu au défilement (mémoire) — un facteur du crash iOS de la recherche sémantique.
+            scrs.slice(0, 12).forEach((s) =>
               sec.push({ kind: "scrutin", data: s, motCle: lexSet.has(s.uid) ? motCle : undefined })
             );
           }

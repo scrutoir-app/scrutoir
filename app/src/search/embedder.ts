@@ -105,7 +105,14 @@ export function chargerEmbedder(): Promise<any> {
         wasm.numThreads = 1; // pas de cross-origin isolation (COOP/COEP) sur Pages → mono-thread
         wasm.proxy = false;
       }
-      return tf.pipeline("feature-extraction", "Xenova/multilingual-e5-small", { dtype: "q8" });
+      return tf.pipeline("feature-extraction", "Xenova/multilingual-e5-small", {
+        dtype: "q8",
+        // Options ONNX pour RÉDUIRE l'empreinte mémoire (iOS Safari a un budget d'onglet serré :
+        // le modèle ~118 Mo résident + le défilement des résultats faisait dépasser la limite →
+        // Safari rechargeait l'onglet). On coupe l'arène mémoire CPU et le plan mémoire, qu'ort
+        // pré-alloue au-dessus des poids du modèle. Inférence à peine plus lente, mémoire moindre.
+        session_options: { enableCpuMemArena: false, enableMemPattern: false },
+      });
     })();
     // Idem : un échec d'init du modèle ne doit pas figer un rejet en cache.
     extractorP.catch(() => {
