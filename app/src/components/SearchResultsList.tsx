@@ -333,7 +333,17 @@ export function SearchResultsList({
                 <Text style={[T.small, { color: C.textFaint }]}>Mentionne « {item.motCle} »</Text>
               </View>
             ) : null}
-            <ScrutinCard scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />
+            {/* Un résultat de recherche est dédupliqué par dossier → il représente un TEXTE.
+                On ouvre donc la vue texte « qui a voté comme toi » (hémicycle) quand le scrutin
+                est rattaché à un dossier ; sinon on retombe sur la page scrutin. */}
+            <ScrutinCard
+              scrutin={item.data}
+              onPress={() =>
+                item.data.dossier_ref
+                  ? nav.push({ name: "texte", uid: item.data.dossier_ref })
+                  : nav.push({ name: "scrutin", uid: item.data.uid })
+              }
+            />
           </View>
         );
       }}

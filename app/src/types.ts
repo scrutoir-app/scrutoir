@@ -30,6 +30,7 @@ export interface ScrutinResume {
   sort_code: string | null;
   sort_libelle: string | null;
   dossier_titre?: string | null; // intitulé officiel du dossier législatif (plus clair que l'objet brut)
+  dossier_ref?: string | null; // uid DLR… du dossier → ouvre la vue texte « qui a voté comme toi »
   categorie?: string | null; // catégorie principale (picto)
   type_vote?: string | null;
   // Présents sur certains endpoints (grands scrutins, scrutins par thème)
