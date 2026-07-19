@@ -102,30 +102,41 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
         </ScrollView>
       </View>
 
-      {/* 3 — Bande personnelle, 3 états */}
-      {todo > 0 ? (
+      {/* 3 — Bande personnelle. Dès que tu t'es situé (accords > 0), l'accès « Tes accords »
+          est PRIORITAIRE (sinon il resterait caché tant qu'il reste des scrutins à trancher,
+          c-à-d presque toujours). Le « à trancher » devient alors un nudge secondaire. */}
+      {accordsCount > 0 ? (
+        <View style={{ marginHorizontal: 16, marginTop: 16 }}>
+          <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "accords" })} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.adopteBg, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 13 }}>
+            <View style={{ width: 40 }}><ScrutoirMark size={40} color={C.pour} /></View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+                <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>Tes accords</Text>
+                <MaterialCommunityIcons name="check-circle" size={15} color={C.pour} />
+              </View>
+              <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Situé sur {accordsCount} texte{accordsCount > 1 ? "s" : ""} · vois qui vote comme toi</Text>
+            </View>
+            <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Voir ›</Text>
+          </TouchableOpacity>
+          {todo > 0 && (
+            <TouchableOpacity onPress={() => nav.push({ name: "test", mode: "affiner" })} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 9, paddingHorizontal: 2 }} hitSlop={6}>
+              <Feather name="plus-circle" size={13} color={C.textMuted} />
+              <Text style={[T.micro, { color: C.textMuted }]}>{todo} nouveau{todo > 1 ? "x" : ""} scrutin{todo > 1 ? "s" : ""} à trancher</Text>
+              <Text style={[T.micro, { fontFamily: F.extra, color: C.accent, marginLeft: "auto" }]}>Trancher ›</Text>
+            </TouchableOpacity>
+          )}
+        </View>
+      ) : todo > 0 ? (
         <TouchableOpacity activeOpacity={0.85} onPress={() => nav.push({ name: "test", mode: "affiner" })} style={{ flexDirection: "row", alignItems: "center", gap: 13, marginHorizontal: 16, marginTop: 16, backgroundColor: C.accent, borderRadius: 16, padding: 14, overflow: "hidden" }}>
           <View style={{ position: "absolute", right: -10, top: -6, opacity: 0.16 }} pointerEvents="none"><ScrutoirMark size={80} color={C.onAccent} /></View>
           <View style={{ flex: 1 }}>
             <Text style={[T.small, { fontFamily: F.extra, color: C.onAccent }]}>{todo} scrutin{todo > 1 ? "s" : ""} à trancher</Text>
-            <Text style={[T.micro, { color: C.onAccent, opacity: 0.8, marginTop: 2 }]}>Situe-toi pour garder tes accords à jour.</Text>
+            <Text style={[T.micro, { color: C.onAccent, opacity: 0.8, marginTop: 2 }]}>Situe-toi pour découvrir tes accords.</Text>
           </View>
           <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
             <Text style={[T.small, { fontFamily: F.extra, color: C.onAccent }]}>Trancher</Text>
             <Feather name="arrow-right" size={16} color={C.onAccent} />
           </View>
-        </TouchableOpacity>
-      ) : accordsCount > 0 ? (
-        <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "accords" })} style={{ flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 16, marginTop: 16, backgroundColor: C.adopteBg, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 13 }}>
-          <View style={{ width: 40 }}><ScrutoirMark size={40} color={C.pour} /></View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
-              <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>Tes accords</Text>
-              <MaterialCommunityIcons name="check-circle" size={15} color={C.pour} />
-            </View>
-            <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Situé sur {accordsCount} texte{accordsCount > 1 ? "s" : ""} · vois qui vote comme toi</Text>
-          </View>
-          <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Voir ›</Text>
         </TouchableOpacity>
       ) : null}
 
