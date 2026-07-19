@@ -203,6 +203,25 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
         <VoteBarDivergenteCentree pour={s.pour} contre={s.contre} abstention={s.abstention} ecart decompte />
       </Card>
 
+      {/* 1ter) PORTE VERS LE TEXTE — « voir tout le texte » (vue « comme toi » par dossier).
+          Le maillon contextuel : depuis un scrutin, remonter à son texte et son hémicycle. */}
+      {s.dossier_ref && (
+        <Card
+          onPress={() => nav.push({ name: "texte", uid: s.dossier_ref! })}
+          activeOpacity={0.7}
+          style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 11, backgroundColor: C.accentSoft, borderWidth: 0 }}
+        >
+          <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
+            <Feather name="pie-chart" size={19} color={C.onAccent} />
+          </View>
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>Voir tout le texte</Text>
+            <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Qui a voté comme toi, scrutin par scrutin</Text>
+          </View>
+          <Feather name="arrow-right" size={18} color={C.accent} />
+        </Card>
+      )}
+
       {/* 1bis) COMME TOI ? — confronte ta position (test de proximité) à celle de tes suivis.
           Visible uniquement sur les scrutins que tu as tranchés au test. */}
       <AccordSuivis scrutinUid={uid} numero={s.numero} groupes={data.groupes} partis={partis} je={je} nav={nav} />
