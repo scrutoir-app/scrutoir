@@ -106,7 +106,7 @@ write("deputes.json", deputes);
 //    qui restent dans les fichiers par scrutin). Chargé 1× côté app.
 const scrutinsRaw = db
   .prepare(
-    `SELECT s.uid, s.numero, s.date, s.titre, s.sort_code, s.type_vote,
+    `SELECT s.uid, s.numero, s.date, s.titre, s.sort_code, s.type_vote, s.dossier_ref,
             s.pour, s.contre, s.abstention,
             (SELECT sc.categorie_id FROM scrutin_categories sc WHERE sc.scrutin_uid = s.uid
              ORDER BY sc.confiance DESC LIMIT 1) AS categorie,
@@ -118,6 +118,53 @@ const scrutinsRaw = db
 // cohérent avec les agrégats du profil qui comptent un scrutin dans chaque catégorie).
 const scrutins = scrutinsRaw.map((s) => ({ ...s, cats: s.cats ? String(s.cats).split(",") : [] }));
 write("scrutins.json", scrutins);
+
+// 2bis) DOSSIERS (regroupement par texte) — socle de la vue « Tes accords » par texte.
+// Index léger `dossiers.json` + un fichier par dossier `dossier/<ref>.json` listant ses scrutins
+// PUBLICS ordonnés, chacun avec la position MAJORITAIRE de chaque groupe (pour recolorer
+// l'hémicycle « comme toi » sans charger le détail de chaque scrutin). ~223 fichiers (bien sous
+// le plafond Cloudflare). Honnêteté : uniquement les scrutins publics nominatifs, jamais tous
+// les amendements de la loi.
+function natureScrutin(objet: string | null, titre: string | null): "amendement" | "article" | "ensemble" | "motion" | "autre" {
+  const t = `${objet ?? ""} ${titre ?? ""}`.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  if (/l['’ ]?ensemble\b/.test(t) || /vote solennel/.test(t)) return "ensemble";
+  if (/amendement/.test(t)) return "amendement";
+  if (/motion|question prealable|motion de rejet|motion de censure/.test(t)) return "motion";
+  if (/\barticle\b/.test(t)) return "article";
+  return "autre";
+}
+const dossierScrutinsQ = db.prepare(
+  `SELECT uid, numero, date, titre, objet, sort_code
+   FROM scrutins WHERE dossier_ref = ? ORDER BY numero`
+);
+const posQ = db.prepare(
+  `SELECT g.abrev AS abrev, gp.position AS position
+   FROM groupe_positions gp JOIN groupes g ON g.uid = gp.groupe_uid
+   WHERE gp.scrutin_uid = ? AND g.abrev IS NOT NULL`
+);
+const catDossierQ = db.prepare(
+  `SELECT sc.categorie_id AS cat, COUNT(*) n
+   FROM scrutins s JOIN scrutin_categories sc ON sc.scrutin_uid = s.uid
+   WHERE s.dossier_ref = ? GROUP BY sc.categorie_id ORDER BY n DESC LIMIT 1`
+);
+const dossiersRows = db
+  .prepare(
+    `SELECT dossier_ref AS ref, MAX(dossier_titre) AS titre, COUNT(*) AS nb_scrutins, MAX(date) AS derniere_date
+     FROM scrutins WHERE dossier_ref IS NOT NULL GROUP BY dossier_ref`
+  )
+  .all() as any[];
+const dossiersIndex = dossiersRows.map((d) => {
+  const scr = (dossierScrutinsQ.all(d.ref) as any[]).map((s) => {
+    const positions: Record<string, string> = {};
+    for (const p of posQ.all(s.uid) as any[]) positions[p.abrev] = p.position;
+    return { uid: s.uid, numero: s.numero, date: s.date, titre: s.titre, objet: s.objet, sort_code: s.sort_code, nature: natureScrutin(s.objet, s.titre), positions };
+  });
+  const categorie = (catDossierQ.get(d.ref) as any)?.cat ?? null;
+  write(`dossier/${d.ref}.json`, { ref: d.ref, titre: d.titre, categorie, scrutins: scr });
+  return { ref: d.ref, titre: d.titre, categorie, nb_scrutins: d.nb_scrutins, derniere_date: d.derniere_date };
+});
+write("dossiers.json", dossiersIndex);
+console.log(`  dossiers.json : ${dossiersIndex.length} dossiers + fichiers par dossier`);
 
 // 3) Référentiels
 // Par thème : nb de scrutins + date et intitulé du dernier (pour donner du contexte

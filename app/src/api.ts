@@ -1,6 +1,7 @@
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
   PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi, ShuffleConfrontation, AngleShuffle,
+  DossierResume, DetailDossier,
 } from "./types";
 import type { QuestionProximite } from "./testProximite/score";
 import { normaliser } from "./search/normalize";
@@ -37,9 +38,36 @@ function j<T>(rel: string): Promise<T> {
 // --- Index (chargés une fois, mis en cache) ---------------------------------
 // `categorie` = catégorie principale (picto, confrontation) ; `cats` = toutes les
 // catégories du scrutin (appartenance à un thème : un scrutin peut en avoir plusieurs).
-type ScrutinIdx = ScrutinResume & { cats?: string[] };
+type ScrutinIdx = ScrutinResume & { cats?: string[]; dossier_ref?: string | null };
 const deputesIndex = () => j<DeputeResume[]>("deputes");
 const scrutinsIndex = () => j<ScrutinIdx[]>("scrutins");
+// Dossiers (regroupement par texte) — feature « Tes accords ».
+export const getDossiers = () => j<DossierResume[]>("dossiers");
+export const getDossier = (ref: string) => j<DetailDossier>(`dossier/${ref}`);
+
+/** Map numéro de scrutin → dossier_ref (depuis l'index), pour relier tes réponses de test aux textes. */
+async function numeroVersDossier(): Promise<Map<number, string>> {
+  const scrs = await scrutinsIndex();
+  const m = new Map<number, string>();
+  for (const s of scrs) if (s.numero != null && s.dossier_ref) m.set(s.numero, s.dossier_ref);
+  return m;
+}
+
+/** Les TEXTES où l'utilisateur s'est situé (≥1 réponse pour/contre), avec le nb de scrutins tranchés. */
+export async function getDossiersSitues(reponses: Record<number, string>): Promise<{ dossier: DossierResume; nbSitue: number }[]> {
+  const [num2dos, dossiers] = await Promise.all([numeroVersDossier(), getDossiers()]);
+  const count = new Map<string, number>();
+  for (const [num, rep] of Object.entries(reponses)) {
+    if (rep !== "pour" && rep !== "contre") continue; // sans-avis exclu (honnêteté)
+    const ref = num2dos.get(Number(num));
+    if (ref) count.set(ref, (count.get(ref) ?? 0) + 1);
+  }
+  const byRef = new Map(dossiers.map((d) => [d.ref, d]));
+  return [...count.entries()]
+    .map(([ref, nbSitue]) => ({ dossier: byRef.get(ref)!, nbSitue }))
+    .filter((x) => x.dossier)
+    .sort((a, b) => (b.dossier.derniere_date ?? "").localeCompare(a.dossier.derniere_date ?? ""));
+}
 /**
  * Vide le cache mémoire des données. Appelé quand le SW signale un nouveau déploiement
  * (message `scrutoir:data-updated`, cf. swUpdate.ts) : les écrans ouverts gardent leur

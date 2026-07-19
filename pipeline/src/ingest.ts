@@ -6,7 +6,7 @@ import { seedCategories, classifierTout } from "./classify.js";
 import { lierAmendements } from "./linkAmendements.js";
 import { agregerAmendementsDossier } from "./amendementsDossier.js";
 import { calculerParticipation } from "./participation.js";
-import { calculerPropositions, lierDossiers } from "./activiteGroupes.js";
+import { calculerPropositions, lierDossiers, lierDossiersParAmendements } from "./activiteGroupes.js";
 import { localiserPhotos } from "./photos.js";
 import { calculerShuffleConfrontation } from "./shuffleConfrontation.js";
 import { detecterQuestions } from "./detecteurQuestions.js";
@@ -52,6 +52,9 @@ async function main() {
     console.log(`     ${lies}/${total} scrutins sur amendement reliés (+ amendements/groupe)`);
     const ag = await agregerAmendementsDossier(db);
     console.log(`     ${ag.lignes} lignes d'agrégats sur ${ag.dossiers} dossiers (amendements déposés par auteur)`);
+    // Source #3 : rattache les scrutins d'amendement à leur dossier (débloque ~4500 scrutins).
+    const na = await lierDossiersParAmendements(db);
+    console.log(`     ${na} scrutins d'amendement rattachés à leur dossier (via l'arborescence Amendements)`);
   } else if (refresh) {
     // En CI la base part de zéro : sauter cette étape publierait une prod SANS exposés
     // d'amendements ni agrégats, en silence. On préfère échouer (la prod d'hier reste

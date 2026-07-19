@@ -1,7 +1,55 @@
 import StreamZip from "node-stream-zip";
 import fs from "node:fs";
 import type Database from "better-sqlite3";
-import { DOSSIERS_ZIP } from "./download.js";
+import { DOSSIERS_ZIP, AMENDEMENTS_ZIP } from "./download.js";
+
+/** Titre officiel par dossier (DLR…) depuis le zip Dossiers. Sert à poser `dossier_titre`. */
+async function titresParDossier(): Promise<Map<string, string>> {
+  const out = new Map<string, string>();
+  if (!fs.existsSync(DOSSIERS_ZIP)) return out;
+  const zip = new (StreamZip as any).async({ file: DOSSIERS_ZIP });
+  for (const nom of Object.keys(await zip.entries())) {
+    if (!nom.endsWith(".json")) continue;
+    try {
+      const d = JSON.parse((await zip.entryData(nom)).toString("utf8")).dossierParlementaire;
+      if (d?.uid && d?.titreDossier?.titre) out.set(d.uid, d.titreDossier.titre);
+    } catch { /* ignore */ }
+  }
+  await zip.close();
+  return out;
+}
+
+/**
+ * Rattache au dossier les scrutins d'AMENDEMENT encore sans dossier (source #3) : chaque
+ * amendement appartient à un dossier via l'arborescence du zip Amendements
+ * (`json/<DLR>/<texte>/<amdt>.json`), et la table `amendements` relie amendement ↔ scrutin.
+ * Débloque la grande majorité des scrutins que `objet.dossierLegislatif` (source #1) et le
+ * reverse-link voteRef (source #2) ne couvrent pas. NE REMPLIT QUE LES NULS.
+ */
+export async function lierDossiersParAmendements(db: Database.Database): Promise<number> {
+  if (!fs.existsSync(AMENDEMENTS_ZIP)) return 0;
+  const zip = new (StreamZip as any).async({ file: AMENDEMENTS_ZIP });
+  const amdToDossier = new Map<string, string>();
+  for (const nom of Object.keys(await zip.entries())) {
+    if (!nom.endsWith(".json")) continue;
+    const seg = nom.split("/");
+    if (seg.length < 4 || !seg[1].startsWith("DLR")) continue;
+    amdToDossier.set(seg[seg.length - 1].replace(/\.json$/, ""), seg[1]);
+  }
+  await zip.close();
+
+  const titres = await titresParDossier();
+  const liens = db.prepare("SELECT scrutin_uid, amendement_uid FROM amendements").all() as { scrutin_uid: string; amendement_uid: string }[];
+  const upd = db.prepare("UPDATE scrutins SET dossier_ref = ?, dossier_titre = ? WHERE uid = ? AND dossier_ref IS NULL");
+  let n = 0;
+  db.transaction(() => {
+    for (const { scrutin_uid, amendement_uid } of liens) {
+      const d = amdToDossier.get(amendement_uid);
+      if (d) n += upd.run(d, titres.get(d) ?? null, scrutin_uid).changes;
+    }
+  })();
+  return n;
+}
 
 function txt(v: any): any {
   return v && typeof v === "object" ? v["#text"] : v;
@@ -79,7 +127,10 @@ export async function lierDossiers(db: Database.Database): Promise<number> {
   }
   await zip.close();
 
-  const upd = db.prepare("UPDATE scrutins SET dossier_titre = ?, dossier_ref = ? WHERE uid = ?");
+  // On COMPLÈTE seulement : la source AN `objet.dossierLegislatif` (posée au parse) fait foi.
+  // `lierDossiers` ne remplit que les scrutins encore sans rattachement (votes solennels/motions
+  // que les dossiers référencent par voteRef mais que `dossierLegislatif` couvre mal).
+  const upd = db.prepare("UPDATE scrutins SET dossier_titre = ?, dossier_ref = ? WHERE uid = ? AND dossier_ref IS NULL");
   let n = 0;
   db.transaction(() => {
     for (const [uid, { titre, ref }] of parScrutin) n += upd.run(titre, ref, uid).changes;

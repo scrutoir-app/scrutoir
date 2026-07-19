@@ -278,3 +278,28 @@ export interface ShuffleConfrontation {
   communs: number;
   tauxAccord: number; // accords / communs, en pourcentage entier
 }
+
+// --- Dossiers (regroupement des scrutins par texte de loi) — feature Tes accords ---
+export interface DossierResume {
+  ref: string; // uid DLR…
+  titre: string;
+  categorie: string | null; // catégorie principale du texte (thème)
+  nb_scrutins: number;
+  derniere_date: string | null;
+}
+export interface ScrutinDossier {
+  uid: string;
+  numero: number | null;
+  date: string | null;
+  titre: string | null;
+  objet: string | null;
+  sort_code: string | null; // adopte / rejete
+  nature: string; // amendement | article | ensemble | motion | autre
+  positions: Record<string, string>; // abrev groupe → position majoritaire (pour / contre / abstention)
+}
+export interface DetailDossier {
+  ref: string;
+  titre: string;
+  categorie: string | null;
+  scrutins: ScrutinDossier[];
+}

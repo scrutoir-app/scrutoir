@@ -24,12 +24,13 @@ const BUCKETS: Array<[string, string]> = [
 export function chargerScrutins(db: Database.Database): { scrutins: number; votes: number } {
   const insScrutin = db.prepare(
     `INSERT INTO scrutins
-       (uid, numero, date, titre, objet, type_vote, sort_code, sort_libelle, pour, contre, abstention, nonvotant)
+       (uid, numero, date, titre, objet, type_vote, sort_code, sort_libelle, pour, contre, abstention, nonvotant, dossier_ref, dossier_titre)
      VALUES
-       (@uid, @numero, @date, @titre, @objet, @type_vote, @sort_code, @sort_libelle, @pour, @contre, @abstention, @nonvotant)
+       (@uid, @numero, @date, @titre, @objet, @type_vote, @sort_code, @sort_libelle, @pour, @contre, @abstention, @nonvotant, @dossier_ref, @dossier_titre)
      ON CONFLICT(uid) DO UPDATE SET
        titre=excluded.titre, objet=excluded.objet, sort_code=excluded.sort_code,
-       pour=excluded.pour, contre=excluded.contre, abstention=excluded.abstention, nonvotant=excluded.nonvotant`
+       pour=excluded.pour, contre=excluded.contre, abstention=excluded.abstention, nonvotant=excluded.nonvotant,
+       dossier_ref=excluded.dossier_ref, dossier_titre=excluded.dossier_titre`
   );
   const insVote = db.prepare(
     `INSERT INTO votes (scrutin_uid, depute_uid, position, groupe_uid)
@@ -73,6 +74,11 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
             ? "adopte"
             : (s.sort?.code ?? null);
 
+      // Rattachement au dossier législatif : la source AN structurée et fiable est
+      // `objet.dossierLegislatif` (dossierRef = DLR… + libellé court du dossier). Elle couvre
+      // ~1747 scrutins (dont les amendements, que le reverse-link voteRef de `lierDossiers`
+      // ne voit jamais). `lierDossiers` complète ENSUITE les trous (votes solennels/motions).
+      const dl = s.objet?.dossierLegislatif ?? null;
       insScrutin.run({
         uid,
         numero: Number(s.numero) || null,
@@ -86,6 +92,8 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
         contre: Number(dec.contre) || 0,
         abstention: Number(dec.abstentions) || 0,
         nonvotant: Number(dec.nonVotants) || 0,
+        dossier_ref: dl?.dossierRef ?? null,
+        dossier_titre: dl?.libelle ?? null,
       });
       nScrutins++;
 

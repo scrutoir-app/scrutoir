@@ -152,40 +152,113 @@ function VueRecents({ nav }: { nav: Nav }) {
   );
 }
 
+// Accord par thème (DONNÉES RÉELLES) dérivé des réponses au test (localStorage) :
+//   · jamais situé (0 réponse dans le thème)        → corpus  (« Situe-toi / Parcourir »)
+//   · situé mais des candidats restent à trancher   → trancher (« +N à te positionner »)
+//   · situé et plus rien à trancher dans le thème   → situe    (« Situé sur N · Voir tes accords »)
+// Aucun hémicycle agrégé : l'accord est un libellé cliquable vers le détail scrutin par scrutin.
+type AccordTheme = { state: "situe" | "trancher" | "corpus"; n: number };
+function accordDeTheme(themeId: string, situe: Record<string, number>, todo: Record<string, number>): AccordTheme {
+  const s = situe[themeId] ?? 0;
+  const t = todo[themeId] ?? 0;
+  if (s === 0) return { state: "corpus", n: 0 };
+  if (t > 0) return { state: "trancher", n: t };
+  return { state: "situe", n: s };
+}
+
 /**
- * Vue « Par thème » : si un résultat de test existe, on ouvre EN TÊTE « Ta proximité par
- * thème » (le swipe ParThemeSwipe — accessible ici sans repasser par le résultat), puis la
- * navigation par catégories en dessous.
+ * Carte de thème « Tes accords par thème » : deux couches superposées.
+ * 1) CORPUS (transparence, pour tous) : icône + nom + « N scrutins publics · dernier le … »,
+ *    toucher ouvre la liste du thème. 2) ACCORD (calque perso si situé), en pied, 3 états.
+ * Aucun hémicycle agrégé au niveau du thème : l'accord est un libellé cliquable vers le détail.
+ */
+function ThemeAccordCard({ c, accord, nav }: { c: CategorieRef; accord: AccordTheme; nav: Nav }) {
+  const ui = catUI(c.id);
+  const corpus = `${c.nb_scrutins ?? 0} scrutins publics${c.derniere_date ? ` · dernier le ${formatDate(c.derniere_date)}` : ""}`;
+  const ouvrirCorpus = () => nav.push({ name: "categorie", id: c.id, libelle: c.libelle });
+
+  return (
+    <Card padding={14} style={{ marginBottom: 11 }}>
+      {/* Couche 1 — corpus (toujours visible) */}
+      <TouchableOpacity activeOpacity={0.7} onPress={ouvrirCorpus} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
+          <MaterialCommunityIcons name={ui.icon as any} size={22} color={ui.fg} />
+        </View>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[T.body, { fontFamily: F.extra, color: C.text }]}>{c.libelle}</Text>
+          <Text style={[T.micro, { color: C.textMuted, marginTop: 3 }]}>{corpus}</Text>
+        </View>
+      </TouchableOpacity>
+
+      {/* Couche 2 — accord (calque perso) */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: 12, paddingTop: 11, borderTopWidth: 1, borderTopColor: C.border }}>
+        {accord.state === "situe" ? (
+          <>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+              <MaterialCommunityIcons name="check-circle" size={16} color={C.pour} />
+              <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>Situé sur {accord.n} scrutins</Text>
+            </View>
+            <TouchableOpacity onPress={() => nav.push({ name: "accords" })} hitSlop={8}>
+              <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Voir tes accords ›</Text>
+            </TouchableOpacity>
+          </>
+        ) : accord.state === "trancher" ? (
+          <>
+            <Text style={[T.small, { color: C.textMuted }]}>Pas encore à jour</Text>
+            <TouchableOpacity onPress={() => nav.push({ name: "test", mode: "affiner", theme: c.id, themeLibelle: c.libelle })} activeOpacity={0.8} style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: C.accent, borderRadius: RADIUS.pill, paddingHorizontal: 12, paddingVertical: 6 }}>
+              <Text style={[T.micro, { fontFamily: F.extra, color: C.onAccent }]}>+{accord.n} à te positionner</Text>
+              <Feather name="arrow-right" size={13} color={C.onAccent} />
+            </TouchableOpacity>
+          </>
+        ) : (
+          <>
+            <Text style={[T.small, { color: C.textMuted }]}>Situe-toi pour voir tes accords</Text>
+            <TouchableOpacity onPress={ouvrirCorpus} hitSlop={8}>
+              <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Parcourir ›</Text>
+            </TouchableOpacity>
+          </>
+        )}
+      </View>
+    </Card>
+  );
+}
+
+/**
+ * Vue « Par thème » = vue par thème de Tes accords. Chaque thème porte son CORPUS (transparence,
+ * pour tous) et, en pied, l'ACCORD (calque perso si situé). Remplace l'ancien carrousel « Ta
+ * proximité par thème » (mot « convergence » supprimé) : plus d'hémicycle agrégé par thème.
  */
 function VueThemes({ nav }: { nav: Nav }) {
   const [cats, setCats] = useState<CategorieRef[]>([]);
-  const [partis, setPartis] = useState<PartiResume[]>([]);
   const [questions, setQuestions] = useState<QuestionProximite[]>([]);
   const [loading, setLoading] = useState(true);
   const je = useJe();
 
   useEffect(() => {
-    Promise.all([getCategories(), getPartis()]).then(([cs, ps]) => { setCats(cs); setPartis(ps); }).finally(() => setLoading(false));
+    getCategories().then(setCats).finally(() => setLoading(false));
     getTestProximite().then(setQuestions).catch(() => setQuestions([]));
   }, []);
 
-  const neuf = je ? neuvesParTheme(questions, je.reponses) : undefined;
+  // Par thème : nb de candidats du test encore à trancher (neuvesParTheme) + nb déjà tranchés.
+  const todo = je ? neuvesParTheme(questions, je.reponses) : {};
+  const situe: Record<string, number> = {};
+  if (je) for (const q of questions) {
+    const r = je.reponses[q.id];
+    if (r === "pour" || r === "contre") situe[q.theme] = (situe[q.theme] ?? 0) + 1;
+  }
 
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
-      {je && partis.length > 0 && (
-        <View style={{ marginBottom: 22 }}>
-          <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 12 }]}>Ta proximité par thème</Text>
-          <ParThemeSwipe resultat={je.resultat} partis={partis} cats={cats} nav={nav} neufParTheme={neuf} />
-        </View>
-      )}
-      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 12 }]}>Parcourir par sujet</Text>
+    <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 6, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+      <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Tes accords par thème</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 1, marginBottom: 14 }]}>
+        Chaque thème, son corpus de votes et, si tu t'es situé, tes accords en détail.
+      </Text>
       {loading ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />
       ) : (
-        [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)).map((c) => (
-          <ThemeRow key={c.id} c={c} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} />
-        ))
+        [...cats]
+          .sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0))
+          .map((c) => <ThemeAccordCard key={c.id} c={c} accord={accordDeTheme(c.id, situe, todo)} nav={nav} />)
       )}
     </ScrollView>
   );

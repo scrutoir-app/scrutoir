@@ -68,7 +68,9 @@ export type Route =
   // reponses/poids absents = résultat de L'UTILISATEUR (lu depuis le stockage local).
   // partage=true (+ reponses/poids) = résultat d'un LIEN partagé : lecture seule, rien n'est persisté.
   | { name: "testResultat"; reponses?: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number>; partage?: boolean }
-  | { name: "testParTheme" };
+  | { name: "testParTheme" }
+  | { name: "texte"; uid: string }
+  | { name: "accords" };
 
 export interface Nav {
   push: (route: Route) => void;

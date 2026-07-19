@@ -37,6 +37,9 @@ import { TestIntroScreen } from "./src/screens/TestIntroScreen";
 import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
 import { TestParThemeScreen } from "./src/screens/TestParThemeScreen";
+import { TexteScreen } from "./src/screens/TexteScreen";
+import { AccueilAccordsScreen } from "./src/screens/AccueilAccordsScreen";
+import { AccordsIndexScreen } from "./src/screens/AccordsIndexScreen";
 import { lireHashPartage } from "./src/testProximite/storage";
 import { getCategories } from "./src/api";
 import { InstallPrompt } from "./src/components/InstallPrompt";
@@ -109,6 +112,7 @@ function AppInner() {
     if (type === "depute") setStack([{ name: "search" }, { name: "depute", uid: id }]);
     else if (type === "scrutin") setStack([{ name: "themes" }, { name: "scrutin", uid: id }]);
     else if (type === "parti") setStack([{ name: "partis" }, { name: "parti", uid: id }]);
+    else if (type === "texte") setStack([{ name: "search" }, { name: "texte", uid: id }]); // deep-link SEO d'un texte (dossier)
     else if (type === "theme")
       getCategories()
         .then((cats) => {
@@ -216,6 +220,8 @@ function AppInner() {
     test: "Test de proximité",
     testResultat: "Ta proximité",
     testParTheme: "Par thème",
+    texte: "Texte",
+    accords: "Tes accords",
   };
   const showHeader = stack.length > 1;
 
@@ -304,7 +310,9 @@ function AppInner() {
             <SearchResultsList q={gq} nav={nav} onCorriger={setGq} />
           ) : (
             <>
-          {current.name === "search" && <SearchScreen nav={nav} />}
+          {/* Accueil = refonte v3 « Tes accords » (recherche réelle + bande perso + flux des suivis).
+              Remplace l'ancien SearchScreen (conservé comme référence, plus rendu). */}
+          {current.name === "search" && <AccueilAccordsScreen nav={nav} />}
           {current.name === "themes" && <ThemesScreen nav={nav} />}
           {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
@@ -339,6 +347,8 @@ function AppInner() {
           {current.name === "test" && <TestScreen mode={current.mode} theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} poids={current.poids} partage={current.partage} themesJoues={current.themesJoues} nav={nav} />}
           {current.name === "testParTheme" && <TestParThemeScreen nav={nav} />}
+          {current.name === "texte" && <TexteScreen uid={current.uid} nav={nav} />}
+          {current.name === "accords" && <AccordsIndexScreen nav={nav} />}
             </>
           )}
         </View>

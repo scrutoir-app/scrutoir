@@ -11,6 +11,8 @@ import { phraseAlignement } from "../testProximite/phrase";
 import { chargerTest, fusionnerReponses } from "../testProximite/storage";
 import { questionsNeuves, N_AFFINER } from "../testProximite/config";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
+import { HemicycleCamps, campDe, type GroupeCamp } from "../components/HemicycleCamps";
+import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
 import { track } from "../analytics";
 
 const N_COMPLET = 12;
@@ -94,6 +96,24 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
   const total = questions.length;
   const rep = reponses[q.id];
 
+  // Camps des groupes sur CE scrutin face à ta réponse (pour l'hémicycle « où tu tombes »).
+  const groupesCamp: GroupeCamp[] = partis.map((p) => ({
+    abrev: p.abrev,
+    nb_deputes: p.nb_deputes,
+    couleur: p.couleur,
+    camp: campDe(q.positions?.[p.abrev ?? ""], rep),
+  }));
+  const commeAbrevs = groupesCamp
+    .filter((g) => g.camp === "comme" && g.abrev)
+    .sort((a, b) => ORDRE_HEMICYCLE.indexOf(a.abrev!) - ORDRE_HEMICYCLE.indexOf(b.abrev!))
+    .map((g) => g.abrev!);
+  const commeN = groupesCamp.reduce((n, g) => n + (g.camp === "comme" ? g.nb_deputes || 0 : 0), 0);
+  const faceN = groupesCamp.reduce((n, g) => n + (g.camp === "face" ? g.nb_deputes || 0 : 0), 0);
+  const rejointTexte =
+    commeAbrevs.length === 0
+      ? "Aucun groupe ne te rejoint sur ce vote."
+      : `Ton vote rejoint ${commeAbrevs.slice(0, 4).join(", ")}${commeAbrevs.length > 4 ? "…" : ""} (${commeN} sièges, ${faceN} en face)`;
+
   const repondre = (r: Reponse) => { setReponses((p) => ({ ...p, [q.id]: r })); setRevealed(true); };
   const suivant = () => {
     if (idx + 1 >= total) {
@@ -131,13 +151,26 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
           <ChoixBouton label="Contre" couleur={C.contre} onPress={() => repondre("contre")} />
         </View>
       ) : (
-        <View style={{ marginTop: 24 }}>
+        <View style={{ marginTop: 18 }}>
+          {(rep === "pour" || rep === "contre") && (
+            <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: C.border, marginBottom: 10, ...shadowCard }}>
+              <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.3 }]}>
+                Où tu tombes dans l'hémicycle
+              </Text>
+              <HemicycleCamps groupes={groupesCamp} size={210} />
+              <Text style={[T.small, { color: C.text, marginTop: 10, textAlign: "center" }]}>{rejointTexte}</Text>
+            </View>
+          )}
           <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 16, borderWidth: 1, borderColor: C.border, ...shadowCard }}>
             <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginBottom: 14, textTransform: "uppercase", letterSpacing: 0.3 }]}>
               Comment l'Assemblée a voté
             </Text>
             <VoteBarDivergenteCentree pour={q.totaux!.pour} contre={q.totaux!.contre} abstention={q.totaux!.abstention} decompte />
-            <Text style={[T.body, { color: C.text, marginTop: 16 }]}>{phraseAlignement(q.positions, rep!, seats)}</Text>
+            {/* Phrase d'alignement conservée UNIQUEMENT quand l'hémicycle n'est pas montré
+                (réponse « sans avis ») — sinon l'hémicycle + « Ton vote rejoint … » la remplace. */}
+            {rep === "sans_avis" && (
+              <Text style={[T.body, { color: C.text, marginTop: 16 }]}>{phraseAlignement(q.positions, rep!, seats)}</Text>
+            )}
             {q.source_url && (
               <TouchableOpacity onPress={() => Linking.openURL(q.source_url!)} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12 }} hitSlop={6}>
                 <Feather name="external-link" size={13} color={C.accent} />

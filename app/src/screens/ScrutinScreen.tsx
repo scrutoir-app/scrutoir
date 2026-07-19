@@ -18,6 +18,7 @@ import type { ContexteJe } from "../testProximite/jeProximite";
 import type { DetailScrutin, GroupeVentilation, AmendGroupe, AmendInstitutionnel, PartiResume } from "../types";
 import type { Nav } from "../nav";
 import { ParcoursLoi } from "../components/ParcoursLoi";
+import { AccordSuivis } from "../components/AccordSuivis";
 
 // ⓘ Encart amendements. Version DESCRIPTIVE retenue par défaut (sans le mot « blocage ») ;
 // la variante explicite est gardée pour basculer d'un seul réglage si décidé plus tard.
@@ -201,6 +202,10 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
         </View>
         <VoteBarDivergenteCentree pour={s.pour} contre={s.contre} abstention={s.abstention} ecart decompte />
       </Card>
+
+      {/* 1bis) COMME TOI ? — confronte ta position (test de proximité) à celle de tes suivis.
+          Visible uniquement sur les scrutins que tu as tranchés au test. */}
+      <AccordSuivis scrutinUid={uid} numero={s.numero} groupes={data.groupes} partis={partis} je={je} nav={nav} />
 
       {/* 2) OBJET DU TEXTE (toujours visible) */}
       <Card style={{ marginTop: 12 }}>
