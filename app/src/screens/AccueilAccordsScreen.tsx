@@ -70,38 +70,46 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
     </View>
   );
 
-  // Mode recherche : dès que tu tapes, on remplace le contenu par les résultats.
-  if (q.trim()) {
-    return (
-      <ScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 12, paddingBottom: 36 }} showsVerticalScrollIndicator={false}>
-        {Champ}
-        <View style={{ marginTop: 12 }}>
-          <SearchResultsList q={q} nav={nav} onCorriger={setQ} />
-        </View>
-      </ScrollView>
-    );
-  }
-
+  // UN SEUL arbre : le champ de recherche reste TOUJOURS monté, à la même position dans la
+  // ScrollView. Seul le contenu SOUS le champ bascule (accueil ↔ résultats). Sans ça, taper la
+  // 1re lettre remplaçait tout l'arbre → le TextInput était démonté/remonté → perte du focus
+  // (le curseur sortait du champ). Les blocs conditionnels `!recherche && …` renvoient `false`
+  // aux mêmes index → la position du champ ne bouge pas d'un rendu à l'autre.
+  const recherche = !!q.trim();
   return (
     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 36 }}>
-      {/* 1 — Masthead */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 2 }}>
-        <ScrutoirMark size={30} color={C.text} />
-        <Text style={[T.title, { fontFamily: F.extra, color: C.text, letterSpacing: -0.4 }]}>Scrutoir</Text>
-      </View>
+      {/* 1 — Masthead (caché en mode recherche pour laisser la place aux résultats) */}
+      {!recherche && (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 2 }}>
+          <ScrutoirMark size={30} color={C.text} />
+          <Text style={[T.title, { fontFamily: F.extra, color: C.text, letterSpacing: -0.4 }]}>Scrutoir</Text>
+        </View>
+      )}
 
-      {/* 2 — Recherche + sujets */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 10 }}>
+      {/* 2 — Recherche (position STABLE = garde le focus) + sujets (accueil seul) */}
+      <View style={{ paddingHorizontal: 16, paddingTop: recherche ? 12 : 10 }}>
         {Champ}
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 10, paddingBottom: 2 }}>
-          {sujets.map((c) => (
-            <TouchableOpacity key={c.id} activeOpacity={0.7} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} style={{ backgroundColor: C.surfaceSunken, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.pill, paddingHorizontal: 14, paddingVertical: 8 }}>
-              <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{c.libelle}</Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
+        {!recherche && (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8, paddingTop: 10, paddingBottom: 2 }}>
+            {sujets.map((c) => (
+              <TouchableOpacity key={c.id} activeOpacity={0.7} onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })} style={{ backgroundColor: C.surfaceSunken, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.pill, paddingHorizontal: 14, paddingVertical: 8 }}>
+                <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{c.libelle}</Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        )}
       </View>
 
+      {/* 3a — Mode recherche : résultats sous le champ (le reste de l'accueil est masqué) */}
+      {recherche && (
+        <View style={{ paddingHorizontal: 16, marginTop: 12 }}>
+          <SearchResultsList q={q} nav={nav} onCorriger={setQ} />
+        </View>
+      )}
+
+      {/* 3 & 4 — reste de l'accueil (bande perso + flux/duel), masqué en mode recherche */}
+      {!recherche && (
+        <>
       {/* 3 — Bande personnelle. Dès que tu t'es situé (accords > 0), l'accès « Tes accords »
           est PRIORITAIRE (sinon il resterait caché tant qu'il reste des scrutins à trancher,
           c-à-d presque toujours). Le « à trancher » devient alors un nudge secondaire. */}
@@ -173,6 +181,8 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
             </View>
             <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Lancer ›</Text>
           </TouchableOpacity>
+        </>
+      )}
         </>
       )}
     </ScrollView>
