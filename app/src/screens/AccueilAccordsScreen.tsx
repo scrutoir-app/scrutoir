@@ -115,6 +115,16 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
           c-à-d presque toujours). Le « à trancher » devient alors un nudge secondaire. */}
       {accordsCount > 0 ? (
         <View style={{ marginHorizontal: 16, marginTop: 16 }}>
+          {/* Ta proximité — rouvre « Ton point de départ » (résultat du test + « Repartir de zéro »).
+              L'accès vivait dans l'ancien accueil (SearchScreen, plus rendu) → réintroduit ici. */}
+          <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "testResultat" })} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.adopteBg, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 13, marginBottom: 9 }}>
+            <View style={{ width: 40, alignItems: "center" }}><MaterialCommunityIcons name="target" size={30} color={C.pour} /></View>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>Ta proximité</Text>
+              <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Ton point de départ · de qui tu es proche</Text>
+            </View>
+            <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Voir ›</Text>
+          </TouchableOpacity>
           <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "accords" })} style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.adopteBg, borderWidth: 1, borderColor: C.border, borderRadius: 16, padding: 13 }}>
             <View style={{ width: 40 }}><ScrutoirMark size={40} color={C.pour} /></View>
             <View style={{ flex: 1, minWidth: 0 }}>
