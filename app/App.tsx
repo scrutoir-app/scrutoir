@@ -390,8 +390,8 @@ function AppInner() {
 
         {/* Barre d'onglets : positionnement d'origine (avant v1.0.25), paddingBottom fixe.
             Pas de viewport-fit=cover/safe-area (déréglait la position en app installée).
-            Masquée quand le clavier est ouvert (sinon il la recouvre à moitié). */}
-        {!keyboardOpen && (
+            TOUJOURS visible, y compris clavier ouvert (demande produit : garder la nav pendant
+            la recherche). Compromis assumé : sur iOS une barre en bas peut passer sous le clavier. */}
           <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
             {TABS.map((t, i) => {
               const actif = root === t.root;
@@ -412,7 +412,6 @@ function AppInner() {
               );
             })}
           </View>
-        )}
 
         {/* Tour guidé de la nav : overlay par-dessus la page de résultat, pointe les onglets RÉELS. */}
         {tourVisible && (
