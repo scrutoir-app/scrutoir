@@ -61,6 +61,26 @@ function CurseurPoids({ valeur, onChange }: { valeur: number; onChange: (v: numb
 // Nom court d'un groupe (1ʳᵉ partie avant « & » / « , ») pour le CTA « Suivre … ».
 const nomCourt = (libelle: string) => libelle.split(/\s*[&,]\s*/)[0];
 
+// Bouton « suivre » COMPACT posé sur chaque ligne du spectre. Câblé sur le VRAI état de suivi
+// (`useFollow`, même store que la fiche parti et le fil d'accueil) — jamais un état local.
+// uid = PO… du groupe (depuis `getPartis`, abrev → uid). Style aligné sur le suivi de l'app.
+function SuivreGroupe({ uid }: { uid: string }) {
+  const [suivi, toggle] = useFollow(uid);
+  if (!uid) return null;
+  return (
+    <TouchableOpacity
+      onPress={toggle}
+      hitSlop={8}
+      accessibilityRole="button"
+      accessibilityState={{ selected: suivi }}
+      accessibilityLabel={suivi ? "Ne plus suivre ce groupe" : "Suivre ce groupe"}
+      style={{ width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: suivi ? C.accentSoft : C.surfaceAlt, borderWidth: 1, borderColor: suivi ? C.accent : C.border }}
+    >
+      <Feather name={suivi ? "check" : "bell"} size={15} color={suivi ? C.accent : C.textMuted} />
+    </TouchableOpacity>
+  );
+}
+
 // Partage 100 % client (geste explicite de l'utilisateur). Le message vu côté destinataire
 // est « Voici mon résultat … et toi ? » : le « et toi ? » est le ressort qui invite à faire
 // le test. Style neutre, aucune couleur de parti, aucune donnée d'usage dans le lien (l'URL
@@ -170,6 +190,7 @@ export function TestResultatScreen({
   if (!resultat) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
   const couleur = (abrev: string) => partis.find((p) => p.abrev === abrev)?.couleur ?? C.textFaint;
+  const uidDe = (abrev: string) => partis.find((p) => p.abrev === abrev)?.uid ?? "";
   const libelle = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
   const comparableTotal = (abrev: string) =>
     themes.reduce((s, t) => s + (resultat.parTheme[t]?.[abrev]?.comparable ?? 0), 0);
@@ -238,6 +259,8 @@ export function TestResultatScreen({
               <Text style={[tnum, { fontFamily: F.extra, fontSize: 15, color: fiable ? C.text : C.textFaint, width: 44, textAlign: "right" }]}>
                 {fiable ? `${Math.round(g.pct * 100)}%` : "—"}
               </Text>
+              {/* Suivre CE groupe (vrai état de suivi, même que la fiche parti / l'accueil). */}
+              <SuivreGroupe uid={uidDe(g.abrev)} />
             </View>
           );
         })}
@@ -249,6 +272,9 @@ export function TestResultatScreen({
           </TouchableOpacity>
         )}
       </Card>
+      <Text style={[T.micro, { color: C.textFaint, marginTop: 8, paddingHorizontal: 4 }]}>
+        Suis un groupe pour retrouver ses votes sur ton accueil.
+      </Text>
 
       {/* Reste au courant (suivi, version A) : relie explicitement le suivi au digest d'accueil. */}
       <Card bordered padding={16} style={{ marginTop: 14 }}>
