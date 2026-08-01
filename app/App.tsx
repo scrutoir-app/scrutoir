@@ -392,7 +392,7 @@ function AppInner() {
             Pas de viewport-fit=cover/safe-area (déréglait la position en app installée).
             TOUJOURS visible, y compris clavier ouvert (demande produit : garder la nav pendant
             la recherche). Compromis assumé : sur iOS une barre en bas peut passer sous le clavier. */}
-          <View style={{ flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border, backgroundColor: C.surface, paddingTop: 8, paddingBottom: 10 }}>
+          <View style={{ flexDirection: "row", borderTopWidth: 1, borderLeftWidth: 1, borderRightWidth: 1, borderColor: C.border, backgroundColor: C.surface, borderTopLeftRadius: RADIUS.xl, borderTopRightRadius: RADIUS.xl, paddingTop: 8, paddingBottom: 10 }}>
             {TABS.map((t, i) => {
               const actif = root === t.root;
               return (

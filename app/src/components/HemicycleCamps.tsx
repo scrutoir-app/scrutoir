@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { View, Text } from "react-native";
+import { View, Text, Platform } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { C, F, T, tnum, couleurGroupe } from "../theme";
 import { markGeo, coupolePoints, ownersFor, type GroupeGeo } from "./hemicycleGeo";
@@ -35,6 +35,8 @@ export function HemicycleCamps({
   showAxe = true,
   selectedAbrev = null,
   onPickParty,
+  survolAbrev = null,
+  onHoverParty,
 }: {
   groupes: GroupeCamp[];
   size?: number;
@@ -45,6 +47,10 @@ export function HemicycleCamps({
   // et rend les sièges tactiles pour changer de parti au doigt.
   selectedAbrev?: string | null;
   onPickParty?: (abrev: string) => void;
+  // Desktop (web) : survol d'un groupe → ses sièges ressortent, les autres s'atténuent,
+  // et son nom s'affiche en infobulle. `survolAbrev` est piloté par l'écran via `onHoverParty`.
+  survolAbrev?: string | null;
+  onHoverParty?: (abrev: string | null) => void;
 }) {
   const { w, h, cx, cy, dotR } = markGeo(size);
   const geo: GroupeGeo[] = useMemo(() => groupes.map((g) => ({ abrev: g.abrev, nb_deputes: g.nb_deputes })), [groupes]);
@@ -72,29 +78,67 @@ export function HemicycleCamps({
     return { commeN, faceN };
   }, [groupes]);
 
+  const survolG = survolAbrev ? groupes.find((g) => g.abrev === survolAbrev) : null;
+  const web = Platform.OS === "web";
+
+  // Survol (desktop) : react-native-svg ne propage pas les events souris sur <Circle>. On écoute
+  // donc le mouvement sur le conteneur (dimensionné EXACTEMENT à la coupole → offsetX/Y = coords SVG),
+  // et on associe le curseur au siège le plus proche → son groupe s'illumine, les autres s'atténuent.
+  const survolHandlers = web && onHoverParty
+    ? {
+        onMouseMove: (e: { nativeEvent?: { offsetX?: number; offsetY?: number } }) => {
+          const x = e?.nativeEvent?.offsetX, y = e?.nativeEvent?.offsetY;
+          if (x == null || y == null) return;
+          let best = -1, bd = Infinity;
+          for (let i = 0; i < points.length; i++) {
+            const dx = points[i].x - x, dy = points[i].y - y, d = dx * dx + dy * dy;
+            if (d < bd) { bd = d; best = i; }
+          }
+          const seuil = dotR * 2.4;
+          const ab = best >= 0 && bd <= seuil * seuil ? owners[best] : null;
+          if ((ab ?? null) !== (survolAbrev ?? null)) onHoverParty(ab ?? null);
+        },
+        onMouseLeave: () => { if (survolAbrev != null) onHoverParty(null); },
+      }
+    : {};
+
   return (
     <View style={{ alignItems: "center" }}>
-      <Svg width={w} height={h}>
-        {points.map((d, i) => {
-          const ab = owners[i];
-          const camp = ab ? campByAbrev.get(ab) : undefined;
-          const fill = camp === "comme" ? couleurGroupe(couleurByAbrev.get(ab!) ?? undefined) : C.siege;
-          const on = !!ab && ab === selectedAbrev;
-          return (
-            <Circle
-              key={i}
-              cx={d.x}
-              cy={d.y}
-              r={dotR}
-              fill={fill}
-              stroke={on ? C.text : undefined}
-              strokeWidth={on ? 2.4 : 0}
-              onPress={ab && onPickParty ? () => onPickParty(ab) : undefined}
-            />
-          );
-        })}
-        <Circle cx={cx} cy={cy} r={size * 0.1} fill={C.siegeFocal} />
-      </Svg>
+      {/* Conteneur à la taille de la coupole : porte l'écoute du survol + l'infobulle. */}
+      <View style={{ width: w, height: h }} {...(survolHandlers as object)}>
+        {/* Infobulle de survol (desktop) : nom du groupe survolé, sans décaler la mise en page. */}
+        {survolG && (
+          <View style={{ position: "absolute", top: 0, left: 0, right: 0, alignItems: "center", zIndex: 5 }} pointerEvents="none">
+            <View style={{ backgroundColor: C.text, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 4 }}>
+              <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.bg }]}>{survolG.abrev} · {survolG.nb_deputes} élus</Text>
+            </View>
+          </View>
+        )}
+        <Svg width={w} height={h}>
+          {points.map((d, i) => {
+            const ab = owners[i];
+            const camp = ab ? campByAbrev.get(ab) : undefined;
+            const fill = camp === "comme" ? couleurGroupe(couleurByAbrev.get(ab!) ?? undefined) : C.siege;
+            const on = !!ab && ab === selectedAbrev;
+            const survole = !!ab && ab === survolAbrev;
+            const attenue = survolAbrev != null && ab !== survolAbrev;
+            return (
+              <Circle
+                key={i}
+                cx={d.x}
+                cy={d.y}
+                r={dotR}
+                fill={fill}
+                opacity={attenue ? 0.3 : 1}
+                stroke={on ? C.text : survole ? C.text : undefined}
+                strokeWidth={on ? 2.4 : survole ? 1.6 : 0}
+                onPress={ab && onPickParty ? () => onPickParty(ab) : undefined}
+              />
+            );
+          })}
+          <Circle cx={cx} cy={cy} r={size * 0.1} fill={C.siegeFocal} />
+        </Svg>
+      </View>
 
       {showAxe && (
         <View style={{ flexDirection: "row", justifyContent: "space-between", width: w * 0.82, marginTop: 1 }}>

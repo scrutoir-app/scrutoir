@@ -1,7 +1,7 @@
 import type {
   ProfilDepute, DetailScrutin, DeputeResume, ScrutinResume, Periode, CategorieRef, Dissidence, Votant, VoteScrutin,
   PartiResume, ProfilParti, Confrontation, Departement, VoteSuivi, ShuffleConfrontation, AngleShuffle,
-  DossierResume, DetailDossier,
+  DossierResume, DetailDossier, ScrutinDossier,
 } from "./types";
 import type { QuestionProximite } from "./testProximite/score";
 import { normaliser } from "./search/normalize";
@@ -67,6 +67,42 @@ export async function getDossiersSitues(reponses: Record<number, string>): Promi
     .map(([ref, nbSitue]) => ({ dossier: byRef.get(ref)!, nbSitue }))
     .filter((x) => x.dossier)
     .sort((a, b) => (b.dossier.derniere_date ?? "").localeCompare(a.dossier.derniere_date ?? ""));
+}
+
+/** Un texte où l'utilisateur s'est situé, enrichi pour l'aperçu d'accueil : vote final (« ensemble »),
+ *  ta réponse sur ce vote final si tu l'as tranché, et le nombre d'amendements/articles pour affiner. */
+export interface TexteSitue {
+  dossier: DossierResume;
+  nbSitue: number; // scrutins du texte que tu as tranchés (pour/contre)
+  voteFinal: ScrutinDossier | null; // le vote « ensemble » (dernière lecture si plusieurs)
+  tonVoteFinal: string | null; // ta réponse sur le vote final, si tranché
+  nbAmendements: number; // amendements + articles du texte (l'affinage)
+}
+
+/**
+ * Aperçu des textes situés pour l'accueil : les `limite` textes les plus récents où l'utilisateur
+ * s'est prononcé, chacun enrichi de son VOTE FINAL et du nombre d'amendements (un fetch dossier par
+ * texte, mis en cache). Pas d'agrégat de proximité au niveau texte (la proximité reste par scrutin) :
+ * on n'expose que TA réponse sur le vote d'ensemble, jamais un « N groupes comme toi » inventé.
+ */
+export async function getTextesSituesApercu(
+  reponses: Record<number, string>,
+  limite = 3
+): Promise<{ textes: TexteSitue[]; total: number }> {
+  const situes = await getDossiersSitues(reponses);
+  const top = situes.slice(0, limite);
+  const details = await Promise.all(top.map((s) => getDossier(s.dossier.ref).catch(() => null)));
+  const textes: TexteSitue[] = top.map((s, i) => {
+    const scrutins = details[i]?.scrutins ?? [];
+    const voteFinal =
+      [...scrutins]
+        .filter((x) => x.nature === "ensemble")
+        .sort((a, b) => (b.date ?? "").localeCompare(a.date ?? ""))[0] ?? null;
+    const nbAmendements = scrutins.filter((x) => x.nature === "amendement" || x.nature === "article").length;
+    const tonVoteFinal = voteFinal?.numero != null ? reponses[voteFinal.numero] ?? null : null;
+    return { dossier: s.dossier, nbSitue: s.nbSitue, voteFinal, tonVoteFinal, nbAmendements };
+  });
+  return { textes, total: situes.length };
 }
 /**
  * Vide le cache mémoire des données. Appelé quand le SW signale un nouveau déploiement
