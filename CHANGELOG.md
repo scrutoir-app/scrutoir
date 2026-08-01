@@ -7,6 +7,30 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.12.0 — 2026-08-01
+Trois features livrées : lentille « comme toi » par groupe, refonte de l'accueil, et le test de proximité **au swipe**.
+- **« Comme toi » par groupe** — sur la fiche d'un groupe (`PartiScreen`), une lentille liste ses
+  **votes finaux** sur les textes où tu t'es situé, en langage clair (*comme toi / à l'inverse /
+  partagé*) avec compteur ; chaque ligne ouvre le texte. Sur la page texte (`TexteScreen`), le
+  **vote final** reste en tête, les **amendements sont repliés** sous « Voir les amendements liés »
+  (affinage), et chaque carte porte un verdict *comme toi / pas comme toi* (ton vote vs le résultat
+  du scrutin). L'hémicycle « où tu sièges » gagne la **navigation desktop** entre groupes : flèches
+  ‹ ›, clavier ←/→ et **survol** (nom en infobulle + sièges en évidence, autres atténués) — le survol
+  passe par un `onMouseMove` sur conteneur, `react-native-svg` ne propageant pas les events souris
+  sur `<Circle>` en web. Barre d'onglets aux **coins hauts arrondis**.
+- **Refonte de l'accueil** — mêmes actions et routes, nouvelle mise en forme : héro
+  **« Continue à te situer »** (barre de progression, « N tranchés · M à trancher » → route `test`),
+  **Ta proximité** (mini-spectre) et **Tes accords** **côte à côte**, flux des suivis conservé
+  dessous (repli Face à face). Animations d'entrée / remplissage / flottement du filigrane, coupées
+  si « animations réduites ».
+- **Test de proximité « au swipe »** — le **deck de swipe remplace** le question-par-question : la
+  route `test` ouvre partout le deck (une carte = un scrutin, glisse ← Contre / Pour →, ou boutons
+  Contre / Sans avis / Pour + Annuler). **Même test** : mêmes questions, même stockage
+  (`fusionnerReponses`, les réponses s'accumulent), **même résultat** (le spectre). Règle produit :
+  **anticipation** — aucun verdict carte par carte, juste un décompte neutre ; le résultat n'apparaît
+  qu'à la fin. Gestes en `Animated` + `PanResponder` du cœur RN (aucune dépendance), verrou
+  anti double-réponse, reduce-motion respecté.
+
 ## 1.11.1 — 2026-07-03
 Durcissement sécurité (supply chain, CSP) et hygiène du dépôt — dernier lot de l'audit.
 - **CSP par hash** : au build, `patch-pwa.mjs` (durcirCsp) hache tous les scripts inline du
