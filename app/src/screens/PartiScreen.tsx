@@ -1,12 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, shadowCard } from "../theme";
+import { C, F, T, tnum, shadowCard, formatDate } from "../theme";
 import { Card, Chip } from "../components/ui";
 import { catUI } from "../categoryUI";
 import { PositionCells } from "../components/PositionCells";
 import { BarreDivergente } from "../components/BarreDivergente";
-import { getParti, getPartis } from "../api";
+import { campDe } from "../components/HemicycleCamps";
+import { getParti, getPartis, getTextesSituesApercu } from "../api";
+import type { TexteSitue } from "../api";
 import { useData } from "../hooks/useData";
 import { ErreurChargement } from "../components/ErreurChargement";
 import { useFollow } from "../follows";
@@ -73,6 +75,9 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
 
       {/* « Tu votes comme X% » — issu du test de proximité (rien sans « je »). */}
       <BadgeProximite score={scoreGroupeJe(je, p.abrev)} couleur={p.couleur} />
+
+      {/* Lentille « comme toi » : les VOTES FINAUX du groupe sur tes textes, en clair. */}
+      {je && p.abrev && <LentilleComme abrev={p.abrev} reponses={je.reponses} nav={nav} />}
 
       {/* Président du groupe */}
       {data.president && (
@@ -173,6 +178,87 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         Positions = répartition des votes du groupe par thème. Scrutins publics nominatifs, 17ᵉ législature.
       </Text>
     </ScrollView>
+  );
+}
+
+const LENS_MAX = 12; // on affiche tes textes les plus récents (un fetch dossier par texte) — le reste est annoncé.
+
+/**
+ * Lentille « comme toi » : sur le VOTE FINAL des textes où tu t'es situé, comment CE groupe a voté
+ * face à toi, en langage clair + compteur. La proximité reste par SCRUTIN (cf. jeProximite) — ici on
+ * lit le vote d'ensemble de chaque texte, jamais un agrégat inventé. Chaque ligne ouvre le texte.
+ */
+function LentilleComme({ abrev, reponses, nav }: { abrev: string; reponses: Record<number, string>; nav: Nav }) {
+  const [textes, setTextes] = useState<TexteSitue[] | null>(null);
+  const [total, setTotal] = useState(0);
+  useEffect(() => {
+    let vivant = true;
+    getTextesSituesApercu(reponses, LENS_MAX)
+      .then((r) => { if (vivant) { setTextes(r.textes); setTotal(r.total); } })
+      .catch(() => vivant && setTextes([]));
+    return () => { vivant = false; };
+  }, [reponses]);
+
+  if (textes == null) return null; // en cours de chargement → rien (pas de saut de mise en page)
+  const lignes = textes.filter((t) => t.voteFinal).map((t) => ({ t, camp: campDe(t.voteFinal!.positions[abrev], t.tonVoteFinal) }));
+  if (!lignes.length) return null;
+  const nC = lignes.filter((l) => l.camp === "comme").length;
+  const nF = lignes.filter((l) => l.camp === "face").length;
+  const nN = lignes.length - nC - nF;
+
+  return (
+    <View style={{ marginBottom: 16 }}>
+      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 2 }]}>Sur les votes finaux, {abrev} a…</Text>
+      <Text style={[T.small, { color: C.textMuted, marginBottom: 11 }]}>Le vote d'ensemble de chaque texte, comparé à ta réponse. Touche un texte pour l'ouvrir.</Text>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+        <Chip label={`${nC} comme toi`} bg={C.adopteBg} fg={C.adopteFg} ph={9} pv={3} />
+        <Chip label={`${nF} à l’inverse`} bg={C.rejeteBg} fg={C.rejeteFg} ph={9} pv={3} />
+        {nN > 0 && <Chip label={`${nN} partagé / sans avis`} bg={C.surfaceAlt} fg={C.textMuted} ph={9} pv={3} />}
+      </View>
+      <View style={{ gap: 9 }}>
+        {lignes.map(({ t, camp }) => (
+          <LigneVoteFinal key={t.dossier.ref} texte={t} abrev={abrev} camp={camp} onPress={() => nav.push({ name: "texte", uid: t.dossier.ref })} />
+        ))}
+      </View>
+      {total > lignes.length && (
+        <Text style={[T.micro, { color: C.textFaint, marginTop: 9 }]}>Tes {lignes.length} textes les plus récents (sur {total} au total).</Text>
+      )}
+    </View>
+  );
+}
+
+/** Une ligne de la lentille : verdict en langage clair (comme toi / à l'inverse / partagé) + résultat. */
+function LigneVoteFinal({ texte, abrev, camp, onPress }: { texte: TexteSitue; abrev: string; camp: "comme" | "face" | "neutre"; onPress: () => void }) {
+  const vf = texte.voteFinal!;
+  const pos = vf.positions[abrev];
+  const phrase =
+    camp === "comme" ? `${abrev} a voté comme toi`
+    : camp === "face" ? `${abrev} a voté à l’inverse`
+    : texte.tonVoteFinal == null ? "tu ne t’es pas situé sur le vote final"
+    : pos === "abstention" ? `${abrev} s’est abstenu`
+    : `${abrev} était partagé`;
+  const vBg = camp === "comme" ? C.adopteBg : camp === "face" ? C.rejeteBg : C.surfaceAlt;
+  const vFg = camp === "comme" ? C.adopteFg : camp === "face" ? C.rejeteFg : C.textMuted;
+  const cat = texte.dossier.categorie ?? "";
+  const cui = catUI(cat);
+  const catLabel = (cui as { court?: string }).court ?? cat;
+  return (
+    <Card onPress={onPress} padding={12} style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
+      <View style={{ flex: 1, minWidth: 0 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 4 }}>
+          <Chip label={catLabel} bg={C.surfaceAlt} fg={C.textMuted} radius={7} ph={7} pv={2} />
+          <Text style={[T.micro, tnum, { color: C.textFaint }]}>{formatDate(vf.date)}</Text>
+        </View>
+        <Text style={[T.small, { fontFamily: F.semibold, color: C.text, lineHeight: 18 }]} numberOfLines={2}>{texte.dossier.titre}</Text>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginTop: 7, flexWrap: "wrap", rowGap: 6 }}>
+          <Chip label={phrase} bg={vBg} fg={vFg} ph={9} pv={2} />
+          {vf.sort_code && (
+            <Chip label={vf.sort_code === "adopte" ? "Adopté" : "Rejeté"} bg={vf.sort_code === "adopte" ? C.adopteBg : C.rejeteBg} fg={vf.sort_code === "adopte" ? C.adopteFg : C.rejeteFg} ph={7} pv={2} />
+          )}
+        </View>
+      </View>
+      <Feather name="chevron-right" size={18} color={C.textFaint} />
+    </Card>
   );
 }
 
