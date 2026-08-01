@@ -1,19 +1,23 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking } from "react-native";
-import { Feather } from "@expo/vector-icons";
-import { C, F, T, RADIUS, shadowCard, S } from "../theme";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { View, Text, ActivityIndicator, TouchableOpacity, Animated, PanResponder, useWindowDimensions } from "react-native";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { getTestProximite, getPartis, getCategories } from "../api";
-import { Button } from "../components/ui";
-import type { PartiResume, CategorieRef } from "../types";
+import { catUI } from "../categoryUI";
+import { useReduceMotion } from "../components/HeroScrutins";
+import type { CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
-import { phraseAlignement } from "../testProximite/phrase";
 import { chargerTest, fusionnerReponses } from "../testProximite/storage";
 import { questionsNeuves, N_AFFINER } from "../testProximite/config";
-import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
-import { HemicycleCamps, campDe, type GroupeCamp } from "../components/HemicycleCamps";
-import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
 import { track } from "../analytics";
+
+// TEST DE PROXIMITÉ « au swipe » — remplace le question-par-question. MÊME test : mêmes questions
+// (getTestProximite + même tirage par mode), MÊME stockage (fusionnerReponses), MÊME résultat
+// (nav → testResultat, spectre). Trois règles produit : (1) ANTICIPATION — aucun résultat pendant
+// le deck, juste un décompte neutre ; (2) le résultat est un SPECTRE (écran testResultat) ; (3) on
+// suit depuis le résultat. Gestes : Animated + PanResponder du cœur RN (aucune dépendance). Les 3
+// boutons (Contre / Sans avis / Pour) + Annuler font tout ce que fait le swipe (voie clavier/desktop).
 
 const N_COMPLET = 12;
 const N_THEME = 10;
@@ -31,7 +35,6 @@ function melange<T>(arr: T[]): T[] {
  *  thèmes ET les familles de clivage (round-robin + variation de l'axe), sans doublon. */
 function tirer(all: QuestionProximite[], mode: "theme" | "complet", theme?: string): QuestionProximite[] {
   if (mode === "theme") return melange(all.filter((q) => q.theme === theme)).slice(0, N_THEME);
-
   const byTheme: Record<string, QuestionProximite[]> = {};
   for (const q of all) (byTheme[q.theme] ||= []).push(q);
   Object.values(byTheme).forEach((l) => l.sort(() => Math.random() - 0.5));
@@ -55,151 +58,180 @@ function tirer(all: QuestionProximite[], mode: "theme" | "complet", theme?: stri
 
 export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "affiner"; theme?: string; themeLibelle?: string; nav: Nav }) {
   const [all, setAll] = useState<QuestionProximite[] | null>(null);
-  // Test déjà fait (pour le mode « affiner » : on sert les votes NON répondus et on
-  // fusionne les réponses à l'arrivée — chaque session approfondit le même « je »).
   const dejaFait = useMemo(() => (mode === "affiner" ? chargerTest() : null), [mode]);
-  const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
   const [idx, setIdx] = useState(0);
   const [reponses, setReponses] = useState<Record<number, Reponse>>({});
-  const [revealed, setRevealed] = useState(false);
+  const [history, setHistory] = useState<number[]>([]);
+  const { width } = useWindowDimensions();
+  const reduce = useReduceMotion();
 
-  // Engagement anonyme : « un test a commencé/terminé » + le thème (ou « complet »).
-  // JAMAIS les réponses ni le parti compatible (opinion politique = RGPD art. 9).
   const testKey = mode === "affiner" ? "affiner" : mode === "theme" ? theme ?? "theme" : "complet";
+  useEffect(() => { track("test_start", testKey); }, []);
   useEffect(() => {
-    track("test_start", testKey);
+    Promise.all([getTestProximite(), getPartis(), getCategories()]).then(([qs, , cs]) => { setCats(cs); setAll(qs); });
   }, []);
 
-  useEffect(() => {
-    Promise.all([getTestProximite(), getPartis(), getCategories()]).then(([qs, ps, cs]) => {
-      setPartis(ps);
-      setCats(cs);
-      setAll(qs);
-    });
-  }, []);
-
-  // Tirage figé une fois les questions chargées (ne pas re-tirer à chaque rendu).
   const questions = useMemo(() => {
     if (!all) return [];
     if (mode === "affiner") return questionsNeuves(all, dejaFait?.reponses ?? {}, dejaFait?.poids, theme).slice(0, N_AFFINER);
     return tirer(all, mode, theme);
   }, [all, mode, theme, dejaFait]);
-  const seats = useMemo(() => Object.fromEntries(partis.map((p) => [p.abrev, p.nb_deputes])), [partis]);
-  const libelleTheme = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
-
-  if (!all) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
-  if (!questions.length)
-    return <View style={{ flex: 1, justifyContent: "center", padding: 24 }}><Text style={{ textAlign: "center", color: C.textMuted }}>Aucune question disponible pour ce thème.</Text></View>;
-
-  const q = questions[idx];
   const total = questions.length;
-  const rep = reponses[q.id];
+  const libelleTheme = (id: string) => cats.find((c) => c.id === id)?.libelle ?? (catUI(id) as { court?: string }).court ?? id;
 
-  // Camps des groupes sur CE scrutin face à ta réponse (pour l'hémicycle « où tu tombes »).
-  const groupesCamp: GroupeCamp[] = partis.map((p) => ({
-    abrev: p.abrev,
-    nb_deputes: p.nb_deputes,
-    couleur: p.couleur,
-    camp: campDe(q.positions?.[p.abrev ?? ""], rep),
-  }));
-  const commeAbrevs = groupesCamp
-    .filter((g) => g.camp === "comme" && g.abrev)
-    .sort((a, b) => ORDRE_HEMICYCLE.indexOf(a.abrev!) - ORDRE_HEMICYCLE.indexOf(b.abrev!))
-    .map((g) => g.abrev!);
-  const commeN = groupesCamp.reduce((n, g) => n + (g.camp === "comme" ? g.nb_deputes || 0 : 0), 0);
-  const faceN = groupesCamp.reduce((n, g) => n + (g.camp === "face" ? g.nb_deputes || 0 : 0), 0);
-  const rejointTexte =
-    commeAbrevs.length === 0
-      ? "Aucun groupe ne te rejoint sur ce vote."
-      : `Ton vote rejoint ${commeAbrevs.slice(0, 4).join(", ")}${commeAbrevs.length > 4 ? "…" : ""} (${commeN} sièges, ${faceN} en face)`;
+  // Position de la carte du dessus (Animated) — les gestes l'écrivent, on la remet à 0 par carte.
+  const pan = useRef(new Animated.ValueXY()).current;
+  const busy = useRef(false); // verrou : ignore un 2e choix tant que la carte s'envole (anti double-réponse)
+  const seuil = Math.max(90, width * 0.24);
+  const horsChamp = width * 1.35;
 
-  const repondre = (r: Reponse) => { setReponses((p) => ({ ...p, [q.id]: r })); setRevealed(true); };
-  const suivant = () => {
+  const enregistrer = (r: Reponse) => {
+    const q = questions[idx];
+    if (!q) return;
+    const suite = { ...reponses, [q.id]: r };
+    setReponses(suite);
+    setHistory((h) => [...h, q.id]);
+    pan.setValue({ x: 0, y: 0 });
+    busy.current = false;
     if (idx + 1 >= total) {
       track("test_done", testKey);
-      // Les réponses s'ACCUMULENT (tous modes), les poids ne sont PAS touchés. Le résultat
-      // « mes résultats » relit réponses + poids depuis le stockage (rien passé en param).
-      fusionnerReponses({ ...reponses, [q.id]: rep! });
+      fusionnerReponses(suite); // MÊME stockage que le test question-par-question
       nav.push({ name: "testResultat" });
     } else {
       setIdx(idx + 1);
-      setRevealed(false);
     }
   };
 
+  const envol = (r: Reponse, to: { x: number; y: number }) => {
+    if (reduce) return enregistrer(r);
+    Animated.timing(pan, { toValue: to, duration: 260, useNativeDriver: false }).start(() => enregistrer(r));
+  };
+  const choisir = (r: Reponse) => {
+    if (busy.current) return;
+    busy.current = true;
+    if (r === "pour") envol("pour", { x: horsChamp, y: 0 });
+    else if (r === "contre") envol("contre", { x: -horsChamp, y: 0 });
+    else envol("sans_avis", { x: 0, y: -horsChamp });
+  };
+  const annuler = () => {
+    if (!history.length) return;
+    const id = history[history.length - 1];
+    setHistory((h) => h.slice(0, -1));
+    setReponses((p) => { const n = { ...p }; delete n[id]; return n; });
+    pan.setValue({ x: 0, y: 0 });
+    setIdx((i) => Math.max(0, i - 1));
+  };
+
+  const responder = useMemo(() =>
+    PanResponder.create({
+      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4,
+      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
+      onPanResponderRelease: (_e, g) => {
+        if (g.dx > seuil) choisir("pour");
+        else if (g.dx < -seuil) choisir("contre");
+        else Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, bounciness: 6 }).start();
+      },
+    }),
+  [idx, reponses, history, total, reduce, seuil]);
+
+  if (!all) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
+  if (!total)
+    return <View style={{ flex: 1, justifyContent: "center", padding: 24 }}><Text style={{ textAlign: "center", color: C.textMuted }}>Aucune question disponible.</Text></View>;
+
+  const q = questions[idx];
+  const suivante = questions[idx + 1];
+  const reste = total - idx;
+
+  const rotate = pan.x.interpolate({ inputRange: [-width, 0, width], outputRange: ["-11deg", "0deg", "11deg"] });
+  const opPour = pan.x.interpolate({ inputRange: [0, seuil], outputRange: [0, 1], extrapolate: "clamp" });
+  const opContre = pan.x.interpolate({ inputRange: [-seuil, 0], outputRange: [1, 0], extrapolate: "clamp" });
+
+  const carte = (question: QuestionProximite, dessus: boolean) => {
+    const ui = catUI(question.theme);
+    return (
+      <Animated.View
+        {...(dessus ? responder.panHandlers : {})}
+        style={{
+          position: "absolute", left: 0, right: 0, top: 0, bottom: 0,
+          backgroundColor: C.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: C.border, padding: 20,
+          ...shadowCard,
+          ...(dessus
+            ? { transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] as any }
+            : { transform: [{ scale: 0.955 }, { translateY: 12 }], opacity: 0.9 }),
+        }}
+      >
+        {dessus && (
+          <>
+            <Animated.View pointerEvents="none" style={{ position: "absolute", top: 20, right: 18, opacity: opPour, borderWidth: 2.5, borderColor: C.pour, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6, transform: [{ rotate: "12deg" }] }}>
+              <Text style={{ fontFamily: F.extra, color: C.pour, fontSize: 16, letterSpacing: 1 }}>POUR</Text>
+            </Animated.View>
+            <Animated.View pointerEvents="none" style={{ position: "absolute", top: 20, left: 18, opacity: opContre, borderWidth: 2.5, borderColor: C.contre, borderRadius: 10, paddingHorizontal: 12, paddingVertical: 6, transform: [{ rotate: "-12deg" }] }}>
+              <Text style={{ fontFamily: F.extra, color: C.contre, fontSize: 16, letterSpacing: 1 }}>CONTRE</Text>
+            </Animated.View>
+          </>
+        )}
+        <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 6, backgroundColor: ui.bg, borderRadius: RADIUS.pill, paddingHorizontal: 10, paddingVertical: 5 }}>
+          <MaterialCommunityIcons name={ui.icon as any} size={14} color={ui.fg} />
+          <Text style={[T.micro, { fontFamily: F.bold, color: ui.fg }]}>{libelleTheme(question.theme)}</Text>
+        </View>
+        <Text style={[T.heading, { fontFamily: F.extra, color: C.text, fontSize: 20, lineHeight: 27, marginTop: 16 }]}>{question.these}</Text>
+        <Text style={[T.micro, { color: C.textFaint, marginTop: "auto" }]}>Glisse ← Contre · Pour → · ou utilise les boutons</Text>
+      </Animated.View>
+    );
+  };
+
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 20, paddingTop: 14, paddingBottom: 40 }} showsVerticalScrollIndicator={false}>
-      {/* Progression */}
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
-        <View style={{ backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 11, paddingVertical: 5 }}>
-          <Text style={[T.micro, { fontFamily: F.bold, color: C.accent }]}>{libelleTheme(q.theme)}</Text>
+    <View style={{ flex: 1, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 16 }}>
+      {/* Teaser d'ANTICIPATION — aucun résultat en direct, juste un décompte neutre */}
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 9, backgroundColor: C.accentSoft, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.md, padding: 11, marginBottom: 14 }}>
+        <MaterialCommunityIcons name="compass-outline" size={18} color={C.accent} />
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>Ton spectre · révélé dans {reste} carte{reste > 1 ? "s" : ""}</Text>
+          <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>À la fin, pas de verdict carte par carte.</Text>
         </View>
-        <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{idx + 1} / {total}</Text>
+        <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>{idx + 1}/{total}</Text>
       </View>
-      <View style={{ height: 5, borderRadius: 3, backgroundColor: C.surfaceAlt, marginBottom: 22, overflow: "hidden" }}>
-        <View style={{ height: 5, borderRadius: 3, backgroundColor: C.accent, width: `${((idx + (revealed ? 1 : 0)) / total) * 100}%` }} />
+
+      {/* Deck */}
+      <View style={{ flex: 1 }}>
+        {suivante && carte(suivante, false)}
+        {carte(q, true)}
       </View>
 
-      {/* Thèse */}
-      <Text style={[T.title, { fontFamily: F.extra, color: C.text, lineHeight: 30 }]}>{q.these}</Text>
-
-      {!revealed ? (
-        <View style={{ marginTop: 26, gap: 11 }}>
-          <ChoixBouton label="Pour" couleur={C.pour} onPress={() => repondre("pour")} />
-          <ChoixBouton label="Sans avis" couleur={C.textFaint} onPress={() => repondre("sans_avis")} />
-          <ChoixBouton label="Contre" couleur={C.contre} onPress={() => repondre("contre")} />
-        </View>
-      ) : (
-        <View style={{ marginTop: 18 }}>
-          {(rep === "pour" || rep === "contre") && (
-            <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, paddingHorizontal: 14, paddingVertical: 12, borderWidth: 1, borderColor: C.border, marginBottom: 10, ...shadowCard }}>
-              <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.3 }]}>
-                Où tu tombes dans l'hémicycle
-              </Text>
-              <HemicycleCamps groupes={groupesCamp} size={210} />
-              <Text style={[T.small, { color: C.text, marginTop: 10, textAlign: "center" }]}>{rejointTexte}</Text>
-            </View>
-          )}
-          <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.md, padding: 16, borderWidth: 1, borderColor: C.border, ...shadowCard }}>
-            <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginBottom: 14, textTransform: "uppercase", letterSpacing: 0.3 }]}>
-              Comment l'Assemblée a voté
-            </Text>
-            <VoteBarDivergenteCentree pour={q.totaux!.pour} contre={q.totaux!.contre} abstention={q.totaux!.abstention} decompte />
-            {/* Phrase d'alignement conservée UNIQUEMENT quand l'hémicycle n'est pas montré
-                (réponse « sans avis ») — sinon l'hémicycle + « Ton vote rejoint … » la remplace. */}
-            {rep === "sans_avis" && (
-              <Text style={[T.body, { color: C.text, marginTop: 16 }]}>{phraseAlignement(q.positions, rep!, seats)}</Text>
-            )}
-            {q.source_url && (
-              <TouchableOpacity onPress={() => Linking.openURL(q.source_url!)} style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 12 }} hitSlop={6}>
-                <Feather name="external-link" size={13} color={C.accent} />
-                <Text style={[T.small, { fontFamily: F.semibold, color: C.accent }]}>Voir le scrutin sur le site de l'Assemblée</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          <Button
-            label={idx + 1 >= total ? "Voir mon résultat" : "Question suivante"}
-            onPress={suivant}
-            fullWidth
-            style={{ marginTop: S.s18 }}
-          />
-        </View>
-      )}
-    </ScrollView>
+      {/* Boutons — Contre / Sans avis / Pour au MÊME niveau (voie clavier/desktop) */}
+      <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
+        <BoutonChoix icon="x" label="Contre" couleur={C.contre} onPress={() => choisir("contre")} />
+        <BoutonChoix icon="minus" label="Sans avis" couleur={C.textMuted} onPress={() => choisir("sans_avis")} />
+        <BoutonChoix icon="check" label="Pour" couleur={C.pour} onPress={() => choisir("pour")} />
+      </View>
+      <TouchableOpacity
+        onPress={annuler}
+        disabled={!history.length}
+        accessibilityRole="button"
+        style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, alignSelf: "center", marginTop: 12, paddingHorizontal: 14, paddingVertical: 8, borderRadius: RADIUS.pill, borderWidth: 1, borderColor: C.border, opacity: history.length ? 1 : 0.4 }}
+      >
+        <Feather name="rotate-ccw" size={13} color={C.textMuted} />
+        <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>Annuler la dernière</Text>
+      </TouchableOpacity>
+      <Text style={[T.micro, { color: C.textFaint, textAlign: "center", marginTop: 10, lineHeight: 16 }]}>
+        Ton avis reste privé sur cet appareil et sert à recalculer ta proximité. Rien n'est envoyé.
+      </Text>
+    </View>
   );
 }
 
-function ChoixBouton({ label, couleur, onPress }: { label: string; couleur: string; onPress: () => void }) {
+function BoutonChoix({ icon, label, couleur, onPress }: { icon: any; label: string; couleur: string; onPress: () => void }) {
   return (
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={onPress}
-      style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: C.surface, borderRadius: RADIUS.md, paddingVertical: 16, paddingHorizontal: 16, borderWidth: 1, borderColor: C.border, ...shadowCard }}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={{ flex: 1, minHeight: 60, alignItems: "center", justifyContent: "center", gap: 4, backgroundColor: C.surface, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: C.border, ...shadowCard }}
     >
-      <View style={{ width: 12, height: 12, borderRadius: 6, backgroundColor: couleur }} />
-      <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{label}</Text>
+      <Feather name={icon} size={22} color={couleur} />
+      <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
