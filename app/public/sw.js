@@ -18,7 +18,7 @@
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const SHELL_VERSION = "v29";
+const SHELL_VERSION = "v30";
 // v4 : les données passent sur le projet Pages dédié (data.scrutoir.fr) — le bump purge
 // les entrées de l'ancienne origine (scrutoir.fr/data/*), devenues inaccessibles.
 const DATA_VERSION = "v4";

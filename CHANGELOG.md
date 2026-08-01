@@ -7,6 +7,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.12.1 — 2026-08-02
+Écran résultat (« Ton point de départ ») : **un seul mécanisme de suivi**.
+- Chaque ligne du **spectre** porte désormais une **cloche de suivi** (→ coche quand suivi), câblée
+  sur le vrai état de suivi (`useFollow`, uid du parti) — le même que la fiche parti et le fil
+  d'accueil. `accessibilityLabel` « Suivre {nom du groupe} ».
+- La carte **« Reste au courant »** et son bouton « Suivre {le plus proche} » (qui faisaient doublon
+  avec les cloches) sont **retirés**. **« Trouver ton député »** reste en accès autonome et discret.
+  Poids par thème, sorties de fin (« Voir mon accueil » / « Découvrir l'appli »), partage et
+  « Repartir de zéro » inchangés.
+
 ## 1.12.0 — 2026-08-01
 Trois features livrées : lentille « comme toi » par groupe, refonte de l'accueil, et le test de proximité **au swipe**.
 - **« Comme toi » par groupe** — sur la fiche d'un groupe (`PartiScreen`), une lentille liste ses
