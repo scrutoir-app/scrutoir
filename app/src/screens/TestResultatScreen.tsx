@@ -64,7 +64,7 @@ const nomCourt = (libelle: string) => libelle.split(/\s*[&,]\s*/)[0];
 // Bouton « suivre » COMPACT posé sur chaque ligne du spectre. Câblé sur le VRAI état de suivi
 // (`useFollow`, même store que la fiche parti et le fil d'accueil) — jamais un état local.
 // uid = PO… du groupe (depuis `getPartis`, abrev → uid). Style aligné sur le suivi de l'app.
-function SuivreGroupe({ uid }: { uid: string }) {
+function SuivreGroupe({ uid, nom }: { uid: string; nom: string }) {
   const [suivi, toggle] = useFollow(uid);
   if (!uid) return null;
   return (
@@ -73,7 +73,7 @@ function SuivreGroupe({ uid }: { uid: string }) {
       hitSlop={8}
       accessibilityRole="button"
       accessibilityState={{ selected: suivi }}
-      accessibilityLabel={suivi ? "Ne plus suivre ce groupe" : "Suivre ce groupe"}
+      accessibilityLabel={suivi ? `Ne plus suivre ${nom}` : `Suivre ${nom}`}
       style={{ width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: suivi ? C.accentSoft : C.surfaceAlt, borderWidth: 1, borderColor: suivi ? C.accent : C.border }}
     >
       <Feather name={suivi ? "check" : "bell"} size={15} color={suivi ? C.accent : C.textMuted} />
@@ -191,6 +191,7 @@ export function TestResultatScreen({
 
   const couleur = (abrev: string) => partis.find((p) => p.abrev === abrev)?.couleur ?? C.textFaint;
   const uidDe = (abrev: string) => partis.find((p) => p.abrev === abrev)?.uid ?? "";
+  const nomDe = (abrev: string) => nomCourt(partis.find((p) => p.abrev === abrev)?.libelle ?? abrev);
   const libelle = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
   const comparableTotal = (abrev: string) =>
     themes.reduce((s, t) => s + (resultat.parTheme[t]?.[abrev]?.comparable ?? 0), 0);
@@ -260,7 +261,7 @@ export function TestResultatScreen({
                 {fiable ? `${Math.round(g.pct * 100)}%` : "—"}
               </Text>
               {/* Suivre CE groupe (vrai état de suivi, même que la fiche parti / l'accueil). */}
-              <SuivreGroupe uid={uidDe(g.abrev)} />
+              <SuivreGroupe uid={uidDe(g.abrev)} nom={nomDe(g.abrev)} />
             </View>
           );
         })}
@@ -276,40 +277,18 @@ export function TestResultatScreen({
         Suis un groupe pour retrouver ses votes sur ton accueil.
       </Text>
 
-      {/* Reste au courant (suivi, version A) : relie explicitement le suivi au digest d'accueil. */}
-      <Card bordered padding={16} style={{ marginTop: 14 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
-            <Feather name="bell" size={18} color={C.accent} />
-          </View>
-          <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Reste au courant</Text>
-        </View>
-        <Text style={[T.small, { color: C.textMuted, marginTop: 9 }]}>
-          Suis le parti dont tu es proche ou ton député pour retrouver leurs nouveaux votes sur ton accueil.
-        </Text>
-        {topParti && (
-          <TouchableOpacity
-            onPress={toggleSuiviTop}
-            activeOpacity={0.85}
-            style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 13, paddingVertical: 12, borderRadius: RADIUS.md, backgroundColor: suiviTop ? C.surfaceAlt : C.accent, borderWidth: suiviTop ? 1 : 0, borderColor: C.borderStrong }}
-          >
-            <Feather name={suiviTop ? "check" : "bell"} size={17} color={suiviTop ? C.text : "#fff"} />
-            <Text style={[T.small, { fontFamily: F.bold, color: suiviTop ? C.text : "#fff" }]}>
-              {suiviTop ? `Tu suis ${nomCourt(topParti.libelle)}` : `Suivre ${nomCourt(topParti.libelle)}`}
-            </Text>
-          </TouchableOpacity>
-        )}
-        {/* L'app ne mémorise pas le député de l'utilisateur → « Trouver ton député » vers monDepute. */}
-        <Button
-          label="Trouver ton député"
-          onPress={() => nav.push({ name: "monDepute" })}
-          variant="outline"
-          size="sm"
-          fullWidth
-          iconLeft={<Feather name="user" size={17} color={C.accent} />}
-          style={{ marginTop: 8 }}
-        />
-      </Card>
+      {/* Un SEUL mécanisme de suivi : les cloches par ligne du spectre ci-dessus (plus de carte
+          « Reste au courant » en doublon). « Trouver ton député » reste en accès autonome et
+          discret — action DISTINCTE (suivre son député local), l'app ne le mémorise pas. */}
+      <Button
+        label="Trouver ton député"
+        onPress={() => nav.push({ name: "monDepute" })}
+        variant="outline"
+        size="sm"
+        fullWidth
+        iconLeft={<Feather name="user" size={17} color={C.accent} />}
+        style={{ marginTop: 16 }}
+      />
 
       {/* Ce qui compte pour toi : accordéon REPLIÉ par défaut (réglage ponctuel, ne doit pas
           occuper la page). À l'ouverture : segmentés Peu/Normal/Fort, recalcul du global en direct. */}
