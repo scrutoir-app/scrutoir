@@ -7,6 +7,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.13.2 — 2026-08-02
+Fil : rail d'actions rééquilibré. Les boutons **Détail / Garder / Partager** sont désormais
+ancrés dans la bande du bloc d'info (entre la catégorie et la pastille « comme toi »), alignés
+en bas avec le texte, au lieu de flotter vers l'hémicycle — la carte est mieux équilibrée.
+
 ## 1.13.1 — 2026-08-02
 Filigranes du Fil plus visibles + classification du corpus « protection de l'enfance ».
 - **Motif de fond du Fil** : opacité relevée (0,06 → 0,12 clair / 0,16 sombre) et motif par

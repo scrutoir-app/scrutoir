@@ -122,26 +122,27 @@ export function FilScrutinCard({
         ) : null}
       </Pressable>
 
-      {/* Rail d'actions vertical à droite */}
-      <View style={{ position: "absolute", right: S.s12, bottom: height * 0.16, zIndex: 5, gap: S.s18, alignItems: "center" }}>
-        <RailAction icon="info" label="Détail" onPress={onDetail} />
-        <RailAction icon={kept ? "bookmark" : "bookmark"} label={kept ? "Gardé" : "Garder"} active={kept} onPress={() => toggleKept()} />
-        <RailAction icon="share-2" label="Partager" onPress={onShare} />
-      </View>
-
-      {/* Bloc info en bas à gauche */}
-      <View style={{ position: "absolute", left: S.s16, right: 82, bottom: height * 0.06, zIndex: 4 }}>
-        <Text style={[T.micro, { fontFamily: F.extra, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: S.s8 }]}>
-          {catLabel}
-        </Text>
-        <Pressable onPress={onDetail} accessibilityRole="button" accessibilityLabel={`Détail : ${titre}`}>
-          <Text style={[T.title, { color: C.text }]} numberOfLines={4}>{titre}</Text>
-        </Pressable>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: S.s6, marginTop: S.s12 }}>
-          <CampChip label="Pour" position="pour" groupes={c.pour} />
-          <CampChip label="Contre" position="contre" groupes={c.contre} />
+      {/* Bloc info + rail d'actions, ancrés en bas et alignés en bas : le rail tient dans la
+          bande « catégorie → comme toi » (équilibre de la carte) au lieu de flotter vers l'hémicycle. */}
+      <View style={{ position: "absolute", left: S.s16, right: S.s12, bottom: height * 0.06, zIndex: 4, flexDirection: "row", alignItems: "flex-end", gap: S.s12 }}>
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[T.micro, { fontFamily: F.extra, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: S.s8 }]}>
+            {catLabel}
+          </Text>
+          <Pressable onPress={onDetail} accessibilityRole="button" accessibilityLabel={`Détail : ${titre}`}>
+            <Text style={[T.title, { color: C.text }]} numberOfLines={4}>{titre}</Text>
+          </Pressable>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: S.s6, marginTop: S.s12 }}>
+            <CampChip label="Pour" position="pour" groupes={c.pour} />
+            <CampChip label="Contre" position="contre" groupes={c.contre} />
+          </View>
+          <VerdictPastille verdict={verdict} onPress={onVerdict} style={{ marginTop: S.s12 }} />
         </View>
-        <VerdictPastille verdict={verdict} onPress={onVerdict} style={{ marginTop: S.s12 }} />
+        <View style={{ gap: S.s18, alignItems: "center" }}>
+          <RailAction icon="info" label="Détail" onPress={onDetail} />
+          <RailAction icon="bookmark" label={kept ? "Gardé" : "Garder"} active={kept} onPress={() => toggleKept()} />
+          <RailAction icon="share-2" label="Partager" onPress={onShare} />
+        </View>
       </View>
 
       {/* Accroche « balaie vers le haut » (première carte) */}
