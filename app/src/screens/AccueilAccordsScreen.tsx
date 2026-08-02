@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, ActivityIndicator, Animated, Easing } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, MOTION, couleurGroupe } from "../theme";
+import { Button } from "../components/ui";
 import { ScrutoirMark } from "../components/brand/ScrutoirMark";
 import { CarteSuivi } from "../components/CarteSuivi";
 import { SearchResultsList } from "../components/SearchResultsList";
@@ -268,24 +269,18 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
             </Animated.View>
           )}
 
-          {/* CTA autonome : trouver son député (par commune / code postal) */}
+          {/* CTA autonome, discret : trouver son député (bouton contour, cf. écran résultat) */}
           <Animated.View style={rise(3)}>
-            <TouchableOpacity
-              activeOpacity={0.7}
-              onPress={() => nav.push({ name: "monDepute" })}
-              accessibilityRole="button"
-              accessibilityLabel="Trouver ton député"
-              style={{ flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 16, marginTop: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 14, padding: 13, ...shadowCard }}
-            >
-              <View style={{ width: 34, height: 34, borderRadius: RADIUS.pill, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
-                <Feather name="map-pin" size={17} color={C.onAccent} />
-              </View>
-              <View style={{ flex: 1, minWidth: 0 }}>
-                <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>Trouver ton député</Text>
-                <Text style={[T.micro, { color: C.textMuted, marginTop: 2 }]}>Par commune ou code postal, vois comment il vote.</Text>
-              </View>
-              <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Voir ›</Text>
-            </TouchableOpacity>
+            <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+              <Button
+                label="Trouver ton député"
+                onPress={() => nav.push({ name: "monDepute" })}
+                variant="outline"
+                size="sm"
+                fullWidth
+                iconLeft={<Feather name="user" size={17} color={C.accent} />}
+              />
+            </View>
           </Animated.View>
         </>
       )}
