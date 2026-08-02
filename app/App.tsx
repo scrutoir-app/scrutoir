@@ -38,6 +38,7 @@ import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
 import { TestParThemeScreen } from "./src/screens/TestParThemeScreen";
 import { TexteScreen } from "./src/screens/TexteScreen";
+import { DossierScrutinsScreen } from "./src/screens/DossierScrutinsScreen";
 import { AccueilAccordsScreen } from "./src/screens/AccueilAccordsScreen";
 import { AccordsIndexScreen } from "./src/screens/AccordsIndexScreen";
 import { lireHashPartage } from "./src/testProximite/storage";
@@ -222,7 +223,7 @@ function AppInner() {
     test: "Test de proximité",
     testResultat: "Ta proximité",
     testParTheme: "Par thème",
-    texte: "Texte",
+    texte: "Texte", dossierScrutins: "Tout le texte",
     accords: "Tes accords",
   };
   const showHeader = stack.length > 1;
@@ -350,6 +351,7 @@ function AppInner() {
           {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} poids={current.poids} partage={current.partage} themesJoues={current.themesJoues} nav={nav} />}
           {current.name === "testParTheme" && <TestParThemeScreen nav={nav} />}
           {current.name === "texte" && <TexteScreen uid={current.uid} nav={nav} />}
+          {current.name === "dossierScrutins" && <DossierScrutinsScreen dossierRef={current.ref} titre={current.titre} nav={nav} />}
           {current.name === "accords" && <AccordsIndexScreen nav={nav} />}
             </>
           )}

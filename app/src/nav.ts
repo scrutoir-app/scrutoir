@@ -70,6 +70,7 @@ export type Route =
   | { name: "testResultat"; reponses?: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number>; partage?: boolean }
   | { name: "testParTheme" }
   | { name: "texte"; uid: string }
+  | { name: "dossierScrutins"; ref: string; titre: string }
   | { name: "accords" };
 
 export interface Nav {
