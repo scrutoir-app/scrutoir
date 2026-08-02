@@ -1,6 +1,7 @@
 import React from "react";
 import Svg, { Defs, Pattern, Rect, Path, Circle, Line, G } from "react-native-svg";
 import { catUI } from "../categoryUI";
+import { getScheme } from "../theme";
 
 /**
  * Filigrane de fond du Fil : un micro-motif géométrique propre à la CATÉGORIE, tracé
@@ -99,11 +100,7 @@ const MOTIFS: Record<string, (c: string) => React.ReactNode> = {
 
 const DEFAULT_MOTIF = (c: string) => (
   <G fill={c} stroke="none">
-    <Circle cx={12} cy={12} r={2} />
-    <Circle cx={34} cy={12} r={2} />
-    <Circle cx={23} cy={23} r={2} />
-    <Circle cx={12} cy={34} r={2} />
-    <Circle cx={34} cy={34} r={2} />
+    {[8, 23, 38].map((y) => [8, 23, 38].map((x) => <Circle key={`${x}-${y}`} cx={x} cy={y} r={1.9} />))}
   </G>
 );
 
@@ -113,7 +110,7 @@ export function ScrutinMotif({
   categorieId,
   width,
   height,
-  opacity = 0.06,
+  opacity,
 }: {
   categorieId: string | null | undefined;
   width: number;
@@ -124,6 +121,9 @@ export function ScrutinMotif({
   if (!width || !height) return null;
   const tint = catUI(categorieId ?? "").fg; // teinte officielle du thème (jamais un hex en dur)
   const draw = (categorieId && MOTIFS[categorieId]) || DEFAULT_MOTIF;
+  // Opacité relevée + plus forte en sombre (la teinte y est éclaircie mais le fond est très
+  // foncé) pour que le filigrane teinté reste lisible dans les deux thèmes.
+  const op = opacity ?? (getScheme() === "dark" ? 0.16 : 0.12);
 
   return (
     <Svg width={width} height={height} style={{ position: "absolute", left: 0, top: 0 }} pointerEvents="none">
@@ -132,7 +132,7 @@ export function ScrutinMotif({
           {draw(tint)}
         </Pattern>
       </Defs>
-      <Rect x={0} y={0} width={width} height={height} fill={`url(#${pid})`} opacity={opacity} />
+      <Rect x={0} y={0} width={width} height={height} fill={`url(#${pid})`} opacity={op} />
     </Svg>
   );
 }

@@ -111,6 +111,9 @@ export const CATEGORIES: Categorie[] = [
       "solidarite", "pauvrete", "handicap", "famille", "allocation",
       "rsa", "minima sociaux", "aide sociale", "precarite", "prestation",
       "caf", "dependance", "grand age", "enfance", "egalite femmes hommes",
+      // "enfance" (préfixe) ne matche PAS "enfants" (divergent après "enfan") : on ajoute
+      // "enfant"/"mineur" pour classer la protection de l'enfance (ex. loi « protection des enfants »).
+      "enfant", "mineur", "protection de l'enfance",
     ],
   },
   {

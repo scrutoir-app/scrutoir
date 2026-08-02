@@ -7,6 +7,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.13.1 — 2026-08-02
+Filigranes du Fil plus visibles + classification du corpus « protection de l'enfance ».
+- **Motif de fond du Fil** : opacité relevée (0,06 → 0,12 clair / 0,16 sombre) et motif par
+  défaut plus dense → le filigrane **teinté par thème** est désormais bien visible dans les deux
+  thèmes (avant : quasi invisible, surtout en mode sombre). `ScrutinMotif`.
+- **Classification** (`pipeline/categories.ts`) : ajout de « enfant / mineur / protection de
+  l'enfance » à *Protection sociale & Solidarités*. La règle de préfixe faisait que « enfance »
+  ne matchait pas « enfants » → la loi « protection des enfants » (et ses ~130 amendements)
+  restait **non classée**, donc sans thème ni filigrane coloré dans le Fil. Désormais classée.
+
 ## 1.13.0 — 2026-08-02
 Onglet **Scrutins** refondu : deux présentations d'un même corpus — un **Fil immersif** plein écran et une **Liste** — avec un **verdict « comme toi »** sur chaque scrutin.
 - **Fil (par défaut)** — un scrutin par écran, défilement vertical avec accroche : hémicycle rempli
