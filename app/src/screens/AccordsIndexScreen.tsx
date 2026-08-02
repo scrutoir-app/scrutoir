@@ -1,10 +1,10 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard } from "../theme";
 import { Chip } from "../components/ui";
 import { ErreurChargement } from "../components/ErreurChargement";
-import { getDossiersSitues, getCategories } from "../api";
+import { getDossiersSitues, getCategories, getDossier } from "../api";
 import { useData } from "../hooks/useData";
 import { useJe } from "../testProximite/jeProximite";
 import type { Nav } from "../nav";
@@ -22,6 +22,27 @@ export function AccordsIndexScreen({ nav }: { nav: Nav }) {
   const dossiers = data?.[0] ?? [];
   const cats = data?.[1] ?? [];
   const libelleCat = (id: string | null) => (id ? cats.find((c) => c.id === id)?.libelle ?? id : "");
+  const [ouvre, setOuvre] = useState<string | null>(null); // ref du dossier en cours d'ouverture
+
+  // Tap sur un texte → on ouvre DIRECTEMENT la fiche de son VOTE FINAL (nature « ensemble »),
+  // qui porte déjà « Voir tout le texte » — pas d'écran-liste intermédiaire. Repli sur la liste
+  // du dossier si aucun scrutin n'est résolu.
+  const ouvrirTexte = async (ref: string, titre: string) => {
+    if (ouvre) return;
+    setOuvre(ref);
+    try {
+      const d = await getDossier(ref);
+      const final =
+        [...d.scrutins].filter((s) => s.nature === "ensemble").sort((a, b) => (b.numero ?? 0) - (a.numero ?? 0))[0]
+        ?? d.scrutins[0];
+      if (final) nav.push({ name: "scrutin", uid: final.uid });
+      else nav.push({ name: "dossierScrutins", ref, titre });
+    } catch {
+      nav.push({ name: "dossierScrutins", ref, titre });
+    } finally {
+      setOuvre(null);
+    }
+  };
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 36 }}>
@@ -57,8 +78,11 @@ export function AccordsIndexScreen({ nav }: { nav: Nav }) {
           <TouchableOpacity
             key={dossier.ref}
             activeOpacity={0.7}
-            onPress={() => nav.push({ name: "texte", uid: dossier.ref })}
-            style={{ flexDirection: "row", alignItems: "center", gap: 11, marginHorizontal: 16, marginTop: 10, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 14, ...shadowCard }}
+            disabled={!!ouvre}
+            onPress={() => ouvrirTexte(dossier.ref, dossier.titre)}
+            accessibilityRole="button"
+            accessibilityLabel={`Ouvrir le vote final : ${dossier.titre}`}
+            style={{ flexDirection: "row", alignItems: "center", gap: 11, marginHorizontal: 16, marginTop: 10, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: 14, padding: 14, opacity: ouvre && ouvre !== dossier.ref ? 0.5 : 1, ...shadowCard }}
           >
             <View style={{ flex: 1, minWidth: 0 }}>
               {dossier.categorie && (
@@ -71,7 +95,11 @@ export function AccordsIndexScreen({ nav }: { nav: Nav }) {
                 Tu t'es situé sur <Text style={{ fontFamily: F.bold, color: C.text }}>{nbSitue} scrutin{nbSitue > 1 ? "s" : ""}</Text> · {dossier.nb_scrutins} publics
               </Text>
             </View>
-            <Feather name="chevron-right" size={20} color={C.textFaint} />
+            {ouvre === dossier.ref ? (
+              <ActivityIndicator color={C.textFaint} />
+            ) : (
+              <Feather name="chevron-right" size={20} color={C.textFaint} />
+            )}
           </TouchableOpacity>
         ))
       )}

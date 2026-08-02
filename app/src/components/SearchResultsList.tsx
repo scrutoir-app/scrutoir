@@ -338,13 +338,11 @@ export function SearchResultsList({
             {/* Un résultat de recherche est dédupliqué par dossier → il représente un TEXTE.
                 On ouvre donc la vue texte « qui a voté comme toi » (hémicycle) quand le scrutin
                 est rattaché à un dossier ; sinon on retombe sur la page scrutin. */}
+            {/* Un résultat représente un scrutin (dédupliqué par dossier = son vote final) →
+                on ouvre directement la fiche scrutin modernisée (qui porte « Voir tout le texte »). */}
             <ScrutinCard
               scrutin={item.data}
-              onPress={() =>
-                item.data.dossier_ref
-                  ? nav.push({ name: "texte", uid: item.data.dossier_ref })
-                  : nav.push({ name: "scrutin", uid: item.data.uid })
-              }
+              onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })}
             />
           </View>
         );

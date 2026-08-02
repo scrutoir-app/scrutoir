@@ -10,7 +10,7 @@ import { ScrutinList } from "../components/ScrutinList";
 // depuis le détail (hydratation via useScrutinGroupes). La catégorie du dossier alimente le motif.
 type DossierScrutin = ScrutinResume & { nature: string };
 
-export function DossierScrutinsScreen({ dossierRef, titre, nav }: { dossierRef: string; titre: string; nav: Nav }) {
+export function DossierScrutinsScreen({ dossierRef, titre, nav }: { dossierRef: string; titre?: string; nav: Nav }) {
   const [dossier, setDossier] = useState<DetailDossier | null>(null);
 
   useEffect(() => {
@@ -40,10 +40,12 @@ export function DossierScrutinsScreen({ dossierRef, titre, nav }: { dossierRef: 
     }));
   }, [dossier]);
 
+  const nom = dossier?.titre || titre || "Ce texte";
+
   return (
     <ScrutinList
       scrutins={scrutins}
-      contexte={{ titre: "Tout le texte", sousTitre: `${titre} · ${scrutins?.length ?? 0} scrutins` }}
+      contexte={{ titre: "Tout le texte", sousTitre: `${nom} · ${scrutins?.length ?? 0} scrutins` }}
       emptyLabel="Aucun scrutin public sur ce texte."
       onDetail={(u) => nav.push({ name: "scrutin", uid: u })}
       onSituer={() => nav.push({ name: "testIntro" })}

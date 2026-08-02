@@ -37,7 +37,6 @@ import { TestIntroScreen } from "./src/screens/TestIntroScreen";
 import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
 import { TestParThemeScreen } from "./src/screens/TestParThemeScreen";
-import { TexteScreen } from "./src/screens/TexteScreen";
 import { DossierScrutinsScreen } from "./src/screens/DossierScrutinsScreen";
 import { AccueilAccordsScreen } from "./src/screens/AccueilAccordsScreen";
 import { AccordsIndexScreen } from "./src/screens/AccordsIndexScreen";
@@ -113,7 +112,7 @@ function AppInner() {
     if (type === "depute") setStack([{ name: "search" }, { name: "depute", uid: id }]);
     else if (type === "scrutin") setStack([{ name: "themes" }, { name: "scrutin", uid: id }]);
     else if (type === "parti") setStack([{ name: "partis" }, { name: "parti", uid: id }]);
-    else if (type === "texte") setStack([{ name: "search" }, { name: "texte", uid: id }]); // deep-link SEO d'un texte (dossier)
+    else if (type === "texte") setStack([{ name: "search" }, { name: "dossierScrutins", ref: id }]); // deep-link SEO d'un texte (dossier) → liste ScrutinList
     else if (type === "theme")
       getCategories()
         .then((cats) => {
@@ -223,7 +222,7 @@ function AppInner() {
     test: "Test de proximité",
     testResultat: "Ta proximité",
     testParTheme: "Par thème",
-    texte: "Texte", dossierScrutins: "Tout le texte",
+    dossierScrutins: "Tout le texte",
     accords: "Tes accords",
   };
   const showHeader = stack.length > 1;
@@ -350,7 +349,6 @@ function AppInner() {
           {current.name === "test" && <TestScreen mode={current.mode} theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} poids={current.poids} partage={current.partage} themesJoues={current.themesJoues} nav={nav} />}
           {current.name === "testParTheme" && <TestParThemeScreen nav={nav} />}
-          {current.name === "texte" && <TexteScreen uid={current.uid} nav={nav} />}
           {current.name === "dossierScrutins" && <DossierScrutinsScreen dossierRef={current.ref} titre={current.titre} nav={nav} />}
           {current.name === "accords" && <AccordsIndexScreen nav={nav} />}
             </>
