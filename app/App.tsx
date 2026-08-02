@@ -13,7 +13,7 @@ import { C, F, inputText, RADIUS, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { SearchResultsList } from "./src/components/SearchResultsList";
-import { ThemesScreen } from "./src/screens/ThemesScreen";
+import { FilScrutinsScreen } from "./src/screens/FilScrutinsScreen";
 import { GrandsScrutinsScreen } from "./src/screens/GrandsScrutinsScreen";
 import { PartisScreen } from "./src/screens/PartisScreen";
 import { PartiScreen } from "./src/screens/PartiScreen";
@@ -69,7 +69,7 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 // n'a pas d'onglet → rattaché à l'Accueil (sa recherche « Sur quoi ils ont voté ? »).
 const TOUR_PHRASES: Record<string, string> = {
   search: "Ton fil « Depuis ta dernière visite », et la recherche pour trouver et suivre un député.",
-  themes: "Tous les votes de l'Assemblée, en récents ou par thème.",
+  themes: "Tous les votes de l'Assemblée : en Fil immersif ou en Liste, avec un verdict « comme toi » sur chaque scrutin.",
   partis: "Les groupes classés selon ta proximité. Ouvre la fiche d'un parti pour le suivre, ou ne plus le suivre.",
   apropos: "La méthode, les sources et les limites de Scrutoir.",
 };
@@ -159,7 +159,9 @@ function AppInner() {
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
   const [gq, setGq] = useState("");
   const [gqFocus, setGqFocus] = useState(false); // focus visible (bordure accent, cf. plus bas)
-  const ongletAvecRecherche = ["themes", "partis", "suivis", "apropos"].includes(root);
+  // L'onglet Scrutins ("themes") est désormais le Fil immersif plein cadre (barre de contrôles
+  // en surimpression, filtre par catégorie intégré) → pas de barre de recherche globale par-dessus.
+  const ongletAvecRecherche = ["partis", "suivis", "apropos"].includes(root);
   const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
   useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
 
@@ -313,7 +315,7 @@ function AppInner() {
           {/* Accueil = refonte v3 « Tes accords » (recherche réelle + bande perso + flux des suivis).
               Remplace l'ancien SearchScreen (conservé comme référence, plus rendu). */}
           {current.name === "search" && <AccueilAccordsScreen nav={nav} />}
-          {current.name === "themes" && <ThemesScreen nav={nav} />}
+          {current.name === "themes" && <FilScrutinsScreen nav={nav} />}
           {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
           {current.name === "parti" && <PartiScreen uid={current.uid} nav={nav} />}

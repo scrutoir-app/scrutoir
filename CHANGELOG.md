@@ -7,6 +7,27 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.13.0 — 2026-08-02
+Onglet **Scrutins** refondu : deux présentations d'un même corpus — un **Fil immersif** plein écran et une **Liste** — avec un **verdict « comme toi »** sur chaque scrutin.
+- **Fil (par défaut)** — un scrutin par écran, défilement vertical avec accroche : hémicycle rempli
+  **coloré par position** (pour / contre / abstention, géométrie officielle), badge de résultat,
+  barre de contrôles **en surimpression** (bascule Fil|Liste + filtres par catégorie), camps
+  « Pour / Contre », rail Détail / Garder / Partager, filigrane géométrique **par thème** en fond.
+  Consultation seule : le Fil ne redemande jamais ta position (le résultat est déjà affiché).
+- **Liste** — cartes compactes (icône de thème, barre divergente, décomptes) ; le **filtre par
+  catégorie est partagé** avec le Fil (un seul état).
+- **Verdict à deux niveaux, privé et recalculé côté client** : *voté* (pastille pleine + coche,
+  « comme ton vote / pas comme ton vote » — ta vraie réponse au test comparée au résultat) et
+  *déduit* (contour pointillés, « comme toi / pas comme toi / partagé » — estimé depuis ta proximité
+  par groupe, `calculerProximite`). Pas encore situé → pastille **verrouillée** qui invite au test au
+  swipe. Une **légende en 2 pages** (rattrapable au tap sur toute pastille) explique la distinction,
+  avec une note d'honnêteté sur le niveau déduit.
+- **Garder** — marque-pages de scrutins « à lire plus tard » (store local dédié, distinct du suivi
+  d'élus/groupes). **Partager** — lien public du scrutin ; le verdict « comme toi » n'est jamais partagé.
+- Garde-fous : objet civique, pas un feed d'engagement (aucun like, compteur, streak, autoplay ni
+  commentaire) ; rien du verdict n'est envoyé au serveur. L'ancienne vue Récents / Par thème de
+  l'onglet est remplacée (la consultation par thème reste accessible via l'accueil et « Tes accords »).
+
 ## 1.12.1 — 2026-08-02
 Écran résultat (« Ton point de départ ») : **un seul mécanisme de suivi**.
 - Chaque ligne du **spectre** porte désormais une **cloche de suivi** (→ coche quand suivi), câblée

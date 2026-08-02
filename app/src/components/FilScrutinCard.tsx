@@ -1,0 +1,158 @@
+import React, { useMemo } from "react";
+import { View, Text, Pressable, TouchableOpacity } from "react-native";
+import { Feather } from "@expo/vector-icons";
+import { C, F, T, RADIUS, S, ICON, tnum, couleurPosition } from "../theme";
+import { HemicyclePositions } from "./HemicyclePositions";
+import { ScrutinMotif } from "./ScrutinMotif";
+import { VerdictPastille } from "./VerdictPastille";
+import { useScrutinGroupes } from "../scrutinGroupes";
+import { useKept } from "../keptScrutins";
+import { verdictScrutin, positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
+import { catUI } from "../categoryUI";
+import type { ContexteJe } from "../testProximite/jeProximite";
+import type { Reponse } from "../testProximite/score";
+import type { ScrutinResume, GroupeVentilation } from "../types";
+
+const fmt = (n: number | null | undefined) => (n == null ? "?" : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "));
+
+/** Camps « Pour » / « Contre » : abrevs des groupes de chaque camp, triés par taille. */
+function camps(groupes: GroupeVentilation[]) {
+  const pour: { abrev: string; couleur: string | null; nb: number }[] = [];
+  const contre: typeof pour = [];
+  for (const g of groupes) {
+    if (!g.abrev) continue;
+    const pos = positionMajoritaire(g);
+    const item = { abrev: g.abrev, couleur: g.couleur, nb: tailleGroupe(g) };
+    if (pos === "pour") pour.push(item);
+    else if (pos === "contre") contre.push(item);
+  }
+  pour.sort((a, b) => b.nb - a.nb);
+  contre.sort((a, b) => b.nb - a.nb);
+  return { pour, contre };
+}
+
+function CampChip({ label, position, groupes }: { label: string; position: "pour" | "contre"; groupes: { abrev: string }[] }) {
+  if (!groupes.length) return null;
+  const shown = groupes.slice(0, 3).map((g) => g.abrev).join(" ");
+  const extra = groupes.length > 3 ? ` +${groupes.length - 3}` : "";
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: S.s6, backgroundColor: C.glass, borderRadius: RADIUS.pill, paddingHorizontal: S.s10, paddingVertical: S.s6 }}>
+      <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: couleurPosition(position) }} />
+      <Text style={[T.micro, { fontFamily: F.extra, color: C.text }]}>{label}</Text>
+      <Text style={[T.micro, { color: C.textFaint }]}>{shown}{extra}</Text>
+    </View>
+  );
+}
+
+function RailAction({ icon, label, active, onPress }: { icon: any; label: string; active?: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity onPress={onPress} activeOpacity={0.7} accessibilityRole="button" accessibilityLabel={label} style={{ alignItems: "center", gap: S.s4 }}>
+      <View style={{ width: 50, height: 50, borderRadius: RADIUS.pill, backgroundColor: active ? C.glassStrong : C.glass, alignItems: "center", justifyContent: "center" }}>
+        <Feather name={icon} size={ICON.xl} color={C.text} />
+      </View>
+      <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>{label}</Text>
+    </TouchableOpacity>
+  );
+}
+
+export function FilScrutinCard({
+  scrutin,
+  height,
+  width,
+  topInset = 0,
+  ctx,
+  situe,
+  reponse,
+  isFirst,
+  onDetail,
+  onShare,
+  onVerdict,
+}: {
+  scrutin: ScrutinResume;
+  height: number;
+  width: number;
+  topInset?: number; // hauteur de la barre glassy en surimpression (les slides passent dessous)
+  ctx: ContexteJe | null;
+  situe: boolean;
+  reponse: Reponse | undefined;
+  isFirst: boolean;
+  onDetail: () => void;
+  onShare: () => void;
+  onVerdict: () => void; // ouvre légende (situé) ou onboarding (verrouillé)
+}) {
+  const detail = useScrutinGroupes(scrutin.uid);
+  const [kept, toggleKept] = useKept(scrutin.uid);
+  const adopte = scrutin.sort_code === "adopte";
+
+  const positions = useMemo(() => {
+    const m: Record<string, "pour" | "contre" | "abstention"> = {};
+    detail?.pos.forEach((g) => { if (g.abrev) m[g.abrev] = g.position; });
+    return m;
+  }, [detail]);
+  const geo = useMemo(() => (detail?.groupes ?? []).map((g) => ({ abrev: g.abrev, nb_deputes: tailleGroupe(g) })), [detail]);
+  const c = useMemo(() => (detail ? camps(detail.groupes) : { pour: [], contre: [] }), [detail]);
+
+  const verdict = verdictScrutin({ ctx, situe, reponse, groupes: detail?.pos ?? [], sortCode: scrutin.sort_code });
+  const titre = scrutin.dossier_titre || scrutin.titre || "Scrutin";
+  const catLabel = catUI(scrutin.categorie ?? "").court ?? scrutin.categorie ?? "";
+  const availH = Math.max(1, height - topInset); // hauteur visible sous la barre glassy
+
+  return (
+    <View style={{ width, height, overflow: "hidden", backgroundColor: C.bg }}>
+      {/* Filigrane de fond par thème */}
+      <ScrutinMotif categorieId={scrutin.categorie} width={width} height={height} />
+
+      {/* Badge résultat, flottant en haut à gauche (sous la barre glassy) */}
+      <View style={{ position: "absolute", top: topInset + S.s8, left: S.s16, zIndex: 3, flexDirection: "row", alignItems: "center", gap: S.s6, backgroundColor: C.glass, borderRadius: RADIUS.pill, paddingHorizontal: S.s12, paddingVertical: 7 }}>
+        <Feather name={adopte ? "check" : "x"} size={ICON.sm} color={adopte ? C.pour : C.contre} />
+        <Text style={[T.small, tnum, { fontFamily: F.extra, color: adopte ? C.pour : C.contre }]}>
+          {adopte ? "Adopté" : "Rejeté"} · {fmt(scrutin.pour)}–{fmt(scrutin.contre)}
+        </Text>
+      </View>
+
+      {/* Héros : hémicycle coloré par position (tap → détail) */}
+      <Pressable
+        onPress={onDetail}
+        accessibilityRole="button"
+        accessibilityLabel="Ouvrir le détail du scrutin"
+        style={{ position: "absolute", left: 0, right: 0, top: topInset + availH * 0.07, height: availH * 0.46, alignItems: "center", justifyContent: "center" }}
+      >
+        {detail ? (
+          <HemicyclePositions groupes={geo} positions={positions} size={Math.min(width * 0.82, 330)} />
+        ) : null}
+      </Pressable>
+
+      {/* Rail d'actions vertical à droite */}
+      <View style={{ position: "absolute", right: S.s12, bottom: height * 0.16, zIndex: 5, gap: S.s18, alignItems: "center" }}>
+        <RailAction icon="info" label="Détail" onPress={onDetail} />
+        <RailAction icon={kept ? "bookmark" : "bookmark"} label={kept ? "Gardé" : "Garder"} active={kept} onPress={() => toggleKept()} />
+        <RailAction icon="share-2" label="Partager" onPress={onShare} />
+      </View>
+
+      {/* Bloc info en bas à gauche */}
+      <View style={{ position: "absolute", left: S.s16, right: 82, bottom: height * 0.06, zIndex: 4 }}>
+        <Text style={[T.micro, { fontFamily: F.extra, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: S.s8 }]}>
+          {catLabel}
+        </Text>
+        <Pressable onPress={onDetail} accessibilityRole="button" accessibilityLabel={`Détail : ${titre}`}>
+          <Text style={[T.title, { color: C.text }]} numberOfLines={4}>{titre}</Text>
+        </Pressable>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: S.s6, marginTop: S.s12 }}>
+          <CampChip label="Pour" position="pour" groupes={c.pour} />
+          <CampChip label="Contre" position="contre" groupes={c.contre} />
+        </View>
+        <VerdictPastille verdict={verdict} onPress={onVerdict} style={{ marginTop: S.s12 }} />
+      </View>
+
+      {/* Accroche « balaie vers le haut » (première carte) */}
+      {isFirst && (
+        <View style={{ position: "absolute", left: 0, right: 0, bottom: S.s8, alignItems: "center", zIndex: 2 }} pointerEvents="none">
+          <View style={{ flexDirection: "row", alignItems: "center", gap: S.s6 }}>
+            <Feather name="chevron-up" size={ICON.sm} color={C.textFaint} />
+            <Text style={[T.micro, { color: C.textFaint }]}>Balaie vers le haut</Text>
+          </View>
+        </View>
+      )}
+    </View>
+  );
+}

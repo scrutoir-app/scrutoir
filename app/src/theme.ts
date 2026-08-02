@@ -66,6 +66,13 @@ export const LIGHT = {
   hairline: "rgba(60,70,84,0.10)",
   hairlineStrong: "rgba(60,70,84,0.40)",
 
+  // Voile des modales / overlays (scrim) — encre translucide, identique par thème.
+  scrim: "rgba(10,12,15,0.55)",
+  // Verre translucide POSÉ SUR l'immersif (barres de contrôle, chips « glassy » du Fil) :
+  // léger voile sombre/clair selon le thème, lisible sur fond photo/hémicycle.
+  glass: "rgba(20,24,33,0.06)",
+  glassStrong: "rgba(20,24,33,0.12)",
+
   // Sièges neutres du PictoGroupe (non colorés) + point focal central — déclinés par mode.
   siege: "#D2D6DE",
   siegeFocal: "#AEB4BE",
@@ -115,6 +122,11 @@ export const DARK: typeof LIGHT = {
   watermarkFocal: "rgba(255,255,255,0.11)",
   hairline: "rgba(255,255,255,0.09)",
   hairlineStrong: "rgba(255,255,255,0.35)",
+
+  scrim: "rgba(0,0,0,0.62)",
+  // Verre translucide clair sur fond sombre immersif.
+  glass: "rgba(255,255,255,0.09)",
+  glassStrong: "rgba(255,255,255,0.16)",
 
   // Sièges neutres + focal en sombre (gris froids relevés, lisibles sur fond encre).
   siege: "#39424E",

@@ -12,7 +12,7 @@
     "classify:ia": "tsx src/classifyIA.ts",
     "detect-questions": "tsx src/detecteurQuestions.ts",
     "build-test-data": "tsx src/buildTestData.ts",
-    "test": "tsx --test src/stats.test.ts ../app/src/testProximite/score.test.ts ../app/src/search/deterministe.test.ts ../app/src/search/fusion.test.ts",
+    "test": "tsx --test src/stats.test.ts ../app/src/testProximite/score.test.ts ../app/src/testProximite/verdict.test.ts ../app/src/search/deterministe.test.ts ../app/src/search/fusion.test.ts",
     "test-stats": "tsx --test src/stats.test.ts",
     "test-score": "tsx --test ../app/src/testProximite/score.test.ts",
     "test-search": "tsx --test ../app/src/search/deterministe.test.ts ../app/src/search/fusion.test.ts",
