@@ -304,14 +304,16 @@ function OngletGroupe({
         </PctCard>
       )}
 
-      {/* Activité parlementaire (nombres + écart à la moyenne), en carte cohérente */}
-      <Card bordered style={{ marginBottom: S.s12 }}>
-        <SectionTitle>Activité parlementaire</SectionTitle>
-        <View style={{ flexDirection: "row", gap: 14, marginTop: 2 }}>
+      {/* Activité parlementaire (nombres + écart à la moyenne) — deux fiches côte à côte */}
+      <SectionTitle>Activité parlementaire</SectionTitle>
+      <View style={{ flexDirection: "row", gap: S.s12, marginBottom: S.s12 }}>
+        <Card bordered style={{ flex: 1 }}>
           <ActiviteBloc total={profil.amendements} label="Amendements déposés" parElu={profil.amendements_par_elu} ratio={profil.amendements_ratio} />
+        </Card>
+        <Card bordered style={{ flex: 1 }}>
           <ActiviteBloc total={profil.propositions} label="Propositions de loi" parElu={profil.propositions_par_elu} ratio={profil.propositions_ratio} />
-        </View>
-      </Card>
+        </Card>
+      </View>
 
       {/* Positions par thème (barres divergentes officielles, tap → votes du groupe) */}
       {profil.categories.length > 0 && (
@@ -372,6 +374,9 @@ function OngletGroupe({
 
 // Écart d'un ratio à la moyenne des groupes (1 = moyenne).
 const ecartTxt = (r: number): string => (r >= 1.1 || r <= 0.9 ? `×${r.toLocaleString("fr-FR")} vs moyenne` : "≈ moyenne");
+// Couleur de l'écart à la moyenne : vert = plus actif que la moyenne, ambre = moins actif,
+// gris discret = dans la norme (« ≈ moyenne »). Signale d'un coup d'œil si l'activité est normale.
+const ecartColor = (r: number): string => (r >= 1.1 ? C.pour : r <= 0.9 ? C.abstention : C.textFaint);
 
 /** Un chiffre d'activité (amendements / propositions) + /élu + écart à la moyenne. */
 function ActiviteBloc({ total, label, parElu, ratio }: { total: number; label: string; parElu: number | null; ratio: number | null }) {
@@ -381,7 +386,13 @@ function ActiviteBloc({ total, label, parElu, ratio }: { total: number; label: s
       <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, marginTop: 2 }]}>{label}</Text>
       {parElu != null && (
         <Text style={[T.micro, { color: C.textFaint, marginTop: 4 }]}>
-          {parElu.toLocaleString("fr-FR")}/élu{ratio != null ? ` · ${ecartTxt(ratio)}` : ""}
+          {parElu.toLocaleString("fr-FR")}/élu
+          {ratio != null && (
+            <Text>
+              {" · "}
+              <Text style={{ fontFamily: F.semibold, color: ecartColor(ratio) }}>{ecartTxt(ratio)}</Text>
+            </Text>
+          )}
         </Text>
       )}
     </View>

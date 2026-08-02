@@ -267,6 +267,26 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
               </TouchableOpacity>
             </Animated.View>
           )}
+
+          {/* CTA autonome : trouver son député (par commune / code postal) */}
+          <Animated.View style={rise(3)}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={() => nav.push({ name: "monDepute" })}
+              accessibilityRole="button"
+              accessibilityLabel="Trouver ton député"
+              style={{ flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 16, marginTop: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 14, padding: 13, ...shadowCard }}
+            >
+              <View style={{ width: 34, height: 34, borderRadius: RADIUS.pill, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
+                <Feather name="map-pin" size={17} color={C.onAccent} />
+              </View>
+              <View style={{ flex: 1, minWidth: 0 }}>
+                <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>Trouver ton député</Text>
+                <Text style={[T.micro, { color: C.textMuted, marginTop: 2 }]}>Par commune ou code postal, vois comment il vote.</Text>
+              </View>
+              <Text style={[T.small, { fontFamily: F.extra, color: C.accent }]}>Voir ›</Text>
+            </TouchableOpacity>
+          </Animated.View>
         </>
       )}
     </ScrollView>

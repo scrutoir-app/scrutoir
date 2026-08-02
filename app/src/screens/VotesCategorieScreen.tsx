@@ -1,23 +1,17 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C, F, T, positionLabel } from "../theme";
+import React, { useEffect, useMemo, useState } from "react";
+import { View, Text } from "react-native";
+import { C, F, T, positionLabel, couleurPosition } from "../theme";
 import { getVotesDeputeCategorie } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
-import { ScrutinCard } from "../components/ScrutinCard";
+import { ScrutinList } from "../components/ScrutinList";
 import { TypeScrutinFilter } from "../components/TypeScrutinFilter";
 import { compterParType, filtrerParType, doitAfficherFiltreType, typeEffectif, type TypeScrutin } from "../typeScrutin";
 
-const ORDRE: { pos: string; color: string }[] = [
-  { pos: "pour", color: C.pour },
-  { pos: "contre", color: C.contre },
-  { pos: "abstention", color: C.abstention },
-  { pos: "nonvotant", color: C.absent },
-];
-
-type Item =
-  | { kind: "section"; pos: string; color: string; count: number }
-  | { kind: "scrutin"; data: VoteScrutin };
+// Ordre d'affichage des positions (le regroupement visuel devient un TRI + une annotation
+// par-item « A voté : … », le Fil paginé plein écran ne pouvant pas porter de sections).
+const ORDRE = ["pour", "contre", "abstention", "nonvotant"];
+const rang = (p: string) => { const i = ORDRE.indexOf(p); return i === -1 ? ORDRE.length : i; };
 
 export function VotesCategorieScreen({
   uid, nom, categorie, categorieLibelle, periode, nav,
@@ -36,62 +30,34 @@ export function VotesCategorieScreen({
     getVotesDeputeCategorie(uid, categorie, periode).then(setVotes);
   }, [uid, categorie, periode]);
 
-  if (!votes)
-    return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator color={C.textMuted} />
-      </View>
-    );
+  // Comptes sur la liste COMPLÈTE (chips stables), filtre puis tri par position.
+  const comptesType = votes ? compterParType(votes) : { projet: 0, proposition: 0, amendement: 0 };
+  const visibles = useMemo(() => {
+    if (!votes) return null;
+    const f = filtrerParType(votes, typeEffectif(typeScr, comptesType));
+    return [...f].sort((a, b) => rang(a.position) - rang(b.position));
+  }, [votes, typeScr]);
 
-  // Comptes sur la liste COMPLÈTE (chips stables), filtre AVANT le regroupement par position.
-  const comptesType = compterParType(votes);
-  const visibles = filtrerParType(votes, typeEffectif(typeScr, comptesType));
-
-  // Groupe par position, dans l'ordre Pour / Contre / Abstention / Absent.
-  const items: Item[] = [];
-  for (const { pos, color } of ORDRE) {
-    const sous = visibles.filter((v) => v.position === pos);
-    if (sous.length === 0) continue;
-    items.push({ kind: "section", pos, color, count: sous.length });
-    for (const v of sous) items.push({ kind: "scrutin", data: v });
-  }
+  const renderAnnotation = (s: VoteScrutin) => (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <View style={{ width: 8, height: 8, borderRadius: 3, backgroundColor: couleurPosition(s.position) }} />
+      <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>A voté : {positionLabel(s.position)}</Text>
+    </View>
+  );
 
   return (
-    <FlatList
-      data={items}
-      keyExtractor={(it, i) => (it.kind === "section" ? `s-${it.pos}` : `v-${it.data.uid}-${i}`)}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
-      ListHeaderComponent={
-        <View style={{ paddingTop: 14 }}>
-          <Text style={[T.title, { color: C.text }]}>{categorieLibelle}</Text>
-          <Text style={[T.small, { color: C.textMuted, marginTop: 2, marginBottom: 2 }]}>
-            {nom} · {visibles.length} scrutins
-          </Text>
-          {doitAfficherFiltreType(comptesType) && (
-            <View style={{ marginTop: 10 }}>
-              <TypeScrutinFilter value={typeScr} onChange={setTypeScr} counts={comptesType} />
-            </View>
-          )}
-        </View>
+    <ScrutinList
+      scrutins={visibles}
+      contexte={{ titre: categorieLibelle, sousTitre: `${nom} · ${visibles?.length ?? 0} scrutins` }}
+      filtres={
+        doitAfficherFiltreType(comptesType) ? (
+          <TypeScrutinFilter value={typeScr} onChange={setTypeScr} counts={comptesType} />
+        ) : undefined
       }
-      ListEmptyComponent={
-        <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 32 }}>
-          Aucun scrutin dans ce thème pour cette période.
-        </Text>
-      }
-      renderItem={({ item }) =>
-        item.kind === "section" ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8, marginTop: 18, marginBottom: 4 }}>
-            <View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: item.color }} />
-            <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{positionLabel(item.pos)}</Text>
-            <Text style={[T.small, { color: C.textMuted }]}>· {item.count}</Text>
-          </View>
-        ) : (
-          <View style={{ marginBottom: 11 }}>
-            <ScrutinCard scrutin={item.data} onPress={() => nav.push({ name: "scrutin", uid: item.data.uid })} />
-          </View>
-        )
-      }
+      emptyLabel="Aucun scrutin dans ce thème pour cette période."
+      onDetail={(u) => nav.push({ name: "scrutin", uid: u })}
+      onSituer={() => nav.push({ name: "testIntro" })}
+      renderAnnotation={renderAnnotation}
     />
   );
 }

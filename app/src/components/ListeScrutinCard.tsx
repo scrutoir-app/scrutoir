@@ -23,6 +23,7 @@ export function ListeScrutinCard({
   ctx,
   situe,
   reponse,
+  annotation,
   onDetail,
   onVerdict,
 }: {
@@ -30,15 +31,19 @@ export function ListeScrutinCard({
   ctx: ContexteJe | null;
   situe: boolean;
   reponse: Reponse | undefined;
+  annotation?: React.ReactNode; // slot par-item propre à l'écran (ex. consigne du groupe / écart)
   onDetail: () => void;
   onVerdict: () => void;
 }) {
   const detail = useScrutinGroupes(scrutin.uid);
-  const adopte = scrutin.sort_code === "adopte";
-  const ui = catUI(scrutin.categorie ?? "");
-  const catLabel = ui.court ?? scrutin.categorie ?? "";
-  const titre = scrutin.dossier_titre || scrutin.titre || "Scrutin";
-  const verdict = verdictScrutin({ ctx, situe, reponse, groupes: detail?.pos ?? [], sortCode: scrutin.sort_code });
+  // Hydratation depuis le détail déjà chargé (données sparse : Dissidence sans sort_code/comptes/catégorie).
+  const r = detail?.resume;
+  const adopte = (scrutin.sort_code ?? r?.sort_code) === "adopte";
+  const categorieId = scrutin.categorie ?? r?.categorie ?? null;
+  const ui = catUI(categorieId ?? "");
+  const catLabel = ui.court ?? categorieId ?? "";
+  const titre = scrutin.dossier_titre || scrutin.titre || r?.dossier_titre || r?.titre || "Scrutin";
+  const verdict = verdictScrutin({ ctx, situe, reponse, groupes: detail?.pos ?? [], sortCode: scrutin.sort_code ?? r?.sort_code ?? null });
 
   return (
     <Card padding={S.s14} bordered style={{ marginBottom: 11 }}>
@@ -57,17 +62,17 @@ export function ListeScrutinCard({
 
         <View style={{ marginTop: S.s12 }}>
           <VoteBarDivergenteCentree
-            pour={scrutin.pour ?? 0}
-            contre={scrutin.contre ?? 0}
-            abstention={scrutin.abstention ?? 0}
+            pour={scrutin.pour ?? r?.pour ?? 0}
+            contre={scrutin.contre ?? r?.contre ?? 0}
+            abstention={scrutin.abstention ?? r?.abstention ?? 0}
             height={8}
             active
             decompte
           />
         </View>
 
-        {scrutin.date && (
-          <Text style={[T.micro, { color: C.textFaint, marginTop: S.s6 }]}>{formatDate(scrutin.date)} · scrutin public</Text>
+        {(scrutin.date ?? r?.date) && (
+          <Text style={[T.micro, { color: C.textFaint, marginTop: S.s6 }]}>{formatDate((scrutin.date ?? r?.date)!)} · scrutin public</Text>
         )}
       </Pressable>
 
@@ -75,6 +80,7 @@ export function ListeScrutinCard({
       <View style={{ marginTop: 11, alignSelf: "flex-start" }}>
         <VerdictPastille verdict={verdict} onPress={onVerdict} />
       </View>
+      {annotation != null && <View style={{ marginTop: 10 }}>{annotation}</View>}
     </Card>
   );
 }

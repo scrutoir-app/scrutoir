@@ -1,17 +1,22 @@
 import { useEffect, useState } from "react";
 import { getScrutin } from "./api";
 import { groupesPos, type GroupePos } from "./testProximite/verdict";
-import type { GroupeVentilation } from "./types";
+import type { GroupeVentilation, DetailScrutin } from "./types";
 
 /**
  * Détail « groupes » d'un scrutin (positions + tailles par groupe), source des couleurs de
  * l'hémicycle par position, des camps, et du verdict DÉDUIT. Fichier `scrutin/<uid>.json`
  * immuable → mis en cache par la couche `api.j()` : appelé par plusieurs cartes, il n'est
  * chargé qu'une fois. Le rendu de la carte reste instantané (index) ; ceci l'enrichit.
+ *
+ * `resume` = le bloc `scrutin` du détail (sort_code, pour/contre, catégorie, dossier_titre…).
+ * Il permet aux cartes d'HYDRATER les champs de résumé absents des données sparse (ex. une
+ * `Dissidence` n'a ni sort_code ni compte) : la carte lit `scrutin.champ ?? detail.resume.champ`.
  */
 export interface ScrutinGroupes {
   groupes: GroupeVentilation[];
   pos: GroupePos[];
+  resume: DetailScrutin["scrutin"];
 }
 
 export function useScrutinGroupes(uid: string): ScrutinGroupes | null {
@@ -19,7 +24,7 @@ export function useScrutinGroupes(uid: string): ScrutinGroupes | null {
   useEffect(() => {
     let vivant = true;
     getScrutin(uid)
-      .then((det) => { if (vivant) setD({ groupes: det.groupes, pos: groupesPos(det.groupes) }); })
+      .then((det) => { if (vivant) setD({ groupes: det.groupes, pos: groupesPos(det.groupes), resume: det.scrutin }); })
       .catch(() => vivant && setD(null));
     return () => { vivant = false; };
   }, [uid]);

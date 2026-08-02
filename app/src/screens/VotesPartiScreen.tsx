@@ -1,10 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, FlatList, ActivityIndicator } from "react-native";
-import { C, T, positionLabel } from "../theme";
+import { positionLabel } from "../theme";
 import { getVotesParti } from "../api";
 import type { VoteScrutin, Periode } from "../types";
 import type { Nav } from "../nav";
-import { ScrutinCard } from "../components/ScrutinCard";
+import { ScrutinList } from "../components/ScrutinList";
 import { useScrutinDateFilter } from "../components/ScrutinDateFilter";
 
 /** Scrutins où le groupe a tenu une position donnée sur un thème (drill-down fiche parti). */
@@ -19,47 +18,24 @@ export function VotesPartiScreen({
   periode: Periode;
   nav: Nav;
 }) {
-  const [scrutins, setScrutins] = useState<VoteScrutin[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { filtered, Bar } = useScrutinDateFilter(scrutins);
+  const [scrutins, setScrutins] = useState<VoteScrutin[] | null>(null);
+  const { filtered, Bar } = useScrutinDateFilter(scrutins ?? []);
 
   useEffect(() => {
-    getVotesParti(uid, categorie, position, periode)
-      .then(setScrutins)
-      .finally(() => setLoading(false));
+    getVotesParti(uid, categorie, position, periode).then(setScrutins);
   }, [uid, categorie, position, periode]);
 
-  if (loading)
-    return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator color={C.textMuted} />
-      </View>
-    );
-
   return (
-    <FlatList
-      data={filtered}
-      keyExtractor={(s) => s.uid}
-      contentContainerStyle={{ paddingHorizontal: 16, paddingBottom: 40 }}
-      ItemSeparatorComponent={() => <View style={{ height: 11 }} />}
-      ListHeaderComponent={
-        <View style={{ paddingTop: 12 }}>
-          <Text style={[T.heading, { color: C.text }]}>
-            {libelle} — consigne « {positionLabel(position)} »
-          </Text>
-          <Text style={[T.small, { color: C.textMuted, marginTop: 3, marginBottom: 10 }]}>
-            {filtered.length} scrutins en {categorieLibelle}
-          </Text>
-          {Bar}
-          <View style={{ height: 11 }} />
-        </View>
-      }
-      ListEmptyComponent={
-        <Text style={{ textAlign: "center", color: C.textMuted, marginTop: 32 }}>Aucun scrutin.</Text>
-      }
-      renderItem={({ item }) => (
-        <ScrutinCard scrutin={item} onPress={() => nav.push({ name: "scrutin", uid: item.uid })} />
-      )}
+    <ScrutinList
+      scrutins={scrutins == null ? null : filtered}
+      contexte={{
+        titre: "Votes du groupe",
+        sousTitre: `${libelle} · consigne « ${positionLabel(position)} » · ${categorieLibelle} · ${filtered.length} scrutins`,
+      }}
+      filtres={Bar}
+      emptyLabel="Aucun scrutin."
+      onDetail={(u) => nav.push({ name: "scrutin", uid: u })}
+      onSituer={() => nav.push({ name: "testIntro" })}
     />
   );
 }
