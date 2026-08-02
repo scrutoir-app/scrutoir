@@ -1,364 +1,396 @@
-import React, { useEffect, useState } from "react";
-import { View, Text, Image, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, shadowCard, formatDate } from "../theme";
-import { Card, Chip } from "../components/ui";
-import { catUI } from "../categoryUI";
-import { PositionCells } from "../components/PositionCells";
-import { BarreDivergente } from "../components/BarreDivergente";
-import { campDe } from "../components/HemicycleCamps";
-import { getParti, getPartis, getTextesSituesApercu } from "../api";
-import type { TexteSitue } from "../api";
-import { useData } from "../hooks/useData";
-import { ErreurChargement } from "../components/ErreurChargement";
-import { useFollow } from "../follows";
-import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
-import { BadgeProximite } from "../components/BadgeProximite";
+import { C, F, T, tnum, RADIUS, S, ICON, couleurPosition } from "../theme";
+import { Card, Button } from "../components/ui";
 import { HemicyclePicto } from "../components/HemicyclePicto";
-import { PartyLogo, aLogoOfficiel } from "../components/PartyLogo";
-import { usePartyLogos } from "../prefs";
-import type { PartiResume } from "../types";
-import type { ProfilParti, PartiCategorie, Periode } from "../types";
+import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
+import { BarreDivergente } from "../components/BarreDivergente";
+import { StatCol, ProfilTabs, PctCard, ProfilAvatar, SectionTitle, AccordSection, SEUIL_COMME, type LigneAccord } from "../components/profil";
+import { catUI } from "../categoryUI";
+import { getParti, getPartis, getCategories, getGrandsScrutins, getScrutin, getDeputesParti } from "../api";
+import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
+import { useFollow } from "../follows";
+import { positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
+import { partagerLien } from "../share";
+import type { ProfilParti, PartiResume, CategorieRef, GroupeVentilation, DeputeResume, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 
-const PERIODES: { id: Periode; label: string }[] = [
-  { id: "all", label: "Depuis 2024" },
-  { id: "12m", label: "12 mois" },
-  { id: "6m", label: "6 mois" },
-];
+/**
+ * Fiche parti en PAGE PROFIL (façon réseau social) : en-tête d'identité fixe (hémicycle-avatar +
+ * 3 stats + Suivre/Partager) puis une barre d'onglets Accord / Votes / Le groupe qui découpe le
+ * contenu (l'en-tête ne se recharge pas au changement d'onglet). Répond à : ce parti me
+ * ressemble-t-il (Accord), et tient-il sa ligne (Le groupe) ?
+ *
+ * Réutilise les moteurs officiels — proximité GLOBALE + PAR THÈME via `useJe`/`calculerProximite`
+ * (`resultat.parTheme`, MÊME source que le spectre) — et les primitives profil partagées
+ * (`components/profil`). Couleurs via `C`/`couleurGroupe`/`couleurPosition` uniquement. Tout ce
+ * qui touche « toi » est 100 % client (rien envoyé au serveur, aucun compteur/like).
+ */
+
+const NB_VOTES_CLES = 8; // grands scrutins échantillonnés (affichés + base de la « fracture »)
+type Onglet = "accord" | "votes" | "groupe";
+
+// Accord de l'utilisateur avec CE groupe, ventilé par thème (catégorie), depuis le moteur global.
+function accordParTheme(je: ReturnType<typeof useJe>, abrev: string | null, cats: CategorieRef[]): LigneAccord[] {
+  if (!je || !abrev) return [];
+  const lib = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
+  const out: LigneAccord[] = [];
+  for (const [theme, parGroupe] of Object.entries(je.resultat.parTheme)) {
+    const sc = parGroupe[abrev];
+    if (!sc || sc.pct == null || sc.comparable < 1) continue;
+    out.push({ id: theme, libelle: lib(theme), pct: sc.pct });
+  }
+  return out.sort((a, b) => b.pct - a.pct);
+}
+
+// Scrutin clé + ventilation de CE groupe (position majoritaire + décompte interne).
+type VoteCle = { s: ScrutinResume; g: GroupeVentilation };
+
+// « Fracture » sur un scrutin = nb d'élus votant le camp TRANCHÉ opposé à la ligne majoritaire.
+function fracture(g: GroupeVentilation): number {
+  const maj = positionMajoritaire(g);
+  if (maj === "pour") return g.contre || 0;
+  if (maj === "contre") return g.pour || 0;
+  return Math.max(g.pour || 0, g.contre || 0);
+}
 
 export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
-  const [periode, setPeriode] = useState<Periode>("all");
-  const { data, loading, error, retry } = useData(() => getParti(uid, periode), [uid, periode]);
-  const [expanded, setExpanded] = useState<Record<string, boolean>>({});
-  const [followed, toggleFollow] = useFollow(uid);
+  const [profil, setProfil] = useState<ProfilParti | null>(null);
   const [partis, setPartis] = useState<PartiResume[]>([]);
-  const [logosOn] = usePartyLogos();
+  const [cats, setCats] = useState<CategorieRef[]>([]);
+  const [onglet, setOnglet] = useState<Onglet>("accord");
   const je = useJe();
 
-  // Décoratif (picto hémicycle) : un échec ne bloque pas l'écran.
-  useEffect(() => { getPartis().then(setPartis).catch(() => {}); }, []);
+  // Lazy : scrutins clés (onglets Votes / Le groupe) et membres (onglet Le groupe).
+  const [votesCles, setVotesCles] = useState<VoteCle[] | null>(null);
+  const [membres, setMembres] = useState<DeputeResume[] | null>(null);
 
-  if (loading && !data)
-    return (
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <ActivityIndicator color={C.textMuted} />
-      </View>
-    );
-  if (!data) return error ? <ErreurChargement onRetry={retry} /> : null;
+  // En-tête : chargé une seule fois par uid (ne se recharge PAS au changement d'onglet).
+  useEffect(() => {
+    setProfil(null);
+    getParti(uid, "all").then(setProfil).catch(() => setProfil(null));
+    getPartis().then(setPartis).catch(() => {});
+    getCategories().then(setCats).catch(() => {});
+  }, [uid]);
 
-  const p = data.parti;
+  const abrev = profil?.parti.abrev ?? null;
+
+  // Scrutins clés : au 1er passage sur Votes OU Le groupe (les deux en ont besoin : la fracture).
+  useEffect(() => {
+    if (votesCles != null || !abrev || (onglet !== "votes" && onglet !== "groupe")) return;
+    let vivant = true;
+    getGrandsScrutins()
+      .then(async (grands) => {
+        const details = await Promise.all(
+          grands.slice(0, NB_VOTES_CLES).map((s) => getScrutin(s.uid).then((d) => ({ s, d })).catch(() => null))
+        );
+        const out: VoteCle[] = [];
+        for (const item of details) {
+          if (!item) continue;
+          const g = item.d.groupes.find((x) => x.abrev === abrev);
+          if (g && tailleGroupe(g) > 0) out.push({ s: item.s, g });
+        }
+        if (vivant) setVotesCles(out);
+      })
+      .catch(() => vivant && setVotesCles([]));
+    return () => { vivant = false; };
+  }, [onglet, abrev, votesCles]);
+
+  // Membres : au 1er passage sur Le groupe.
+  useEffect(() => {
+    if (membres != null || onglet !== "groupe" || !profil) return;
+    let vivant = true;
+    getDeputesParti(profil.parti.uid).then((d) => vivant && setMembres(d)).catch(() => vivant && setMembres([]));
+    return () => { vivant = false; };
+  }, [onglet, profil, membres]);
+
+  if (!profil) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
+
+  const p = profil.parti;
+  const situe = je != null;
+  const score = scoreGroupeJe(je, abrev);
+  const seSituer = () => nav.push({ name: "testIntro" });
+
+  // Contexte : rang par nombre de sièges (partis.json est nb_deputes desc).
+  const rang = Math.max(1, partis.findIndex((x) => x.uid === p.uid) + 1);
+  const contexte = rang === 1 ? "groupe le plus nombreux" : `${rang}ᵉ groupe par la taille`;
 
   return (
-    <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
-      {/* En-tête parti */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 13, marginBottom: 16 }}>
-        {logosOn && aLogoOfficiel(p.abrev) ? (
-          <PartyLogo abrev={p.abrev} couleur={p.couleur} size={64} />
-        ) : (
-          <HemicyclePicto groupes={partis} activeAbrev={p.abrev} color={p.couleur ?? C.textFaint} size={64} />
-        )}
-        <View style={{ flex: 1 }}>
-          <Text style={[T.title, { color: C.text }]}>{p.abrev ?? p.libelle}</Text>
-          <Text style={[T.small, { color: C.textMuted, marginTop: 2 }]} numberOfLines={2}>
-            {p.libelle} · {p.nb_deputes} élus
-          </Text>
+    <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
+      {/* ===== EN-TÊTE D'IDENTITÉ (fixe : hors du corps qui change) ===== */}
+      <View style={{ paddingHorizontal: S.s16, paddingTop: S.s14 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: S.s8 }}>
+          {/* Conteneur calé sur les dimensions réelles du picto (w = size, h = size*0.72). */}
+          <View style={{ width: 116, height: 116 * 0.72, alignItems: "center", justifyContent: "center" }}>
+            <HemicyclePicto groupes={partis} activeAbrev={abrev} color={p.couleur ?? C.textFaint} size={116} />
+          </View>
+          <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-around" }}>
+            <StatCol n={String(p.nb_deputes)} label="sièges" />
+            <StatCol
+              n={situe && score ? `${Math.round(score.pct * 100)}%` : "—"}
+              label="comme toi"
+              color={situe && score ? (score.pct >= SEUIL_COMME ? C.pour : C.contre) : undefined}
+            />
+            <StatCol n={profil.cohesion_pct != null ? `${profil.cohesion_pct}%` : "—"} label="cohésion" />
+          </View>
         </View>
-        <TouchableOpacity
-          onPress={toggleFollow}
-          activeOpacity={0.7}
-          style={{ width: 40, height: 40, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: followed ? C.accent : C.surfaceAlt }}
-        >
-          <Feather name="bell" size={18} color={followed ? "#fff" : C.textMuted} />
-        </TouchableOpacity>
+        <Text style={[T.title, { color: C.text, marginTop: S.s10 }]}>{p.abrev ?? p.libelle}</Text>
+        <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]} numberOfLines={2}>{p.libelle} · {contexte}</Text>
+        <View style={{ flexDirection: "row", gap: 9, marginTop: S.s12, marginBottom: S.s12 }}>
+          <SuivreBouton uid={p.uid} nom={p.abrev ?? p.libelle} />
+          <Button
+            label="Partager"
+            variant="outline"
+            size="sm"
+            style={{ flex: 1 }}
+            iconLeft={<Feather name="share-2" size={ICON.sm} color={C.accent} />}
+            onPress={() => {
+              const origin = typeof window !== "undefined" && window.location ? window.location.origin : "https://scrutoir.fr";
+              partagerLien(`${origin}/?open=parti:${p.uid}`, `${p.abrev ?? p.libelle} à l'Assemblée : ce qu'ils votent vraiment. Et toi ?`);
+            }}
+          />
+        </View>
       </View>
 
-      {/* « Tu votes comme X% » — issu du test de proximité (rien sans « je »). */}
-      <BadgeProximite score={scoreGroupeJe(je, p.abrev)} couleur={p.couleur} />
+      {/* ===== BARRE D'ONGLETS (index sticky = 1) ===== */}
+      <ProfilTabs<Onglet>
+        tabs={[{ key: "accord", label: "Accord" }, { key: "votes", label: "Votes" }, { key: "groupe", label: "Le groupe" }]}
+        active={onglet}
+        onChange={setOnglet}
+      />
 
-      {/* Lentille « comme toi » : les VOTES FINAUX du groupe sur tes textes, en clair. */}
-      {je && p.abrev && <LentilleComme abrev={p.abrev} reponses={je.reponses} nav={nav} />}
+      {/* ===== CORPS (seul élément qui change) ===== */}
+      <View style={{ paddingHorizontal: S.s16, paddingTop: S.s4 }}>
+        {onglet === "accord" && <OngletAccord abrev={p.abrev} je={je} cats={cats} situe={situe} onSituer={seSituer} />}
+        {onglet === "votes" && <OngletVotes votes={votesCles} abrev={p.abrev ?? ""} nav={nav} />}
+        {onglet === "groupe" && <OngletGroupe profil={profil} votes={votesCles} membres={membres} nav={nav} />}
+      </View>
+    </ScrollView>
+  );
+}
 
-      {/* Président du groupe */}
-      {data.president && (
+/** Bouton Suivre/Suivi (primaire), câblé sur le vrai état de suivi partagé. */
+function SuivreBouton({ uid, nom }: { uid: string; nom: string }) {
+  const [suivi, toggle] = useFollow(uid);
+  return (
+    <Button
+      label={suivi ? "Suivi" : "Suivre"}
+      variant="primary"
+      size="sm"
+      style={{ flex: 1 }}
+      onPress={toggle}
+      accessibilityLabel={suivi ? `Ne plus suivre ${nom}` : `Suivre ${nom}`}
+      iconLeft={<Feather name={suivi ? "check" : "bell"} size={ICON.sm} color={C.onAccent} />}
+    />
+  );
+}
+
+// ===== ONGLET ACCORD =====
+function OngletAccord({
+  abrev, je, cats, situe, onSituer,
+}: { abrev: string | null; je: ReturnType<typeof useJe>; cats: CategorieRef[]; situe: boolean; onSituer: () => void }) {
+  const lignes = useMemo(() => accordParTheme(je, abrev, cats), [je, abrev, cats]);
+  return (
+    <AccordSection
+      lignes={lignes}
+      situe={situe}
+      onSituer={onSituer}
+      catsPreview={cats}
+      lead="Ton accord avec ce groupe, thème par thème — vert tu les rejoins, rouge tu diverges."
+      leadLocked="Ton accord avec ce groupe, thème par thème."
+      emptyMsg="Pas encore assez de scrutins comparés avec ce groupe pour ventiler par thème."
+    />
+  );
+}
+
+// ===== ONGLET VOTES =====
+function OngletVotes({ votes, abrev, nav }: { votes: VoteCle[] | null; abrev: string; nav: Nav }) {
+  if (votes == null) return <ActivityIndicator color={C.textMuted} style={{ marginTop: S.s24 }} />;
+  if (!votes.length) return <Text style={[T.small, { color: C.textMuted, marginTop: S.s16 }]}>Aucun scrutin clé pour ce groupe.</Text>;
+  return (
+    <View>
+      <Text style={[T.small, { color: C.textFaint, marginTop: S.s12, marginBottom: S.s10, paddingHorizontal: 2 }]}>
+        Comment le groupe s'est prononcé sur des scrutins clés.
+      </Text>
+      <Card bordered padding={0}>
+        {votes.map(({ s, g }, i) => (
+          <VoteRow key={s.uid} s={s} g={g} abrev={abrev} dernier={i === votes.length - 1} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} />
+        ))}
+      </Card>
+    </View>
+  );
+}
+
+function VoteRow({ s, g, abrev, dernier, onPress }: { s: ScrutinResume; g: GroupeVentilation; abrev: string; dernier: boolean; onPress: () => void }) {
+  const ui = catUI(s.categorie ?? "");
+  const maj = positionMajoritaire(g);
+  const posLabel = maj === "pour" ? "a voté Pour" : maj === "contre" ? "a voté Contre" : "s'est abstenu";
+  const col = couleurPosition(maj);
+  const titre = s.dossier_titre ?? s.titre ?? s.objet ?? "Scrutin";
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityLabel={`Ouvrir le scrutin : ${titre}`}
+      style={{ paddingHorizontal: S.s14, paddingVertical: 13, ...(dernier ? {} : { borderBottomWidth: 1, borderBottomColor: C.border }) }}
+    >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 5 }}>
+        <MaterialCommunityIcons name={ui.icon as any} size={13} color={C.textMuted} />
+        <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.3 }]} numberOfLines={1}>
+          {(ui as { court?: string }).court ?? s.categorie ?? "—"}
+        </Text>
+      </View>
+      <Text style={[T.small, { fontFamily: F.bold, color: C.text, lineHeight: 18 }]} numberOfLines={2}>{titre}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 9 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
+          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: col }} />
+          <Text style={[T.micro, { fontFamily: F.bold, color: col }]}>{abrev} {posLabel}</Text>
+        </View>
+        <View style={{ flex: 1 }}>
+          <VoteBarDivergenteCentree pour={g.pour} contre={g.contre} abstention={g.abstention} siegesTotal={tailleGroupe(g)} height={9} />
+        </View>
+        <Feather name="chevron-right" size={16} color={C.textFaint} />
+      </View>
+    </TouchableOpacity>
+  );
+}
+
+// ===== ONGLET LE GROUPE =====
+function OngletGroupe({
+  profil, votes, membres, nav,
+}: { profil: ProfilParti; votes: VoteCle[] | null; membres: DeputeResume[] | null; nav: Nav }) {
+  const p = profil.parti;
+  const pire = useMemo(() => {
+    if (!votes || !votes.length) return null;
+    return votes.reduce((best, v) => (fracture(v.g) > fracture(best.g) ? v : best), votes[0]);
+  }, [votes]);
+  const pireN = pire ? fracture(pire.g) : 0;
+  const coh = profil.cohesion_pct;
+
+  return (
+    <View style={{ marginTop: S.s12 }}>
+      {/* Président du groupe (vraie donnée, jamais codé en dur) */}
+      {profil.president && (
         <Card
-          onPress={() => nav.push({ name: "depute", uid: data.president!.uid })}
+          onPress={() => nav.push({ name: "depute", uid: profil.president!.uid })}
           padding={12}
-          style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 9 }}
+          accessibilityLabel={`Ouvrir la fiche de ${profil.president.nom_complet}`}
+          style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: S.s12 }}
         >
-          <Image source={{ uri: data.president.photo_url ?? undefined }} style={{ width: 42, height: 42, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
+          <ProfilAvatar uri={profil.president.photo_url} size={46} />
           <View style={{ flex: 1 }}>
-            <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }]}>Président du groupe</Text>
-            <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 1 }]}>{data.president.nom_complet}</Text>
+            <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }]}>Président du groupe</Text>
+            <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 1 }]}>{profil.president.nom_complet}</Text>
           </View>
           <Feather name="chevron-right" size={18} color={C.textFaint} />
         </Card>
       )}
 
-      {/* Accès à tous les élus du groupe */}
-      <Card
-        onPress={() => nav.push({ name: "membresParti", uid: p.uid, libelle: p.abrev ?? p.libelle })}
-        padding={13}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}
-      >
-        <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
-          <Feather name="users" size={18} color={C.accent} />
+      {/* Cohésion (grand % + barre) + dissidence la plus forte, nommée */}
+      <PctCard pct={coh} label="de vote soudé">
+        {coh != null ? `Le groupe vote dans le même sens ${coh} % du temps.` : "Pas assez de votes pour mesurer la cohésion."}
+        {pire && pireN > 0 && (
+          <Text> Plus forte fracture interne : <Text style={{ fontFamily: F.bold, color: C.text }}>{(catUI(pire.s.categorie ?? "") as { court?: string }).court ?? pire.s.categorie ?? "un texte"}</Text>, {pireN} voix contre la ligne majoritaire.</Text>
+        )}
+      </PctCard>
+
+      {/* Participation (même représentation que la cohésion : grand % + barre + note) */}
+      {profil.participation_moy_pct != null && (
+        <PctCard pct={profil.participation_moy_pct} label="de participation">
+          Présence moyenne des élus du groupe aux scrutins publics nominatifs.
+          {profil.participation_moy != null && ` Moyenne des groupes : ${profil.participation_moy} %.`}
+        </PctCard>
+      )}
+
+      {/* Activité parlementaire (nombres + écart à la moyenne), en carte cohérente */}
+      <Card bordered style={{ marginBottom: S.s12 }}>
+        <SectionTitle>Activité parlementaire</SectionTitle>
+        <View style={{ flexDirection: "row", gap: 14, marginTop: 2 }}>
+          <ActiviteBloc total={profil.amendements} label="Amendements déposés" parElu={profil.amendements_par_elu} ratio={profil.amendements_ratio} />
+          <ActiviteBloc total={profil.propositions} label="Propositions de loi" parElu={profil.propositions_par_elu} ratio={profil.propositions_ratio} />
         </View>
-        <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>Voir les {p.nb_deputes} élus du groupe</Text>
-        <Feather name="chevron-right" size={18} color={C.textFaint} />
       </Card>
 
-      {/* Test de proximité (mode complet) */}
-      <Card
-        onPress={() => nav.push({ name: "testIntro" })}
-        padding={13}
-        style={{ flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 16 }}
-      >
-        <View style={{ width: 36, height: 36, borderRadius: 11, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
-          <Feather name="help-circle" size={18} color={C.accent} />
-        </View>
-        <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>Es-tu proche de ce groupe ?</Text>
-        <Feather name="chevron-right" size={18} color={C.textFaint} />
-      </Card>
+      {/* Positions par thème (barres divergentes officielles, tap → votes du groupe) */}
+      {profil.categories.length > 0 && (
+        <>
+          <SectionTitle>Positions par thème</SectionTitle>
+          <Card bordered padding={0} style={{ paddingHorizontal: 14, marginBottom: S.s12 }}>
+            {profil.categories.map((c, i) => (
+              <View key={c.id} style={{ ...(i === profil.categories.length - 1 ? {} : { borderBottomWidth: 1, borderBottomColor: C.border }) }}>
+                <BarreDivergente
+                  label={(catUI(c.id) as { court?: string }).court ?? c.libelle}
+                  pour={c.pour}
+                  contre={c.contre}
+                  abstention={c.abstention}
+                  onPress={() => nav.push({ name: "votesParti", uid: p.uid, libelle: p.abrev ?? p.libelle, categorie: c.id, categorieLibelle: c.libelle, position: c.pour >= c.contre ? "pour" : "contre", periode: "all" })}
+                />
+              </View>
+            ))}
+          </Card>
+        </>
+      )}
 
-      {/* Cohésion & participation, expliquées + repère moyenne des groupes */}
-      <StatRow
-        valeur={data.cohesion_pct}
-        moy={data.cohesion_moy ?? null}
-        label="Cohésion du groupe"
-        phrase={data.cohesion_pct != null ? `Les élus du groupe votent dans le même sens ${data.cohesion_pct} % du temps.` : "Pas assez de votes pour mesurer la cohésion."}
-        detail="Part des votes des membres conformes à la consigne du groupe. Élevée = groupe très uni / discipliné ; basse = votes plus libres ou divisions internes."
-      />
-      <StatRow
-        valeur={data.participation_moy_pct}
-        moy={data.participation_moy ?? null}
-        label="Participation aux votes"
-        phrase="Présence moyenne des élus du groupe aux scrutins publics nominatifs."
-        detail="Moyenne des taux de participation des membres. Seuls les scrutins publics nominatifs sont comptés : les votes à main levée ne sont pas disponibles."
-      />
-
-      {/* Activité parlementaire */}
-      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginTop: 6, marginBottom: 12 }]}>Activité parlementaire</Text>
-      <View style={{ flexDirection: "row", gap: 11, marginBottom: 6 }}>
-        <ActiviteCard total={data.amendements} label="Amendements déposés" parElu={data.amendements_par_elu} ratio={data.amendements_ratio} unite="amendement" />
-        <ActiviteCard total={data.propositions} label="Propositions de loi" parElu={data.propositions_par_elu} ratio={data.propositions_ratio} unite="proposition" />
-      </View>
-      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginBottom: 16 }]}>
-        L'écart à la moyenne des groupes est toujours indiqué. Très au-dessus = activité intense… ou obstruction ; en-dessous = le groupe dépose peu.
-      </Text>
-
-      {/* Période */}
-      <View style={{ flexDirection: "row", gap: 4, padding: 4, backgroundColor: C.surfaceAlt, borderRadius: 12, marginBottom: 16 }}>
-        {PERIODES.map((pe) => {
-          const actif = pe.id === periode;
-          return (
-            <TouchableOpacity key={pe.id} onPress={() => setPeriode(pe.id)} style={{ flex: 1, paddingVertical: 8, borderRadius: 9, alignItems: "center", backgroundColor: actif ? C.surface : "transparent", ...(actif ? shadowCard : {}) }}>
-              <Text style={[T.small, { fontFamily: actif ? F.bold : F.medium, color: actif ? C.text : C.textMuted }]}>{pe.label}</Text>
+      {/* Députés */}
+      <SectionTitle>Députés</SectionTitle>
+      {membres == null ? (
+        <ActivityIndicator color={C.textMuted} style={{ marginTop: S.s8 }} />
+      ) : (
+        <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 10, paddingBottom: 4 }}>
+          {membres.slice(0, 12).map((d) => (
+            <TouchableOpacity
+              key={d.uid}
+              onPress={() => nav.push({ name: "depute", uid: d.uid })}
+              activeOpacity={0.7}
+              accessibilityRole="button"
+              accessibilityLabel={`Ouvrir la fiche de ${d.nom_complet}`}
+              style={{ width: 66, alignItems: "center" }}
+            >
+              <ProfilAvatar uri={d.photo_url} size={52} />
+              <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 5, textAlign: "center" }]} numberOfLines={1}>{prenomNom(d.nom_complet)}</Text>
             </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 4 }]}>Positions par thème</Text>
-      <Text style={[T.small, { color: C.textMuted, marginBottom: 12 }]}>Touche un thème pour le détail des votes du groupe</Text>
-      <View style={{ gap: 9 }}>
-        {data.categories.map((c) => (
-          <PartiThemeRow
-            key={c.id}
-            cat={c}
-            ouvert={!!expanded[c.id]}
-            onToggle={() => setExpanded((e) => ({ ...e, [c.id]: !e[c.id] }))}
-            onOpenTheme={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
-            onOpenPosition={(position) => nav.push({ name: "votesParti", uid: p.uid, libelle: p.abrev ?? p.libelle, categorie: c.id, categorieLibelle: c.libelle, position, periode })}
-          />
-        ))}
-      </View>
-
-      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 20 }]}>
-        Positions = répartition des votes du groupe par thème. Scrutins publics nominatifs, 17ᵉ législature.
-      </Text>
-    </ScrollView>
-  );
-}
-
-const LENS_MAX = 12; // on affiche tes textes les plus récents (un fetch dossier par texte) — le reste est annoncé.
-
-/**
- * Lentille « comme toi » : sur le VOTE FINAL des textes où tu t'es situé, comment CE groupe a voté
- * face à toi, en langage clair + compteur. La proximité reste par SCRUTIN (cf. jeProximite) — ici on
- * lit le vote d'ensemble de chaque texte, jamais un agrégat inventé. Chaque ligne ouvre le texte.
- */
-function LentilleComme({ abrev, reponses, nav }: { abrev: string; reponses: Record<number, string>; nav: Nav }) {
-  const [textes, setTextes] = useState<TexteSitue[] | null>(null);
-  const [total, setTotal] = useState(0);
-  useEffect(() => {
-    let vivant = true;
-    getTextesSituesApercu(reponses, LENS_MAX)
-      .then((r) => { if (vivant) { setTextes(r.textes); setTotal(r.total); } })
-      .catch(() => vivant && setTextes([]));
-    return () => { vivant = false; };
-  }, [reponses]);
-
-  if (textes == null) return null; // en cours de chargement → rien (pas de saut de mise en page)
-  const lignes = textes.filter((t) => t.voteFinal).map((t) => ({ t, camp: campDe(t.voteFinal!.positions[abrev], t.tonVoteFinal) }));
-  if (!lignes.length) return null;
-  const nC = lignes.filter((l) => l.camp === "comme").length;
-  const nF = lignes.filter((l) => l.camp === "face").length;
-  const nN = lignes.length - nC - nF;
-
-  return (
-    <View style={{ marginBottom: 16 }}>
-      <Text style={[T.callout, { fontFamily: F.extra, color: C.text, marginBottom: 2 }]}>Sur les votes finaux, {abrev} a…</Text>
-      <Text style={[T.small, { color: C.textMuted, marginBottom: 11 }]}>Le vote d'ensemble de chaque texte, comparé à ta réponse. Touche un texte pour l'ouvrir.</Text>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-        <Chip label={`${nC} comme toi`} bg={C.adopteBg} fg={C.adopteFg} ph={9} pv={3} />
-        <Chip label={`${nF} à l’inverse`} bg={C.rejeteBg} fg={C.rejeteFg} ph={9} pv={3} />
-        {nN > 0 && <Chip label={`${nN} partagé / sans avis`} bg={C.surfaceAlt} fg={C.textMuted} ph={9} pv={3} />}
-      </View>
-      <View style={{ gap: 9 }}>
-        {lignes.map(({ t, camp }) => (
-          <LigneVoteFinal key={t.dossier.ref} texte={t} abrev={abrev} camp={camp} onPress={() => nav.push({ name: "texte", uid: t.dossier.ref })} />
-        ))}
-      </View>
-      {total > lignes.length && (
-        <Text style={[T.micro, { color: C.textFaint, marginTop: 9 }]}>Tes {lignes.length} textes les plus récents (sur {total} au total).</Text>
+          ))}
+          <TouchableOpacity
+            onPress={() => nav.push({ name: "membresParti", uid: p.uid, libelle: p.abrev ?? p.libelle })}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityLabel={`Voir les ${p.nb_deputes} députés du groupe`}
+            style={{ width: 72, alignItems: "center", justifyContent: "center" }}
+          >
+            <View style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: C.surfaceAlt, alignItems: "center", justifyContent: "center" }}>
+              <Feather name="arrow-right" size={20} color={C.accent} />
+            </View>
+            <Text style={[T.micro, { fontFamily: F.bold, color: C.accent, marginTop: 5 }]}>Voir {p.nb_deputes}</Text>
+          </TouchableOpacity>
+        </ScrollView>
       )}
     </View>
   );
 }
 
-/** Une ligne de la lentille : verdict en langage clair (comme toi / à l'inverse / partagé) + résultat. */
-function LigneVoteFinal({ texte, abrev, camp, onPress }: { texte: TexteSitue; abrev: string; camp: "comme" | "face" | "neutre"; onPress: () => void }) {
-  const vf = texte.voteFinal!;
-  const pos = vf.positions[abrev];
-  const phrase =
-    camp === "comme" ? `${abrev} a voté comme toi`
-    : camp === "face" ? `${abrev} a voté à l’inverse`
-    : texte.tonVoteFinal == null ? "tu ne t’es pas situé sur le vote final"
-    : pos === "abstention" ? `${abrev} s’est abstenu`
-    : `${abrev} était partagé`;
-  const vBg = camp === "comme" ? C.adopteBg : camp === "face" ? C.rejeteBg : C.surfaceAlt;
-  const vFg = camp === "comme" ? C.adopteFg : camp === "face" ? C.rejeteFg : C.textMuted;
-  const cat = texte.dossier.categorie ?? "";
-  const cui = catUI(cat);
-  const catLabel = (cui as { court?: string }).court ?? cat;
-  return (
-    <Card onPress={onPress} padding={12} style={{ flexDirection: "row", alignItems: "center", gap: 11 }}>
-      <View style={{ flex: 1, minWidth: 0 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 4 }}>
-          <Chip label={catLabel} bg={C.surfaceAlt} fg={C.textMuted} radius={7} ph={7} pv={2} />
-          <Text style={[T.micro, tnum, { color: C.textFaint }]}>{formatDate(vf.date)}</Text>
-        </View>
-        <Text style={[T.small, { fontFamily: F.semibold, color: C.text, lineHeight: 18 }]} numberOfLines={2}>{texte.dossier.titre}</Text>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 7, marginTop: 7, flexWrap: "wrap", rowGap: 6 }}>
-          <Chip label={phrase} bg={vBg} fg={vFg} ph={9} pv={2} />
-          {vf.sort_code && (
-            <Chip label={vf.sort_code === "adopte" ? "Adopté" : "Rejeté"} bg={vf.sort_code === "adopte" ? C.adopteBg : C.rejeteBg} fg={vf.sort_code === "adopte" ? C.adopteFg : C.rejeteFg} ph={7} pv={2} />
-          )}
-        </View>
-      </View>
-      <Feather name="chevron-right" size={18} color={C.textFaint} />
-    </Card>
-  );
-}
+// Écart d'un ratio à la moyenne des groupes (1 = moyenne).
+const ecartTxt = (r: number): string => (r >= 1.1 || r <= 0.9 ? `×${r.toLocaleString("fr-FR")} vs moyenne` : "≈ moyenne");
 
-/** Carte stat (cohésion / participation) : chiffre + phrase en clair + repère moyenne + ⓘ. */
-function StatRow({ valeur, moy, label, phrase, detail }: { valeur: number | null; moy: number | null; label: string; phrase: string; detail: string }) {
-  const [open, setOpen] = useState(false);
-  const above = valeur != null && moy != null && valeur >= moy;
+/** Un chiffre d'activité (amendements / propositions) + /élu + écart à la moyenne. */
+function ActiviteBloc({ total, label, parElu, ratio }: { total: number; label: string; parElu: number | null; ratio: number | null }) {
   return (
-    <Card style={{ marginBottom: 9 }}>
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-        <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{label}</Text>
-        <TouchableOpacity onPress={() => setOpen((o) => !o)} hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}>
-          <Feather name="info" size={15} color={C.textFaint} />
-        </TouchableOpacity>
-      </View>
-      <Text style={[T.title, tnum, { color: C.accent, marginTop: 2 }]}>
-        {valeur ?? "—"}<Text style={[T.small, { fontFamily: F.bold, color: C.textFaint }]}>%</Text>
-      </Text>
-      <Text style={[T.small, { color: C.textMuted, marginTop: 3 }]}>{phrase}</Text>
-      {moy != null && (
-        <View style={{ flexDirection: "row", alignItems: "center", alignSelf: "flex-start", gap: 4, marginTop: 9, backgroundColor: C.surfaceAlt, borderRadius: 8, paddingHorizontal: 9, paddingVertical: 4 }}>
-          <Feather name={above ? "arrow-up-right" : "arrow-down-right"} size={13} color={C.textMuted} />
-          <Text style={[T.micro, { color: C.textMuted }]}>moyenne des groupes : {moy} %</Text>
-        </View>
-      )}
-      {open && (
-        <Text style={[T.small, { color: C.textFaint, marginTop: 10 }]}>{detail}</Text>
-      )}
-    </Card>
-  );
-}
-
-/** Chip d'écart à la moyenne, TOUJOURS affiché (au-dessus, autour, en-dessous). */
-function EcartChip({ ratio }: { ratio: number | null }) {
-  if (ratio == null) return null;
-  let fg = C.textMuted, bg = C.surfaceAlt, txt: string;
-  if (ratio >= 1.5) { fg = C.loyalBas; bg = C.loyalBasBg; txt = `×${fmt(ratio)} vs moy.`; }
-  else if (ratio > 1.1) { fg = C.loyalMoyen; bg = C.loyalMoyenBg; txt = `×${fmt(ratio)} vs moy.`; }
-  else if (ratio >= 0.9) { txt = "≈ moyenne"; }
-  else { txt = `×${fmt(ratio)} vs moy.`; }
-  return <Chip label={txt} bg={bg} fg={fg} radius={7} ph={7} pv={2} />;
-}
-const fmt = (n: number) => n.toLocaleString("fr-FR");
-
-/** Carte d'activité (amendements / propositions) avec /élu + écart toujours montré. */
-function ActiviteCard({ total, label, parElu, ratio, unite }: { total: number; label: string; parElu: number | null; ratio: number | null; unite: string }) {
-  const color = ratio == null ? C.text : ratio >= 1.5 ? C.loyalBas : ratio > 1.1 ? C.loyalMoyen : C.text;
-  return (
-    <Card style={{ flex: 1 }}>
-      <Text style={[T.title, tnum, { color }]}>{total.toLocaleString("fr-FR")}</Text>
+    <View style={{ flex: 1 }}>
+      <Text style={[tnum, { fontFamily: F.extra, fontSize: 24, lineHeight: 26, color: C.text }]}>{total.toLocaleString("fr-FR")}</Text>
       <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, marginTop: 2 }]}>{label}</Text>
       {parElu != null && (
-        <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 6, marginTop: 8 }}>
-          <Text style={[T.small, { color: C.textFaint }]}>{fmt(parElu)}/élu</Text>
-          <EcartChip ratio={ratio} />
-        </View>
+        <Text style={[T.micro, { color: C.textFaint, marginTop: 4 }]}>
+          {parElu.toLocaleString("fr-FR")}/élu{ratio != null ? ` · ${ecartTxt(ratio)}` : ""}
+        </Text>
       )}
-    </Card>
+    </View>
   );
 }
 
-/** Ligne thème repliable : barre (toujours visible) + dépli avec Pour/Contre/Abstention cliquables. */
-function PartiThemeRow({ cat, ouvert, onToggle, onOpenTheme, onOpenPosition }: { cat: PartiCategorie; ouvert: boolean; onToggle: () => void; onOpenTheme: () => void; onOpenPosition: (position: string) => void }) {
-  const ui = catUI(cat.id);
-  return (
-    <Card padding={13}>
-      <TouchableOpacity activeOpacity={0.7} onPress={onToggle} style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
-          <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
-        </View>
-        <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]}>{cat.libelle}</Text>
-        <Feather name={ouvert ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
-      </TouchableOpacity>
-
-      {/* Barre divergente : Pour part du centre vers la gauche, Contre vers la droite
-          (part relative aux exprimés). Axe central aligné d'une carte à l'autre. */}
-      <View style={{ marginTop: 10 }}>
-        <BarreDivergente pour={cat.pour} contre={cat.contre} abstention={cat.abstention} />
-      </View>
-
-      {!ouvert ? (
-        <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 6 }]}>
-          {cat.pour} pour · {cat.contre} contre · {cat.abstention} abst.
-        </Text>
-      ) : (
-        <View style={{ marginTop: 11 }}>
-          <PositionCells
-            cells={[
-              { pos: "pour", n: cat.pour, label: "Pour", color: C.pour },
-              { pos: "contre", n: cat.contre, label: "Contre", color: C.contre },
-              { pos: "abstention", n: cat.abstention, label: "Abst.", color: C.abstention },
-            ]}
-            onCell={onOpenPosition}
-          />
-          <TouchableOpacity onPress={onOpenTheme} style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 11 }}>
-            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir tous les scrutins du thème</Text>
-            <Feather name="chevron-right" size={15} color={C.accent} />
-          </TouchableOpacity>
-        </View>
-      )}
-    </Card>
-  );
+// « Prénom N. » compact pour la rangée d'avatars.
+function prenomNom(nom: string): string {
+  const parts = nom.split(/\s+/);
+  if (parts.length < 2) return nom;
+  return `${parts[0]} ${parts[parts.length - 1][0]}.`;
 }

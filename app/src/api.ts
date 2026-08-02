@@ -202,6 +202,14 @@ export const getVotesBruts = (uid: string): Promise<Record<string, string>> =>
 export const getParti = (uid: string, periode: Periode) =>
   j<Record<Periode, ProfilParti>>(`parti/${uid}`).then((p) => p[periode]);
 
+/** Votes d'un député AVEC la consigne de son groupe : { scrutin_uid: [position, consigne] }.
+ *  Sert à dériver « suit / s'écarte du groupe » (fiche député). Fichier élu déjà mis en cache. */
+export const getDeputeVotes = (uid: string) => depute(uid).then((d) => d.votes);
+
+/** Infos de mandat d'un député (début/fin, uid du groupe) — même fichier élu mis en cache. */
+export const getDeputeMandat = (uid: string) =>
+  depute(uid).then((d) => ({ mandat_debut: d.mandat_debut, mandat_fin: d.mandat_fin, groupe_uid: d.groupe_uid }));
+
 // --- Recherche (client) -----------------------------------------------------
 export async function rechercher(q: string): Promise<{ deputes: DeputeResume[]; scrutins: ScrutinResume[] }> {
   const s = norm(q);

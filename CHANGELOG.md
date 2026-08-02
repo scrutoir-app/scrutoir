@@ -7,6 +7,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.15.0 — 2026-08-02
+Fiches **parti** et **député** refondues en **pages profil** (façon réseau social) : en-tête d'identité fixe + barre d'onglets qui découpe le contenu, pour absorber beaucoup d'infos sans long scroll. Primitives partagées `components/profil.tsx` (en-tête à stats, onglets, carte « % + barre », lignes d'accord par thème, avatar).
+- **Fiche parti** — en-tête (hémicycle-avatar + sièges / % comme toi / cohésion + Suivre/Partager) puis onglets **Accord** (ton accord par thème, même moteur que le spectre), **Votes** (scrutins clés : position du groupe + barre divergente interne), **Le groupe** (président, cohésion + plus forte fracture nommée, participation, activité parlementaire, positions par thème, députés).
+- **Fiche député** — en-tête (avatar cerclé de la couleur du groupe + % comme toi / présence / loyauté + badge groupe → fiche parti) puis onglets **Accord** (ton accord par thème d'après **ses propres votes**), **Votes** (position individuelle + **suit / s'écarte du groupe** + comme toi), **Mandat** (groupe, circonscription, mandat, présence + rang, loyauté + dissidences nommées, ses votes par thème). Le tag « s'écarte » utilise le token de loyauté (ambre), jamais le rouge de vote.
+- **Non situé** : l'onglet Accord est verrouillé (flou + « Situe-toi pour voir »), la stat « comme toi » passe en tiret ; le reste (votes, groupe/mandat) reste public. 100 % client, aucun compteur.
+
 ## 1.14.0 — 2026-08-02
 Onglet **Partis** refondu en **grille « explore »** classée par proximité, à la place de la liste.
 - **Grille 2 colonnes** de mini-cartes (`FlatList`) : chaque parti est situé sur l'**hémicycle
