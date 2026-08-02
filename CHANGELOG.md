@@ -7,6 +7,22 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.14.0 — 2026-08-02
+Onglet **Partis** refondu en **grille « explore »** classée par proximité, à la place de la liste.
+- **Grille 2 colonnes** de mini-cartes (`FlatList`) : chaque parti est situé sur l'**hémicycle
+  officiel** (ses sièges colorés, les autres neutres — `HemicyclePicto`), avec abrév, nom complet
+  et nombre de sièges. Tout visible d'un coup, sans plein écran ni swipe (un ensemble fixe qu'on
+  compare, pas un flux).
+- **Classement selon toi** : si tu es situé·e, du parti le plus **proche** au plus **loin** (même
+  score que le spectre du test — `scoreGroupeJe`/`calculerProximite`, pas de calcul parallèle),
+  avec un **rang** discret (#1, #2…) ; sinon, par nombre de sièges.
+- **Affinité par carte** : pastille verte **« Comme toi »** ou rouge **« Pas comme toi »** + le
+  pourcentage de proximité + une barre (seuil = 50 %, le point neutre du taux d'accord). Non
+  comparable ⇒ « Non classé ».
+- **Suivi** depuis la carte (cloche, `useFollow` — même état partagé que la fiche parti et
+  l'accueil) ; la carte ouvre la fiche du parti. Pas encore situé·e : consultation ouverte,
+  pastille verrouillée **« Comme toi ? »** et bandeau menant au test.
+
 ## 1.13.2 — 2026-08-02
 Fil : rail d'actions rééquilibré. Les boutons **Détail / Garder / Partager** sont désormais
 ancrés dans la bande du bloc d'info (entre la catégorie et la pastille « comme toi »), alignés
