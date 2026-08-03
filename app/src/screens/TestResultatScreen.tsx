@@ -10,7 +10,6 @@ import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
 import { useFollow, useFollows } from "../follows";
-import { ouvrirTourNav } from "../tour";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [
@@ -360,14 +359,11 @@ export function TestResultatScreen({
         onPress={() => {
           if (aSuivi) { nav.reset({ name: "search" }); return; }
           // Sans suivi, l'accueil resterait vide (il renvoie au test). On suit donc, pour
-          // l'instant, le groupe le plus proche → l'accueil a du contenu ; le message le
-          // confirme et renvoie à l'écran Partis pour gérer ses suivis.
-          if (topParti) {
-            if (!suiviTop) toggleSuiviTop();
-            ouvrirTourNav(`Tu suis ${nomCourt(topParti.libelle)}, le groupe le plus proche de toi. Tu pourras gérer tes suivis de partis sur l'écran « Partis ».`);
-          } else {
-            ouvrirTourNav("Suis un groupe pour remplir ton accueil. Tu gères tes suivis sur l'écran « Partis ».");
-          }
+          // l'instant, le groupe le plus proche → l'accueil a du contenu. Puis on va à l'accueil :
+          // la visite guidée s'y lance d'elle-même (1re arrivée situé) et explique les zones —
+          // c'est elle qui remplace l'ancien message « Tu suis X ».
+          if (topParti && !suiviTop) toggleSuiviTop();
+          nav.reset({ name: "search" });
         }}
         variant="primary"
         fullWidth

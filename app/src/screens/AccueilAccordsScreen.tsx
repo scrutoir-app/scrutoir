@@ -9,6 +9,9 @@ import { SearchResultsList } from "../components/SearchResultsList";
 import { useReduceMotion } from "../components/HeroScrutins";
 import { getPartis, getCategories, getTestProximite, getVotesSuivis, getVotesPartisSuivis, getDossiersSitues } from "../api";
 import { useFollows } from "../follows";
+import { useCibleTour } from "../tourTargets";
+import { ouvrirTourNav } from "../tour";
+import { tourAccueilAFaire, marquerTourAccueilVu } from "../accueilTourPrefs";
 import { useJe } from "../testProximite/jeProximite";
 import { nbNeuves } from "../testProximite/config";
 import type { PartiResume, CategorieRef, VoteSuivi } from "../types";
@@ -51,6 +54,13 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   const deputeUids = useMemo(() => follows.filter((u) => u.startsWith("PA")), [follows]);
   const partiUids = useMemo(() => follows.filter((u) => u.startsWith("PO")), [follows]);
 
+  // Cibles de la visite guidée (registre `tourTargets`) : callback refs stables par zone.
+  const refRecherche = useCibleTour("recherche");
+  const refHero = useCibleTour("hero");
+  const refEspace = useCibleTour("espace");
+  const refDepute = useCibleTour("depute");
+  const refActivite = useCibleTour("activite");
+
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
   const [questions, setQuestions] = useState<QuestionProximite[]>([]);
@@ -76,6 +86,17 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   const tranches = je?.nbVotes ?? 0;
   const situe = tranches > 0 || accordsCount > 0;
   const progressPct = tranches + todo > 0 ? (tranches / (tranches + todo)) * 100 : 8;
+
+  // Lancement AUTOMATIQUE de la visite guidée à la 1re arrivée sur l'accueil une fois situé
+  // (une seule fois, persisté). Les zones sont déjà montées ici ; on laisse le court fondu-montée
+  // d'entrée (MOTION.slow) se poser avant d'ouvrir pour mesurer les vraies positions finales.
+  // Rejouable ensuite via le « ? » du masthead.
+  useEffect(() => {
+    if (!situe || !tourAccueilAFaire()) return;
+    marquerTourAccueilVu();
+    const t = setTimeout(() => ouvrirTourNav(), 550);
+    return () => clearTimeout(t);
+  }, [situe]);
   const flux = (votes ?? []).slice(0, 4);
   const sujets = [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)).slice(0, 6);
 
@@ -111,7 +132,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
 
   // Champ de recherche (carré ardoise + loupe blanche) — recherche réelle.
   const Champ = (
-    <View style={{ flexDirection: "row", alignItems: "center", gap: 11, height: 52, backgroundColor: C.surface, borderRadius: 14, paddingLeft: 8, paddingRight: 15, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}>
+    <View ref={refRecherche} collapsable={false} style={{ flexDirection: "row", alignItems: "center", gap: 11, height: 52, backgroundColor: C.surface, borderRadius: 14, paddingLeft: 8, paddingRight: 15, borderWidth: 1, borderColor: C.borderStrong, ...shadowCard }}>
       <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
         <Feather name="search" size={19} color={C.onAccent} />
       </View>
@@ -140,6 +161,16 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 2 }}>
           <ScrutoirMark size={30} />
           <Text style={[T.title, { fontFamily: F.extra, color: C.text, letterSpacing: -0.4 }]}>Scrutoir</Text>
+          {/* Rejoue la visite guidée de l'accueil (seul point d'entrée de rattrapage). */}
+          <TouchableOpacity
+            onPress={() => ouvrirTourNav()}
+            accessibilityRole="button"
+            accessibilityLabel="Revoir la visite guidée"
+            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            style={{ marginLeft: "auto", width: 40, height: 40, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border, backgroundColor: C.surface, alignItems: "center", justifyContent: "center", ...shadowCard }}
+          >
+            <Feather name="help-circle" size={19} color={C.textMuted} />
+          </TouchableOpacity>
         </View>
       )}
 
@@ -171,7 +202,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
               la file à trancher : nav.push({ name: "test", mode: "affiner" }). Simple carte
               d'action + barre de progression (pas d'aperçu du deck : ce serait un doublon). */}
           <Animated.View style={[{ marginHorizontal: 16, marginTop: 16 }, rise(0)]}>
-            <TouchableOpacity activeOpacity={0.9} onPress={() => nav.push({ name: "test", mode: "affiner" })} style={{ position: "relative", overflow: "hidden", backgroundColor: C.accent, borderRadius: RADIUS.xl, padding: 16 }}>
+            <TouchableOpacity ref={refHero} activeOpacity={0.9} onPress={() => nav.push({ name: "test", mode: "affiner" })} style={{ position: "relative", overflow: "hidden", backgroundColor: C.accent, borderRadius: RADIUS.xl, padding: 16 }}>
               <Animated.View style={[{ position: "absolute", right: -12, top: -6, opacity: 0.16 }, floatStyle]} pointerEvents="none">
                 <ScrutoirMark size={140} color={C.onAccent} accent={C.onAccent} whiteSeat={false} />
               </Animated.View>
@@ -193,6 +224,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
 
           {/* DUO — Ta proximité (mini-spectre) + Tes accords, côte à côte (hauteur égale) */}
           {situe && (
+            <View ref={refEspace} collapsable={false}>
             <Animated.View style={[{ flexDirection: "row", gap: 12, marginHorizontal: 16, marginTop: 22 }, rise(1)]}>
               {/* Ta proximité → testResultat */}
               <TouchableOpacity activeOpacity={0.8} onPress={() => nav.push({ name: "testResultat" })} style={{ flex: 1, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.md, padding: 14, ...shadowCard }}>
@@ -231,12 +263,13 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
                 <Text style={[T.small, { fontFamily: F.extra, color: C.accent, marginTop: 12 }]}>Voir ›</Text>
               </TouchableOpacity>
             </Animated.View>
+            </View>
           )}
 
           {/* CTA autonome, discret : trouver son député (bouton contour, cf. écran résultat).
               Remonté AU-DESSUS du flux « Depuis ta dernière visite » (accès plus direct). */}
           <Animated.View style={rise(2)}>
-            <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+            <View ref={refDepute} collapsable={false} style={{ paddingHorizontal: 16, marginTop: 16 }}>
               <Button
                 label="Trouver ton député"
                 onPress={() => nav.push({ name: "monDepute" })}
@@ -248,7 +281,9 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
             </View>
           </Animated.View>
 
-          {/* FLUX des suivis (sous le CTA) — ou repli « Face à face » quand rien de neuf */}
+          {/* FLUX des suivis (sous le CTA) — ou repli « Face à face » quand rien de neuf.
+              Enveloppé sous UNE clé `activite` : la visite pointe la forme réellement rendue. */}
+          <View ref={refActivite} collapsable={false}>
           {votes == null ? (
             <ActivityIndicator color={C.textMuted} style={{ marginTop: 24 }} />
           ) : flux.length > 0 ? (
@@ -283,6 +318,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
               </TouchableOpacity>
             </Animated.View>
           )}
+          </View>
         </>
       )}
     </ScrollView>

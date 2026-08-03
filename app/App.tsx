@@ -47,8 +47,9 @@ import { ParcoursLoi } from "./src/components/ParcoursLoi";
 import { useInterstitielParcours } from "./src/parcoursLoiPrefs";
 import { OnboardingOverlay } from "./src/components/OnboardingOverlay";
 import { useOnboardingVisible, fermerOnboarding } from "./src/onboardingPrefs";
-import { TourNavigation } from "./src/components/TourNavigation";
+import { TourNavigation, type TourStep } from "./src/components/TourNavigation";
 import { useTourNavVisible, fermerTourNav, getTourNote } from "./src/tour";
+import { getCibleTour, type CibleTour } from "./src/tourTargets";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
 import { useMajApp } from "./src/swUpdate";
 import { ThemeProvider, useThemeMode } from "./src/themeMode";
@@ -71,8 +72,20 @@ const TOUR_PHRASES: Record<string, string> = {
   search: "Ton fil « Depuis ta dernière visite », et la recherche pour trouver et suivre un député.",
   themes: "Tous les votes de l'Assemblée : en Fil immersif ou en Liste, avec un verdict « comme toi » sur chaque scrutin.",
   partis: "Les groupes classés selon ta proximité. Ouvre la fiche d'un parti pour le suivre, ou ne plus le suivre.",
-  apropos: "La méthode, les sources et les limites de Scrutoir.",
+  apropos: "La méthode, les sources et les limites de Scrutoir. Tu peux rouvrir cette visite à tout moment via le « ? » de l'accueil.",
 };
+
+// Visite guidée — ZONES de l'accueil (précèdent les onglets). Chaque pas ne s'affiche que si sa
+// cible est réellement montée et mesurée (cf. TourNavigation). Nœuds fournis par `tourTargets`.
+const TOUR_ZONES: { cle: CibleTour; label: string; phrase: string; preferAbove?: boolean }[] = [
+  { cle: "recherche", label: "Cherche un sujet", phrase: "Tape un thème dans tes mots — les retraites, le budget, le nucléaire — pour voir ce qui a été voté dessus, et par qui." },
+  // Bulle AU-DESSUS du héro : son propre bouton « Reprendre » (en bas) ne doit pas être pris
+  // pour « Suivant ».
+  { cle: "hero", label: "Continue à te situer", phrase: "Ton test de proximité t'attend ici. Chaque scrutin que tu tranches affine ton spectre. Reprends quand tu veux, là où tu en étais.", preferAbove: true },
+  { cle: "espace", label: "Ton espace", phrase: "À gauche, ta proximité : de quels groupes tu es le plus proche. À droite, tes accords : les textes où tu t'es situé et qui a voté comme toi." },
+  { cle: "depute", label: "Trouver ton député", phrase: "Ton élu local par code postal, ou au swipe ceux qui votent le plus comme toi. Tu peux les suivre pour retrouver leurs votes." },
+  { cle: "activite", label: "L'activité de tes suivis", phrase: "Dès que tu suis un élu ou un groupe, ses votes récents s'affichent ici. En attendant, le Face à face confronte deux élus côte à côte." },
+];
 
 export default function App() {
   return (
@@ -415,11 +428,15 @@ function AppInner() {
             })}
           </View>
 
-        {/* Tour guidé de la nav : overlay par-dessus la page de résultat, pointe les onglets RÉELS. */}
+        {/* Visite guidée : overlay au niveau App (là où vit la barre). Zones de l'accueil
+            (via le registre `tourTargets`) PUIS onglets RÉELS. Les pas sans cible montée sont
+            écartés côté TourNavigation (rect vide). */}
         {tourVisible && (
           <TourNavigation
-            items={TABS.map((t) => ({ label: t.label, phrase: TOUR_PHRASES[t.root] ?? "" }))}
-            tabNodes={tabRefs.current}
+            steps={[
+              ...TOUR_ZONES.map((z): TourStep => ({ label: z.label, phrase: z.phrase, kind: "zone", node: getCibleTour(z.cle), preferAbove: z.preferAbove })),
+              ...TABS.map((t, idx): TourStep => ({ label: t.label, phrase: TOUR_PHRASES[t.root] ?? "", kind: "onglet", node: tabRefs.current[idx] })),
+            ]}
             onClose={fermerTourNav}
             note={getTourNote()}
           />
