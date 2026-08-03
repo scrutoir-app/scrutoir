@@ -233,11 +233,26 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
             </Animated.View>
           )}
 
-          {/* FLUX des suivis (sous le duo) — ou repli « Face à face » quand rien de neuf */}
+          {/* CTA autonome, discret : trouver son député (bouton contour, cf. écran résultat).
+              Remonté AU-DESSUS du flux « Depuis ta dernière visite » (accès plus direct). */}
+          <Animated.View style={rise(2)}>
+            <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
+              <Button
+                label="Trouver ton député"
+                onPress={() => nav.push({ name: "monDepute" })}
+                variant="outline"
+                size="sm"
+                fullWidth
+                iconLeft={<Feather name="user" size={17} color={C.accent} />}
+              />
+            </View>
+          </Animated.View>
+
+          {/* FLUX des suivis (sous le CTA) — ou repli « Face à face » quand rien de neuf */}
           {votes == null ? (
             <ActivityIndicator color={C.textMuted} style={{ marginTop: 24 }} />
           ) : flux.length > 0 ? (
-            <Animated.View style={rise(2)}>
+            <Animated.View style={rise(3)}>
               <View style={{ paddingHorizontal: 16, paddingTop: 22, paddingBottom: 2 }}>
                 <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Depuis ta dernière visite</Text>
                 <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Les votes récents de tes suivis — comme toi, ou proximité globale.</Text>
@@ -247,7 +262,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
               </View>
             </Animated.View>
           ) : (
-            <Animated.View style={rise(2)}>
+            <Animated.View style={rise(3)}>
               <View style={{ paddingHorizontal: 16, paddingTop: 22, paddingBottom: 2 }}>
                 <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>{follows.length ? "Tu es à jour sur tes suivis" : "Suis un élu ou un groupe"}</Text>
                 <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>{follows.length ? "Rien de neuf côté suivis. En attendant, confronte deux élus." : "Pour voir leurs votes ici. En attendant, confronte deux élus."}</Text>
@@ -268,20 +283,6 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
               </TouchableOpacity>
             </Animated.View>
           )}
-
-          {/* CTA autonome, discret : trouver son député (bouton contour, cf. écran résultat) */}
-          <Animated.View style={rise(3)}>
-            <View style={{ paddingHorizontal: 16, marginTop: 16 }}>
-              <Button
-                label="Trouver ton député"
-                onPress={() => nav.push({ name: "monDepute" })}
-                variant="outline"
-                size="sm"
-                fullWidth
-                iconLeft={<Feather name="user" size={17} color={C.accent} />}
-              />
-            </View>
-          </Animated.View>
         </>
       )}
     </ScrollView>

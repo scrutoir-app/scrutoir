@@ -40,6 +40,8 @@ function j<T>(rel: string): Promise<T> {
 // catégories du scrutin (appartenance à un thème : un scrutin peut en avoir plusieurs).
 type ScrutinIdx = ScrutinResume & { cats?: string[]; dossier_ref?: string | null };
 const deputesIndex = () => j<DeputeResume[]>("deputes");
+/** Index public des députés (roster léger : uid, nom, groupe, circo, département). */
+export const deputesIndexPublic = () => deputesIndex();
 const scrutinsIndex = () => j<ScrutinIdx[]>("scrutins");
 // Dossiers (regroupement par texte) — feature « Tes accords ».
 export const getDossiers = () => j<DossierResume[]>("dossiers");
@@ -424,6 +426,19 @@ export async function getVotants(scrutinUid: string, position: string, groupe?: 
   return (groupe ? list.filter((v) => v.groupe_uid === groupe) : list) as Votant[];
 }
 
+/** Votant enrichi de son `groupe_uid` (présent dans le fichier scrutin, hors type public). */
+export type VotantPlus = Votant & { groupe_uid?: string | null };
+
+/**
+ * Votants d'un scrutin regroupés PAR POSITION ({ pour: [...], contre: [...], ... }), tels
+ * quels depuis le fichier scrutin déjà mis en cache. Sert au classement d'affinité (pivot des
+ * votes nominatifs sur les scrutins du test) : borné par le nb de scrutins, jamais de député.
+ */
+export async function getScrutinVotantsRaw(scrutinUid: string): Promise<Record<string, VotantPlus[]>> {
+  const detail = await j<any>(`scrutin/${scrutinUid}`);
+  return (detail.votants ?? {}) as Record<string, VotantPlus[]>;
+}
+
 // --- Confrontation (client) -------------------------------------------------
 export async function getConfrontation(aUid: string, bUid: string, periode: Periode): Promise<Confrontation> {
   const [deps, scrMap, cats, fa, fb] = await Promise.all([
@@ -523,4 +538,22 @@ export async function rechercheCommunes(q: string): Promise<Commune[]> {
   const res = await fetch(url);
   if (!res.ok) return [];
   return (await res.json()) as Commune[];
+}
+
+/**
+ * Commune à des coordonnées GPS (reverse geocoding API Géo officielle) — pour « Me localiser ».
+ * Renvoie la commune contenant le point, ou null. La géoloc est déclenchée côté écran (le
+ * navigateur demande l'autorisation) ; on n'envoie que lat/lon à l'API publique geo.api.gouv.fr,
+ * aucune donnée personnelle, aucun stockage.
+ */
+export async function communeParCoord(lat: number, lon: number): Promise<Commune | null> {
+  const url = `https://geo.api.gouv.fr/communes?lat=${lat}&lon=${lon}&fields=nom,code,codeDepartement,codesPostaux&format=json`;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    const list = (await res.json()) as Commune[];
+    return list[0] ?? null;
+  } catch {
+    return null;
+  }
 }

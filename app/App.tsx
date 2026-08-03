@@ -29,7 +29,7 @@ import { VotesCategorieScreen } from "./src/screens/VotesCategorieScreen";
 import { VotantsScreen } from "./src/screens/VotantsScreen";
 import { ConfrontationScreen } from "./src/screens/ConfrontationScreen";
 import { ConfrontationListeScreen } from "./src/screens/ConfrontationListeScreen";
-import { MonDeputeScreen } from "./src/screens/MonDeputeScreen";
+import { TrouverDeputeScreen } from "./src/screens/TrouverDeputeScreen";
 import { ParametresScreen } from "./src/screens/ParametresScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
@@ -215,7 +215,7 @@ function AppInner() {
     votesDepute: "Détail des votes", votants: "Votants",
     confrontation: "Confrontation",
     confrontationListe: "Confrontation",
-    monDepute: "Mon député",
+    monDepute: "Trouver un député",
     mentions: "Mentions légales",
     parametres: "Paramètres",
     testIntro: "Test de proximité",
@@ -342,7 +342,7 @@ function AppInner() {
           {current.name === "confrontationListe" && (
             <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} depA={current.depA} depB={current.depB} communs={current.communs} nav={nav} />
           )}
-          {current.name === "monDepute" && <MonDeputeScreen nav={nav} />}
+          {current.name === "monDepute" && <TrouverDeputeScreen nav={nav} />}
           {current.name === "parametres" && <ParametresScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen source={current.source} nav={nav} />}
           {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
