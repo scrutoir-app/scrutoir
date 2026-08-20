@@ -32,7 +32,12 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
-          node-version: "24"
+          # ⚠️ ÉPINGLÉ EN 22 (et pas "24") : sur les runners passés à Node 24.19,
+          # better-sqlite3 11.10 plante au destructeur des Statement
+          # (`Assertion failed: (env) != nullptr`, exit 134) — crash ALÉATOIRE selon le
+          # GC, qui a cassé tous les refresh depuis le 13/08/2026. À relever une fois
+          # better-sqlite3 monté en v13 (engines: node >=22).
+          node-version: "22"
 
       # Persiste data/raw (zips + sidecars .etag) entre exécutions → le gros
       # Amendements.json.zip (~270 Mo) n'est re-téléchargé que s'il a changé (ETag 304).
