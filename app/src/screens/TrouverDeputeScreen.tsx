@@ -13,8 +13,9 @@ import type { Nav } from "../nav";
 import { useJe, useProximiteDepute } from "../testProximite/jeProximite";
 import { chargerTest } from "../testProximite/storage";
 import { useClassementAffinite, type DeputeAffinite } from "../testProximite/classementDeputes";
+import { lotDuJour, resteAVoir, reinitialiserSelection, TAILLE_LOT } from "../testProximite/selectionDuJour";
 import { useFollow, isFollowed, toggleFollow, getFollows } from "../follows";
-import { passer, annulerPasser, getPassed } from "../passedDeputes";
+import { passer, annulerPasser, getPassed, viderPasses } from "../passedDeputes";
 import { useReduceMotion } from "../components/HeroScrutins";
 
 type Mode = "cp" | "affinite";
@@ -323,8 +324,8 @@ function AffiniteNonSitue({ nav }: { nav: Nav }) {
       </View>
       <Text style={[T.heading, { color: C.text, textAlign: "center" }]}>Situe-toi pour trouver qui vote comme toi</Text>
       <Text style={[T.small, { color: C.textMuted, textAlign: "center", marginTop: S.s10, lineHeight: 20, maxWidth: 320 }]}>
-        Balaie quelques scrutins, pour ou contre. On classe alors les députés du plus proche de toi
-        au moins proche, à suivre ou à passer. Ton avis reste privé.
+        Balaie quelques scrutins, pour ou contre. On te propose ensuite chaque jour une poignée de
+        députés tirés au sort, avec vos votes en commun — à suivre ou à passer. Ton avis reste privé.
       </Text>
       <Button label="Faire le test · 2 min" variant="primary" size="md" onPress={() => nav.push({ name: "testIntro" })} iconLeft={<Feather name="compass" size={ICON.md} color={C.onAccent} />} style={{ marginTop: S.s20 }} />
     </View>
@@ -336,17 +337,32 @@ function Deck({ classement, nav }: { classement: DeputeAffinite[]; nav: Nav }) {
   const { width } = useWindowDimensions();
   const reduce = useReduceMotion();
 
-  // Liste figée à l'entrée : classement moins déjà-suivis et déjà-passés (ne se réordonne pas
-  // sous les doigts). Suivre depuis le deck garantit un FOLLOW (jamais un toggle inverse).
-  const liste = useMemo(() => {
+  // Un LOT QUOTIDIEN, tiré au hasard (cf. `selectionDuJour.ts`) : jamais les 577 d'un coup, et
+  // jamais rangés du plus proche au moins proche. Le vivier retire les déjà-suivis et les
+  // déjà-passés ; le lot est figé pour la journée (rechargement compris) et ne se réordonne
+  // pas sous les doigts. Suivre depuis le deck garantit un FOLLOW (jamais un toggle inverse).
+  const [tour, setTour] = useState(0);
+  const { liste, epuise } = useMemo(() => {
     const suivis = new Set(getFollows());
     const passes = new Set(getPassed());
-    return classement.filter((d) => !suivis.has(d.resume.uid) && !passes.has(d.resume.uid));
-  }, [classement]);
+    const vivier = classement.filter((d) => !suivis.has(d.resume.uid) && !passes.has(d.resume.uid));
+    const lot = lotDuJour(vivier); // marque le lot comme « vu » → jamais reproposé demain
+    return { liste: lot, epuise: resteAVoir(vivier) === 0 };
+  }, [classement, tour]);
 
   const [idx, setIdx] = useState(0);
   const [history, setHistory] = useState<{ uid: string; action: "suivi" | "passe" }[]>([]);
   const [toast, setToast] = useState<string | null>(null);
+
+  // « Repartir de zéro » (vivier épuisé) : on oublie les vus + les passés, et on retire un lot.
+  const recommencer = () => {
+    reinitialiserSelection();
+    viderPasses();
+    setIdx(0);
+    setHistory([]);
+    setTour((t) => t + 1);
+  };
+
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const pan = useRef(new Animated.ValueXY()).current;
@@ -408,9 +424,12 @@ function Deck({ classement, nav }: { classement: DeputeAffinite[]; nav: Nav }) {
 
   return (
     <View style={{ flex: 1 }}>
-      <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, textAlign: "center", marginTop: S.s10, paddingHorizontal: S.s16 }]}>
-        Les députés qui votent le plus comme toi. À droite tu suis, à gauche tu passes.
-      </Text>
+      {!fini && (
+        <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, textAlign: "center", marginTop: S.s10, paddingHorizontal: S.s16 }]}>
+          Ta sélection du jour : {TAILLE_LOT} députés tirés au hasard, proches ou non. À droite tu
+          suis, à gauche tu passes.
+        </Text>
+      )}
 
       {/* Zone du deck */}
       <View style={{ flex: 1, marginHorizontal: S.s16, marginTop: S.s12, marginBottom: S.s4 }}>
@@ -423,13 +442,20 @@ function Deck({ classement, nav }: { classement: DeputeAffinite[]; nav: Nav }) {
         {fini ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", padding: S.s24 }}>
             <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: C.loyalHautBg, alignItems: "center", justifyContent: "center" }}>
-              <Feather name="check" size={30} color={C.pour} />
+              <Feather name={epuise ? "flag" : "check"} size={30} color={C.pour} />
             </View>
-            <Text style={[T.heading, { color: C.text, marginTop: S.s16, textAlign: "center" }]}>Tu as vu les plus proches</Text>
+            <Text style={[T.heading, { color: C.text, marginTop: S.s16, textAlign: "center" }]}>
+              {epuise ? "Tu as vu tout le monde" : "C'est tout pour aujourd'hui"}
+            </Text>
             <Text style={[T.small, { color: C.textMuted, marginTop: S.s10, textAlign: "center", lineHeight: 20, maxWidth: 300 }]}>
-              Retrouve les députés que tu suis sur ton accueil, avec leurs votes au fil de l'eau.
+              {epuise
+                ? "Plus de député à te proposer. Retrouve ceux que tu suis sur ton accueil, avec leurs votes au fil de l'eau."
+                : `Reviens demain pour ${TAILLE_LOT} nouveaux députés. En attendant, retrouve ceux que tu suis sur ton accueil, avec leurs votes au fil de l'eau.`}
             </Text>
             <Button label="Voir mes suivis" variant="primary" size="md" onPress={() => nav.reset({ name: "suivis", source: "deputes" })} style={{ marginTop: S.s20 }} />
+            {epuise && (
+              <Button label="Repartir de zéro" variant="outline" size="sm" onPress={recommencer} style={{ marginTop: S.s10 }} iconLeft={<Feather name="rotate-ccw" size={ICON.sm} color={C.accent} />} />
+            )}
           </View>
         ) : (
           <>
@@ -483,6 +509,15 @@ function CarteAffinite({ depute, dessous, opSuivi, opPasse }: { depute: DeputeAf
 
   const pct = Math.round(depute.score.pct * 100);
   const circo = d.circo ? `${d.departement} · ${d.circo}ᵉ circ.` : d.departement ?? null;
+  // Le lot étant tiré au hasard, une carte peut être très éloignée : on teinte le chiffre au
+  // seuil habituel (vert au-dessus, rouge en dessous) et on justifie par les votes OPPOSÉS
+  // quand il n'y a pas d'accord à montrer — jamais une carte muette.
+  const comme = depute.score.pct >= SEUIL_COMME;
+  const teinteScore = comme ? C.pour : C.contre;
+  const montreCommuns = depute.communs.length > 0 && (comme || depute.opposes.length === 0);
+  const justif = montreCommuns
+    ? { titre: "Vous avez voté pareil", lignes: depute.communs.map((c) => ({ theme: c.theme, these: c.these, label: `Vous deux : ${c.position === "pour" ? "Pour" : "Contre"}`, fg: c.position === "pour" ? C.pour : C.contre, bg: c.position === "pour" ? C.adopteBg : C.rejeteBg })) }
+    : { titre: "Vous avez voté à l'inverse", lignes: depute.opposes.map((o) => ({ theme: o.theme, these: o.these, label: `Toi : ${o.toi === "pour" ? "Pour" : "Contre"} · lui : ${o.toi === "pour" ? "Contre" : "Pour"}`, fg: C.contre, bg: C.rejeteBg })) };
 
   return (
     <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: C.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: C.border, padding: 20, ...shadowCard, ...(dessous ? { transform: [{ scale: 0.955 }, { translateY: 14 }], opacity: 0.55 } : null) }}>
@@ -512,23 +547,21 @@ function CarteAffinite({ depute, dessous, opSuivi, opPasse }: { depute: DeputeAf
 
       {/* % de votes en commun */}
       <View style={{ alignItems: "center", marginTop: 16 }}>
-        <Text style={[tnum, { fontFamily: F.extra, fontSize: 40, lineHeight: 44, color: C.pour }]}>{pct}<Text style={{ fontSize: 22, color: C.pour }}> %</Text></Text>
+        <Text style={[tnum, { fontFamily: F.extra, fontSize: 40, lineHeight: 44, color: teinteScore }]}>{pct}<Text style={{ fontSize: 22, color: teinteScore }}> %</Text></Text>
         <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginTop: -2 }]}>de tes votes en commun</Text>
       </View>
 
-      {/* Vous avez voté pareil */}
-      {depute.communs.length > 0 && (
+      {/* Justification : vos accords, ou vos désaccords quand il n'y a pas d'accord à montrer */}
+      {justif.lignes.length > 0 && (
         <View style={{ marginTop: 16 }}>
-          <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }]}>Vous avez voté pareil</Text>
-          {depute.communs.map((c, i) => {
-            const ui = catUI(c.theme);
-            const teinte = c.position === "pour" ? C.pour : C.contre;
-            const bg = c.position === "pour" ? C.adopteBg : C.rejeteBg;
+          <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }]}>{justif.titre}</Text>
+          {justif.lignes.map((l, i) => {
+            const ui = catUI(l.theme);
             return (
-              <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 9, ...(i === depute.communs.length - 1 ? {} : { borderBottomWidth: 1, borderBottomColor: C.border }) }}>
+              <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 9, ...(i === justif.lignes.length - 1 ? {} : { borderBottomWidth: 1, borderBottomColor: C.border }) }}>
                 <MaterialCommunityIcons name={ui.icon as any} size={17} color={ui.fg} />
-                <Text style={[T.small, { flex: 1, fontFamily: F.semibold, color: C.text, lineHeight: 18 }]} numberOfLines={2}>{c.these}</Text>
-                <Chip label={`Vous deux : ${c.position === "pour" ? "Pour" : "Contre"}`} bg={bg} fg={teinte} ph={8} pv={3} />
+                <Text style={[T.small, { flex: 1, fontFamily: F.semibold, color: C.text, lineHeight: 18 }]} numberOfLines={2}>{l.these}</Text>
+                <Chip label={l.label} bg={l.bg} fg={l.fg} ph={8} pv={3} />
               </View>
             );
           })}

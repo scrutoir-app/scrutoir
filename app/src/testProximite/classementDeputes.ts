@@ -1,5 +1,6 @@
-// Classement des DÉPUTÉS par affinité au « je » — pour le deck au swipe de « Trouver un
-// député ». RÉUTILISE EXACTEMENT le moteur des fiches (`scoreVotant` / `calculerProximite`,
+// Affinité des DÉPUTÉS au « je » — vivier du deck au swipe de « Trouver un député » (le deck
+// n'en consomme qu'un LOT QUOTIDIEN tiré au hasard, cf. `selectionDuJour.ts` ; le classement
+// ne sert plus qu'à stratifier ce tirage pour qu'un lot mêle profils proches et éloignés). RÉUTILISE EXACTEMENT le moteur des fiches (`scoreVotant` / `calculerProximite`,
 // même pondération par thème, mêmes règles de comparabilité) : aucun calcul parallèle.
 //
 // Coût borné par le nombre de scrutins RÉPONDUS (≤ 39), jamais par le nombre de députés :
@@ -25,12 +26,20 @@ export interface VoteCommun {
   position: "pour" | "contre"; // position partagée (les deux ont voté pareil)
 }
 
+/** Un vote OPPOSÉ (les deux ont tranché, en sens contraire) — justifie une carte éloignée. */
+export interface VoteOppose {
+  theme: string;
+  these: string;
+  toi: "pour" | "contre";
+}
+
 /** Un député classé par affinité, avec sa justification. */
 export interface DeputeAffinite {
   resume: DeputeResume; // uid, nom, photo, abrev, groupe, couleur, circo, departement…
   groupe_uid: string | null;
   score: ProximiteScore; // pct + comparable (base de scrutins comparés)
   communs: VoteCommun[]; // scrutins où vous avez voté pareil (pour « vous avez voté pareil »)
+  opposes: VoteOppose[]; // scrutins où vous avez voté en sens contraire
 }
 
 const est = (p: string | undefined): p is "pour" | "contre" => p === "pour" || p === "contre";
@@ -94,14 +103,17 @@ export async function classerDeputesAffinite(
     const score = scoreVotant(ctx.questions, ctx.reponses, ctx.poids, votes);
     if (!score || score.comparable < min) continue;
 
-    // Votes en commun : réponse tranchée ET vote du député identique. On garde jusqu'à 3
-    // (les plus « parlants » = ceux avec une thèse), pour la justification de la carte.
+    // Justification de la carte : scrutins où vous avez tranché tous les deux — dans le même
+    // sens (communs) ou en sens contraire (opposés). On garde jusqu'à 3 de chaque : le deck
+    // proposant aussi des députés éloignés, une carte sans accord montre les désaccords.
     const communs: VoteCommun[] = [];
+    const opposes: VoteOppose[] = [];
     for (const q of ctx.questions) {
       const rep = ctx.reponses[q.id];
-      if (!est(rep)) continue;
+      if (!est(rep) || !q.these) continue;
       const v = votes[scrutinUidDeId(q.id)];
-      if (v === rep && q.these) communs.push({ theme: q.theme, these: q.these, position: rep });
+      if (v === rep) communs.push({ theme: q.theme, these: q.these, position: rep });
+      else if (est(v)) opposes.push({ theme: q.theme, these: q.these, toi: rep });
     }
 
     const base = resumeParDep.get(uid)!;
@@ -116,6 +128,7 @@ export async function classerDeputesAffinite(
       groupe_uid: base.groupe_uid,
       score,
       communs: communs.slice(0, 3),
+      opposes: opposes.slice(0, 3),
     });
   }
 

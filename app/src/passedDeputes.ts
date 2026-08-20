@@ -55,6 +55,11 @@ export function annulerPasser(uid: string): void {
   if (cur.includes(uid)) write(cur.filter((u) => u !== uid));
 }
 
+/** Vide la liste des passés (« repartir de zéro » du deck d'affinité). */
+export function viderPasses(): void {
+  if (read().length) write([]);
+}
+
 /** Hook React : liste réactive des députés passés. */
 export function usePassed(): string[] {
   const [, force] = useState(0);

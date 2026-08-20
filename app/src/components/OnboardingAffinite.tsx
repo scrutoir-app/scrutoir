@@ -8,8 +8,9 @@ import { Button } from "./ui";
  * Overlay pédagogique du deck d'AFFINITÉ (« Trouver un député » → Par affinité). Réutilise le
  * MÊME langage que l'onboarding du deck de scrutins (cf. `OnboardingFil`) : voile + carte
  * centrée + picto de cartes inclinées. Ici : droite = suivre, gauche = passer ; rappelle que
- * c'est privé, à sens unique, et annulable. S'affiche au premier passage en affinité et se
- * rouvre via le bouton « ? » de l'en-tête.
+ * c'est privé, à sens unique, et annulable. Dit aussi la règle du deck : un LOT QUOTIDIEN tiré
+ * au hasard (cf. `testProximite/selectionDuJour.ts`), pas un catalogue classé par affinité.
+ * S'affiche au premier passage en affinité et se rouvre via le bouton « ? » de l'en-tête.
  */
 export function OnboardingAffinite({
   visible,
@@ -67,8 +68,9 @@ export function OnboardingAffinite({
           Balaie pour choisir qui suivre
         </Text>
         <Text style={[T.small, { color: C.textMuted, textAlign: "center", marginTop: S.s10, lineHeight: 20 }]}>
-          Voici les députés qui votent le plus comme toi, du plus proche au moins proche. Chaque
-          carte montre votre part de votes en commun et les scrutins où vous avez voté pareil.
+          Chaque jour, une poignée de députés tirés au sort — proches de toi ou pas du tout. Chaque
+          carte montre votre part de votes en commun et les scrutins qui vous rapprochent ou vous
+          opposent.
         </Text>
 
         {/* Deux règles du geste, alignées sur les lignes de l'onboarding du deck. */}
