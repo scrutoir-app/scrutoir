@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.16.0 — 2026-08-20
+Deck **« Trouver un député › Par affinité »** : fini le catalogue de 577 fiches rangées par proximité — l'app propose désormais une **sélection quotidienne tirée au sort**.
+- **Un lot par jour** — 8 députés, figés pour la journée (rechargement compris) ; les députés déjà proposés ne reviennent jamais. Écran de fin « C'est tout pour aujourd'hui · reviens demain », et quand le vivier est épuisé, un « Repartir de zéro » qui oublie vus et passés.
+- **Au hasard, pas par classement** — un deck trié du plus proche au moins proche donne des séries homogènes (« 20 députés à 20 % ») qu'on cesse de consulter. Le tirage est stratifié sur trois étages d'affinité (proche / médian / éloigné) puis mélangé : chaque lot **mêle des profils contrastés** et l'ordre des cartes ne dit rien de la proximité.
+- **Cartes plus honnêtes** — le pourcentage est teinté au seuil habituel (vert au-dessus de 50 %, rouge en dessous) et une carte éloignée justifie par vos **votes opposés** (« Toi : Pour · lui : Contre ») au lieu de rester muette.
+- 100 % client : tirage local, rien n'est envoyé ; tests unitaires du tirage (`selectionDuJour.test.ts`, joués par `npm test`).
+
 ## 1.15.0 — 2026-08-02
 Fiches **parti** et **député** refondues en **pages profil** (façon réseau social) : en-tête d'identité fixe + barre d'onglets qui découpe le contenu, pour absorber beaucoup d'infos sans long scroll. Primitives partagées `components/profil.tsx` (en-tête à stats, onglets, carte « % + barre », lignes d'accord par thème, avatar).
 - **Fiche parti** — en-tête (hémicycle-avatar + sièges / % comme toi / cohésion + Suivre/Partager) puis onglets **Accord** (ton accord par thème, même moteur que le spectre), **Votes** (scrutins clés : position du groupe + barre divergente interne), **Le groupe** (président, cohésion + plus forte fracture nommée, participation, activité parlementaire, positions par thème, députés).
