@@ -6,7 +6,12 @@ on:
   schedule:
     # 05:10 UTC ≈ 06:10/07:10 Paris (après publication AN). Cron en UTC.
     - cron: "10 5 * * *"
-  workflow_dispatch: {} # lancement manuel depuis l'onglet Actions
+  workflow_dispatch: # lancement manuel depuis l'onglet Actions
+    inputs:
+      force:
+        description: "Déployer malgré la garde anti-régression (baisse de comptage imprévue)"
+        type: boolean
+        default: false
 
 # Une seule exécution à la fois ; on n'annule pas un déploiement en cours.
 concurrency:
@@ -100,7 +105,8 @@ jobs:
       # incident déjà vécu sur un déploiement manuel).
       - name: Garde anti-régression des données (version.json local vs prod)
         working-directory: app
-        run: node scripts/check-data-freshness.mjs
+        # Seul un lancement manuel avec « force » coché peut contourner la garde.
+        run: node scripts/check-data-freshness.mjs ${{ inputs.force && '--force' || '' }}
 
       # Deux sites Pages : dist/data → .data-site (+ _headers CORS), dist reste l'app.
       - name: Séparer les données du site app

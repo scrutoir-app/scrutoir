@@ -13,6 +13,11 @@
  *   node scripts/check-data-freshness.mjs --force    # avertit mais n'échoue pas
  *   DATA_DIR=public/data node scripts/check-data-freshness.mjs   # autre dossier
  *
+ * Baisse du nombre de députés : légitime quand des députés quittent l'Assemblée
+ * (sénatoriales, gouvernement, démission…). Elle est ACCEPTÉE si chaque député présent
+ * en prod mais absent du local a sa fiche `depute/<uid>.json` locale avec un
+ * `mandat_fin` déjà passé (= sortie confirmée par l'AN). Sinon : blocage.
+ *
  * Réseau injoignable (prod) → on AVERTIT et on laisse passer (ne bloque pas un déploiement
  * pour un souci réseau transitoire ; le premier déploiement n'a pas de prod à comparer).
  */
@@ -48,12 +53,14 @@ try {
 }
 
 let prod = null;
+let prodUrl = null;
 let derniereErreur = "aucune URL essayée";
 for (const url of PROD_URLS) {
   try {
     const res = await fetch(url, { signal: AbortSignal.timeout(10000) });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     prod = await res.json();
+    prodUrl = url;
     break;
   } catch (e) {
     derniereErreur = `${url} → ${e.message}`;
@@ -68,9 +75,43 @@ const tLocal = Date.parse(local.generatedAt);
 const tProd = Date.parse(prod.generatedAt);
 const olderByDate = Number.isFinite(tLocal) && Number.isFinite(tProd) && tLocal < tProd;
 // Champs de comptage présents des deux côtés où le local est strictement inférieur.
-const regressions = ["deputes", "scrutins", "partis"].filter(
+let regressions = ["deputes", "scrutins", "partis"].filter(
   (k) => typeof local[k] === "number" && typeof prod[k] === "number" && local[k] < prod[k]
 );
+
+// Baisse de députés : on vérifie que chaque disparu est une sortie de mandat avérée.
+let sortiesJustifiees = null;
+if (regressions.includes("deputes")) {
+  sortiesJustifiees = await justifierSorties();
+  if (sortiesJustifiees.ok) regressions = regressions.filter((k) => k !== "deputes");
+}
+
+async function justifierSorties() {
+  let prodDeputes, localDeputes;
+  try {
+    const res = await fetch(new URL("deputes.json", prodUrl), { signal: AbortSignal.timeout(10000) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    prodDeputes = await res.json();
+    localDeputes = JSON.parse(await readFile(resolve(process.cwd(), dataDir, "deputes.json"), "utf8"));
+  } catch (e) {
+    return { ok: false, raison: `listes de députés illisibles (${e.message})` };
+  }
+  const locaux = new Set(localDeputes.map((d) => d.uid));
+  const partis = prodDeputes.filter((d) => !locaux.has(d.uid));
+  const maintenant = Date.now();
+  const sorties = [];
+  const injustifies = [];
+  for (const d of partis) {
+    let fin = null;
+    try {
+      fin = JSON.parse(await readFile(resolve(process.cwd(), dataDir, "depute", `${d.uid}.json`), "utf8")).mandat_fin;
+    } catch {}
+    const t = Date.parse(fin);
+    if (Number.isFinite(t) && t <= maintenant) sorties.push(`${d.nom_complet} (fin ${fin})`);
+    else injustifies.push(`${d.nom_complet} [${d.uid}]`);
+  }
+  return { ok: injustifies.length === 0, sorties, injustifies };
+}
 
 const fmt = (v) => `${v.generatedAt}  (députés ${v.deputes} · scrutins ${v.scrutins} · partis ${v.partis})`;
 
@@ -81,9 +122,20 @@ if (olderByDate || regressions.length) {
       `   Prod  : ${fmt(prod)}\n` +
       (olderByDate ? `   → le local est plus ANCIEN que la prod.\n` : "") +
       (regressions.length ? `   → comptages en baisse : ${regressions.join(", ")}.\n` : "") +
+      (sortiesJustifiees && !sortiesJustifiees.ok
+        ? `   → députés disparus sans fin de mandat confirmée : ${
+            sortiesJustifiees.raison ?? sortiesJustifiees.injustifies.join(", ")
+          }.\n`
+        : "") +
       `   Rafraîchis d'abord la base (npm run ingest:refresh + export:static) ou\n` +
       `   laisse le cron "refresh.yml" déployer. Bypass explicite : --force.`
   );
 }
 
+if (sortiesJustifiees?.ok) {
+  console.log(
+    `ℹ️  ${sortiesJustifiees.sorties.length} député(s) sorti(s) de l'Assemblée (fin de mandat confirmée) :\n` +
+      sortiesJustifiees.sorties.map((x) => `   - ${x}`).join("\n")
+  );
+}
 console.log(`✅ Données à jour vs prod — déploiement autorisé.\n   Local : ${fmt(local)}\n   Prod  : ${fmt(prod)}`);
