@@ -84,7 +84,7 @@ const TOUR_ZONES: { cle: CibleTour; label: string; phrase: string; preferAbove?:
   { cle: "hero", label: "Continue à te situer", phrase: "Ton test de proximité t'attend ici. Chaque scrutin que tu tranches affine ton spectre. Reprends quand tu veux, là où tu en étais.", preferAbove: true },
   { cle: "espace", label: "Ton espace", phrase: "À gauche, ta proximité : de quels groupes tu es le plus proche. À droite, tes accords : les textes où tu t'es situé et qui a voté comme toi." },
   { cle: "depute", label: "Trouver ton député", phrase: "Ton élu local par code postal, ou au swipe ceux qui votent le plus comme toi. Tu peux les suivre pour retrouver leurs votes." },
-  { cle: "activite", label: "L'activité de tes suivis", phrase: "Dès que tu suis un élu ou un groupe, ses votes récents s'affichent ici. En attendant, le Face à face confronte deux élus côte à côte." },
+  { cle: "activite", label: "La semaine à l'Assemblée", phrase: "Chaque vendredi, les textes votés dans la semaine, rangés par thème. Juste en dessous, ce que font les élus et groupes que tu suis." },
 ];
 
 export default function App() {

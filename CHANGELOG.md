@@ -7,6 +7,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.17.0 — 2026-10-09
+**« La semaine à l'Assemblée »** remplace, sur l'accueil, la liste des derniers votes des suivis.
+- **Une édition chaque vendredi**, qui couvre les sept jours précédents (vendredi → jeudi). Chaque scrutin appartient à une seule édition ; un vote du vendredi part dans la suivante. Semaine sans scrutin public : le module montre la dernière semaine qui en a eu, et le dit.
+- **Une barre de répartition** : un segment par thème, proportionnel au nombre de scrutins publics, dans les teintes de thème. Elle sert aussi de pagination : toucher un segment amène sa carte.
+- **Un carrousel de cartes teintées, une par thème** : les textes votés (intitulé officiel du dossier), leur genre et leur nombre de scrutins publics. Deux textes visibles, « Voir les N autres textes » déplie la carte. Toucher un texte ouvre tous ses scrutins.
+- **Neutre et sobre** : dit sur quoi l'Assemblée a voté, sans résultat, sans camp, sans « comme toi ». Thèmes rangés par poids objectif (volume de scrutins publics, scrutin solennel, vote sur l'ensemble, censure).
+- **Focus actualité** sous la semaine : un sujet choisi à la main (`content/focus.ts`, période d'affichage incluse) et la frise des textes votés en scrutin public qui y répondent, du plus récent au plus ancien, avec leur issue publiée. Le sujet est éditorial et le dit ; les textes, eux, sont retenus par un critère de mots-clés appliqué aux intitulés et affiché sous le focus. Premier focus : la mobilisation lycéenne et étudiante d'octobre 2026.
+- **Suivis en une ligne** : l'accueil nomme qui a voté depuis ta dernière visite (« Du neuf chez tes suivis ») et renvoie au flux complet.
+- 100 % client : calculé depuis `scrutins.json` + `dossiers.json`, aucun fichier ni étape de pipeline ajoutés. Les scrutins que l'AN n'a pas rattachés à un dossier sont recollés à leur texte par l'intitulé. Tests : `hebdo.test.ts` (joué par `npm test`).
+
 ## 1.16.0 — 2026-08-20
 Deck **« Trouver un député › Par affinité »** : fini le catalogue de 577 fiches rangées par proximité — l'app propose désormais une **sélection quotidienne tirée au sort**.
 - **Un lot par jour** — 8 députés, figés pour la journée (rechargement compris) ; les députés déjà proposés ne reviennent jamais. Écran de fin « C'est tout pour aujourd'hui · reviens demain », et quand le vivier est épuisé, un « Repartir de zéro » qui oublie vus et passés.

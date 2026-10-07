@@ -4,11 +4,12 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, MOTION, couleurGroupe } from "../theme";
 import { Button } from "../components/ui";
 import { ScrutoirMark } from "../components/brand/ScrutoirMark";
-import { CarteSuivi } from "../components/CarteSuivi";
+import { HebdoCarte } from "../components/HebdoCarte";
+import { FocusActu } from "../components/FocusActu";
 import { SearchResultsList } from "../components/SearchResultsList";
 import { useReduceMotion } from "../components/HeroScrutins";
 import { getPartis, getCategories, getTestProximite, getVotesSuivis, getVotesPartisSuivis, getDossiersSitues } from "../api";
-import { useFollows } from "../follows";
+import { useFollows, getLastSeen } from "../follows";
 import { useCibleTour } from "../tourTargets";
 import { ouvrirTourNav } from "../tour";
 import { tourAccueilAFaire, marquerTourAccueilVu } from "../accueilTourPrefs";
@@ -97,7 +98,24 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
     const t = setTimeout(() => ouvrirTourNav(), 550);
     return () => clearTimeout(t);
   }, [situe]);
-  const flux = (votes ?? []).slice(0, 4);
+  // Suivis : l'accueil ne liste plus leurs votes (« La semaine à l'Assemblée » fait le point).
+  // Il nomme QUI a voté depuis la dernière visite de l'écran Suivis ; le flux complet vit là-bas.
+  const entitesNeuves = useMemo(() => {
+    const lastSeen = getLastSeen();
+    const vus = new Set<string>();
+    const noms: string[] = [];
+    for (const v of votes ?? []) {
+      if (lastSeen && !(v.date && v.date > lastSeen)) continue;
+      if (vus.has(v.deputeUid)) continue;
+      vus.add(v.deputeUid);
+      noms.push(v.deputeUid.startsWith("PO") ? v.abrev ?? v.nom : v.nom);
+    }
+    return noms;
+  }, [votes]);
+  const resumeNeuf =
+    entitesNeuves.length <= 2
+      ? entitesNeuves.join(" et ")
+      : `${entitesNeuves.slice(0, 2).join(", ")} et ${entitesNeuves.length - 2 === 1 ? "1 autre" : `${entitesNeuves.length - 2} autres`}`;
   const sujets = [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)).slice(0, 6);
 
   // Mini-spectre : le top 3 des groupes du test (classement DÉJÀ trié par pct dans `je`), coloré
@@ -281,26 +299,44 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
             </View>
           </Animated.View>
 
-          {/* FLUX des suivis (sous le CTA) — ou repli « Face à face » quand rien de neuf.
-              Enveloppé sous UNE clé `activite` : la visite pointe la forme réellement rendue. */}
+          {/* LA SEMAINE À L'ASSEMBLÉE — remplace l'ancien flux « Depuis ta dernière visite » (liste
+              des derniers votes des suivis). Les sujets de la semaine, par thème, sans lecture des
+              résultats. Puis les suivis en UNE ligne (→ écran Suivis), ou le repli « Face à face »
+              tant qu'on ne suit personne. Enveloppé sous la clé `activite` (visite guidée). */}
           <View ref={refActivite} collapsable={false}>
-          {votes == null ? (
-            <ActivityIndicator color={C.textMuted} style={{ marginTop: 24 }} />
-          ) : flux.length > 0 ? (
+          <Animated.View style={[{ marginTop: 24 }, rise(3)]}>
+            <HebdoCarte nav={nav} />
+          </Animated.View>
+          {/* FOCUS ACTUALITÉ (content/focus.ts) : rien hors période ou sans texte retenu (sa marge
+              haute est portée par le composant, pour ne laisser aucun vide quand il est masqué). */}
+          <Animated.View style={rise(3)}>
+            <FocusActu nav={nav} />
+          </Animated.View>
+          {follows.length > 0 ? (
             <Animated.View style={rise(3)}>
-              <View style={{ paddingHorizontal: 16, paddingTop: 22, paddingBottom: 2 }}>
-                <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Depuis ta dernière visite</Text>
-                <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Les votes récents de tes suivis — comme toi, ou proximité globale.</Text>
-              </View>
-              <View style={{ paddingHorizontal: 16, paddingTop: 10, gap: 9 }}>
-                {flux.map((v) => <CarteSuivi key={v.deputeUid + v.scrutinUid} v={v} partis={partis} je={je} nav={nav} />)}
-              </View>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={() => nav.push({ name: "suivis" })}
+                accessibilityRole="button"
+                style={{ flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 16, marginTop: 12, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.md, padding: 13, ...shadowCard }}
+              >
+                <View style={{ width: 34, height: 34, borderRadius: RADIUS.sm, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
+                  <Feather name="bell" size={17} color={C.accent} />
+                </View>
+                <View style={{ flex: 1, minWidth: 0 }}>
+                  <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>{entitesNeuves.length ? "Du neuf chez tes suivis" : "Tes suivis"}</Text>
+                  <Text style={[T.micro, { color: C.textMuted, marginTop: 2 }]} numberOfLines={1}>
+                    {votes == null ? "…" : entitesNeuves.length ? resumeNeuf : "Rien de neuf depuis ta dernière visite"}
+                  </Text>
+                </View>
+                <Feather name="chevron-right" size={18} color={C.textFaint} />
+              </TouchableOpacity>
             </Animated.View>
           ) : (
             <Animated.View style={rise(3)}>
               <View style={{ paddingHorizontal: 16, paddingTop: 22, paddingBottom: 2 }}>
-                <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>{follows.length ? "Tu es à jour sur tes suivis" : "Suis un élu ou un groupe"}</Text>
-                <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>{follows.length ? "Rien de neuf côté suivis. En attendant, confronte deux élus." : "Pour voir leurs votes ici. En attendant, confronte deux élus."}</Text>
+                <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Suis un élu ou un groupe</Text>
+                <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Pour savoir quand ils votent. En attendant, confronte deux élus.</Text>
               </View>
               <TouchableOpacity activeOpacity={0.7} onPress={() => nav.push({ name: "confrontation" })} style={{ flexDirection: "row", alignItems: "center", gap: 12, marginHorizontal: 16, marginTop: 9, backgroundColor: C.surface, borderWidth: 1, borderColor: C.borderStrong, borderRadius: 14, padding: 13, ...shadowCard }}>
                 <View style={{ flexDirection: "row", alignItems: "center" }}>

@@ -46,6 +46,12 @@ const scrutinsIndex = () => j<ScrutinIdx[]>("scrutins");
 // Dossiers (regroupement par texte) — feature « Tes accords ».
 export const getDossiers = () => j<DossierResume[]>("dossiers");
 export const getDossier = (ref: string) => j<DetailDossier>(`dossier/${ref}`);
+/** Source de « La semaine à l'Assemblée » : index des scrutins + dossiers, déjà mis en cache
+ *  par la recherche et Tes accords (aucun fichier nouveau, l'édition est calculée côté client). */
+export async function getSourceHebdo(): Promise<{ scrutins: ScrutinIdx[]; dossiers: DossierResume[] }> {
+  const [scrutins, dossiers] = await Promise.all([scrutinsIndex(), getDossiers()]);
+  return { scrutins, dossiers };
+}
 
 /** Map numéro de scrutin → dossier_ref (depuis l'index), pour relier tes réponses de test aux textes. */
 async function numeroVersDossier(): Promise<Map<number, string>> {
