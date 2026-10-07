@@ -5,7 +5,7 @@ import { C, F, T, RADIUS, CONTROL, ICON, tnum } from "../theme";
 import { catUI } from "../categoryUI";
 import { useSemaineAccueil } from "../hooks/useHebdo";
 import { getEditionLue, marquerEditionLue } from "../hebdoPrefs";
-import { libelleFenetre, libelleScrutins, type ThemeHebdo, type TexteHebdo } from "../hebdo";
+import { libelleFenetre, libelleReprise, libelleScrutins, type ThemeHebdo, type TexteHebdo } from "../hebdo";
 import type { Nav } from "../nav";
 
 const SIDE = 16;
@@ -162,6 +162,11 @@ export function HebdoCarte({ nav }: { nav: Nav }) {
             ? `${fenetre} : ${volume}`
             : `${fenetre} : ${volume}. Aucun scrutin public depuis.`}
         </Text>
+        {/* Après une longue interruption (vacances), on le dit : sinon une semaine d'un seul
+            jour de votes laisse croire que l'Assemblée a siégé toute la semaine. */}
+        {e.reprise && (
+          <Text style={[T.micro, tnum, { color: C.textMuted, marginTop: 2 }]}>{libelleReprise(e.reprise, s.annee)}</Text>
+        )}
       </View>
 
       {e.themes.length > 1 && <View style={{ marginTop: 8 }}><Repartition themes={e.themes} total={e.nbScrutins} actif={actif} onSelect={aller} /></View>}

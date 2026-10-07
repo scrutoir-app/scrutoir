@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.17.1 — 2026-10-07
+**« La semaine à l'Assemblée » : mention de reprise.** Quand une édition rouvre les scrutins publics après une longue interruption (au moins 14 jours sans scrutin public : vacances d'été, de fin d'année), le module le dit sous son sous-titre : « Reprise le 1er octobre : aucun scrutin public depuis le 21 juillet. » Sans elle, une semaine d'un seul jour de votes laissait croire que l'Assemblée avait siégé toute la semaine sur un seul texte. Factuel uniquement (dates des scrutins publics, aucune cause supposée). Test ajouté dans `hebdo.test.ts`.
+
 ## 1.17.0 — 2026-10-09
 **« La semaine à l'Assemblée »** remplace, sur l'accueil, la liste des derniers votes des suivis.
 - **Une édition chaque vendredi**, qui couvre les sept jours précédents (vendredi → jeudi). Chaque scrutin appartient à une seule édition ; un vote du vendredi part dans la suivante. Semaine sans scrutin public : le module montre la dernière semaine qui en a eu, et le dit.

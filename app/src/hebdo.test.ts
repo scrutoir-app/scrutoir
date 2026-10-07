@@ -15,6 +15,7 @@ import {
   libelleDate,
   libelleFenetre,
   libelleParution,
+  libelleReprise,
   ventilation,
   type ScrutinSrc,
   type DossierSrc,
@@ -132,6 +133,28 @@ test("semaine vide et liste des éditions disponibles", () => {
   assert.equal(e.nbScrutins, 0);
   assert.deepEqual(e.themes, []);
   assert.deepEqual(editionsAvecContenu(SCR), ["2026-10-02", "2026-10-09", "2026-10-16"]);
+});
+
+test("reprise : mentionnée après une longue interruption des scrutins publics, pas sinon", () => {
+  const avecPause = [
+    s("R1", "2026-07-21", "l'ensemble du projet de loi relatif à la protection des enfants (première lecture)."),
+    s("R2", "2026-10-01", "l'article 5 de la proposition de loi apportant une réponse intégrale (première lecture)."),
+    s("R3", "2026-10-02", "l'article 6 de la proposition de loi apportant une réponse intégrale (première lecture)."),
+  ];
+  const r = construireEdition("2026-10-02", avecPause, D).reprise;
+  assert.deepEqual(r, { le: "2026-10-01", depuis: "2026-07-21" });
+  assert.equal(libelleReprise(r!, "2026"), "Reprise le 1er octobre : aucun scrutin public depuis le 21 juillet.");
+  // La semaine suivante enchaîne sans pause : rien à dire.
+  assert.equal(construireEdition("2026-10-09", avecPause, D).reprise, null);
+  // Semaine de suspension (moins de 14 jours sans scrutin) : pas de mention.
+  const courte = [s("C1", "2026-02-12", "l'article 1 du projet de loi X."), s("C2", "2026-02-23", "l'article 2 du projet de loi X.")];
+  assert.equal(construireEdition("2026-02-27", courte, D).reprise, null);
+  // Édition vide, ou tout premier scrutin connu : rien.
+  assert.equal(construireEdition("2026-07-31", SCR, D).reprise, null);
+  assert.equal(construireEdition("2026-10-02", [avecPause[1]], D).reprise, null);
+  // Changement d'année : l'année est précisée quand elle diffère de l'année courante.
+  const noel = [s("N1", "2025-12-18", "l'article 1 du projet de loi Y."), s("N2", "2026-01-13", "l'article 2 du projet de loi Y.")];
+  assert.equal(libelleReprise(construireEdition("2026-01-16", noel, D).reprise!, "2026"), "Reprise le 13 janvier : aucun scrutin public depuis le 18 décembre 2025.");
 });
 
 test("titre court : seuls les mots d'amorce partent, jamais de reformulation", () => {

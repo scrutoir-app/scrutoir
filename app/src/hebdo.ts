@@ -98,7 +98,19 @@ export interface EditionHebdo {
   nbScrutins: number;
   nbTextes: number;
   themes: ThemeHebdo[];
+  /** Reprise après une longue interruption des scrutins publics (vacances…), sinon null. */
+  reprise: Reprise | null;
 }
+
+/** Premier scrutin public de l'édition (`le`) et dernier scrutin public avant lui (`depuis`). */
+export interface Reprise {
+  le: string;
+  depuis: string;
+}
+
+/** Écart minimal (en jours) entre deux scrutins publics pour parler de reprise : couvre les
+ *  vacances d'été et de fin d'année, pas les semaines de suspension d'une semaine. */
+export const ECART_REPRISE_JOURS = 14;
 
 // --- Dates (ISO YYYY-MM-DD, arithmétique en UTC pour éviter tout décalage de fuseau) --------
 
@@ -411,7 +423,27 @@ export function construireEdition(vendredi: string, scrutins: ScrutinSrc[], doss
     return poids(b) - poids(a) || b.nb - a.nb;
   });
 
-  return { vendredi, debut, fin, nbScrutins, nbTextes: textes.length, themes };
+  return { vendredi, debut, fin, nbScrutins, nbTextes: textes.length, themes, reprise: repriseDe(dansFenetre, scrutins) };
+}
+
+/**
+ * L'édition rouvre-t-elle les scrutins publics après une longue interruption ? On compare son
+ * premier scrutin au dernier scrutin public qui le précède. On ne dit que ce que montrent les
+ * données (pas de « session », pas de cause) : la date de reprise et celle du dernier scrutin.
+ */
+function repriseDe(dansFenetre: ScrutinSrc[], tous: ScrutinSrc[]): Reprise | null {
+  let le = "";
+  for (const s of dansFenetre) if (s.date && (!le || s.date < le)) le = s.date;
+  if (!le) return null;
+  let depuis = "";
+  for (const s of tous) if (s.date && s.date < le && s.date > depuis) depuis = s.date;
+  if (!depuis) return null; // tout premier scrutin de la législature : rien à « reprendre »
+  return (versUTC(le) - versUTC(depuis)) / JOUR_MS >= ECART_REPRISE_JOURS ? { le, depuis } : null;
+}
+
+/** « Reprise le 1er octobre : aucun scrutin public depuis le 21 juillet. » */
+export function libelleReprise(r: Reprise, anneeCourante: string): string {
+  return `Reprise le ${libelleCourt(r.le, anneeCourante)} : aucun scrutin public depuis le ${libelleCourt(r.depuis, anneeCourante)}.`;
 }
 
 // --- Libellés de contenu --------------------------------------------------------------------
