@@ -9,6 +9,16 @@ export type TourKind = "onglet" | "zone";
 export interface TourStep { label: string; phrase: string; kind: TourKind; node: any; preferAbove?: boolean }
 type Rect = { x: number; y: number; w: number; h: number };
 
+/** Premier ancêtre qui défile (la ScrollView de l'accueil, une div sur le web), ou null. */
+function parentDefilant(n: any): any {
+  if (typeof getComputedStyle !== "function") return null;
+  for (let el = n?.parentElement; el; el = el.parentElement) {
+    const oy = getComputedStyle(el).overflowY;
+    if ((oy === "auto" || oy === "scroll") && el.scrollHeight > el.clientHeight) return el;
+  }
+  return null;
+}
+
 const SCRIM = "rgba(8,10,14,0.66)"; // voile établi de la visite (couleur historique conservée)
 const RING = "#FFFFFF"; // anneau blanc établi de la visite (couleur historique conservée)
 
@@ -95,16 +105,32 @@ export function TourNavigation({ steps, onClose, note }: { steps: TourStep[]; on
     const node = courant?.s.node;
     if (!node) { setActiveRect(null); return; }
     const finir = () => { mesurerNode(node).then((r) => { if (alive) setActiveRect(r); }); };
-    if (courant.s.kind === "zone" && node && typeof node.scrollIntoView === "function") {
-      // Défilement MINIMAL (block:"nearest") : si la zone est déjà à l'écran, on ne bouge
-      // pas — d'un pas au suivant le contenu reste en place et seule la bulle se déplace. Le
-      // recentrage systématique (block:"center") faisait « sauter » la page (ex. 2→3 : le héro
-      // remontait alors que le DUO était déjà visible), et rapprochait la bulle des CTA de la
-      // page (« Reprendre » du héro ≈ « Suivant »), d'où la confusion.
-      // On ne défile QUE si la zone n'est pas déjà entièrement à l'écran (le placement
-      // dessus/dessous de la bulle est ensuite décidé au rendu selon la place réelle).
-      const need = (() => { const r = node.getBoundingClientRect?.(); if (!r) return true; const h = typeof window !== "undefined" ? window.innerHeight : 0; return r.top < 8 || r.bottom > h - 8; })();
-      if (need) { try { node.scrollIntoView({ block: "nearest", behavior: "instant" as ScrollBehavior }); } catch { node.scrollIntoView(); } }
+    if (courant.s.kind === "zone" && node && typeof node.getBoundingClientRect === "function") {
+      // Défilement MINIMAL : si la zone est déjà à l'écran, on ne bouge pas — d'un pas au
+      // suivant le contenu reste en place et seule la bulle se déplace. Le recentrage
+      // systématique faisait « sauter » la page (ex. 2→3 : le héro remontait alors que le DUO
+      // était déjà visible), et rapprochait la bulle des CTA de la page (« Reprendre » du héro
+      // ≈ « Suivant »), d'où la confusion. Le placement dessus/dessous de la bulle est ensuite
+      // décidé au rendu selon la place réelle.
+      // L'écran utile s'arrête au HAUT de la barre d'onglets, qui passe par-dessus le contenu.
+      // Zone plus haute que cet écran moins la bulle (ex. carte du focus sur mobile) : on cale
+      // son HAUT sous une marge qui laisse la bulle tenir au-dessus ; le bas déborde sous la
+      // barre. Sans ça, la bulle se repliait par-dessus la zone et masquait son titre.
+      const r = node.getBoundingClientRect();
+      const h = typeof window !== "undefined" ? window.innerHeight : 0;
+      const bas = Math.min(h, ...visibles.filter((e) => e.s.kind === "onglet").map((e) => e.rect.y));
+      const marge = (bubbleH || 200) + 40;
+      const fond = bas - 16; // le liseré (8 px autour de la zone) reste au-dessus de la barre
+      let delta = 0;
+      if (r.height + marge > fond) delta = r.top - marge;
+      else if (r.top < 8) delta = r.top - 8;
+      else if (r.bottom > fond) delta = Math.min(r.bottom - fond, r.top - 8);
+      const need = Math.abs(delta) > 4;
+      if (need) {
+        const defilant = parentDefilant(node);
+        if (defilant) defilant.scrollTop += delta;
+        else if (typeof window !== "undefined") window.scrollBy(0, delta);
+      }
       setTimeout(finir, need ? 60 : 0); // laisse le défilement se poser avant de re-mesurer
     } else finir();
     return () => { alive = false; };
@@ -174,7 +200,12 @@ export function TourNavigation({ steps, onClose, note }: { steps: TourStep[]; on
   // --- Pas ZONE : voile percé (4 rectangles) + liseré, bulle dessous sinon dessus ---
   const pad = 8;
   const hx = Math.max(0, rect.x - pad), hy = Math.max(0, rect.y - pad);
-  const hw = rect.w + pad * 2, hh = rect.h + pad * 2;
+  const hw = rect.w + pad * 2;
+  // Une zone qui déborde sous la barre d'onglets est coupée au-dessus d'elle : sinon la barre
+  // apparaît en clair dans le trou. Le liseré reste alors ouvert en bas.
+  const barTopZ = Math.min(vp.h, ...visibles.filter((e) => e.s.kind === "onglet").map((e) => e.rect.y));
+  const coupee = rect.y + rect.h + pad > barTopZ - 4;
+  const hh = coupee ? Math.max(0, barTopZ - 4 - hy) : rect.h + pad * 2;
   const cx = rect.x + rect.w / 2;
   // Placement de la bulle : par défaut dessous si elle tient, sinon dessus. Un pas peut
   // DEMANDER le dessus (`preferAbove`, ex. le héro dont le CTA « Reprendre » ne doit pas être
@@ -194,7 +225,7 @@ export function TourNavigation({ steps, onClose, note }: { steps: TourStep[]; on
         <View pointerEvents="none" style={{ position: "absolute", left: 0, top: hy, width: hx, height: hh, backgroundColor: SCRIM }} />
         <View pointerEvents="none" style={{ position: "absolute", left: hx + hw, top: hy, right: 0, height: hh, backgroundColor: SCRIM }} />
         {/* Liseré d'accent autour du trou (token, pas de couleur en dur). */}
-        <View pointerEvents="none" style={{ position: "absolute", left: hx, top: hy, width: hw, height: hh, borderRadius: RADIUS.md, borderWidth: 2, borderColor: C.accent }} />
+        <View pointerEvents="none" style={{ position: "absolute", left: hx, top: hy, width: hw, height: hh, borderRadius: RADIUS.md, borderWidth: 2, borderColor: C.accent, ...(coupee ? { borderBottomWidth: 0, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 } : null) }} />
         {/* Bulle (mesurée pour décider dessus/dessous) + flèche. */}
         <View onLayout={(e) => { const h = e.nativeEvent.layout.height; if (h && Math.abs(h - bubbleH) > 1) setBubbleH(h); }} style={{ position: "absolute", left: bLeft, width: bw, top: bTop, opacity: bubbleH ? 1 : 0 }}>
           {bulleContenu}

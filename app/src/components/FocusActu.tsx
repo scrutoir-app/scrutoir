@@ -19,8 +19,7 @@ const VISIBLES = 3;
 export function FocusActu({ nav }: { nav: Nav }) {
   const textes = useFocusActu(FOCUS);
   const [ouvert, setOuvert] = useState(false);
-  // Cible de la visite guidée, enregistrée seulement quand le focus s'affiche : l'en-tête
-  // seul, car la carte entière dépasse souvent l'écran et la bulle masquerait son titre.
+  // Cible de la visite guidée (la carte entière), enregistrée seulement quand le focus s'affiche.
   const refTour = useCibleTour("actualite");
   if (!FOCUS || !textes || textes.length === 0) return null;
 
@@ -31,15 +30,13 @@ export function FocusActu({ nav }: { nav: Nav }) {
     t.dossierRef ? nav.push({ name: "dossierScrutins", ref: t.dossierRef, titre: t.titre }) : nav.push({ name: "scrutin", uid: t.scrutinUid });
 
   return (
-    <View style={{ marginHorizontal: 16, marginTop: 22, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.lg, paddingHorizontal: 16, paddingTop: 16 }}>
-      <View ref={refTour} collapsable={false}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
-          <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: pastille }} />
-          <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>Focus actualité</Text>
-        </View>
-        <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 8 }]}>{FOCUS.titre}</Text>
-        <Text style={[T.small, { color: C.textMuted, marginTop: 6 }]}>{FOCUS.contexte}</Text>
+    <View ref={refTour} collapsable={false} style={{ marginHorizontal: 16, marginTop: 22, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.lg, paddingHorizontal: 16, paddingTop: 16 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 7 }}>
+        <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: pastille }} />
+        <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>Focus actualité</Text>
       </View>
+      <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 8 }]}>{FOCUS.titre}</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 6 }]}>{FOCUS.contexte}</Text>
 
       <View style={{ marginTop: 14 }}>
         {liste.map((t, i) => (
