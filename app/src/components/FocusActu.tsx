@@ -6,6 +6,7 @@ import { catUI } from "../categoryUI";
 import { FOCUS } from "../content/focus";
 import { useFocusActu } from "../hooks/useHebdo";
 import { useCibleTour } from "../tourTargets";
+import { Button } from "./ui/Button";
 import { libelleDate, metaFocus, type TexteHebdo } from "../hebdo";
 import type { Nav } from "../nav";
 
@@ -46,11 +47,26 @@ export function FocusActu({ nav }: { nav: Nav }) {
               <View style={{ width: 9, height: 9, borderRadius: 5, marginTop: 4, backgroundColor: pastille }} />
               {i < liste.length - 1 && <View style={{ flex: 1, width: 1.5, marginTop: 4, backgroundColor: C.borderStrong }} />}
             </View>
-            <TouchableOpacity activeOpacity={0.6} onPress={() => ouvrir(t)} accessibilityRole="button" style={{ flex: 1, paddingBottom: 16 }}>
-              <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.textMuted }]}>{libelleDate(t.derniereDate)}</Text>
-              <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 3 }]}>{t.titre}</Text>
-              <Text style={[T.micro, tnum, { color: C.textMuted, marginTop: 4 }]}>{metaFocus(t)}</Text>
-            </TouchableOpacity>
+            <View style={{ flex: 1, paddingBottom: 16 }}>
+              <TouchableOpacity activeOpacity={0.6} onPress={() => ouvrir(t)} accessibilityRole="button">
+                <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.textMuted }]}>{libelleDate(t.derniereDate)}</Text>
+                <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 3 }]}>{t.titre}</Text>
+                <Text style={[T.micro, tnum, { color: C.textMuted, marginTop: 4 }]}>{metaFocus(t)}</Text>
+              </TouchableOpacity>
+              {/* Vote sur l'ensemble en scrutin public : accès direct à sa fiche (`scrutinUid` le
+                  désigne en priorité). Sans ce vote, seul le texte s'ouvre. */}
+              {t.ensemble && (
+                <Button
+                  label="Voir le scrutin"
+                  variant="outline"
+                  size="sm"
+                  onPress={() => nav.push({ name: "scrutin", uid: t.scrutinUid })}
+                  accessibilityLabel={`Voir le scrutin du vote sur l'ensemble : ${t.titre}`}
+                  iconRight={<Feather name="chevron-right" size={ICON.sm} color={C.accent} />}
+                  style={{ alignSelf: "flex-start", marginTop: 10 }}
+                />
+              )}
+            </View>
           </View>
         ))}
       </View>

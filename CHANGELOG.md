@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.17.5 — 2026-10-14
+**Focus actualité : bouton « Voir le scrutin ».** Un texte du focus qui a eu un vote sur l'ensemble en scrutin public propose un bouton « Voir le scrutin » qui ouvre directement la fiche de ce vote. Pour la loi intégrale, c'est le scrutin solennel n° 8705 (503 pour, 0 contre, 67 abstentions). Toucher le titre ouvre toujours tous les scrutins du texte. Sans vote sur l'ensemble, pas de bouton.
+
 ## 1.17.4 — 2026-10-14
 **Visite guidée : le pas « Focus actualité » éclaire toute la carte.** En 1.17.3, il n'éclairait que l'en-tête, et la découpe tombait à l'intérieur de la carte. Il éclaire désormais la carte entière. Une zone plus haute que l'écran (la carte du focus) est amenée avec son haut juste sous la bulle, et son bas déborde sous la barre d'onglets. Les zones s'arrêtent maintenant au haut de la barre d'onglets, qui passe par-dessus le contenu : « La semaine à l'Assemblée » et « Tes suivis » ne glissent plus dessous, et une zone qui déborde est coupée au-dessus de la barre au lieu de la laisser apparaître en clair dans la découpe.
 
