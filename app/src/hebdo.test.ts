@@ -202,3 +202,15 @@ test("focus : textes retenus par le critère, regroupés, du plus récent au plu
   assert.deepEqual(textesFocus({ motsCles, exclure: ["X"] }, scr, ds).map((t) => t.dossierRef), ["B", "V"]);
   assert.equal(libelleDate("2026-06-01"), "1er juin 2026");
 });
+
+test("focus : le vote sur l'ensemble porte ses décomptes, et rien sans ce vote", () => {
+  const ds: DossierSrc[] = [{ ref: "L", titre: "Apporter une réponse intégrale aux violences sexuelles", categorie: "securite-justice" }];
+  const scr: ScrutinSrc[] = [
+    s("V40", "2026-10-09", "l'article 46 de la proposition de loi apportant une réponse intégrale aux violences sexuelles (première lecture).", { dossier_ref: "L", sort_code: "rejete", pour: 74, contre: 77, abstention: 7 }),
+    s("V41", "2026-10-13", "la proposition de loi apportant une réponse intégrale aux violences sexuelles (première lecture).", { dossier_ref: "L", type_vote: "scrutin public solennel", pour: 503, contre: 0, abstention: 67 }),
+  ];
+  const [t] = textesFocus({ motsCles: /réponse intégrale/i }, scr, ds);
+  assert.deepEqual(t.voteEnsemble, { uid: "V41", date: "2026-10-13", solennel: true, pour: 503, contre: 0, abstention: 67 });
+  const [sans] = textesFocus({ motsCles: /réponse intégrale/i }, scr.slice(0, 1), ds);
+  assert.equal(sans.voteEnsemble, null);
+});

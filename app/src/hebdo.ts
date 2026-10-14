@@ -26,6 +26,19 @@ export interface ScrutinSrc {
   type_vote?: string | null;
   dossier_ref?: string | null;
   categorie?: string | null;
+  pour?: number | null;
+  contre?: number | null;
+  abstention?: number | null;
+}
+
+/** Vote sur l'ensemble d'un texte, en scrutin public, avec ses décomptes publiés. */
+export interface VoteEnsemble {
+  uid: string;
+  date: string | null;
+  solennel: boolean;
+  pour: number;
+  contre: number;
+  abstention: number;
 }
 
 export interface DossierSrc {
@@ -82,6 +95,8 @@ export interface TexteHebdo {
   score: number;
   /** Lecture du dernier vote sur l'ensemble (« 1re lecture »…), quand il y en a un. */
   lectureEnsemble: string | null;
+  /** Ce dernier vote sur l'ensemble, avec ses décomptes (focus actualité). */
+  voteEnsemble?: VoteEnsemble | null;
 }
 
 export interface ThemeHebdo {
@@ -368,6 +383,16 @@ function construireTexte(cle: string, scrs: ScrutinSrc[], dossier: DossierSrc | 
     derniereDate,
     score,
     lectureEnsemble: ensembleS ? lectureDe(ensembleS.titre ?? "") : null,
+    voteEnsemble: ensembleS
+      ? {
+          uid: ensembleS.uid,
+          date: ensembleS.date,
+          solennel: norm(ensembleS.type_vote).includes("solennel"),
+          pour: ensembleS.pour ?? 0,
+          contre: ensembleS.contre ?? 0,
+          abstention: ensembleS.abstention ?? 0,
+        }
+      : null,
     theme,
   };
 }

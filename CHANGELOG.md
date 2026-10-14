@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.17.6 — 2026-10-14
+**Focus actualité : le vote final en tête de carte.** Remplace les petits boutons « Voir le scrutin » de la 1.17.5, placés sous chaque texte de la frise. Sous le titre du focus, un bloc montre le vote sur l'ensemble du texte le plus récent de la frise qui en a eu un en scrutin public : l'issue et la lecture (« Adoptée · 1re lecture »), « Vote solennel » ou « Scrutin public » avec la date, la barre et les décomptes de la fiche scrutin (`VoteBarDivergenteCentree`), et un bouton principal « Voir le scrutin » qui ouvre cette fiche. Pour la loi intégrale : le scrutin n° 8705 (503 pour, 0 contre, 67 abstentions). Le choix du vote est mécanique, comme celui des textes. `TexteHebdo` porte désormais ce vote et ses décomptes (`voteEnsemble`), avec un test dans `hebdo.test.ts`.
+
 ## 1.17.5 — 2026-10-14
 **Focus actualité : bouton « Voir le scrutin ».** Un texte du focus qui a eu un vote sur l'ensemble en scrutin public propose un bouton « Voir le scrutin » qui ouvre directement la fiche de ce vote. Pour la loi intégrale, c'est le scrutin solennel n° 8705 (503 pour, 0 contre, 67 abstentions). Toucher le titre ouvre toujours tous les scrutins du texte. Sans vote sur l'ensemble, pas de bouton.
 

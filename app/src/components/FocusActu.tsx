@@ -7,7 +7,8 @@ import { FOCUS } from "../content/focus";
 import { useFocusActu } from "../hooks/useHebdo";
 import { useCibleTour } from "../tourTargets";
 import { Button } from "./ui/Button";
-import { libelleDate, metaFocus, type TexteHebdo } from "../hebdo";
+import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
+import { libelleDate, metaFocus, type TexteHebdo, type VoteEnsemble } from "../hebdo";
 import type { Nav } from "../nav";
 
 const VISIBLES = 3;
@@ -25,6 +26,10 @@ export function FocusActu({ nav }: { nav: Nav }) {
   if (!FOCUS || !textes || textes.length === 0) return null;
 
   const pastille = FOCUS.categorie ? catUI(FOCUS.categorie).fg : C.accent;
+  // Vote final mis en avant : celui du premier texte de la frise (le plus récent) qui a eu un
+  // vote sur l'ensemble en scrutin public. Choix mécanique, comme celui des textes.
+  const principal = textes.find((t) => t.voteEnsemble);
+  const vote = principal?.voteEnsemble ?? null;
   const liste = ouvert ? textes : textes.slice(0, VISIBLES);
   const reste = textes.length - VISIBLES;
   const ouvrir = (t: TexteHebdo) =>
@@ -37,7 +42,8 @@ export function FocusActu({ nav }: { nav: Nav }) {
         <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>Focus actualité</Text>
       </View>
       <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 8 }]}>{FOCUS.titre}</Text>
-      <Text style={[T.small, { color: C.textMuted, marginTop: 6 }]}>{FOCUS.contexte}</Text>
+      {principal && vote && <VoteFinal texte={principal} vote={vote} onOuvrir={() => nav.push({ name: "scrutin", uid: vote.uid })} />}
+      <Text style={[T.small, { color: C.textMuted, marginTop: vote ? 14 : 6 }]}>{FOCUS.contexte}</Text>
 
       <View style={{ marginTop: 14 }}>
         {liste.map((t, i) => (
@@ -53,19 +59,6 @@ export function FocusActu({ nav }: { nav: Nav }) {
                 <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 3 }]}>{t.titre}</Text>
                 <Text style={[T.micro, tnum, { color: C.textMuted, marginTop: 4 }]}>{metaFocus(t)}</Text>
               </TouchableOpacity>
-              {/* Vote sur l'ensemble en scrutin public : accès direct à sa fiche (`scrutinUid` le
-                  désigne en priorité). Sans ce vote, seul le texte s'ouvre. */}
-              {t.ensemble && (
-                <Button
-                  label="Voir le scrutin"
-                  variant="outline"
-                  size="sm"
-                  onPress={() => nav.push({ name: "scrutin", uid: t.scrutinUid })}
-                  accessibilityLabel={`Voir le scrutin du vote sur l'ensemble : ${t.titre}`}
-                  iconRight={<Feather name="chevron-right" size={ICON.sm} color={C.accent} />}
-                  style={{ alignSelf: "flex-start", marginTop: 10 }}
-                />
-              )}
             </View>
           </View>
         ))}
@@ -94,6 +87,43 @@ export function FocusActu({ nav }: { nav: Nav }) {
         )}
         <Text style={[T.small, { color: C.textFaint, marginTop: FOCUS.aSuivre ? 10 : 0 }]}>{FOCUS.critere}</Text>
       </View>
+    </View>
+  );
+}
+
+/**
+ * Vote final mis en avant en tête du focus : issue (et lecture), vote solennel ou non, puis la
+ * barre et les décomptes de la fiche scrutin, et l'accès direct à cette fiche.
+ */
+function VoteFinal({ texte, vote, onOuvrir }: { texte: TexteHebdo; vote: VoteEnsemble; onOuvrir: () => void }) {
+  const adopte = texte.ensemble === "adopte";
+  const fg = adopte ? C.adopteFg : C.rejeteFg;
+  const masculin = texte.genre.startsWith("projet") || texte.genre === "autre"; // « le projet de loi », « le scrutin »
+  const issue = `${adopte ? "Adopté" : "Rejeté"}${masculin ? "" : "e"}${texte.lectureEnsemble ? ` · ${texte.lectureEnsemble}` : ""}`;
+  return (
+    <View style={{ marginTop: 14, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.md, padding: 12 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.pill, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
+          <Feather name={adopte ? "check" : "x"} size={ICON.sm} color={fg} />
+          <Text style={[T.small, { fontFamily: F.extra, color: fg }]}>{issue}</Text>
+        </View>
+        {vote.date ? (
+          <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.textFaint }]}>
+            {vote.solennel ? "Vote solennel" : "Scrutin public"} · {libelleDate(vote.date)}
+          </Text>
+        ) : null}
+      </View>
+      <View style={{ marginTop: 12 }}>
+        <VoteBarDivergenteCentree pour={vote.pour} contre={vote.contre} abstention={vote.abstention} decompte />
+      </View>
+      <Button
+        label="Voir le scrutin"
+        fullWidth
+        onPress={onOuvrir}
+        accessibilityLabel={`Voir le scrutin du vote sur l'ensemble : ${texte.titre}`}
+        iconRight={<Feather name="chevron-right" size={ICON.sm} color={C.onAccent} />}
+        style={{ marginTop: 12 }}
+      />
     </View>
   );
 }
