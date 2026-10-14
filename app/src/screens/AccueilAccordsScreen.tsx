@@ -60,7 +60,8 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   const refHero = useCibleTour("hero");
   const refEspace = useCibleTour("espace");
   const refDepute = useCibleTour("depute");
-  const refActivite = useCibleTour("activite");
+  // « La semaine » et le focus posent leur propre cible (rien quand ils sont masqués).
+  const refSuivis = useCibleTour("suivis");
 
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
@@ -302,8 +303,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
           {/* LA SEMAINE À L'ASSEMBLÉE — remplace l'ancien flux « Depuis ta dernière visite » (liste
               des derniers votes des suivis). Les sujets de la semaine, par thème, sans lecture des
               résultats. Puis les suivis en UNE ligne (→ écran Suivis), ou le repli « Face à face »
-              tant qu'on ne suit personne. Enveloppé sous la clé `activite` (visite guidée). */}
-          <View ref={refActivite} collapsable={false}>
+              tant qu'on ne suit personne. Visite guidée : un pas par bloc (semaine, focus, suivis). */}
           <Animated.View style={[{ marginTop: 24 }, rise(3)]}>
             <HebdoCarte nav={nav} />
           </Animated.View>
@@ -312,6 +312,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
           <Animated.View style={rise(3)}>
             <FocusActu nav={nav} />
           </Animated.View>
+          <View ref={refSuivis} collapsable={false}>
           {follows.length > 0 ? (
             <Animated.View style={rise(3)}>
               <TouchableOpacity

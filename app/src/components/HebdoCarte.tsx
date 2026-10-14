@@ -4,6 +4,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, RADIUS, CONTROL, ICON, tnum } from "../theme";
 import { catUI } from "../categoryUI";
 import { useSemaineAccueil } from "../hooks/useHebdo";
+import { useCibleTour } from "../tourTargets";
 import { getEditionLue, marquerEditionLue } from "../hebdoPrefs";
 import { libelleFenetre, libelleReprise, libelleScrutins, type ThemeHebdo, type TexteHebdo } from "../hebdo";
 import type { Nav } from "../nav";
@@ -112,6 +113,8 @@ function CarteTheme({ t, width, nav, onHauteur }: { t: ThemeHebdo; width: number
  */
 export function HebdoCarte({ nav }: { nav: Nav }) {
   const s = useSemaineAccueil();
+  // Cible de la visite guidée : enregistrée seulement quand le module s'affiche.
+  const refTour = useCibleTour("semaine");
   const [boxW, setBoxW] = useState(0);
   const [actif, setActif] = useState(0);
   // Hauteur du carrousel = celle de la carte affichée (les cartes gardent leur hauteur
@@ -147,7 +150,7 @@ export function HebdoCarte({ nav }: { nav: Nav }) {
   const volume = `${libelleScrutins(e.nbScrutins)} sur ${e.nbTextes > 1 ? `${e.nbTextes} textes` : "1 texte"}`;
 
   return (
-    <View onLayout={(ev: LayoutChangeEvent) => setBoxW(ev.nativeEvent.layout.width)}>
+    <View ref={refTour} collapsable={false} onLayout={(ev: LayoutChangeEvent) => setBoxW(ev.nativeEvent.layout.width)}>
       <View style={{ paddingHorizontal: SIDE }}>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
           <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>La semaine à l'Assemblée</Text>

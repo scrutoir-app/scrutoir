@@ -69,7 +69,7 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 // Tour guidé de la nav : une phrase par onglet RÉEL (ordre = TABS). Le suivi d'un député
 // n'a pas d'onglet → rattaché à l'Accueil (sa recherche « Sur quoi ils ont voté ? »).
 const TOUR_PHRASES: Record<string, string> = {
-  search: "Ton fil « Depuis ta dernière visite », et la recherche pour trouver et suivre un député.",
+  search: "La semaine à l'Assemblée, le focus actualité, tes suivis, et la recherche pour trouver et suivre un député.",
   themes: "Tous les votes de l'Assemblée : en Fil immersif ou en Liste, avec un verdict « comme toi » sur chaque scrutin.",
   partis: "Les groupes classés selon ta proximité. Ouvre la fiche d'un parti pour le suivre, ou ne plus le suivre.",
   apropos: "La méthode, les sources et les limites de Scrutoir. Tu peux rouvrir cette visite à tout moment via le « ? » de l'accueil.",
@@ -84,7 +84,10 @@ const TOUR_ZONES: { cle: CibleTour; label: string; phrase: string; preferAbove?:
   { cle: "hero", label: "Continue à te situer", phrase: "Ton test de proximité t'attend ici. Chaque scrutin que tu tranches affine ton spectre. Reprends quand tu veux, là où tu en étais.", preferAbove: true },
   { cle: "espace", label: "Ton espace", phrase: "À gauche, ta proximité : de quels groupes tu es le plus proche. À droite, tes accords : les textes où tu t'es situé et qui a voté comme toi." },
   { cle: "depute", label: "Trouver ton député", phrase: "Ton élu local par code postal, ou au swipe ceux qui votent le plus comme toi. Tu peux les suivre pour retrouver leurs votes." },
-  { cle: "activite", label: "La semaine à l'Assemblée", phrase: "Chaque vendredi, les textes votés dans la semaine, rangés par thème. Juste en dessous, ce que font les élus et groupes que tu suis." },
+  { cle: "semaine", label: "La semaine à l'Assemblée", phrase: "Chaque vendredi, les textes votés dans la semaine, rangés par thème. Fais glisser les cartes, ou touche la barre, pour passer d'un thème à l'autre." },
+  // Pas sauté hors période du focus (FocusActu n'est alors pas monté).
+  { cle: "actualite", label: "Focus actualité", phrase: "Un sujet d'actualité choisi par Scrutoir, et les textes que l'Assemblée a votés dessus, du plus récent au plus ancien. Le critère qui retient ces textes est écrit en bas de la carte." },
+  { cle: "suivis", label: "Tes suivis", phrase: "Suis des élus ou des groupes : l'accueil te dit lesquels ont voté depuis ta dernière visite, et l'écran Suivis montre tous leurs votes." },
 ];
 
 export default function App() {

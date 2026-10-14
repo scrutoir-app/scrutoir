@@ -3,12 +3,12 @@ import { useCallback } from "react";
 /**
  * Registre des ZONES de l'accueil pointées par la visite guidée. L'overlay `TourNavigation`
  * est rendu au niveau de l'App (là où vit la barre d'onglets), mais certaines cibles vivent
- * DANS l'accueil (recherche, héro, DUO, « Trouver ton député », activité). Ce petit store
+ * DANS l'accueil (recherche, héro, DUO, « Trouver ton député », semaine, focus, suivis). Ce petit store
  * module — même mécanique que `tour.ts` / `tabRefs` — laisse l'accueil enregistrer ses
  * nœuds mesurables par clé, et l'App les relire pour construire les pas. Aucune persistance :
  * les nœuds sont éphémères (montés/démontés avec l'écran).
  */
-export type CibleTour = "recherche" | "hero" | "espace" | "depute" | "activite";
+export type CibleTour = "recherche" | "hero" | "espace" | "depute" | "semaine" | "actualite" | "suivis";
 
 const nodes: Partial<Record<CibleTour, any>> = {};
 

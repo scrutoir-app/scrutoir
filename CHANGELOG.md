@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.17.3 — 2026-10-14
+**Visite guidée de l'accueil : « La semaine à l'Assemblée » et le focus actualité séparés.** L'ancien pas unique (semaine + focus + suivis) devient trois pas : *La semaine à l'Assemblée* (édition du vendredi, cartes par thème, barre de répartition), *Focus actualité* (sujet choisi par Scrutoir, textes retenus par un critère écrit sur la carte) et *Tes suivis*. Chaque module enregistre sa propre cible : un module masqué (pas de focus en cours, semaine en chargement) n'a pas de pas, la visite le saute. Le pas du focus éclaire l'en-tête de la carte, qui tient à l'écran, et non la carte entière, plus haute que l'écran sur mobile, où la bulle couvrait le titre. La phrase de l'onglet Accueil ne parle plus de l'ancien fil « Depuis ta dernière visite ».
+
 ## 1.17.2 — 2026-10-14
 **Focus actualité : la loi intégrale contre les violences sexuelles** remplace le focus sur la mobilisation lycéenne et étudiante. Le focus affiche la proposition de loi « apportant une réponse intégrale au phénomène des violences sexuelles et sexistes contre les femmes et les enfants » et la loi organique examinée avec elle, toutes deux adoptées en première lecture le 13 octobre (503 pour, 0 contre, 67 abstentions). Le contexte cite le vote final par groupe et le congé des salariés victimes, rejeté le 9 octobre puis rétabli en seconde délibération. « À suivre » : l'examen au Sénat, en procédure accélérée. Affiché du 13 octobre au 15 novembre 2026 (`content/focus.ts`).
 
