@@ -25,15 +25,16 @@ export interface FocusActu extends FocusDef {
 }
 
 export const FOCUS: FocusActu | null = {
-  id: "mobilisation-lyceenne-2026",
-  du: "2026-10-01",
-  au: "2026-10-31",
-  categorie: "education",
-  titre: "Lycéens et étudiants mobilisés : ce que l'Assemblée a voté",
-  contexte: "Conditions d'étude, personnels, inclusion, vie étudiante : les textes votés en scrutin public sur ces sujets depuis 2024.",
-  motsCles: /(^|[^\wÀ-ÿ])(écoles?|scolaires?|élèves?|étudiant(e|s|es)?|enseignants?|lycé(e|es|en|ens|enne|ennes)|parcoursup)(?=[^\wÀ-ÿ]|$)/i,
+  id: "loi-integrale-vss-2026",
+  du: "2026-10-13",
+  au: "2026-11-15",
+  categorie: "securite-justice",
+  titre: "Loi intégrale contre les violences sexuelles : ce que l'Assemblée a voté",
+  contexte:
+    "Un texte transpartisan qui touche à la police, la justice, l'école, la santé et le travail, examiné avec une loi organique sur l'autorité judiciaire. Adopté en première lecture le 13 octobre par 503 voix pour, 0 contre et 67 abstentions : tous les groupes ont voté pour, sauf La France insoumise, qui s'est abstenue. Le congé pour les salariés victimes, rejeté le 9 octobre (77 voix contre 74), a été rétabli le 13 en seconde délibération.",
+  motsCles: /réponse intégrale au phénomène des violences sexuelles|autorité judiciaire à la lutte contre les violences sexuelles/i,
   critere:
-    "Sujet choisi par Scrutoir d'après l'actualité. Textes retenus : ceux dont l'intitulé mentionne l'école, la scolarité (scolaire), les élèves, les lycées, les étudiants, les enseignants ou Parcoursup.",
+    "Sujet choisi par Scrutoir d'après l'actualité. Textes retenus : ceux dont l'intitulé mentionne une réponse intégrale aux violences sexuelles et sexistes, ou l'adaptation de l'autorité judiciaire à la lutte contre les violences sexuelles (la loi organique examinée avec elle).",
   aSuivre:
-    "Aucun texte consacré à Parcoursup ni au nombre de postes d'enseignants n'a été voté en scrutin public depuis 2024. Les postes se décident dans le budget de l'État : le vote du budget 2027 sera à suivre ici.",
+    "Le texte part au Sénat, en procédure accélérée ; aucune date d'examen n'est fixée. Si les sénateurs le modifient, une commission mixte paritaire cherchera un texte commun, que l'Assemblée votera à nouveau.",
 };
