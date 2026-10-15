@@ -6,7 +6,6 @@ import { catUI } from "../categoryUI";
 import { FOCUS } from "../content/focus";
 import { useFocusActu } from "../hooks/useHebdo";
 import { useCibleTour } from "../tourTargets";
-import { Button } from "./ui/Button";
 import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
 import { libelleDate, metaFocus, type TexteHebdo, type VoteEnsemble } from "../hebdo";
 import type { Nav } from "../nav";
@@ -43,7 +42,7 @@ export function FocusActu({ nav }: { nav: Nav }) {
       </View>
       <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 8 }]}>{FOCUS.titre}</Text>
       {principal && vote && <VoteFinal texte={principal} vote={vote} onOuvrir={() => nav.push({ name: "scrutin", uid: vote.uid })} />}
-      <Text style={[T.small, { color: C.textMuted, marginTop: vote ? 14 : 6 }]}>{FOCUS.contexte}</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: vote ? 2 : 6 }]}>{FOCUS.contexte}</Text>
 
       <View style={{ marginTop: 14 }}>
         {liste.map((t, i) => (
@@ -93,7 +92,9 @@ export function FocusActu({ nav }: { nav: Nav }) {
 
 /**
  * Vote final mis en avant en tête du focus : issue (et lecture), vote solennel ou non, puis la
- * barre et les décomptes de la fiche scrutin, et l'accès direct à cette fiche.
+ * barre et les décomptes de la fiche scrutin, et l'accès direct à cette fiche. À plat dans la
+ * carte du focus (pas de carte imbriquée), le lien en texte : le bloc sombre du test reste la
+ * seule action forte de l'accueil.
  */
 function VoteFinal({ texte, vote, onOuvrir }: { texte: TexteHebdo; vote: VoteEnsemble; onOuvrir: () => void }) {
   const adopte = texte.ensemble === "adopte";
@@ -101,29 +102,29 @@ function VoteFinal({ texte, vote, onOuvrir }: { texte: TexteHebdo; vote: VoteEns
   const masculin = texte.genre.startsWith("projet") || texte.genre === "autre"; // « le projet de loi », « le scrutin »
   const issue = `${adopte ? "Adopté" : "Rejeté"}${masculin ? "" : "e"}${texte.lectureEnsemble ? ` · ${texte.lectureEnsemble}` : ""}`;
   return (
-    <View style={{ marginTop: 14, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.md, padding: 12 }}>
-      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 5, paddingHorizontal: 10, paddingVertical: 4, borderRadius: RADIUS.pill, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
-          <Feather name={adopte ? "check" : "x"} size={ICON.sm} color={fg} />
-          <Text style={[T.small, { fontFamily: F.extra, color: fg }]}>{issue}</Text>
+    <View style={{ marginTop: 12 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+        <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: RADIUS.pill, backgroundColor: adopte ? C.adopteBg : C.rejeteBg }}>
+          <Text style={[T.micro, { fontFamily: F.bold, color: fg }]}>{issue}</Text>
         </View>
         {vote.date ? (
-          <Text style={[T.micro, tnum, { fontFamily: F.bold, color: C.textFaint }]}>
+          <Text style={[T.micro, tnum, { color: C.textMuted }]}>
             {vote.solennel ? "Vote solennel" : "Scrutin public"} · {libelleDate(vote.date)}
           </Text>
         ) : null}
       </View>
-      <View style={{ marginTop: 12 }}>
+      <View style={{ marginTop: 10 }}>
         <VoteBarDivergenteCentree pour={vote.pour} contre={vote.contre} abstention={vote.abstention} decompte />
       </View>
-      <Button
-        label="Voir le scrutin"
-        fullWidth
+      <TouchableOpacity
+        activeOpacity={0.6}
         onPress={onOuvrir}
+        accessibilityRole="button"
         accessibilityLabel={`Voir le scrutin du vote sur l'ensemble : ${texte.titre}`}
-        iconRight={<Feather name="chevron-right" size={ICON.sm} color={C.onAccent} />}
-        style={{ marginTop: 12 }}
-      />
+        style={{ alignSelf: "flex-start", minHeight: CONTROL.md, justifyContent: "center" }}
+      >
+        <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir le scrutin</Text>
+      </TouchableOpacity>
     </View>
   );
 }
