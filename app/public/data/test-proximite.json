@@ -19,6 +19,68 @@
       "UDDPLR": "abstention",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 32,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 43,
+        "contre": 0,
+        "abstention": 1
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 33
+      },
+      "EPR": {
+        "pour": 84,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 8,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 28,
+        "contre": 0,
+        "abstention": 1
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 65,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 21,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 4,
+        "contre": 3,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 99,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 64,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 2,
+        "abstention": 7
+      }
+    },
     "totaux": {
       "pour": 284,
       "contre": 169,
@@ -45,6 +107,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 26,
+        "contre": 9,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 47,
+        "contre": 0,
+        "abstention": 1
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 38,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 63,
+        "contre": 14,
+        "abstention": 10
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 27,
+        "contre": 3,
+        "abstention": 4
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 71,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 12,
+        "contre": 3,
+        "abstention": 5
+      },
+      "NI": {
+        "pour": 7,
+        "contre": 2,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 118,
+        "contre": 0,
+        "abstention": 2
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 66,
+        "abstention": 1
+      },
+      "UDDPLR": {
+        "pour": 15,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 316,
@@ -73,6 +197,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 1,
+        "contre": 8,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 16,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 26,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 0,
+        "contre": 40,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 2,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 0,
+        "contre": 3,
+        "abstention": 4
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 48,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 0,
+        "contre": 1,
+        "abstention": 2
+      },
+      "NI": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 118,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 46,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 149,
       "contre": 174,
@@ -99,6 +285,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 37,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 48,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 34,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 81,
+        "contre": 0,
+        "abstention": 5
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 35,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 70,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 19,
+        "contre": 0,
+        "abstention": 4
+      },
+      "NI": {
+        "pour": 10,
+        "contre": 1,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 120,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 2,
+        "contre": 56,
+        "abstention": 6
+      },
+      "UDDPLR": {
+        "pour": 17,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 369,
@@ -127,6 +375,68 @@
       "UDDPLR": "contre",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 11,
+        "contre": 0,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 1,
+        "contre": 1,
+        "abstention": 1
+      },
+      "ECOS": {
+        "pour": 32,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 20,
+        "contre": 0,
+        "abstention": 1
+      },
+      "GDR": {
+        "pour": 4,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 8,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 44,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 19,
+        "abstention": 1
+      },
+      "SOC": {
+        "pour": 21,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 2,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 144,
       "contre": 22,
@@ -153,6 +463,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 30,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 32,
+        "contre": 0,
+        "abstention": 1
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 30,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 84,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 7,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 27,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 61,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 1,
+        "contre": 4,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 79,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 1,
+        "contre": 5,
+        "abstention": 39
+      },
+      "UDDPLR": {
+        "pour": 6,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 261,
@@ -181,6 +553,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 0,
+        "contre": 36,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 46
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 37,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 0,
+        "contre": 89,
+        "abstention": 1
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 13,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 0,
+        "contre": 35,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 71,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 0,
+        "contre": 22,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 3,
+        "contre": 6,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 121,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 68,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 15,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 142,
       "contre": 377,
@@ -206,6 +640,58 @@
       "DR": "contre",
       "UDDPLR": "contre",
       "RN": "abstention"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 0,
+        "contre": 9,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 0,
+        "contre": 3,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 38,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 0,
+        "contre": 15,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 5,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 0,
+        "contre": 8,
+        "abstention": 3
+      },
+      "LFI-NFP": {
+        "pour": 37,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 28
+      },
+      "SOC": {
+        "pour": 36,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 4,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 116,
@@ -234,6 +720,68 @@
       "UDDPLR": "abstention",
       "RN": "abstention"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 10,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 8,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 15,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 21,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 1
+      },
+      "HOR": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 26,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 49
+      },
+      "SOC": {
+        "pour": 10,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 2
+      }
+    },
     "totaux": {
       "pour": 65,
       "contre": 41,
@@ -260,6 +808,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 25,
+        "contre": 2,
+        "abstention": 2
+      },
+      "DR": {
+        "pour": 43,
+        "contre": 0,
+        "abstention": 3
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 38,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 25,
+        "contre": 30,
+        "abstention": 18
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 13,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 32,
+        "contre": 2,
+        "abstention": 1
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 68,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 9,
+        "contre": 4,
+        "abstention": 4
+      },
+      "NI": {
+        "pour": 6,
+        "contre": 2,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 118,
+        "contre": 0,
+        "abstention": 1
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 66,
+        "abstention": 1
+      },
+      "UDDPLR": {
+        "pour": 17,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 275,
@@ -288,6 +898,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 34,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 48,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 34,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 78,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 16,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 34,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 60,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 10,
+        "contre": 7,
+        "abstention": 4
+      },
+      "NI": {
+        "pour": 6,
+        "contre": 2,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 109,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 63,
+        "abstention": 1
+      },
+      "UDDPLR": {
+        "pour": 16,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 335,
       "contre": 182,
@@ -314,6 +986,68 @@
       "DR": "contre",
       "UDDPLR": "contre",
       "RN": "abstention"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 0,
+        "contre": 5,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 0,
+        "contre": 2,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 20,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 0,
+        "contre": 30,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 16,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 0,
+        "contre": 7,
+        "abstention": 2
+      },
+      "LFI-NFP": {
+        "pour": 45,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 0,
+        "contre": 1,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 45
+      },
+      "SOC": {
+        "pour": 24,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 4,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 106,
@@ -342,6 +1076,63 @@
       "UDDPLR": "contre",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 9,
+        "contre": 1,
+        "abstention": 1
+      },
+      "ECOS": {
+        "pour": 6,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 25,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 19,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 23
+      },
+      "LIOT": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 44,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 38,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 3,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 112,
       "contre": 48,
@@ -369,6 +1160,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 23,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 40,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 4,
+        "contre": 11,
+        "abstention": 7
+      },
+      "EPR": {
+        "pour": 79,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 3,
+        "contre": 12,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 29,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 65,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 16,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 5,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 116,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 37,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 13,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 366,
       "contre": 88,
@@ -391,6 +1244,43 @@
       "HOR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 26,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 1,
+        "contre": 2,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 11,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 9,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 4,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 39,
@@ -419,6 +1309,68 @@
       "UDDPLR": "contre",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 20,
+        "contre": 1,
+        "abstention": 2
+      },
+      "DR": {
+        "pour": 2,
+        "contre": 41,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 20,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 57,
+        "contre": 2,
+        "abstention": 1
+      },
+      "GDR": {
+        "pour": 6,
+        "contre": 0,
+        "abstention": 1
+      },
+      "HOR": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 18
+      },
+      "LFI-NFP": {
+        "pour": 57,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 3,
+        "contre": 8,
+        "abstention": 3
+      },
+      "NI": {
+        "pour": 3,
+        "contre": 5,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 115,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 37,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 9,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 206,
       "contre": 181,
@@ -445,6 +1397,63 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 7,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 11,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 23,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 1,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 0,
+        "contre": 8,
+        "abstention": 2
+      },
+      "LFI-NFP": {
+        "pour": 37,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 1,
+        "contre": 3,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 31,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 5,
+        "contre": 11,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 117,
@@ -473,6 +1482,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 8,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 9,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 3,
+        "contre": 2,
+        "abstention": 2
+      },
+      "EPR": {
+        "pour": 61,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 2
+      },
+      "HOR": {
+        "pour": 11,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 19,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 22,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 10,
+        "contre": 0,
+        "abstention": 2
+      },
+      "UDDPLR": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 130,
       "contre": 21,
@@ -499,6 +1570,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 6,
+        "contre": 4,
+        "abstention": 8
+      },
+      "DR": {
+        "pour": 9,
+        "contre": 4,
+        "abstention": 1
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 13,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 35,
+        "contre": 3,
+        "abstention": 1
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 2,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 5,
+        "contre": 8,
+        "abstention": 1
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 28,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 4,
+        "contre": 4,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 3,
+        "contre": 3,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 64,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 1,
+        "contre": 31,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 4,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 131,
@@ -527,6 +1660,68 @@
       "UDDPLR": "contre",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 25,
+        "contre": 0,
+        "abstention": 11
+      },
+      "DR": {
+        "pour": 1,
+        "contre": 34,
+        "abstention": 10
+      },
+      "ECOS": {
+        "pour": 27,
+        "contre": 5,
+        "abstention": 4
+      },
+      "EPR": {
+        "pour": 65,
+        "contre": 5,
+        "abstention": 11
+      },
+      "GDR": {
+        "pour": 6,
+        "contre": 6,
+        "abstention": 2
+      },
+      "HOR": {
+        "pour": 23,
+        "contre": 0,
+        "abstention": 6
+      },
+      "LFI-NFP": {
+        "pour": 60,
+        "contre": 2,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 21,
+        "contre": 2,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 2,
+        "contre": 7,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 120,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 41,
+        "contre": 4,
+        "abstention": 19
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 271,
       "contre": 202,
@@ -553,6 +1748,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "contre"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 34,
+        "contre": 1,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 43,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 1,
+        "contre": 35,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 81,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 33,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 66,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 13,
+        "contre": 6,
+        "abstention": 2
+      },
+      "NI": {
+        "pour": 6,
+        "contre": 3,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 115,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 55,
+        "contre": 4,
+        "abstention": 6
+      },
+      "UDDPLR": {
+        "pour": 13,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 279,
@@ -581,6 +1838,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 37,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 47,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 1,
+        "contre": 36,
+        "abstention": 1
+      },
+      "EPR": {
+        "pour": 87,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 14,
+        "abstention": 3
+      },
+      "HOR": {
+        "pour": 36,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 71,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 23,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 11,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 119,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 63,
+        "contre": 1,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 16,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 440,
       "contre": 122,
@@ -607,6 +1926,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 36,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 40,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 37,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 76,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 5,
+        "abstention": 6
+      },
+      "HOR": {
+        "pour": 35,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 67,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 22,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 4,
+        "contre": 0,
+        "abstention": 2
+      },
+      "RN": {
+        "pour": 122,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 3,
+        "contre": 2,
+        "abstention": 54
+      },
+      "UDDPLR": {
+        "pour": 15,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 354,
@@ -635,6 +2016,63 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 8,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 4,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 6
+      },
+      "EPR": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 1,
+        "abstention": 2
+      },
+      "HOR": {
+        "pour": 9,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 28,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 16,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 33,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 12
+      },
+      "UDDPLR": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 85,
       "contre": 29,
@@ -661,6 +2099,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 24,
+        "contre": 0,
+        "abstention": 2
+      },
+      "DR": {
+        "pour": 42,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 31,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 80,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 13,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 33,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 63,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 2,
+        "abstention": 12
+      },
+      "NI": {
+        "pour": 5,
+        "contre": 1,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 89,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 50,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 17,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 292,
@@ -689,6 +2189,68 @@
       "UDDPLR": "contre",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 20,
+        "contre": 16,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 5,
+        "contre": 41,
+        "abstention": 2
+      },
+      "ECOS": {
+        "pour": 33,
+        "contre": 2,
+        "abstention": 1
+      },
+      "EPR": {
+        "pour": 63,
+        "contre": 18,
+        "abstention": 9
+      },
+      "GDR": {
+        "pour": 10,
+        "contre": 2,
+        "abstention": 3
+      },
+      "HOR": {
+        "pour": 17,
+        "contre": 18,
+        "abstention": 1
+      },
+      "LFI-NFP": {
+        "pour": 61,
+        "contre": 2,
+        "abstention": 3
+      },
+      "LIOT": {
+        "pour": 10,
+        "contre": 8,
+        "abstention": 4
+      },
+      "NI": {
+        "pour": 3,
+        "contre": 7,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 12,
+        "contre": 106,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 57,
+        "contre": 4,
+        "abstention": 5
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 291,
       "contre": 241,
@@ -715,6 +2277,63 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 6,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 4,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 7,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 4,
+        "contre": 1,
+        "abstention": 2
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 3,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 29,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 22,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 14,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 9,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 4,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 63,
@@ -743,6 +2362,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 31,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 45,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 36,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 78,
+        "contre": 1,
+        "abstention": 4
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 13,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 34,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 67,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 14,
+        "contre": 5,
+        "abstention": 3
+      },
+      "NI": {
+        "pour": 5,
+        "contre": 2,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 118,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 63,
+        "abstention": 1
+      },
+      "UDDPLR": {
+        "pour": 15,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 341,
       "contre": 187,
@@ -769,6 +2450,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 25,
+        "contre": 0,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 48,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 33,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 60,
+        "contre": 1,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 12,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 25,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 58,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 19,
+        "contre": 1,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 6,
+        "contre": 3,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 107,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 60,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 303,
@@ -797,6 +2540,68 @@
       "UDDPLR": "contre",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 8,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 21,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 39,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 2
+      },
+      "HOR": {
+        "pour": 17,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 29,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 6,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 27,
+        "abstention": 3
+      },
+      "SOC": {
+        "pour": 22,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 4,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 155,
       "contre": 31,
@@ -822,6 +2627,63 @@
       "HOR": "pour",
       "DR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 8,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 7,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 21,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 15,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 2,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 28,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 34,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 18,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 10,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 78,
@@ -850,6 +2712,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 26,
+        "contre": 0,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 47,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 35,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 85,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 12,
+        "abstention": 1
+      },
+      "HOR": {
+        "pour": 34,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 67,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 9
+      },
+      "NI": {
+        "pour": 7,
+        "contre": 2,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 117,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 61,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 17,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 345,
       "contre": 177,
@@ -876,6 +2800,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 28,
+        "contre": 1,
+        "abstention": 5
+      },
+      "DR": {
+        "pour": 48,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 29,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 54,
+        "contre": 12,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 32,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 69,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 9,
+        "contre": 8,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 6,
+        "contre": 2,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 122,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 61,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 14,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 313,
@@ -904,6 +2890,68 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 31,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 27,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 35,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 85,
+        "contre": 0,
+        "abstention": 1
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 12,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 34,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 68,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 14,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 80,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 41,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 10,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 283,
       "contre": 156,
@@ -930,6 +2978,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 0,
+        "contre": 1,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 4,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 19,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 0,
+        "contre": 13,
+        "abstention": 2
+      },
+      "GDR": {
+        "pour": 15,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 0,
+        "contre": 3,
+        "abstention": 2
+      },
+      "LFI-NFP": {
+        "pour": 22,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 23,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 13,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 103,
@@ -958,6 +3068,63 @@
       "UDDPLR": "abstention",
       "RN": "contre"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 7,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 9,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 17,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 6,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 13,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 14,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDDPLR": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 2
+      }
+    },
     "totaux": {
       "pour": 72,
       "contre": 17,
@@ -983,6 +3150,58 @@
       "HOR": "pour",
       "DR": "partagé",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 1,
+        "contre": 3,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 1,
+        "contre": 1,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 0,
+        "contre": 9,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 5,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 6,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 16
+      },
+      "LIOT": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 12,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 43,
@@ -1011,6 +3230,63 @@
       "UDDPLR": "pour",
       "RN": "pour"
     },
+    "decomptes": {
+      "DEM": {
+        "pour": 5,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 5,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 7,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 1,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 4,
+        "contre": 1,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 22,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 14,
+        "contre": 1,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 26,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 4
+      },
+      "UDDPLR": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
     "totaux": {
       "pour": 64,
       "contre": 30,
@@ -1037,6 +3313,68 @@
       "DR": "pour",
       "UDDPLR": "pour",
       "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 33,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 44,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 14,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 86,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 31,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 63,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 19,
+        "contre": 2,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 10,
+        "contre": 0,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 115,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 1,
+        "contre": 18,
+        "abstention": 36
+      },
+      "UDDPLR": {
+        "pour": 14,
+        "contre": 0,
+        "abstention": 0
+      }
     },
     "totaux": {
       "pour": 353,

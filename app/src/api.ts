@@ -288,6 +288,8 @@ export async function getVotesSuivis(uids: string[], limit = 80): Promise<VoteSu
         position: Array.isArray(tuple) ? tuple[0] : (tuple as unknown as string),
         sort_code: sc.sort_code ?? null,
         categorie: sc.categorie ?? null,
+        type_vote: sc.type_vote ?? null,
+        dossier_ref: sc.dossier_ref ?? null,
       });
     }
   });
@@ -325,6 +327,8 @@ export async function getVotesPartisSuivis(partiUids: string[], limit = 80): Pro
         position: pos,
         sort_code: sc.sort_code ?? null,
         categorie: sc.categorie ?? null,
+        type_vote: sc.type_vote ?? null,
+        dossier_ref: sc.dossier_ref ?? null,
       });
     }
   });

@@ -13,6 +13,9 @@ export interface QuestionProximite {
   date?: string | null; // date du scrutin (ISO)
   famille_clivage?: string;
   positions: Record<string, PositionGroupe>;
+  /** Votants de chaque groupe (groupe actuel du député) : « Tes accords » en tire la position du
+   *  groupe avec `positionMajoritaire` (decompte.ts). Absent d'un fichier en cache d'avant v1.24.0. */
+  decomptes?: Record<string, { pour: number; contre: number; abstention: number }>;
   totaux?: { pour: number; contre: number; abstention: number };
   source_url?: string;
 }
