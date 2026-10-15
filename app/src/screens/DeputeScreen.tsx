@@ -54,7 +54,7 @@ function posTexte(pos: string): string {
   return "Non-votant·e";
 }
 
-export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
+export function DeputeScreen({ uid, depuis, nav }: { uid: string; depuis?: "affinite"; nav: Nav }) {
   const [profil, setProfil] = useState<ProfilDepute | null>(null);
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
@@ -176,7 +176,7 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
         )}
 
         <View style={{ flexDirection: "row", gap: 10, marginTop: S.s12, marginBottom: S.s12 }}>
-          <SuivreBouton uid={uid} nom={d.nom_complet} />
+          <SuivreBouton uid={uid} nom={d.nom_complet} depuis={depuis} />
           <Button
             label="Partager"
             variant="outline"
@@ -223,9 +223,10 @@ export function DeputeScreen({ uid, nav }: { uid: string; nav: Nav }) {
   );
 }
 
-/** Bouton Suivre/Suivi (primaire), câblé sur le vrai état de suivi du DÉPUTÉ. */
-function SuivreBouton({ uid, nom }: { uid: string; nom: string }) {
-  const [suivi, toggle] = useFollow(uid);
+/** Bouton Suivre/Suivi (primaire), câblé sur le vrai état de suivi du DÉPUTÉ. Fiche ouverte depuis
+ *  le deck d'affinité (`depuis`) : le geste est mesuré sans l'uid, comme dans le deck (RGPD art. 9). */
+function SuivreBouton({ uid, nom, depuis }: { uid: string; nom: string; depuis?: "affinite" }) {
+  const [suivi, toggle] = useFollow(uid, { sansUid: !!depuis, contexte: depuis });
   return (
     <Button
       label={suivi ? "Suivi" : "Suivre"}

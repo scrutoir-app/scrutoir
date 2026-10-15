@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, RADIUS, S, ICON, CONTROL, tnum } from "../theme";
+import { C, F, T, RADIUS, S, ICON, CONTROL, tnum, shadowCard } from "../theme";
 import { Chip } from "./ui";
 import { catUI } from "../categoryUI";
 import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
@@ -123,20 +123,23 @@ export function LienListe({ label, onPress, a11y }: { label: string; onPress: ()
   );
 }
 
-/** Contrôle segmenté en pilule (sous-onglets) : rôle tablist, l'actif sur fond de carte. */
+/** Contrôle segmenté en pilule (sous-onglets) : rôle tablist, l'actif sur fond de carte. `plein` :
+ *  toute la largeur, segments égaux (Trouver ton député, période du Face à face). */
 export function Segments<K extends string>({
   items,
   actif,
   onChange,
   label,
+  plein,
 }: {
   items: { key: K; label: string }[];
   actif: K;
   onChange: (k: K) => void;
   label: string;
+  plein?: boolean;
 }) {
   return (
-    <View accessibilityRole="tablist" accessibilityLabel={label} style={{ flexDirection: "row", alignSelf: "center", backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, padding: 3 }}>
+    <View accessibilityRole="tablist" accessibilityLabel={label} style={{ flexDirection: "row", alignSelf: plein ? "stretch" : "center", backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, padding: 3 }}>
       {items.map((it) => {
         const on = actif === it.key;
         return (
@@ -147,7 +150,7 @@ export function Segments<K extends string>({
             accessibilityRole="tab"
             accessibilityState={{ selected: on }}
             aria-selected={on}
-            style={{ minWidth: 104, height: 38, paddingHorizontal: S.s20, alignItems: "center", justifyContent: "center", borderRadius: RADIUS.pill, backgroundColor: on ? C.surface : "transparent" }}
+            style={{ ...(plein ? { flex: 1, minWidth: 0 } : { minWidth: 104 }), height: 38, paddingHorizontal: plein ? S.s8 : S.s20, alignItems: "center", justifyContent: "center", borderRadius: RADIUS.pill, backgroundColor: on ? C.surface : "transparent", ...(on && plein ? shadowCard : null) }}
           >
             <Text style={[T.small, { fontFamily: on ? F.bold : F.semibold, color: on ? C.text : C.textMuted }]}>{it.label}</Text>
           </TouchableOpacity>

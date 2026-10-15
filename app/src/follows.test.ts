@@ -80,3 +80,18 @@ test("cloche du résultat du test : uid vide ignoré, rien n'est envoyé", () =>
   assert.deepEqual(getFollows(), avant);
   assert.equal(envois.length, 0);
 });
+
+// Deck d'affinité (Trouver ton député) : on suit après avoir vu « N % comme toi ». Geste compté
+// sans uid, contexte « affinite », à la pose comme à l'annulation.
+test("deck d'affinité : suivre puis annuler, mesuré SANS uid (contexte affinite)", () => {
+  envois.length = 0;
+  toggleFollowSansUid("PA700001", "affinite");
+  assert.ok(isFollowed("PA700001"));
+  toggleFollowSansUid("PA700001", "affinite");
+  assert.ok(!isFollowed("PA700001"));
+  assert.equal(envois.length, 2);
+  const [pose, retrait] = envois.map((b) => JSON.parse(b));
+  assert.deepEqual([pose.t, pose.e, pose.x], ["follow", "", "affinite"]);
+  assert.deepEqual([retrait.t, retrait.e, retrait.x], ["unfollow", "", "affinite"]);
+  assert.ok(!envois.join("").includes("PA700001"));
+});

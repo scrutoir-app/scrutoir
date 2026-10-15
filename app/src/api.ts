@@ -7,6 +7,7 @@ import type { QuestionProximite } from "./testProximite/score";
 import { normaliser } from "./search/normalize";
 import { ALIAS_PARTIS } from "./search/aliases";
 import { indexerTextes, type IndexTextes } from "./hebdo";
+import { urlCommunesSaisie, urlCommuneParCoord } from "./trouverDepute";
 
 /**
  * Couche données « tout statique » : l'app lit des fichiers JSON pré-générés
@@ -549,6 +550,8 @@ export async function getDuelDuJour(): Promise<ShuffleConfrontation | null> {
 }
 
 // --- Recherche de commune (API Géo officielle, reste dynamique côté client) --
+// Les URL (et donc tout ce qui part vers geo.api.gouv.fr) sont construites dans `trouverDepute.ts`,
+// pur et testé : la saisie, ou la position arrondie à 100 m, rien d'autre.
 export interface Commune {
   nom: string;
   code: string;
@@ -556,12 +559,8 @@ export interface Commune {
   codesPostaux?: string[];
 }
 export async function rechercheCommunes(q: string): Promise<Commune[]> {
-  const s = q.trim();
-  const estCP = /^\d{5}$/.test(s);
-  const base = "https://geo.api.gouv.fr/communes";
-  const url = estCP
-    ? `${base}?codePostal=${s}&fields=nom,code,codeDepartement,codesPostaux&format=json`
-    : `${base}?nom=${encodeURIComponent(s)}&fields=nom,code,codeDepartement,codesPostaux&boost=population&limit=8&format=json`;
+  const url = urlCommunesSaisie(q);
+  if (!url) return [];
   const res = await fetch(url);
   if (!res.ok) return [];
   return (await res.json()) as Commune[];
@@ -570,13 +569,12 @@ export async function rechercheCommunes(q: string): Promise<Commune[]> {
 /**
  * Commune à des coordonnées GPS (reverse geocoding API Géo officielle) — pour « Me localiser ».
  * Renvoie la commune contenant le point, ou null. La géoloc est déclenchée côté écran (le
- * navigateur demande l'autorisation) ; on n'envoie que lat/lon à l'API publique geo.api.gouv.fr,
- * aucune donnée personnelle, aucun stockage.
+ * navigateur demande l'autorisation) ; on n'envoie que lat/lon ARRONDIES (~100 m) à l'API publique
+ * geo.api.gouv.fr, aucune autre donnée, aucun stockage.
  */
 export async function communeParCoord(lat: number, lon: number): Promise<Commune | null> {
-  const url = `https://geo.api.gouv.fr/communes?lat=${lat}&lon=${lon}&fields=nom,code,codeDepartement,codesPostaux&format=json`;
   try {
-    const res = await fetch(url);
+    const res = await fetch(urlCommuneParCoord(lat, lon));
     if (!res.ok) return null;
     const list = (await res.json()) as Commune[];
     return list[0] ?? null;

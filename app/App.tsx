@@ -202,7 +202,7 @@ function AppInner() {
   // dans ConfrontationScreen). Ne casse jamais l'app (track() est protégé).
   useEffect(() => {
     const c = current;
-    if (c.name === "depute") track("depute", c.uid);
+    if (c.name === "depute") track("depute", c.depuis ? "" : c.uid, c.depuis);
     else if (c.name === "scrutin") track("scrutin", c.uid);
     else if (c.name === "parti") track("parti", c.uid);
     else if (c.name === "categorie") track("theme", c.id);
@@ -344,7 +344,7 @@ function AppInner() {
           {current.name === "votesParti" && (
             <VotesPartiScreen uid={current.uid} libelle={current.libelle} categorie={current.categorie} categorieLibelle={current.categorieLibelle} position={current.position} periode={current.periode} nav={nav} />
           )}
-          {current.name === "depute" && <DeputeScreen uid={current.uid} nav={nav} />}
+          {current.name === "depute" && <DeputeScreen uid={current.uid} depuis={current.depuis} nav={nav} />}
           {current.name === "scrutin" && <ScrutinScreen uid={current.uid} nav={nav} />}
           {current.name === "categorie" && <CategorieScreen id={current.id} libelle={current.libelle} nav={nav} />}
           {current.name === "dissidences" && <DissidencesScreen uid={current.uid} nom={current.nom} nav={nav} />}
@@ -363,7 +363,7 @@ function AppInner() {
           {current.name === "confrontationListe" && (
             <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} depA={current.depA} depB={current.depB} communs={current.communs} nav={nav} />
           )}
-          {current.name === "monDepute" && <TrouverDeputeScreen nav={nav} />}
+          {current.name === "monDepute" && <TrouverDeputeScreen mode={current.mode} commune={current.commune} circo={current.circo} nav={nav} />}
           {current.name === "parametres" && <ParametresScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen source={current.source} nav={nav} />}
           {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}

@@ -10,12 +10,15 @@
 # modèle e5-small AUTO-HÉBERGÉ). Directive étroite (autorise UNIQUEMENT la compilation
 # WASM, aucune origine externe, pas d'eval JS arbitraire). ⚠️ Invisible en dev (CSP
 # appliquée seulement par Cloudflare en prod) → à vérifier au déploiement.
+# Permissions-Policy : geolocation=(self) pour « Me localiser » (Trouver ton député) — avec
+# geolocation=() le navigateur refusait toute demande et le bouton ne faisait rien en prod.
+# (self) = notre origine seulement, jamais une iframe ; le navigateur demande toujours l'accord.
 /*
   Strict-Transport-Security: max-age=15552000; includeSubDomains
   X-Content-Type-Options: nosniff
   Referrer-Policy: strict-origin-when-cross-origin
   X-Frame-Options: DENY
-  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=(), usb=()
+  Permissions-Policy: geolocation=(self), microphone=(), camera=(), payment=(), usb=()
   Content-Security-Policy: default-src 'self'; img-src 'self' https://www2.assemblee-nationale.fr data:; style-src 'self' 'unsafe-inline'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'; connect-src 'self' https://data.scrutoir.fr https://scrutoir-data.pages.dev https://scrutoir-analytics.anthony-627.workers.dev https://geo.api.gouv.fr; font-src 'self' data:; base-uri 'self'; form-action 'self'; frame-ancestors 'none'
 
 # En-têtes de cache Cloudflare Pages (1ère visite + visiteurs non-PWA ; le SW gère

@@ -61,14 +61,16 @@ export function toggleFollow(uid: string) {
 }
 
 /**
- * Suivi au geste depuis l'écran de RÉSULTAT du test de proximité : même suivi sur l'appareil
- * que `toggleFollow`, et le geste reste compté, mais sans l'uid (contexte « test » seulement).
- * Depuis ce résultat, le groupe suivi est souvent le plus proche : son uid laisserait deviner
- * le résultat du test (opinion politique, RGPD art. 9). Les autres écrans gardent `toggleFollow`.
+ * Suivi au geste depuis un écran qui montre le résultat du test : même suivi sur l'appareil que
+ * `toggleFollow`, et le geste reste compté, mais sans l'uid (contexte seulement). Depuis le
+ * RÉSULTAT (« test »), le groupe suivi est souvent le plus proche ; depuis le deck d'AFFINITÉ
+ * (« affinite », Trouver ton député), on suit après avoir vu « N % comme toi ». Dans les deux cas
+ * l'uid laisserait deviner le résultat du test (opinion politique, RGPD art. 9). Les autres
+ * écrans gardent `toggleFollow`.
  */
-export function toggleFollowSansUid(uid: string) {
+export function toggleFollowSansUid(uid: string, contexte: "test" | "affinite" = "test") {
   if (!uid) return;
-  track(basculer(uid), "", "test");
+  track(basculer(uid), "", contexte);
 }
 
 /**

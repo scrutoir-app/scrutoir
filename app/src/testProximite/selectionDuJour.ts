@@ -179,6 +179,16 @@ export function lotDuJour<T extends Classable>(
   return lot;
 }
 
+/**
+ * Taille du lot du jour tel qu'il a été tiré (suivis et passés compris), 0 si aucun lot n'est
+ * enregistré pour ce jour. Sert à la progression (« 3 / 8 ») et à la fin du lot, qui restent
+ * justes quand l'écran est remonté en cours de journée (la liste rejouée ne garde que le reste).
+ */
+export function tailleLotDuJour(jour: string = jourCourant()): number {
+  const s = lotStocke();
+  return s && s.jour === jour ? s.uids.length : 0;
+}
+
 /** Repart de zéro : oublie les députés déjà proposés et le lot en cours. */
 export function reinitialiserSelection(): void {
   memLot = null;
