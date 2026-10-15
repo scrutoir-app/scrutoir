@@ -60,6 +60,8 @@ async function numeroVersDossier(): Promise<Map<number, string>> {
   for (const s of scrs) if (s.numero != null && s.dossier_ref) m.set(s.numero, s.dossier_ref);
   return m;
 }
+/** Même map, pour « Tes accords » de l'accueil : le calcul reste sur l'appareil (index public). */
+export const getNumeroVersDossier = () => numeroVersDossier();
 
 /** Les TEXTES où l'utilisateur s'est situé (≥1 réponse pour/contre), avec le nb de scrutins tranchés. */
 export async function getDossiersSitues(reponses: Record<number, string>): Promise<{ dossier: DossierResume; nbSitue: number }[]> {
