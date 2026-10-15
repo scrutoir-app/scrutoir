@@ -7,6 +7,14 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.26.0 — 2026-10-15
+**Onglet Partis : ton affinité avec chaque groupe, une fois situé.** Demande d'Anthony : lire l'appli et les scrutins par le prisme de l'utilisateur, c'est pour ça qu'on l'invite à répondre aux scrutins. Revient sur un retrait de la 1.22.0.
+- **Situé.** Chaque ligne de groupe montre son « % comme toi » en avant et sa base en petit (« sur 21 votes »), les mêmes chiffres que le spectre du résultat du test (même moteur, `lignesSpectre`). Sous 5 votes comparés (`SEUIL_FIABILITE`), pas de % : « pas assez de votes » en gris ; les non-inscrits, sans position de groupe : « aucun vote comparé ». La liste est triée par affinité décroissante, sans rang (choix, facile à inverser : une ligne dans `affiniteGroupes`). Les sièges passent à côté du sigle. Une phrase sous « Les groupes » dit ce que mesure le % et le seuil. L'encart sombre mène au détail du résultat (marge d'erreur, affiner).
+- **Non situé.** Rien ne change : liste par nombre de sièges, une seule invitation à se situer.
+- L'hémicycle unique du logo, la liste et la cloche de suivi restent.
+- **Vie privée.** Calcul 100 % sur l'appareil. Une fois situé, depuis cette liste triée par affinité, suivre un groupe et ouvrir sa fiche (puis la suivre depuis la fiche) sont mesurés sans dire quel groupe (contexte « test »), comme la cloche du résultat du test depuis la 1.21.0 : le groupe suivi ou ouvert laisserait deviner le résultat. Non situé : mesure inchangée.
+- Logique pure, sans React : `testProximite/affiniteGroupes.ts`, testée (`affiniteGroupes.test.ts`, ajouté à la garde de `refresh.yml`).
+
 ## 1.25.2 — 2026-10-15
 **Revue de sécurité de la refonte (1.18.0 → 1.25.1) : trois correctifs limités et deux lockfiles rafraîchis.** Rien de visible pour l'utilisateur. La revue n'a trouvé aucune fuite des réponses au test, de la proximité, des accords ou des suivis vers le réseau, les logs ou la mesure d'audience.
 - **La mesure d'audience ne part plus d'un serveur de dev (E4).** `analytics.ts` envoyait au Worker de prod même sans `EXPO_PUBLIC_ANALYTICS_URL` (URL de repli codée en dur), y compris depuis `expo start` et les aperçus des sessions de travail. Désormais (`endpointAnalytics`, testé) : la variable l'emporte si elle est posée au build (vide ou `off` = mesure coupée) ; sinon le Worker de prod, seulement dans un build de production (`expo export`). La prod ne change pas : le bundle compile en `endpointAnalytics(undefined, "production")`.

@@ -10,7 +10,9 @@ export type Route =
   | { name: "scrutinsListe"; q?: string }
   | { name: "grandsScrutins" }
   | { name: "partis" }
-  | { name: "parti"; uid: string }
+  // sansUid : ouverte depuis la liste triée par affinité (onglet Partis situé) → mesurée sans
+  // dire quel groupe (comme la cloche du résultat du test, écart E2 du lot 3).
+  | { name: "parti"; uid: string; sansUid?: boolean }
   | { name: "membresParti"; uid: string; libelle: string }
   | {
       name: "votesParti";
