@@ -9,7 +9,7 @@ import type { PartiResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
-import { useFollow, useFollows } from "../follows";
+import { useFollow, useFollows } from "../hooks/useFollows";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [

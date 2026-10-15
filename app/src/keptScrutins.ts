@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 /**
  * Marque-pages de scrutins « à lire plus tard » (geste « Garder » du Fil).
  *
@@ -55,13 +53,12 @@ export function viderKept(): void {
   write([]);
 }
 
-/** Hook React : état de marque-page d'un scrutin (re-render au changement). */
-export function useKept(uid: string): [boolean, () => boolean] {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    listeners.add(l);
-    return () => { listeners.delete(l); };
-  }, []);
-  return [isKept(uid), () => toggleKept(uid)];
+/**
+ * Abonnement aux changements, pour les hooks React (`hooks/useKept.ts`). Renvoie le
+ * désabonnement. Ce module reste PUR (sans React) : les tests de la garde du refresh
+ * quotidien l'importent depuis pipeline/, où react n'est pas installé.
+ */
+export function abonnerKept(l: () => void): () => void {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
 }

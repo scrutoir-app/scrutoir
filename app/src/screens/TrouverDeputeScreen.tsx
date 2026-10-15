@@ -14,7 +14,8 @@ import { useJe, useProximiteDepute } from "../testProximite/jeProximite";
 import { chargerTest } from "../testProximite/storage";
 import { useClassementAffinite, type DeputeAffinite } from "../testProximite/classementDeputes";
 import { lotDuJour, resteAVoir, reinitialiserSelection, TAILLE_LOT } from "../testProximite/selectionDuJour";
-import { useFollow, isFollowed, toggleFollow, getFollows } from "../follows";
+import { isFollowed, toggleFollow, getFollows } from "../follows";
+import { useFollow } from "../hooks/useFollows";
 import { passer, annulerPasser, getPassed, viderPasses } from "../passedDeputes";
 import { useReduceMotion } from "../components/HeroScrutins";
 

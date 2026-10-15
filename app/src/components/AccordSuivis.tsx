@@ -5,7 +5,7 @@ import { C, F, T, RADIUS, couleurPosition, couleurGroupe, positionLabel } from "
 import { Card, Chip } from "./ui";
 import { HemicyclePicto } from "./HemicyclePicto";
 import { useData } from "../hooks/useData";
-import { useFollows } from "../follows";
+import { useFollows } from "../hooks/useFollows";
 import { getDeputesByUids, getVotesBruts } from "../api";
 import type { GroupeVentilation, PartiResume } from "../types";
 import type { ContexteJe } from "../testProximite/jeProximite";
