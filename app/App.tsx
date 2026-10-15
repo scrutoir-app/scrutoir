@@ -72,7 +72,7 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 const TOUR_PHRASES: Record<string, string> = {
   search: "La semaine à l'Assemblée, le focus actualité, tes suivis, et la recherche pour trouver et suivre un député.",
   themes: "Cherche un sujet, une loi ou un nom, ou parcours les textes votés récemment : un texte par carte, les amendements qui ont compté en second.",
-  partis: "Les groupes de l'Assemblée et leurs sièges. Touche un groupe pour ouvrir sa fiche, ou la cloche pour le suivre.",
+  partis: "Les groupes de l'Assemblée. Une fois situé, chacun dit à quel point il vote comme toi. Touche un groupe pour ouvrir sa fiche, ou la cloche pour le suivre.",
   apropos: "La méthode, les sources et les limites de Scrutoir. Tu peux rouvrir cette visite à tout moment via le « ? » de l'accueil.",
 };
 
@@ -204,7 +204,7 @@ function AppInner() {
     const c = current;
     if (c.name === "depute") track("depute", c.depuis ? "" : c.uid, c.depuis);
     else if (c.name === "scrutin") track("scrutin", c.uid);
-    else if (c.name === "parti") track("parti", c.uid);
+    else if (c.name === "parti") (c.sansUid ? track("parti", "", "test") : track("parti", c.uid));
     else if (c.name === "categorie") track("theme", c.id);
     else track("screen", c.name);
   }, [current]);
@@ -339,7 +339,7 @@ function AppInner() {
           {current.name === "scrutinsListe" && <ScrutinsListeScreen q={current.q} nav={nav} />}
           {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
-          {current.name === "parti" && <PartiScreen uid={current.uid} nav={nav} />}
+          {current.name === "parti" && <PartiScreen uid={current.uid} sansUid={current.sansUid} nav={nav} />}
           {current.name === "membresParti" && <MembresPartiScreen uid={current.uid} libelle={current.libelle} nav={nav} />}
           {current.name === "votesParti" && (
             <VotesPartiScreen uid={current.uid} libelle={current.libelle} categorie={current.categorie} categorieLibelle={current.categorieLibelle} position={current.position} periode={current.periode} nav={nav} />

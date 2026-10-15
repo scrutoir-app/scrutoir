@@ -58,7 +58,7 @@ function plusForteFracture(votes: VoteCle[] | null): { theme: string; n: number 
   return { theme: catUI(pire.s.categorie ?? "").court ?? pire.s.categorie ?? "un texte", n };
 }
 
-export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
+export function PartiScreen({ uid, sansUid = false, nav }: { uid: string; sansUid?: boolean; nav: Nav }) {
   const [profil, setProfil] = useState<ProfilParti | null>(null);
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
@@ -178,7 +178,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
         )}
 
         <View style={{ flexDirection: "row", gap: 10, marginTop: S.s12, marginBottom: S.s12 }}>
-          <SuivreBouton uid={p.uid} nom={p.abrev ?? p.libelle} />
+          <SuivreBouton uid={p.uid} nom={p.abrev ?? p.libelle} sansUid={sansUid} />
           <Button
             label="Partager"
             variant="outline"
@@ -212,9 +212,10 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
   );
 }
 
-/** Bouton Suivre/Suivi (primaire), câblé sur le vrai état de suivi partagé. */
-function SuivreBouton({ uid, nom }: { uid: string; nom: string }) {
-  const [suivi, toggle] = useFollow(uid);
+/** Bouton Suivre/Suivi (primaire), câblé sur le vrai état de suivi partagé. `sansUid` : fiche
+ *  ouverte depuis la liste triée par affinité, le geste est mesuré sans dire quel groupe. */
+function SuivreBouton({ uid, nom, sansUid = false }: { uid: string; nom: string; sansUid?: boolean }) {
+  const [suivi, toggle] = useFollow(uid, sansUid ? { sansUid: true, contexte: "test" } : undefined);
   return (
     <Button
       label={suivi ? "Suivi" : "Suivre"}
