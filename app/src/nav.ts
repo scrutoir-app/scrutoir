@@ -3,7 +3,10 @@ import type { Reponse } from "./testProximite/score";
 
 export type Route =
   | { name: "search" }
+  // Onglet Scrutins (clé historique « themes ») : sous-onglets Recherche et Textes.
   | { name: "themes" }
+  // Scrutins un par un : les 150 derniers (sans q), ou ceux dont l'intitulé cite q.
+  | { name: "scrutinsListe"; q?: string }
   | { name: "grandsScrutins" }
   | { name: "partis" }
   | { name: "parti"; uid: string }

@@ -6,6 +6,7 @@ import type {
 import type { QuestionProximite } from "./testProximite/score";
 import { normaliser } from "./search/normalize";
 import { ALIAS_PARTIS } from "./search/aliases";
+import { indexerTextes, type IndexTextes } from "./hebdo";
 
 /**
  * Couche données « tout statique » : l'app lit des fichiers JSON pré-générés
@@ -51,6 +52,19 @@ export const getDossier = (ref: string) => j<DetailDossier>(`dossier/${ref}`);
 export async function getSourceHebdo(): Promise<{ scrutins: ScrutinIdx[]; dossiers: DossierResume[] }> {
   const [scrutins, dossiers] = await Promise.all([scrutinsIndex(), getDossiers()]);
   return { scrutins, dossiers };
+}
+
+/** Tous les textes de la législature (onglet Scrutins, page d'un texte), regroupés une fois par
+ *  session depuis les mêmes index que la semaine à l'Assemblée (aucun fichier nouveau). */
+let textesP: Promise<IndexTextes> | null = null;
+export function getIndexTextes(): Promise<IndexTextes> {
+  if (!textesP) {
+    textesP = getSourceHebdo().then(({ scrutins, dossiers }) => indexerTextes(scrutins, dossiers));
+    textesP.catch(() => {
+      textesP = null; // même règle que `j()` : pas d'échec figé en cache
+    });
+  }
+  return textesP;
 }
 
 /** Map numéro de scrutin → dossier_ref (depuis l'index), pour relier tes réponses de test aux textes. */
@@ -122,6 +136,7 @@ export async function getTextesSituesApercu(
 export function viderCacheDonnees(): void {
   cache.clear();
   scrMapP = null;
+  textesP = null;
 }
 
 let scrMapP: Promise<Map<string, ScrutinIdx>> | null = null;

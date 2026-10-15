@@ -29,6 +29,8 @@ export interface ScrutinSrc {
   pour?: number | null;
   contre?: number | null;
   abstention?: number | null;
+  /** Tous les thèmes du scrutin (index) : filtre par thème de l'onglet Scrutins. */
+  cats?: string[] | null;
 }
 
 /** Vote sur l'ensemble d'un texte, en scrutin public, avec ses décomptes publiés. */
@@ -216,6 +218,8 @@ export function natureScrutin(s: Pick<ScrutinSrc, "titre" | "type_vote">): Natur
   if (/amendement|amenedement/.test(t)) return "amendement"; // avant tout : l'intitulé cite le texte visé
   if (/motion (de rejet|de renvoi|référendaire|d'ajournement)|suspension de séance|seconde délibération|prolongation de la séance/.test(t)) return "procedure";
   if (/^la déclaration (du gouvernement|de politique générale)/.test(t)) return "declaration";
+  // « l'ensemble de la première partie du projet de loi de finances » : un vote sur une PARTIE.
+  if (/^l'ensemble de la (première|deuxième|troisième|quatrième) partie/.test(t)) return "partie";
   if (t.includes("l'ensemble")) return "ensemble";
   // Vote direct sur le texte entier (résolutions, conventions internationales).
   if (/^(la proposition de résolution|le projet de loi|la proposition de loi)/.test(t)) return "ensemble";
@@ -263,7 +267,7 @@ const LECTURES: [RegExp, string][] = [
   [/\(première lecture\)/, "1re lecture"],
 ];
 
-function lectureDe(t: string): string | null {
+export function lectureDe(t: string): string | null {
   const n = norm(t);
   for (const [re, l] of LECTURES) if (re.test(n)) return l;
   return null;
@@ -289,6 +293,18 @@ const VIDES = new Set(["de", "la", "le", "les", "l", "d", "a", "et", "des", "du"
 const radical = (m: string) => (m.length > 3 && /[sx]$/.test(m) ? m.slice(0, -1) : m);
 const motsUtiles = (t: string) => new Set(cleTexte(t).split(" ").filter((m) => m.length > 1 && !VIDES.has(m)).map(radical));
 
+// Clé et mots utiles d'un intitulé de dossier, calculés une fois par dossier : l'onglet Scrutins
+// rattache les scrutins de toute la législature, soit des centaines d'intitulés × chaque dossier.
+const clesDossiers = new WeakMap<DossierSrc, { cle: string; mots: Set<string> }>();
+function clesDossier(d: DossierSrc): { cle: string; mots: Set<string> } {
+  let c = clesDossiers.get(d);
+  if (!c) {
+    c = { cle: cleTexte(d.titre), mots: motsUtiles(d.titre ?? "") };
+    clesDossiers.set(d, c);
+  }
+  return c;
+}
+
 /**
  * Scrutin non rattaché par l'AN : on cherche son dossier par l'intitulé. Un dossier correspond si
  * au moins 85 % de ses mots utiles (3 au minimum) figurent dans l'intitulé du scrutin. Évite qu'un
@@ -299,8 +315,8 @@ export function rattacherDossier(titreScrutin: string, dossiers: DossierSrc[], p
   const exact = cleTexte(titreScrutin);
   let best: { ref: string; cov: number; n: number; pref: boolean } | null = null;
   for (const d of dossiers) {
-    if (cleTexte(d.titre) === exact) return d.ref; // intitulé identique : aucun doute
-    const md = motsUtiles(d.titre ?? "");
+    const { cle, mots: md } = clesDossier(d);
+    if (cle === exact) return d.ref; // intitulé identique : aucun doute
     if (md.size < 3) continue;
     let k = 0;
     for (const m of md) if (mots.has(m)) k += 1;
@@ -330,7 +346,7 @@ export function titreDepuisScrutin(titre: string | null): string {
   return capitaliser(brut.trim().replace(/[\s.,;:]+$/, ""));
 }
 
-const issueDe = (sort: string | null): Issue | null => {
+export const issueDe = (sort: string | null | undefined): Issue | null => {
   const s = norm(sort);
   if (!s) return null;
   return s.startsWith("adopt") ? "adopte" : "rejete";
@@ -404,6 +420,11 @@ const versMap = (d: DossierSrc[] | Map<string, DossierSrc>) => (d instanceof Map
  * dossier retrouvé d'après son intitulé (sinon par l'intitulé lui-même).
  */
 function grouperParTexte(scrutins: ScrutinSrc[], parRef: Map<string, DossierSrc>): (TexteHebdo & { theme: string | null })[] {
+  return [...grouperScrutins(scrutins, parRef).entries()].map(([cle, scrs]) => construireTexte(cle, scrs, cle.startsWith("t:") ? undefined : parRef.get(cle)));
+}
+
+/** Scrutins regroupés par clé de texte (uid de dossier, ou `t:` + intitulé normalisé). */
+function grouperScrutins(scrutins: ScrutinSrc[], parRef: Map<string, DossierSrc>): Map<string, ScrutinSrc[]> {
   const liste = [...parRef.values()];
   const presents = new Set(scrutins.map((s) => s.dossier_ref).filter((r): r is string => !!r));
   const groupes = new Map<string, ScrutinSrc[]>();
@@ -419,7 +440,7 @@ function grouperParTexte(scrutins: ScrutinSrc[], parRef: Map<string, DossierSrc>
     if (g) g.push(s);
     else groupes.set(cle, [s]);
   }
-  return [...groupes.entries()].map(([cle, scrs]) => construireTexte(cle, scrs, cle.startsWith("t:") ? undefined : parRef.get(cle)));
+  return groupes;
 }
 
 export function construireEdition(vendredi: string, scrutins: ScrutinSrc[], dossiers: DossierSrc[] | Map<string, DossierSrc>): EditionHebdo {
@@ -536,4 +557,208 @@ export function metaFocus(t: TexteHebdo): string {
   }
   const txt = parts.join(", ");
   return txt.charAt(0).toUpperCase() + txt.slice(1);
+}
+
+// --- Onglet Scrutins : un texte par carte ---------------------------------------------------
+//
+// Maquettes validées les 14 et 15/10/2026 (`01 - Projects/Scrutoir/maquettes/maquette-scrutins-par-texte.html`,
+// `maquette-onglet-scrutins-recherche-textes.html`, `maquette-page-texte-style-du-jour.html`). Une
+// carte = un texte, statut = son vote sur l'ensemble ; les amendements passent au second niveau,
+// sauf ceux qui « ont compté » selon un critère MÉCANIQUE, affiché tel quel (il ne dit rien du fond).
+// Les libellés affichés (statut, raison écrite, recherche par texte) vivent dans `textes.ts`.
+
+/** Écart sous lequel un vote est dit serré : moins de 5 % des voix exprimées (pour + contre). */
+export const SEUIL_SERRE = 0.05;
+
+export type RaisonCompte = "serre" | "suppression" | "retablissement";
+
+/**
+ * Article qu'un amendement de suppression ou de rétablissement vise, lu dans son intitulé :
+ * « l'amendement n° 5 … de rétablissement de l'article 46 (supprimé) … » → « 46 ». null sinon.
+ */
+export function articleVise(s: Pick<ScrutinSrc, "titre">): string | null {
+  // Sur l'intitulé d'origine (casse gardée) : « 11 quinquies A », « 20 bis AB ».
+  const m = (s.titre ?? "").replace(/[’`]/g, "'").match(/de (?:suppression|rétablissement) de l'article ((?:premier|unique|liminaire|\d+)(?: (?:bis|ter|quater|quinquies|sexies|septies|octies|nonies|decies))?(?: [A-Z]{1,3}\b)?)/);
+  return m ? m[1] : null;
+}
+
+/** Le vote est-il serré ? Écart pour/contre sous 5 % des voix exprimées. */
+export function estSerre(s: Pick<ScrutinSrc, "pour" | "contre">): boolean {
+  const p = s.pour ?? 0;
+  const c = s.contre ?? 0;
+  return p + c > 0 && Math.abs(p - c) < SEUIL_SERRE * (p + c);
+}
+
+/**
+ * Un amendement de suppression ou de rétablissement ne compte que s'il est ADOPTÉ : rejeté, il ne
+ * supprime ni ne rétablit rien, et ce dépôt est souvent systématique (un par article). Sur le texte
+ * « ordre public » de juillet 2026 : 135 amendements de ce type sur 264, dont 23 adoptés. Passer à
+ * false pour compter ces amendements quel que soit leur sort.
+ */
+export const ARTICLE_ADOPTE_SEULEMENT = true;
+
+/**
+ * Pourquoi un amendement « a compté » (liste vide sinon) : vote serré, ou amendement adopté qui
+ * supprime ou rétablit un article.
+ */
+export function raisonsCompte(s: Pick<ScrutinSrc, "titre" | "type_vote" | "pour" | "contre" | "sort_code">): RaisonCompte[] {
+  if (natureScrutin(s) !== "amendement") return [];
+  const r: RaisonCompte[] = [];
+  const m = norm(s.titre).match(/de (suppression|rétablissement) de l'article/);
+  if (m && (!ARTICLE_ADOPTE_SEULEMENT || issueDe(s.sort_code) === "adopte")) r.push(m[1] === "suppression" ? "suppression" : "retablissement");
+  if (estSerre(s)) r.push("serre");
+  return r;
+}
+
+/** Vote qui donne son statut au texte (hémicycle, barre, verdict « comme toi »). */
+export interface VoteReference {
+  uid: string;
+  numero: number | null;
+  date: string | null;
+  sort_code: string | null;
+  pour: number;
+  contre: number;
+  abstention: number;
+  nature: Nature;
+  /** true : vote sur l'ensemble (ou la déclaration, la motion de censure sans texte). Seul ce vote porte un verdict. */
+  final: boolean;
+  solennel: boolean;
+  lecture: string | null;
+  /** Ce qui a été voté, quand ce n'est pas l'ensemble : « Motion de rejet préalable », « Article unique ». */
+  objet: string | null;
+}
+
+const plusRecent = (a: ScrutinSrc, b: ScrutinSrc) => (a.date ?? "").localeCompare(b.date ?? "") || (a.numero ?? 0) - (b.numero ?? 0);
+const dernier = (l: ScrutinSrc[]) => l.reduce<ScrutinSrc | null>((m, s) => (!m || plusRecent(s, m) > 0 ? s : m), null);
+
+/** « Motion de rejet préalable », « Article unique », « Article 21 » : l'objet d'un vote marquant. */
+function objetVote(s: ScrutinSrc): string {
+  const t = norm(s.titre);
+  if (natureScrutin(s) === "censure") return "Motion de censure";
+  const motion = t.match(/motion (de rejet préalable|de renvoi en commission|référendaire|d'ajournement)/);
+  if (motion) return capitaliser(`motion ${motion[1]}`);
+  if (/^l'article unique/.test(t)) return "Article unique";
+  const art = t.match(/^l'article ((?:premier|\d+)(?: (?:bis|ter|quater|quinquies))?)/);
+  if (art) return `Article ${art[1]}`;
+  const partie = t.match(/^(?:l'ensemble de )?la (première|deuxième|troisième|quatrième) partie/);
+  if (partie) return capitaliser(`${partie[1]} partie`);
+  return natureScrutin(s) === "procedure" ? "Vote de procédure" : "Scrutin public";
+}
+
+/**
+ * Vote de référence d'un texte : son dernier vote sur l'ensemble (ou sur la déclaration du
+ * Gouvernement). Une motion de censure n'est le vote final que si elle est seule (motion sans
+ * texte) : rattachée à un texte (49.3), elle ne vaut pas vote sur l'ensemble, et rejetée elle
+ * laisse le texte adopté. Sinon le vote le plus marquant : la motion de censure, une motion de
+ * procédure, puis un article (cas de l'article unique). Des amendements seuls : aucun.
+ */
+export function voteDeReference(scrs: ScrutinSrc[]): VoteReference | null {
+  const de = (n: Nature[]) => scrs.filter((s) => n.includes(natureScrutin(s)));
+  const censures = de(["censure"]);
+  const finaux = [...de(["ensemble", "declaration"]), ...(censures.length === scrs.length ? censures : [])];
+  const choisi =
+    dernier(finaux) ??
+    dernier(censures) ??
+    dernier(de(["procedure"])) ??
+    dernier(de(["article", "partie"]));
+  if (!choisi) return null;
+  const final = finaux.includes(choisi);
+  return {
+    uid: choisi.uid,
+    numero: choisi.numero,
+    date: choisi.date,
+    sort_code: choisi.sort_code,
+    pour: choisi.pour ?? 0,
+    contre: choisi.contre ?? 0,
+    abstention: choisi.abstention ?? 0,
+    nature: natureScrutin(choisi),
+    final,
+    solennel: norm(choisi.type_vote).includes("solennel"),
+    lecture: lectureDe(choisi.titre ?? ""),
+    objet: final && natureScrutin(choisi) !== "censure" ? null : objetVote(choisi),
+  };
+}
+
+/** Un texte tel que l'onglet Scrutins l'affiche. Les décomptes portent sur TOUTE la législature. */
+export interface TexteFil {
+  cle: string;
+  dossierRef: string | null;
+  titre: string;
+  genre: Genre;
+  genreLabel: string;
+  /** Thème principal (motif, icône) et tous les thèmes de ses scrutins (filtre). */
+  theme: string | null;
+  cats: string[];
+  nb: number;
+  comptes: ComptesNature;
+  /** Nombre d'amendements qui ont compté (raisonsCompte non vide). */
+  ontCompte: number;
+  premiereDate: string;
+  derniereDate: string;
+  /** Numéro du dernier scrutin : départage deux textes votés le même jour. */
+  dernierNumero: number;
+  reference: VoteReference | null;
+  /** Même poids que « La semaine à l'Assemblée » : volume + solennel + vote sur l'ensemble + censure. */
+  score: number;
+}
+
+function construireTexteFil(cle: string, scrs: ScrutinSrc[], dossier: DossierSrc | undefined): TexteFil {
+  const { theme, ...base } = construireTexte(cle, scrs, dossier);
+  const cats = new Set<string>();
+  let premiereDate = "";
+  let dernierNumero = 0;
+  let ontCompte = 0;
+  for (const s of scrs) {
+    for (const c of s.cats?.length ? s.cats : s.categorie ? [s.categorie] : []) cats.add(c);
+    if (s.date && (!premiereDate || s.date < premiereDate)) premiereDate = s.date;
+    dernierNumero = Math.max(dernierNumero, s.numero ?? 0);
+    if (raisonsCompte(s).length) ontCompte += 1;
+  }
+  if (theme) cats.add(theme);
+  return {
+    cle: base.cle,
+    dossierRef: base.dossierRef,
+    titre: base.titre,
+    genre: base.genre,
+    genreLabel: base.genreLabel,
+    theme,
+    cats: [...cats],
+    nb: base.nb,
+    comptes: base.comptes,
+    ontCompte,
+    premiereDate,
+    derniereDate: base.derniereDate,
+    dernierNumero,
+    reference: voteDeReference(scrs),
+    score: base.score,
+  };
+}
+
+/** Tous les textes de la législature et leurs scrutins, du plus récent au plus ancien. */
+export interface IndexTextes {
+  textes: TexteFil[];
+  scrutinsDe: Map<string, ScrutinSrc[]>;
+  /** Texte de chaque scrutin (uid de scrutin → clé du texte) : regroupe des résultats de recherche. */
+  cleDe: Map<string, string>;
+}
+
+export function indexerTextes(scrutins: ScrutinSrc[], dossiers: DossierSrc[] | Map<string, DossierSrc>): IndexTextes {
+  const parRef = versMap(dossiers);
+  const scrutinsDe = grouperScrutins(scrutins, parRef);
+  const textes = [...scrutinsDe.entries()].map(([cle, scrs]) => construireTexteFil(cle, scrs, cle.startsWith("t:") ? undefined : parRef.get(cle)));
+  const cleDe = new Map<string, string>();
+  for (const [cle, scrs] of scrutinsDe) for (const s of scrs) cleDe.set(s.uid, cle);
+  return { textes: textes.sort(ordreRecent), scrutinsDe, cleDe };
+}
+
+export type TriTextes = "recent" | "poids";
+
+/** Plus récents : date du dernier scrutin public, puis son numéro. */
+export const ordreRecent = (a: TexteFil, b: TexteFil) => b.derniereDate.localeCompare(a.derniereDate) || b.dernierNumero - a.dernierNumero;
+
+/** Plus importants : poids de « La semaine à l'Assemblée », puis récence. */
+export const ordrePoids = (a: TexteFil, b: TexteFil) => b.score - a.score || ordreRecent(a, b);
+
+export function trierTextes(textes: TexteFil[], tri: TriTextes): TexteFil[] {
+  return [...textes].sort(tri === "poids" ? ordrePoids : ordreRecent);
 }
