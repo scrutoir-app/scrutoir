@@ -3,7 +3,7 @@ name: Sécurité (revue Claude + npm audit)
 # Deux filets sur chaque PR :
 # - revue de sécurité IA du diff (anthropics/claude-code-security-review), avec le modèle
 #   de menace du projet (.claude/claude-security-guidance.md : opinions politiques = RGPD art. 9) ;
-# - npm audit sur les trois paquets (app, api, pipeline).
+# - npm audit sur les trois paquets (app, api, pipeline) : bloque sur « critical », signale « high ».
 #
 # ⚠️ L'action n'est pas durcie contre l'injection de prompt : elle ne tourne que sur les PR
 # ouvertes depuis ce dépôt (pas les forks, qui n'ont de toute façon pas accès aux secrets),
@@ -27,13 +27,31 @@ jobs:
       contents: read
       pull-requests: write # commentaires de findings sur la PR
     steps:
+      # Sans le secret, l'action échouait une fois puis se désactivait toute seule (« already run »)
+      # en affichant un succès : la revue semblait passer alors qu'elle n'avait jamais tourné.
+      # On le dit explicitement (annotation + résumé) et on saute la revue.
+      - name: Clé API présente ?
+        id: cle
+        env:
+          CLE: ${{ secrets.CLAUDE_API_KEY }}
+        run: |
+          if [ -z "$CLE" ]; then
+            echo "::warning title=Revue Claude non lancée::Secret CLAUDE_API_KEY absent du dépôt (Settings > Secrets and variables > Actions). La revue de sécurité IA n'a pas tourné."
+            echo "### Revue de sécurité Claude : non lancée (secret CLAUDE_API_KEY absent)" >> "$GITHUB_STEP_SUMMARY"
+            echo "ok=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
+        if: steps.cle.outputs.ok == 'true'
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
           fetch-depth: 2
 
       - name: Revue de sécurité Claude
+        if: steps.cle.outputs.ok == 'true'
         uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # main @ 2026-02-11
         with:
           comment-pr: true
@@ -57,7 +75,42 @@ jobs:
         with:
           node-version: "24"
 
-      # Lit le package-lock.json, pas besoin d'installer. Échoue à partir de « high ».
+      # Lit le package-lock.json, pas besoin d'installer.
+      # Bloque sur « critical ». Les « high » sont signalés (annotation sur la PR + résumé du job)
+      # sans bloquer : dans app/, ils viennent surtout de l'outillage de build Expo / Metro, que
+      # npm ne sait « corriger » qu'en rétrogradant expo et react-native (revue de sécurité du
+      # 15/10, PR #72). Suivi par Dependabot. Une erreur de npm audit fait échouer le job.
       - name: npm audit (${{ matrix.package }})
         working-directory: ${{ matrix.package }}
-        run: npm audit --audit-level=high
+        run: |
+          npm audit --json > "$RUNNER_TEMP/audit.json" || true
+          node - "$RUNNER_TEMP/audit.json" "${{ matrix.package }}" <<'EOF'
+          const fs = require("fs");
+          const [file, pkg] = process.argv.slice(2);
+          const audit = JSON.parse(fs.readFileSync(file, "utf8"));
+          if (audit.error || !audit.metadata) {
+            console.log(`::error title=npm audit ${pkg}::npm audit n'a pas pu s'exécuter : ${JSON.stringify(audit.error ?? audit).slice(0, 300)}`);
+            process.exit(1);
+          }
+          const counts = audit.metadata.vulnerabilities ?? {};
+          const vulns = Object.entries(audit.vulnerabilities ?? {});
+          const noms = (sev) => vulns.filter(([, v]) => v.severity === sev).map(([n]) => n);
+          const crit = counts.critical ?? 0, haute = counts.high ?? 0, moyenne = counts.moderate ?? 0;
+          const resume = [
+            `### npm audit : ${pkg}`,
+            "",
+            "| Gravité | Nombre | Paquets |",
+            "|---|---|---|",
+            `| critique (bloquant) | ${crit} | ${noms("critical").join(", ") || "-"} |`,
+            `| haute (signalé) | ${haute} | ${noms("high").slice(0, 15).join(", ") || "-"} |`,
+            `| moyenne | ${moyenne} | |`,
+            "",
+          ].join("\n");
+          if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, resume + "\n");
+          console.log(resume);
+          if (haute > 0) console.log(`::warning title=npm audit ${pkg}::${haute} vulnérabilité(s) haute(s), non bloquantes : ${noms("high").slice(0, 8).join(", ")}`);
+          if (crit > 0) {
+            console.log(`::error title=npm audit ${pkg}::${crit} vulnérabilité(s) critique(s) : ${noms("critical").join(", ")}`);
+            process.exit(1);
+          }
+          EOF
