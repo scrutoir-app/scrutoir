@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.18.0 — 2026-10-15
+**Paramètres : l'accès revient, et une section « Sur cet appareil ».** L'écran Paramètres n'avait plus d'accès depuis la refonte de l'accueil (sa roue dentée vivait dans l'ancien `SearchScreen`, plus rendu) : thème clair/sombre/auto et logos des groupes étaient hors d'atteinte. La roue dentée revient en haut de l'accueil, à côté du « ? » de la visite guidée.
+- **Affichage** : Apparence (Clair / Sombre / Auto) et Avatars des groupes (Sigles / Logos officiels) dans une seule carte, consignes courtes (« Auto suit ton appareil », « Sur tes suivis »).
+- **Sur cet appareil** (« Rien de ceci n'est envoyé ») : une ligne par donnée locale avec son compteur et son action. Réponses au test (Effacer, avec le lot du jour et les passés du deck « Trouver ton député », qui en dérivent), suivis (Gérer → écran Suivis), scrutins gardés (Effacer), modèle de recherche ~120 Mo (Supprimer : retire l'opt-in et vide les caches du modèle, celui du service worker et celui de transformers.js ; ligne affichée seulement si le modèle est en cache ou autorisé). « Tout effacer sur cet appareil » en bas ; l'affichage (thème, avatars) reste tel quel.
+- Chaque effacement demande une confirmation en ligne (« Annuler / Effacer »). Aucun n'appelle le réseau ni `track()` : `donneesLocales.ts` les regroupe, `donneesLocales.test.ts` le vérifie (espion sur `fetch` et `sendBeacon`).
+- **Pied** : lien « À propos et limites » vers l'onglet Infos, puis la version.
+
 ## 1.17.6 — 2026-10-14
 **Focus actualité : le vote final en tête de carte.** Remplace les petits boutons « Voir le scrutin » de la 1.17.5, placés sous chaque texte de la frise. Sous le titre du focus, un bloc montre le vote sur l'ensemble du texte le plus récent de la frise qui en a eu un en scrutin public : l'issue et la lecture (« Adoptée · 1re lecture »), « Vote solennel » ou « Scrutin public » avec la date, la barre et les décomptes de la fiche scrutin (`VoteBarDivergenteCentree`), et un bouton principal « Voir le scrutin » qui ouvre cette fiche. Pour la loi intégrale : le scrutin n° 8705 (503 pour, 0 contre, 67 abstentions). Le choix du vote est mécanique, comme celui des textes. `TexteHebdo` porte désormais ce vote et ses décomptes (`voteEnsemble`), avec un test dans `hebdo.test.ts`.
 

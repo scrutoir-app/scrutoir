@@ -50,6 +50,11 @@ export function toggleKept(uid: string): boolean {
   return !was;
 }
 
+/** Vide tous les marque-pages (Paramètres → « Sur cet appareil »). Rien n'est envoyé. */
+export function viderKept(): void {
+  write([]);
+}
+
 /** Hook React : état de marque-page d'un scrutin (re-render au changement). */
 export function useKept(uid: string): [boolean, () => boolean] {
   const [, force] = useState(0);
