@@ -18,7 +18,7 @@
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */
-const SHELL_VERSION = "v35";
+const SHELL_VERSION = "v36";
 // v4 : les données passent sur le projet Pages dédié (data.scrutoir.fr) — le bump purge
 // les entrées de l'ancienne origine (scrutoir.fr/data/*), devenues inaccessibles.
 const DATA_VERSION = "v4";
@@ -54,6 +54,9 @@ self.addEventListener("install", (event) => {
 });
 
 self.addEventListener("activate", (event) => {
+  // Supprime tout cache hors des trois ci-dessus : anciennes versions, et aussi
+  // `transformers-cache`, la 2e copie du modèle que transformers.js rangeait lui-même
+  // avant la 1.19.2 (useBrowserCache, désormais coupé dans embedder.ts).
   event.waitUntil(
     caches
       .keys()
