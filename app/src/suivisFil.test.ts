@@ -5,7 +5,6 @@ import {
   titreEtContexte,
   regrouperParVote,
   decrireLigne,
-  borneDate,
   nbFiltresActifs,
   filtrerLignes,
   initiales,
@@ -82,14 +81,6 @@ test("une ligne par vote, la position de chaque suivi dans l'ordre des puces", (
 });
 
 test("filtres : période, issue, et sélection de suivis (vide = tous)", () => {
-  assert.equal(borneDate("all", "2026-10-15"), null);
-  assert.equal(borneDate("6m", "2026-10-15"), "2026-04-15");
-  assert.equal(borneDate("12m", "2026-10-15"), "2025-10-15");
-  // Fin de mois : le jour est borné au dernier jour du mois visé.
-  assert.equal(borneDate("6m", "2026-08-31"), "2026-02-28");
-  assert.equal(borneDate("6m", "2026-10-31"), "2026-04-30");
-  assert.equal(borneDate("12m", "2028-02-29"), "2027-02-28");
-  assert.equal(borneDate("6m", "2026-03-15"), "2025-09-15"); // changement d'année
   assert.equal(nbFiltresActifs("all", "all"), 0);
   assert.equal(nbFiltresActifs("6m", "rejete"), 2);
 
@@ -108,6 +99,12 @@ test("filtres : période, issue, et sélection de suivis (vide = tous)", () => {
   assert.deepEqual(f({ periode: "6m" }), ["V3"]);
   assert.deepEqual(f({ periode: "12m" }), ["V3", "V2"]);
   assert.deepEqual(f({ issue: "rejete" }), ["V2"]);
+  // Fin de mois (borne de periode.ts) : un 31 août, « 6 mois » garde un vote du 28 février.
+  const fev = regrouperParVote([v("PA1", "V9", { date: "2026-02-28" }), v("PA1", "V8", { date: "2026-02-27" })], ["PA1"]);
+  assert.deepEqual(
+    filtrerLignes(fev, { periode: "6m", issue: "all", selection: new Set(), aujourdhui: "2026-08-31" }).map((l) => l.scrutinUid),
+    ["V9"],
+  );
   assert.deepEqual(f({ issue: "adopte" }), ["V3", "V1"]);
   assert.deepEqual(f({ selection: new Set(["PO1"]) }), ["V3", "V2"]);
   // Avec une sélection, seules les pastilles des suivis choisis restent sous la ligne.

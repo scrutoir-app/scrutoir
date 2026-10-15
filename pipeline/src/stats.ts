@@ -1,13 +1,12 @@
 import type Database from "better-sqlite3";
+import { bornePeriode as borneDepuis } from "../../app/src/periode";
 
 export type Periode = "all" | "12m" | "6m";
 
-/** Renvoie la date plancher ISO pour une periode, ou null pour "all". */
+/** Renvoie la date plancher ISO pour une periode, ou null pour "all" : même règle que l'app
+ *  (app/src/periode.ts), bornée au dernier jour du mois visé. Jour de référence en UTC. */
 export function bornePeriode(p: Periode, aujourdhui = new Date()): string | null {
-  if (p === "all") return null;
-  const d = new Date(aujourdhui);
-  d.setMonth(d.getMonth() - (p === "12m" ? 12 : 6));
-  return d.toISOString().slice(0, 10);
+  return borneDepuis(p, aujourdhui.toISOString().slice(0, 10));
 }
 
 export interface DeputeResume {

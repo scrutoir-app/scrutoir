@@ -90,6 +90,8 @@ test("bornePeriode : arithmétique des fenêtres (date de référence fixée)", 
   assert.equal(bornePeriode("all", ref), null);
   assert.equal(bornePeriode("6m", ref), "2026-01-02");
   assert.equal(bornePeriode("12m", ref), "2025-07-02");
+  // Fin de mois : même règle que l'app (app/src/periode.ts), plus de débordement sur mars.
+  assert.equal(bornePeriode("6m", new Date("2026-08-31T05:10:00Z")), "2026-02-28");
 });
 
 test("profilDepute : comptages par thème, loyauté, réussite, participation (all)", () => {
