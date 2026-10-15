@@ -59,6 +59,18 @@ export function toggleFollow(uid: string) {
 }
 
 /**
+ * Suivi AUTOMATIQUE (non initié par l'utilisateur) : ajoute l'élu s'il n'est pas déjà suivi,
+ * SANS événement analytics. Réservé aux suivis déduits d'un résultat — ex. le groupe le plus
+ * proche au test de proximité : tracer ce uid enverrait le résultat du test, donnée d'opinion
+ * politique (RGPD art. 9) qui ne doit pas quitter l'appareil. Idempotent, ne retire jamais.
+ */
+export function suivreSansMesure(uid: string) {
+  const cur = read();
+  if (!uid || cur.includes(uid)) return;
+  write([...cur, uid]);
+}
+
+/**
  * Retire TOUS les suivis (Paramètres → « Tout effacer sur cet appareil »), avec la date de
  * dernière consultation de l'onglet Suivis. SANS track() : un effacement n'envoie rien
  * (contrairement à toggleFollow, qui mesure chaque geste unitaire).

@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.19.1 — 2026-10-15
+**Test de proximité : le suivi automatique n'envoie plus rien.** Sans suivi, « Découvrir l'appli » (écran résultat) fait suivre le groupe le plus proche pour que l'accueil ait du contenu. Ce suivi passait par `toggleFollow()`, qui émet `track("follow_parti", uid)` : le groupe le plus proche, donc le résultat du test (opinion politique, RGPD art. 9), partait vers le Worker analytics. Il passe désormais par `suivreSansMesure()` (`follows.ts`) : même suivi sur l'appareil, sans événement, idempotent, ne retire jamais un suivi. Rien ne change à l'écran. `follows.test.ts` le vérifie (espion sur `fetch` et `sendBeacon`, témoin : `toggleFollow` reste mesuré). La cloche de suivi par ligne du spectre (geste de l'utilisateur) émet toujours l'événement avec l'uid : à arbitrer.
+
 ## 1.19.0 — 2026-10-15
 **Accueil : une seule chose forte.** Refonte de l'accueil d'après les deux maquettes validées le 15/10 (non situé, situé). L'écran se lit de haut en bas, plus de capitales ni de flèches.
 - **En haut** : logo, « ? » de la visite guidée et roue dentée des Paramètres. Le champ « Sur quoi ils ont voté ? » perd son carré ardoise (loupe en ligne). Les thèmes deviennent de simples boutons texte.
