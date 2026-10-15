@@ -19,10 +19,11 @@ export interface ScrutinGroupes {
   resume: DetailScrutin["scrutin"];
 }
 
-export function useScrutinGroupes(uid: string): ScrutinGroupes | null {
+export function useScrutinGroupes(uid: string | null): ScrutinGroupes | null {
   const [d, setD] = useState<ScrutinGroupes | null>(null);
   useEffect(() => {
     let vivant = true;
+    if (!uid) { setD(null); return; } // texte sans vote de référence : rien à charger
     getScrutin(uid)
       .then((det) => { if (vivant) setD({ groupes: det.groupes, pos: groupesPos(det.groupes), resume: det.scrutin }); })
       .catch(() => vivant && setD(null));

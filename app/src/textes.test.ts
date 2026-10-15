@@ -104,9 +104,11 @@ test("amendements qui ont compté : la raison écrite sur la ligne, le titre san
   assert.equal(libelleEcart({ pour: 1200, contre: 0 }), "écart de 1 200 voix");
 });
 
-test("méta d'une ligne : date, précision hors lecture, autre lecture, raisons", () => {
+test("méta d'une ligne : date, autre lecture, raisons, sinon la précision hors lecture", () => {
   const art = s("V8701", "2026-10-13", `l'article 32 bis ${VSS.replace(" (première lecture).", "")} (seconde délibération) (première lecture).`);
   assert.equal(metaLigne(art, { annee: "2026", lectureRef: "1re lecture" }), "13 oct. · seconde délibération");
+  // Une ligne qui porte sa raison reste courte : la précision part.
+  assert.equal(metaLigne(art, { annee: "2026", lectureRef: "1re lecture", raisons: ["rétablit l'article 46"] }), "13 oct. · rétablit l'article 46");
   const deux = s("V10", "2025-03-02", "l'article 3 de la proposition de loi visant à X (deuxième lecture).");
   assert.equal(metaLigne(deux, { annee: "2026", lectureRef: "1re lecture" }), "2 mars 2025 · 2e lecture");
   assert.equal(metaLigne(deux, { annee: "2026", lectureRef: "2e lecture", raisons: ["écart de 2 voix"] }), "2 mars 2025 · écart de 2 voix");

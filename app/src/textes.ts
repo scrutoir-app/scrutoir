@@ -177,14 +177,14 @@ const EST_LECTURE = /lecture|commission mixte/i;
 
 /**
  * Ligne de méta d'un scrutin dans la page de son texte : « 13 oct. · rétablit l'article 46 ».
- * Ajoute ce que l'intitulé précise hors lecture (« seconde délibération »), et la lecture
- * quand elle diffère de celle du vote de référence (« 2e lecture »).
+ * Ajoute la lecture quand elle diffère de celle du vote de référence (« 2e lecture ») et, sur
+ * une ligne sans raison, ce que l'intitulé précise hors lecture (« seconde délibération »).
  */
 export function metaLigne(
   s: Pick<ScrutinSrc, "titre" | "type_vote" | "date">,
   opts: { annee: string | null; lectureRef?: string | null; raisons?: string[] },
 ): string {
-  const precisions = ceQuiEstVote(s).precisions.filter((p) => !EST_LECTURE.test(p)).map(minuscule);
+  const precisions = opts.raisons?.length ? [] : ceQuiEstVote(s).precisions.filter((p) => !EST_LECTURE.test(p)).map(minuscule);
   const l = lectureDe(s.titre ?? "");
   const lecture = l && opts.lectureRef && l !== opts.lectureRef ? [l] : [];
   return [dateCourte(s.date, opts.annee), ...precisions, ...lecture, ...(opts.raisons ?? [])].filter(Boolean).join(" · ");

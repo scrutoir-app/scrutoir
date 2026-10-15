@@ -129,7 +129,7 @@ function AppInner() {
     if (type === "depute") setStack([{ name: "search" }, { name: "depute", uid: id }]);
     else if (type === "scrutin") setStack([{ name: "themes" }, { name: "scrutin", uid: id }]);
     else if (type === "parti") setStack([{ name: "partis" }, { name: "parti", uid: id }]);
-    else if (type === "texte") setStack([{ name: "search" }, { name: "dossierScrutins", ref: id }]); // deep-link SEO d'un texte (dossier) → liste ScrutinList
+    else if (type === "texte") setStack([{ name: "search" }, { name: "dossierScrutins", ref: id }]); // deep-link SEO d'un texte (dossier) → page du texte
     else if (type === "theme")
       getCategories()
         .then((cats) => {
@@ -240,7 +240,7 @@ function AppInner() {
     test: "Test de proximité",
     testResultat: "Ta proximité",
     testParTheme: "Par thème",
-    dossierScrutins: "Tout le texte",
+    dossierScrutins: "Texte",
     accords: "Tes accords",
   };
   const showHeader = stack.length > 1;
