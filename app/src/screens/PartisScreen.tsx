@@ -8,7 +8,8 @@ import { useData } from "../hooks/useData";
 import { ErreurChargement } from "../components/ErreurChargement";
 import { HemicycleLogo } from "../components/HemicycleLogo";
 import { Filet } from "../components/texteUI";
-import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
+import { ORDRE_HEMICYCLE, type GroupeGeo } from "../components/hemicycleGeo";
+import { HemicyclePicto } from "../components/HemicyclePicto";
 import { useFollow } from "../hooks/useFollows";
 import { estSitue } from "../testProximite/storage";
 import { chargerJe, type ContexteJe } from "../testProximite/jeProximite";
@@ -121,9 +122,10 @@ export function PartisScreen({ nav }: { nav: Nav }) {
         <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden", marginTop: S.s10 }}>
           {lignes.map((l, i) => (
             <View key={l.parti.uid}>
-              {i > 0 && <Filet retrait={36} />}
+              {i > 0 && <Filet retrait={66} />}
               <LigneGroupe
                 l={l}
+                geo={geo}
                 affinite={!!resultat}
                 couleur={couleurs.get(l.parti.abrev ?? "") ?? C.textFaint}
                 part={l.parti.nb_deputes / max}
@@ -146,7 +148,7 @@ export function PartisScreen({ nav }: { nav: Nav }) {
  * test, écart E2 du lot 3) : depuis une liste triée par affinité, le groupe suivi laisserait
  * deviner le résultat.
  */
-function LigneGroupe({ l, affinite, couleur, part, onOpen }: { l: AffiniteGroupe<PartiResume>; affinite: boolean; couleur: string; part: number; onOpen: () => void }) {
+function LigneGroupe({ l, geo, affinite, couleur, part, onOpen }: { l: AffiniteGroupe<PartiResume>; geo: GroupeGeo[]; affinite: boolean; couleur: string; part: number; onOpen: () => void }) {
   const p = l.parti;
   const [suivi, toggle] = useFollow(p.uid, affinite ? { sansUid: true, contexte: "test" } : undefined);
   const sigle = p.abrev ?? p.libelle;
@@ -162,7 +164,8 @@ function LigneGroupe({ l, affinite, couleur, part, onOpen }: { l: AffiniteGroupe
         accessibilityLabel={`${p.libelle}, ${sieges}${affiniteTxt}. Ouvrir la fiche`}
         style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: S.s12, paddingVertical: S.s12, minHeight: 60 }}
       >
-        <View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: couleur }} />
+        {/* Le logo Scrutoir adapté au groupe : ses sièges en couleur, les autres en gris. */}
+        <HemicyclePicto groupes={geo} activeAbrev={p.abrev} color={p.couleur ?? C.textFaint} size={40} />
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>
             {sigle}
