@@ -10,6 +10,7 @@ import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
 import { useFollow, useFollows } from "../hooks/useFollows";
+import { suivreSansMesure } from "../follows";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [
@@ -180,7 +181,6 @@ export function TestResultatScreen({
     return (fiables[0] ?? resultat.global[0])?.abrev ?? null;
   }, [resultat]);
   const topParti = topAbrev ? partis.find((p) => p.abrev === topAbrev) : null;
-  const [suiviTop, toggleSuiviTop] = useFollow(topParti?.uid ?? "");
   // Sortie de fin de parcours : si l'utilisateur suit déjà au moins un parti/député, son
   // accueil aura du contenu → « Voir mon accueil » ; sinon « Découvrir l'appli » (pas de
   // promesse d'un feed vide). Réactif : suivre le groupe ci-dessus bascule le libellé.
@@ -362,7 +362,9 @@ export function TestResultatScreen({
           // l'instant, le groupe le plus proche → l'accueil a du contenu. Puis on va à l'accueil :
           // la visite guidée s'y lance d'elle-même (1re arrivée situé) et explique les zones —
           // c'est elle qui remplace l'ancien message « Tu suis X ».
-          if (topParti && !suiviTop) toggleSuiviTop();
+          // Suivi SANS analytics : ce groupe est déduit du score (RGPD art. 9), le tracer
+          // ferait sortir le résultat du test de l'appareil (cf. suivreSansMesure).
+          if (topParti) suivreSansMesure(topParti.uid);
           nav.reset({ name: "search" });
         }}
         variant="primary"
