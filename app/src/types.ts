@@ -178,6 +178,9 @@ export interface VoteSuivi {
   position: string;
   sort_code: string | null;
   categorie?: string | null;
+  // Écran Suivis : ce qui a été voté (ceQuiEstVote) et le texte de loi en contexte.
+  type_vote?: string | null;
+  dossier_ref?: string | null;
 }
 
 export interface Votant {
