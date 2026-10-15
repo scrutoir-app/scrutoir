@@ -119,7 +119,8 @@ function dernierGroupe(s: string): [string, string] | null {
 }
 
 // Mots de liaison laissés en fin d'objet quand on en détache le texte visé.
-const LIAISON = /(?:\s*[,(]|\s+(?:du|de la|de l'|des|de|sur le|sur la))\s*$/i;
+// « au » / « à la » : amendements du texte de la commission mixte paritaire (« … du Gouvernement au projet de loi »).
+const LIAISON = /(?:\s*[,(]|\s+(?:du|de la|de l'|des|de|sur le|sur la|au|aux|à la|à l'))\s*$/i;
 
 function natureDe(t: string, typeVote: string): NatureVote {
   if (typeVote.includes("censure") || /^(sur )?la motion de censure/.test(t)) return "censure";

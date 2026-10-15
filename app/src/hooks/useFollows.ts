@@ -13,11 +13,15 @@ function useRafraichiSurSuivis(): void {
 
 /**
  * Hook React : suit l'état de suivi d'un élu (re-render au changement). `sansUid` : le geste
- * est mesuré sans dire qui est suivi (écran de résultat du test, cf. `toggleFollowSansUid`).
+ * est mesuré sans dire qui est suivi, avec son contexte (résultat du test, ou fiche ouverte
+ * depuis le deck d'affinité ; cf. `toggleFollowSansUid`).
  */
-export function useFollow(uid: string, { sansUid = false }: { sansUid?: boolean } = {}): [boolean, () => void] {
+export function useFollow(
+  uid: string,
+  { sansUid = false, contexte = "test" }: { sansUid?: boolean; contexte?: "test" | "affinite" } = {},
+): [boolean, () => void] {
   useRafraichiSurSuivis();
-  return [isFollowed(uid), () => (sansUid ? toggleFollowSansUid(uid) : toggleFollow(uid))];
+  return [isFollowed(uid), () => (sansUid ? toggleFollowSansUid(uid, contexte) : toggleFollow(uid))];
 }
 
 /** Hook React : liste réactive des élus suivis (pour l'écran Suivis). */

@@ -49,6 +49,8 @@ export const LIGHT = {
   heroTrack: "rgba(255,255,255,0.18)", // crans de progression pas encore tranchés
   heroNeutre: "#8A93A1", // contour de la carte « sans avis »
   heroInk: "#171A1F",
+  heroGhost: "rgba(255,255,255,0.10)", // bouton secondaire posé sur le bloc sombre (« Changer d'élus »)
+  heroWatermark: "rgba(255,255,255,0.06)", // filigrane de l'hémicycle sur le bloc sombre (Face à face)
 
   // Sémantique de vote (tons sourds, lecture "donnée")
   pour: "#4F9D83",
@@ -117,6 +119,8 @@ export const DARK: typeof LIGHT = {
   heroTrack: "rgba(255,255,255,0.18)",
   heroNeutre: "#8A93A1",
   heroInk: "#171A1F",
+  heroGhost: "rgba(255,255,255,0.10)",
+  heroWatermark: "rgba(255,255,255,0.06)",
 
   pour: "#57A98D",
   contre: "#D17F6B",

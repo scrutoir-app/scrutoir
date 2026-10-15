@@ -3,13 +3,15 @@
 // ne sert plus qu'à stratifier ce tirage pour qu'un lot mêle profils proches et éloignés). RÉUTILISE EXACTEMENT le moteur des fiches (`scoreVotant` / `calculerProximite`,
 // même pondération par thème, mêmes règles de comparabilité) : aucun calcul parallèle.
 //
-// Coût borné par le nombre de scrutins RÉPONDUS (≤ 39), jamais par le nombre de députés :
-// pour chaque scrutin du test, on lit ses `votants` (position par député) et on pivote en
+// Coût borné par le nombre de scrutins du test (39), jamais par le nombre de députés : pour
+// chaque scrutin du test, on lit ses `votants` (position par député) et on pivote en
 // { député → { scrutin → position } }, puis on score chaque député. 100 % client, rien n'est
-// envoyé au serveur, aucun compteur.
+// envoyé au serveur, aucun compteur. On télécharge les fichiers de TOUTES les questions,
+// répondues ou non (~10 Ko compressés chacun, puis en cache) : la liste des fichiers demandés
+// ne dit donc rien de tes réponses, ni même des questions que tu as tranchées.
 
 import { useEffect, useState } from "react";
-import { getScrutinVotantsRaw, getPartis, deputesIndexPublic } from "../api";
+import { getScrutinVotantsRaw, getPartis, deputesIndexPublic, getTestProximite } from "../api";
 import {
   scoreVotant,
   scrutinUidDeId,
@@ -19,27 +21,24 @@ import {
 import { SEUIL_FIABLE, type ContexteJe } from "./jeProximite";
 import type { DeputeResume } from "../types";
 
-/** Un vote en commun entre l'utilisateur et le député (pour la justification de la carte). */
-export interface VoteCommun {
+/**
+ * Un scrutin COMPARÉ : tu l'as tranché et le député aussi (pour ou contre). Sert au détail de la
+ * carte (« Voir vos votes et sa fiche ») : « Vous deux : Pour » ou « Toi : Pour · son vote : Contre ».
+ */
+export interface VoteCompare {
   theme: string;
-  these: string;
-  position: "pour" | "contre"; // position partagée (les deux ont voté pareil)
-}
-
-/** Un vote OPPOSÉ (les deux ont tranché, en sens contraire) — justifie une carte éloignée. */
-export interface VoteOppose {
-  theme: string;
-  these: string;
+  texte: string; // résumé « en clair » du test, à défaut l'intitulé officiel
   toi: "pour" | "contre";
+  sonVote: "pour" | "contre";
 }
 
 /** Un député classé par affinité, avec sa justification. */
 export interface DeputeAffinite {
   resume: DeputeResume; // uid, nom, photo, abrev, groupe, couleur, circo, departement…
   groupe_uid: string | null;
-  score: ProximiteScore; // pct + comparable (base de scrutins comparés)
-  communs: VoteCommun[]; // scrutins où vous avez voté pareil (pour « vous avez voté pareil »)
-  opposes: VoteOppose[]; // scrutins où vous avez voté en sens contraire
+  score: ProximiteScore; // pct (moteur, pondéré par thème) + comparable (base de scrutins comparés)
+  accord: number; // scrutins comparés où vous avez voté pareil (« 5 votes sur 7 comparés »)
+  compares: VoteCompare[]; // tous les scrutins comparés, dans l'ordre du test
 }
 
 const est = (p: string | undefined): p is "pour" | "contre" => p === "pour" || p === "contre";
@@ -53,7 +52,8 @@ export async function classerDeputesAffinite(
   min: number = SEUIL_FIABLE
 ): Promise<DeputeAffinite[]> {
   // Index léger : circo / département (absents des votants d'un scrutin) + roster de secours.
-  const [deps, partis] = await Promise.all([deputesIndexPublic(), getPartis()]);
+  const [deps, partis, toutes] = await Promise.all([deputesIndexPublic(), getPartis(), getTestProximite()]);
+  const repondus = new Set(ctx.questions.map((q) => scrutinUidDeId(q.id)));
   const circoParUid = new Map(deps.map((d) => [d.uid, d]));
   const couleurParGroupeUid = new Map(partis.map((p) => [p.uid, p.couleur]));
 
@@ -61,10 +61,11 @@ export async function classerDeputesAffinite(
   const votesParDep = new Map<string, Record<string, string>>();
   const resumeParDep = new Map<string, { r: DeputeResume; groupe_uid: string | null }>();
 
-  // Un fetch par scrutin RÉPONDU (borné par ctx.questions) ; les fichiers manquants sont
-  // simplement sautés (certains scrutins du test n'ont pas de fichier votants côté data).
+  // Un fetch par scrutin DU TEST, dans l'ordre du test, répondu ou non (cf. en-tête) ; seuls les
+  // répondus sont pivotés. Les fichiers manquants sont simplement sautés (certains scrutins du
+  // test n'ont pas de fichier votants côté data).
   await Promise.all(
-    ctx.questions.map(async (q) => {
+    toutes.map(async (q) => {
       const su = scrutinUidDeId(q.id);
       let parPos: Record<string, any[]>;
       try {
@@ -72,6 +73,7 @@ export async function classerDeputesAffinite(
       } catch {
         return;
       }
+      if (!repondus.has(su)) return;
       for (const [position, votants] of Object.entries(parPos)) {
         if (!Array.isArray(votants)) continue;
         for (const v of votants) {
@@ -103,17 +105,14 @@ export async function classerDeputesAffinite(
     const score = scoreVotant(ctx.questions, ctx.reponses, ctx.poids, votes);
     if (!score || score.comparable < min) continue;
 
-    // Justification de la carte : scrutins où vous avez tranché tous les deux — dans le même
-    // sens (communs) ou en sens contraire (opposés). On garde jusqu'à 3 de chaque : le deck
-    // proposant aussi des députés éloignés, une carte sans accord montre les désaccords.
-    const communs: VoteCommun[] = [];
-    const opposes: VoteOppose[] = [];
+    // Détail de la carte : tous les scrutins que vous avez tranchés tous les deux (mêmes règles
+    // de comparabilité que le moteur : `score.comparable` = compares.length).
+    const compares: VoteCompare[] = [];
     for (const q of ctx.questions) {
       const rep = ctx.reponses[q.id];
-      if (!est(rep) || !q.these) continue;
       const v = votes[scrutinUidDeId(q.id)];
-      if (v === rep) communs.push({ theme: q.theme, these: q.these, position: rep });
-      else if (est(v)) opposes.push({ theme: q.theme, these: q.these, toi: rep });
+      if (!est(rep) || !est(v)) continue;
+      compares.push({ theme: q.theme, texte: q.these || q.titre || `Scrutin n° ${q.id}`, toi: rep, sonVote: v });
     }
 
     const base = resumeParDep.get(uid)!;
@@ -127,8 +126,8 @@ export async function classerDeputesAffinite(
       },
       groupe_uid: base.groupe_uid,
       score,
-      communs: communs.slice(0, 3),
-      opposes: opposes.slice(0, 3),
+      accord: compares.filter((c) => c.toi === c.sonVote).length,
+      compares,
     });
   }
 

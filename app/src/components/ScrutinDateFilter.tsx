@@ -14,7 +14,7 @@ function Chip({ label, active, onPress }: { label: string; active: boolean; onPr
         borderWidth: 1, borderColor: active ? C.accent : C.borderStrong,
       }}
     >
-      <Text style={[T.small, { fontFamily: active ? F.bold : F.medium, color: active ? "#fff" : C.textMuted }]}>{label}</Text>
+      <Text style={[T.small, { fontFamily: active ? F.bold : F.medium, color: active ? C.onAccent : C.textMuted }]}>{label}</Text>
     </TouchableOpacity>
   );
 }
