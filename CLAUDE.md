@@ -226,6 +226,17 @@ Vient EN PLUS de la recherche exacte (élu/loi/parti/n°, inchangée et priorita
   `app/scripts/prepare-embeddings-assets.mjs`, chaîné EN 1er dans `build:web`). La lib transformers est chargée
   **HORS Metro** (balise `<script type=module>` + **import map** résolvant onnxruntime-web/-common, cf. `embedder.ts`) ;
   backend WASM **asyncify**, `numThreads=1`.
+- ⚠️ **Versions de transformers : app ≠ pipeline, volontairement (v1.25.3).** Pipeline en 4.3.1 (onnxruntime-node
+  1.30, audit npm à 0) ; app restée en **4.2.0** (onnxruntime-web 1.26.0-dev servi aux visiteurs). Vecteurs compatibles,
+  mesuré : index 4.2.0 vs 4.3.1 sur la même base, cosinus ≥ 0,9993 par scrutin ; l'écart navigateur ↔ Node
+  existant (cosinus ~0,9976) est 5× plus grand. **Avant de monter l'app** (onnxruntime-web ≥ 1.31) :
+  - `ort-wasm-simd-threaded.asyncify.wasm` (25,6 Mio, celui qu'on charge) et `jsep.wasm` (27,0 Mio) dépassent
+    25 Mio : `strip-model-for-pages.mjs` fait échouer le build. Il faudrait les découper et les réassembler dans le SW
+    comme le modèle (ou ne plus copier `jsep`, jamais chargé : transformers n'importe que `onnxruntime-web/webgpu`).
+  - `/ort` et `/vendor` sont en cache-first dans `scrutoir-model-v1`, aux mêmes URL : sans cache à part pour le runtime
+    (bumpé à chaque montée), les visiteurs qui ont activé la recherche gardent l'ancien runtime, voire mélangent.
+  - `/ort/common` est copié depuis le `onnxruntime-common` de PREMIER niveau, qui est celui d'onnxruntime-node, pas
+    celui d'onnxruntime-web (1.24.3 servi pour un runtime 1.24.0-dev aujourd'hui ; 1.30.0 vs 1.31.0-dev à la 4.3.1).
 - ⚠️ **Cloudflare Pages refuse > 25 Mio/fichier** ; le modèle q8 fait ~113 Mio → **découpé en parts < 24 Mio**
   (prepare) **réassemblées par le service worker** (`sw.js assembleModel`, cache `scrutoir-model-v1`). Le fichier
   entier sert au **dev** (Expo, sans SW) ; il est **retiré du dist** par `scripts/strip-model-for-pages.mjs` (dans

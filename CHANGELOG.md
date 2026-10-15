@@ -7,6 +7,14 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.25.3 — 2026-10-15
+**Pipeline : `@huggingface/transformers` 4.2.0 → 4.3.1.** Rien de visible, sauf de légers réordonnancements dans la recherche par sujet. `npm audit --omit=dev` du pipeline passe de 4 hautes à **0** : adm-zip 0.6.1 et global-agent 4.1.3, via onnxruntime-node 1.30.0 ; sharp 0.35.5. Aucune n'était exploitable : adm-zip ne servait qu'au script d'installation d'onnxruntime-node, et sharp n'est jamais appelé (le pipeline ne traite que du texte). Lockfile seul : mineure dans le `^4.2.0` déjà déclaré.
+- **L'app reste en 4.2.0, volontairement.** Le runtime servi aux visiteurs aurait dû passer à onnxruntime-web 1.31, dont le fichier WASM chargé pèse 25,6 Mio : au-delà des 25 Mio par fichier de Cloudflare Pages, le build échoue. L'app n'a pas d'alerte atteignable (ses 4 hautes liées à transformers sont des paquets Node, jamais servis). Ce qu'il faudra faire pour monter le runtime web est noté dans `CLAUDE.md`.
+- **Index de la recherche par sujet** (`embeddings.bin`, régénéré chaque nuit par le pipeline) : vecteurs quasi identiques. Mesuré sur la même base, 8 560 scrutins : cosinus ≥ 0,9993 entre les index 4.2.0 et 4.3.1.
+  - **Requêtes faites dans le navigateur** (runtime servi, inchangé), 20 requêtes : même premier résultat 17 fois sur 20, 92,5 % de recouvrement du top 10. Les écarts sont des inversions entre résultats quasi à égalité, sur les mêmes scrutins.
+  - **Pas de bump d'`EMBED_VERSION`.** L'écart déjà présent entre le runtime du navigateur et celui du pipeline est 5 fois plus grand (cosinus ~0,9976).
+- Vérifications : `npm run embeddings` complet en 4.3.1 (macOS), garde de `refresh.yml` sans React (184/184), `tsc` du pipeline.
+
 ## 1.25.2 — 2026-10-15
 **Revue de sécurité de la refonte (1.18.0 → 1.25.1) : trois correctifs limités et deux lockfiles rafraîchis.** Rien de visible pour l'utilisateur. La revue n'a trouvé aucune fuite des réponses au test, de la proximité, des accords ou des suivis vers le réseau, les logs ou la mesure d'audience.
 - **La mesure d'audience ne part plus d'un serveur de dev (E4).** `analytics.ts` envoyait au Worker de prod même sans `EXPO_PUBLIC_ANALYTICS_URL` (URL de repli codée en dur), y compris depuis `expo start` et les aperçus des sessions de travail. Désormais (`endpointAnalytics`, testé) : la variable l'emporte si elle est posée au build (vide ou `off` = mesure coupée) ; sinon le Worker de prod, seulement dans un build de production (`expo export`). La prod ne change pas : le bundle compile en `endpointAnalytics(undefined, "production")`.
