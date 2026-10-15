@@ -1,16 +1,20 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
-import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, S, ICON, couleurPosition } from "../theme";
 import { Card, Button } from "../components/ui";
 import { HemicyclePicto } from "../components/HemicyclePicto";
-import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
 import { BarreDivergente } from "../components/BarreDivergente";
-import { StatCol, ProfilTabs, PctCard, ProfilAvatar, SectionTitle, AccordSection, SEUIL_COMME, type LigneAccord } from "../components/profil";
+import {
+  ProfilTabs, PctCard, ProfilAvatar, SectionTitle, AccordSection, StatCarte, CommeToiVerrou, CommeToiCarte,
+  VoteTexteRow, PastilleVote, OngletLead, type LigneAccord,
+} from "../components/profil";
 import { catUI } from "../categoryUI";
 import { getParti, getPartis, getCategories, getGrandsScrutins, getScrutin, getDeputesParti } from "../api";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
-import { accordsParTheme } from "../testProximite/baseAccord";
+import { estSitue } from "../testProximite/storage";
+import { accordsParTheme, baseAccordGroupe } from "../testProximite/baseAccord";
+import { decompteGroupe } from "../decompte";
 import { useFollow } from "../hooks/useFollows";
 import { positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
 import { partagerLien } from "../share";
@@ -18,26 +22,19 @@ import type { ProfilParti, PartiResume, CategorieRef, GroupeVentilation, DeputeR
 import type { Nav } from "../nav";
 
 /**
- * Fiche parti en PAGE PROFIL (façon réseau social) : en-tête d'identité fixe (hémicycle-avatar +
- * 3 stats + Suivre/Partager) puis une barre d'onglets Accord / Votes / Le groupe qui découpe le
- * contenu (l'en-tête ne se recharge pas au changement d'onglet). Répond à : ce parti me
- * ressemble-t-il (Accord), et tient-il sa ligne (Le groupe) ?
+ * Fiche parti en PAGE PROFIL, même moule que la fiche député : identité (hémicycle du logo +
+ * sigle + nom + sièges), deux cartes de chiffres (votes soudés + plus forte fracture,
+ * participation + moyenne des groupes), « Comme toi ? » verrouillé (non situé) ou carte du
+ * % comme toi en tête (situé), Suivre/Partager, puis onglets. Non situé : Votes d'abord ;
+ * situé : Accord d'abord.
  *
- * Réutilise les moteurs officiels — proximité GLOBALE + PAR THÈME via `useJe`/`calculerProximite`
- * (`resultat.parTheme`, MÊME source que le spectre) — et les primitives profil partagées
- * (`components/profil`). Couleurs via `C`/`couleurGroupe`/`couleurPosition` uniquement. Tout ce
- * qui touche « toi » est 100 % client (rien envoyé au serveur, aucun compteur/like).
+ * Le % comme toi et l'accord par thème viennent du moteur officiel (`useJe` →
+ * `calculerProximite`, `resultat.parTheme`, même source que le spectre), relus par
+ * `testProximite/baseAccord` (pur, testé). Tout ce qui touche « toi » reste sur l'appareil.
  */
 
-const NB_VOTES_CLES = 8; // grands scrutins échantillonnés (affichés + base de la « fracture »)
+const NB_VOTES_CLES = 8; // derniers votes sur des textes entiers (affichés + base de la « fracture »)
 type Onglet = "accord" | "votes" | "groupe";
-
-// Accord de l'utilisateur avec CE groupe, ventilé par thème (catégorie), depuis le moteur global.
-function accordParTheme(je: ReturnType<typeof useJe>, abrev: string | null, cats: CategorieRef[]): LigneAccord[] {
-  if (!je || !abrev) return [];
-  const lib = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
-  return accordsParTheme(je.resultat, abrev).map((l) => ({ ...l, libelle: lib(l.id) }));
-}
 
 // Scrutin clé + ventilation de CE groupe (position majoritaire + décompte interne).
 type VoteCle = { s: ScrutinResume; g: GroupeVentilation };
@@ -50,20 +47,31 @@ function fracture(g: GroupeVentilation): number {
   return Math.max(g.pour || 0, g.contre || 0);
 }
 
+/** Plus forte fracture parmi les votes clés : thème + nombre de voix contre la ligne (null si aucune). */
+function plusForteFracture(votes: VoteCle[] | null): { theme: string; n: number } | null {
+  if (!votes || !votes.length) return null;
+  const pire = votes.reduce((best, v) => (fracture(v.g) > fracture(best.g) ? v : best), votes[0]);
+  const n = fracture(pire.g);
+  if (!n) return null;
+  return { theme: catUI(pire.s.categorie ?? "").court ?? pire.s.categorie ?? "un texte", n };
+}
+
 export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const [profil, setProfil] = useState<ProfilParti | null>(null);
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
-  const [onglet, setOnglet] = useState<Onglet>("accord");
+  // Situé = au moins une réponse pour/contre au test (lu au montage, sans attendre le calcul).
+  const [situe] = useState(estSitue);
+  const [onglet, setOnglet] = useState<Onglet>(situe ? "accord" : "votes");
   const je = useJe();
 
-  // Lazy : scrutins clés (onglets Votes / Le groupe) et membres (onglet Le groupe).
+  // Votes clés (en-tête : fracture ; onglets Votes et Le groupe) ; membres (Le groupe, lazy).
   const [votesCles, setVotesCles] = useState<VoteCle[] | null>(null);
   const [membres, setMembres] = useState<DeputeResume[] | null>(null);
 
   // En-tête : chargé une seule fois par uid (ne se recharge PAS au changement d'onglet).
   useEffect(() => {
-    setProfil(null);
+    setProfil(null); setVotesCles(null); setMembres(null);
     getParti(uid, "all").then(setProfil).catch(() => setProfil(null));
     getPartis().then(setPartis).catch(() => {});
     getCategories().then(setCats).catch(() => {});
@@ -71,9 +79,9 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
 
   const abrev = profil?.parti.abrev ?? null;
 
-  // Scrutins clés : au 1er passage sur Votes OU Le groupe (les deux en ont besoin : la fracture).
+  // Votes clés : dès l'ouverture (la plus forte fracture est dans l'en-tête).
   useEffect(() => {
-    if (votesCles != null || !abrev || (onglet !== "votes" && onglet !== "groupe")) return;
+    if (votesCles != null || !abrev) return;
     let vivant = true;
     getGrandsScrutins()
       .then(async (grands) => {
@@ -90,7 +98,7 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       })
       .catch(() => vivant && setVotesCles([]));
     return () => { vivant = false; };
-  }, [onglet, abrev, votesCles]);
+  }, [abrev, votesCles]);
 
   // Membres : au 1er passage sur Le groupe.
   useEffect(() => {
@@ -100,46 +108,81 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
     return () => { vivant = false; };
   }, [onglet, profil, membres]);
 
+  const pire = useMemo(() => plusForteFracture(votesCles), [votesCles]);
+
   if (!profil) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
   const p = profil.parti;
-  const situe = je != null;
   const score = scoreGroupeJe(je, abrev);
   const seSituer = () => nav.push({ name: "testIntro" });
 
   // Contexte : rang par nombre de sièges (partis.json est nb_deputes desc).
   const rang = Math.max(1, partis.findIndex((x) => x.uid === p.uid) + 1);
-  const contexte = rang === 1 ? "groupe le plus nombreux" : `${rang}ᵉ groupe par la taille`;
+  const contexte = `${p.nb_deputes} siège${p.nb_deputes > 1 ? "s" : ""}, ${rang === 1 ? "groupe le plus nombreux" : `${rang}e groupe par la taille`}`;
+
+  // Base du % comme toi (situé) : sur combien de scrutins tranchés le groupe a pris position.
+  let baseTexte: string | null = null;
+  if (situe && je) {
+    const n = abrev ? baseAccordGroupe(je.resultat, abrev).comparable : 0;
+    baseTexte = n
+      ? `Sur ${n > 1 ? `les ${n} scrutins` : "le scrutin"} que tu as tranché${n > 1 ? "s" : ""} et où le groupe a pris position.`
+      : "Le groupe n'a pris position sur aucun des scrutins que tu as tranchés pour l'instant.";
+  }
 
   return (
     <ScrollView contentContainerStyle={{ paddingBottom: 40 }} showsVerticalScrollIndicator={false} stickyHeaderIndices={[1]}>
       {/* ===== EN-TÊTE D'IDENTITÉ (fixe : hors du corps qui change) ===== */}
-      <View style={{ paddingHorizontal: S.s16, paddingTop: S.s14 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: S.s8 }}>
-          {/* Conteneur calé sur les dimensions réelles du picto (w = size, h = size*0.72). */}
-          <View style={{ width: 116, height: 116 * 0.72, alignItems: "center", justifyContent: "center" }}>
-            <HemicyclePicto groupes={partis} activeAbrev={abrev} color={p.couleur ?? C.textFaint} size={116} />
+      <View style={{ paddingHorizontal: S.s16, paddingTop: S.s16 }}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: S.s14 }}>
+          {/* Hémicycle du logo, sièges du groupe en couleur (conteneur calé sur w = size, h = size*0.72). */}
+          <View style={{ width: 92, height: 92 * 0.72, alignItems: "center", justifyContent: "center" }}>
+            <HemicyclePicto groupes={partis} activeAbrev={abrev} color={p.couleur ?? C.textFaint} size={92} />
           </View>
-          <View style={{ flex: 1, flexDirection: "row", justifyContent: "space-around" }}>
-            <StatCol n={String(p.nb_deputes)} label="sièges" />
-            <StatCol
-              n={situe && score ? `${Math.round(score.pct * 100)}%` : "—"}
-              label="comme toi"
-              color={situe && score ? (score.pct >= SEUIL_COMME ? C.pour : C.contre) : undefined}
-            />
-            <StatCol n={profil.cohesion_pct != null ? `${profil.cohesion_pct}%` : "—"} label="cohésion" />
+          <View style={{ flex: 1, minWidth: 0 }}>
+            <Text accessibilityRole="header" style={[T.title, { color: C.text }]}>{p.abrev ?? p.libelle}</Text>
+            {!!p.abrev && <Text style={[T.small, { fontFamily: F.semibold, color: C.text, marginTop: 2 }]}>{p.libelle}</Text>}
+            <Text style={[T.small, { color: C.textFaint, marginTop: 2 }]}>{contexte}</Text>
           </View>
         </View>
-        <Text style={[T.title, { color: C.text, marginTop: S.s10 }]}>{p.abrev ?? p.libelle}</Text>
-        <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]} numberOfLines={2}>{p.libelle} · {contexte}</Text>
-        <View style={{ flexDirection: "row", gap: 9, marginTop: S.s12, marginBottom: S.s12 }}>
+
+        {/* Situé : le % comme toi en tête */}
+        {situe && (
+          <View style={{ marginTop: S.s14 }}>
+            <CommeToiCarte pct={score?.pct ?? null} base={baseTexte} />
+          </View>
+        )}
+
+        {/* Deux chiffres : votes soudés (+ plus forte fracture) et participation (+ moyenne des groupes) */}
+        <View style={{ flexDirection: "row", gap: S.s8, marginTop: situe ? S.s8 : S.s14 }}>
+          <StatCarte
+            compact={situe}
+            valeur={profil.cohesion_pct != null ? `${profil.cohesion_pct} %` : "—"}
+            label="de votes soudés"
+            contexte={pire ? `Plus forte fracture : ${pire.theme}, ${pire.n} voix contre la ligne` : null}
+          />
+          <StatCarte
+            compact={situe}
+            valeur={profil.participation_moy_pct != null ? `${profil.participation_moy_pct} %` : "—"}
+            label="des scrutins publics"
+            contexte={profil.participation_moy != null ? `Moyenne des groupes : ${profil.participation_moy} %` : null}
+          />
+        </View>
+
+        {/* Non situé : « Comme toi ? » verrouillé, cliquable */}
+        {!situe && (
+          <View style={{ marginTop: S.s8 }}>
+            <CommeToiVerrou phrase="Situe-toi pour voir ton accord avec ce groupe" onPress={seSituer} />
+          </View>
+        )}
+
+        <View style={{ flexDirection: "row", gap: 10, marginTop: S.s12, marginBottom: S.s12 }}>
           <SuivreBouton uid={p.uid} nom={p.abrev ?? p.libelle} />
           <Button
             label="Partager"
             variant="outline"
-            size="sm"
+            size="md"
             style={{ flex: 1 }}
-            iconLeft={<Feather name="share-2" size={ICON.sm} color={C.accent} />}
+            iconLeft={<Feather name="share" size={ICON.sm} color={C.accent} />}
             onPress={() => {
               const origin = typeof window !== "undefined" && window.location ? window.location.origin : "https://scrutoir.fr";
               partagerLien(`${origin}/?open=parti:${p.uid}`, `${p.abrev ?? p.libelle} à l'Assemblée : ce qu'ils votent vraiment. Et toi ?`);
@@ -150,7 +193,9 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
 
       {/* ===== BARRE D'ONGLETS (index sticky = 1) ===== */}
       <ProfilTabs<Onglet>
-        tabs={[{ key: "accord", label: "Accord" }, { key: "votes", label: "Votes" }, { key: "groupe", label: "Le groupe" }]}
+        tabs={situe
+          ? [{ key: "accord", label: "Accord" }, { key: "votes", label: "Votes" }, { key: "groupe", label: "Le groupe" }]
+          : [{ key: "votes", label: "Votes" }, { key: "accord", label: "Accord" }, { key: "groupe", label: "Le groupe" }]}
         active={onglet}
         onChange={setOnglet}
       />
@@ -158,8 +203,8 @@ export function PartiScreen({ uid, nav }: { uid: string; nav: Nav }) {
       {/* ===== CORPS (seul élément qui change) ===== */}
       <View style={{ paddingHorizontal: S.s16, paddingTop: S.s4 }}>
         {onglet === "accord" && <OngletAccord abrev={p.abrev} je={je} cats={cats} situe={situe} onSituer={seSituer} />}
-        {onglet === "votes" && <OngletVotes votes={votesCles} abrev={p.abrev ?? ""} nav={nav} />}
-        {onglet === "groupe" && <OngletGroupe profil={profil} votes={votesCles} membres={membres} nav={nav} />}
+        {onglet === "votes" && <OngletVotes votes={votesCles} effectif={p.nb_deputes} nav={nav} />}
+        {onglet === "groupe" && <OngletGroupe profil={profil} pire={pire} membres={membres} nav={nav} />}
       </View>
     </ScrollView>
   );
@@ -172,7 +217,7 @@ function SuivreBouton({ uid, nom }: { uid: string; nom: string }) {
     <Button
       label={suivi ? "Suivi" : "Suivre"}
       variant="primary"
-      size="sm"
+      size="md"
       style={{ flex: 1 }}
       onPress={toggle}
       accessibilityLabel={suivi ? `Ne plus suivre ${nom}` : `Suivre ${nom}`}
@@ -185,7 +230,12 @@ function SuivreBouton({ uid, nom }: { uid: string; nom: string }) {
 function OngletAccord({
   abrev, je, cats, situe, onSituer,
 }: { abrev: string | null; je: ReturnType<typeof useJe>; cats: CategorieRef[]; situe: boolean; onSituer: () => void }) {
-  const lignes = useMemo(() => accordParTheme(je, abrev, cats), [je, abrev, cats]);
+  const lignes = useMemo<LigneAccord[]>(() => {
+    if (!je || !abrev) return [];
+    const lib = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
+    return accordsParTheme(je.resultat, abrev).map((l) => ({ ...l, libelle: lib(l.id) }));
+  }, [je, abrev, cats]);
+  if (situe && je == null) return <ActivityIndicator color={C.textMuted} style={{ marginTop: S.s24 }} />;
   return (
     <AccordSection
       lignes={lignes}
@@ -193,74 +243,42 @@ function OngletAccord({
       onSituer={onSituer}
       invitation="Réponds à quelques votes réels de l'Assemblée : on compare tes réponses aux positions de ce groupe, thème par thème."
       lead="Ton accord avec ce groupe, thème par thème."
-      emptyMsg="Pas encore assez de scrutins comparés avec ce groupe pour ventiler par thème."
+      emptyMsg="Le groupe n'a pris position sur aucun des scrutins que tu as tranchés pour l'instant : rien à comparer par thème."
     />
   );
 }
 
 // ===== ONGLET VOTES =====
-function OngletVotes({ votes, abrev, nav }: { votes: VoteCle[] | null; abrev: string; nav: Nav }) {
+// La barre sans légende devient un décompte en clair : « Unanime : 23 pour » (tous les sièges),
+// « 19 pour, aucun contre », « Divisé » + « 18 pour, 1 contre, 4 abst. » (`decompteGroupe`, testé).
+function OngletVotes({ votes, effectif, nav }: { votes: VoteCle[] | null; effectif: number; nav: Nav }) {
   if (votes == null) return <ActivityIndicator color={C.textMuted} style={{ marginTop: S.s24 }} />;
-  if (!votes.length) return <Text style={[T.small, { color: C.textMuted, marginTop: S.s16 }]}>Aucun scrutin clé pour ce groupe.</Text>;
+  if (!votes.length) return <Text style={[T.small, { color: C.textMuted, marginTop: S.s16 }]}>Aucun vote de ce groupe sur les derniers textes entiers.</Text>;
   return (
     <View>
-      <Text style={[T.small, { color: C.textFaint, marginTop: S.s12, marginBottom: S.s10, paddingHorizontal: 2 }]}>
-        Comment le groupe s'est prononcé sur des scrutins clés.
-      </Text>
-      <Card bordered padding={0}>
-        {votes.map(({ s, g }, i) => (
-          <VoteRow key={s.uid} s={s} g={g} abrev={abrev} dernier={i === votes.length - 1} onPress={() => nav.push({ name: "scrutin", uid: s.uid })} />
-        ))}
+      <OngletLead>Ses positions sur les derniers textes entiers</OngletLead>
+      <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden" }}>
+        {votes.map(({ s, g }, i) => {
+          const dc = decompteGroupe(g, effectif);
+          const etiquette = dc.etat === "divise" ? "Divisé" : dc.position === "pour" ? "Pour" : dc.position === "contre" ? "Contre" : dc.position === "abstention" ? "Abstention" : "Pas de vote";
+          const point = dc.etat === "divise" ? C.loyalMoyen : dc.position ? couleurPosition(dc.position) : undefined;
+          return (
+            <VoteTexteRow key={s.uid} s={s} premier={i === 0} onPress={() => nav.push({ name: "scrutin", uid: s.uid })}>
+              <PastilleVote label={etiquette} point={point} fg={C.text} />
+              {dc.etat !== "aucun" && <PastilleVote label={dc.texte} />}
+            </VoteTexteRow>
+          );
+        })}
       </Card>
     </View>
   );
 }
 
-function VoteRow({ s, g, abrev, dernier, onPress }: { s: ScrutinResume; g: GroupeVentilation; abrev: string; dernier: boolean; onPress: () => void }) {
-  const ui = catUI(s.categorie ?? "");
-  const maj = positionMajoritaire(g);
-  const posLabel = maj === "pour" ? "a voté Pour" : maj === "contre" ? "a voté Contre" : "s'est abstenu";
-  const col = couleurPosition(maj);
-  const titre = s.dossier_titre ?? s.titre ?? s.objet ?? "Scrutin";
-  return (
-    <TouchableOpacity
-      onPress={onPress}
-      activeOpacity={0.7}
-      accessibilityRole="button"
-      accessibilityLabel={`Ouvrir le scrutin : ${titre}`}
-      style={{ paddingHorizontal: S.s14, paddingVertical: 13, ...(dernier ? {} : { borderBottomWidth: 1, borderBottomColor: C.border }) }}
-    >
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 5 }}>
-        <MaterialCommunityIcons name={ui.icon as any} size={13} color={C.textMuted} />
-        <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.3 }]} numberOfLines={1}>
-          {(ui as { court?: string }).court ?? s.categorie ?? "—"}
-        </Text>
-      </View>
-      <Text style={[T.small, { fontFamily: F.bold, color: C.text, lineHeight: 18 }]} numberOfLines={2}>{titre}</Text>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 10, marginTop: 9 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 9, paddingVertical: 3 }}>
-          <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: col }} />
-          <Text style={[T.micro, { fontFamily: F.bold, color: col }]}>{abrev} {posLabel}</Text>
-        </View>
-        <View style={{ flex: 1 }}>
-          <VoteBarDivergenteCentree pour={g.pour} contre={g.contre} abstention={g.abstention} siegesTotal={tailleGroupe(g)} height={9} />
-        </View>
-        <Feather name="chevron-right" size={16} color={C.textFaint} />
-      </View>
-    </TouchableOpacity>
-  );
-}
-
 // ===== ONGLET LE GROUPE =====
 function OngletGroupe({
-  profil, votes, membres, nav,
-}: { profil: ProfilParti; votes: VoteCle[] | null; membres: DeputeResume[] | null; nav: Nav }) {
+  profil, pire, membres, nav,
+}: { profil: ProfilParti; pire: { theme: string; n: number } | null; membres: DeputeResume[] | null; nav: Nav }) {
   const p = profil.parti;
-  const pire = useMemo(() => {
-    if (!votes || !votes.length) return null;
-    return votes.reduce((best, v) => (fracture(v.g) > fracture(best.g) ? v : best), votes[0]);
-  }, [votes]);
-  const pireN = pire ? fracture(pire.g) : 0;
   const coh = profil.cohesion_pct;
 
   return (
@@ -275,7 +293,7 @@ function OngletGroupe({
         >
           <ProfilAvatar uri={profil.president.photo_url} size={46} />
           <View style={{ flex: 1 }}>
-            <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, textTransform: "uppercase", letterSpacing: 0.4 }]}>Président du groupe</Text>
+            <Text style={[T.micro, { color: C.textFaint }]}>Président du groupe</Text>
             <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 1 }]}>{profil.president.nom_complet}</Text>
           </View>
           <Feather name="chevron-right" size={18} color={C.textFaint} />
@@ -283,16 +301,16 @@ function OngletGroupe({
       )}
 
       {/* Cohésion (grand % + barre) + dissidence la plus forte, nommée */}
-      <PctCard pct={coh} label="de vote soudé">
+      <PctCard pct={coh} label="de votes soudés">
         {coh != null ? `Le groupe vote dans le même sens ${coh} % du temps.` : "Pas assez de votes pour mesurer la cohésion."}
-        {pire && pireN > 0 && (
-          <Text> Plus forte fracture interne : <Text style={{ fontFamily: F.bold, color: C.text }}>{(catUI(pire.s.categorie ?? "") as { court?: string }).court ?? pire.s.categorie ?? "un texte"}</Text>, {pireN} voix contre la ligne majoritaire.</Text>
+        {pire && (
+          <Text> Plus forte fracture interne : <Text style={{ fontFamily: F.bold, color: C.text }}>{pire.theme}</Text>, {pire.n} voix contre la ligne majoritaire.</Text>
         )}
       </PctCard>
 
       {/* Participation (même représentation que la cohésion : grand % + barre + note) */}
       {profil.participation_moy_pct != null && (
-        <PctCard pct={profil.participation_moy_pct} label="de participation">
+        <PctCard pct={profil.participation_moy_pct} label="des scrutins publics">
           Présence moyenne des élus du groupe aux scrutins publics nominatifs.
           {profil.participation_moy != null && ` Moyenne des groupes : ${profil.participation_moy} %.`}
         </PctCard>
