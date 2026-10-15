@@ -6,8 +6,9 @@ import type {
 import type { QuestionProximite } from "./testProximite/score";
 import { normaliser } from "./search/normalize";
 import { ALIAS_PARTIS } from "./search/aliases";
-import { indexerTextes, type IndexTextes } from "./hebdo";
+import { indexerTextes, aujourdhuiParis, type IndexTextes } from "./hebdo";
 import { urlCommunesSaisie, urlCommuneParCoord } from "./trouverDepute";
+import { bornePeriode } from "./periode";
 
 /**
  * Couche données « tout statique » : l'app lit des fichiers JSON pré-générés
@@ -162,12 +163,9 @@ interface DeputeFile {
 const depute = (uid: string) => j<DeputeFile>(`depute/${uid}`);
 
 // --- Helpers (portés du backend) --------------------------------------------
-function bornePeriode(p: Periode): string | null {
-  if (p === "all") return null;
-  const d = new Date();
-  d.setMonth(d.getMonth() - (p === "12m" ? 12 : 6));
-  return d.toISOString().slice(0, 10);
-}
+// Borne d'une période glissante, comptée depuis la date du jour à Paris (règle partagée avec le
+// pipeline, bornée au dernier jour du mois visé : cf. periode.ts).
+const borneDuJour = (p: Periode): string | null => bornePeriode(p, aujourdhuiParis());
 const EXPRIME = (pos: string) => pos === "pour" || pos === "contre" || pos === "abstention";
 
 // Normalisation + alias de partis partagés avec la recherche sémantique (src/search).
@@ -385,7 +383,7 @@ function voteScrutin(s: ScrutinResume, position: string, consigne: string | null
 }
 export async function getVotesDepute(uid: string, categorie: string, position: string, periode: Periode): Promise<VoteScrutin[]> {
   const [d, scrMap] = await Promise.all([depute(uid), scrutinsMap()]);
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   if (position === "absent") {
     // Déduit : scrutins du thème dans la fenêtre du mandat, sans ligne de vote.
     const debut = [d.mandat_debut, borne].filter(Boolean).sort().pop() ?? null;
@@ -416,7 +414,7 @@ const groupePositions = (uid: string) => j<Record<string, string>>(`groupe/${uid
 /** Scrutins où le GROUPE a tenu une position donnée sur un thème (drill-down fiche parti). */
 export async function getVotesParti(groupeUid: string, categorie: string, position: string, periode: Periode): Promise<VoteScrutin[]> {
   const [pos, scrMap] = await Promise.all([groupePositions(groupeUid), scrutinsMap()]);
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   const out: VoteScrutin[] = [];
   for (const [su, p] of Object.entries(pos)) {
     if (p !== position) continue;
@@ -430,7 +428,7 @@ export async function getVotesParti(groupeUid: string, categorie: string, positi
 
 export async function getVotesDeputeCategorie(uid: string, categorie: string, periode: Periode): Promise<VoteScrutin[]> {
   const [d, scrMap] = await Promise.all([depute(uid), scrutinsMap()]);
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   const out: VoteScrutin[] = [];
   for (const [su, [pos, consigne]] of Object.entries(d.votes)) {
     const s = scrMap.get(su);
@@ -474,7 +472,7 @@ export async function getConfrontation(aUid: string, bUid: string, periode: Peri
   ]);
   const a = deps.find((d) => d.uid === aUid)!;
   const b = deps.find((d) => d.uid === bUid)!;
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   const themes = new Map<string, any>();
   cats.forEach((c) => themes.set(c.id, { id: c.id, libelle: c.libelle, ordre: c.ordre, communs: 0, desaccords: [], accords: [] }));
   let communs = 0, desaccords = 0;

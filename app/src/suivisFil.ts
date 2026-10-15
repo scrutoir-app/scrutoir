@@ -10,6 +10,7 @@
 import { ceQuiEstVote, type NatureVote } from "./typeScrutin";
 import { titreLigne, dateCourte } from "./textes";
 import { titreCourt, issueDe } from "./hebdo";
+import { bornePeriode, type PeriodeGlissante } from "./periode";
 
 /** Vote d'un suivi tel que le donnent `getVotesSuivis` / `getVotesPartisSuivis` (api.ts). */
 export interface VoteSuiviSrc {
@@ -129,18 +130,9 @@ export function decrireLigne(l: LigneVote, dossiers: Map<string, string>, annee:
 
 // --- Filtres (derrière le bouton « Filtres ») ---------------------------------------------
 
-export type PeriodeSuivis = "all" | "12m" | "6m";
+/** « Depuis 2024 », « 12 mois », « 6 mois » : borne commune à toute l'app (`periode.ts`). */
+export type PeriodeSuivis = PeriodeGlissante;
 export type IssueSuivis = "all" | "adopte" | "rejete";
-
-/** Borne basse (YYYY-MM-DD) d'une période comptée depuis `aujourdhui`, ou null pour « tout ». */
-export function borneDate(p: PeriodeSuivis, aujourdhui: string): string | null {
-  if (p === "all") return null;
-  const [y, m, d] = aujourdhui.split("-").map(Number);
-  const mois = m - 1 - (p === "12m" ? 12 : 6);
-  // Jour borné au dernier du mois visé : 31 août − 6 mois = 28 février, pas 3 mars.
-  const dernier = new Date(Date.UTC(y, mois + 1, 0)).getUTCDate();
-  return new Date(Date.UTC(y, mois, Math.min(d, dernier))).toISOString().slice(0, 10);
-}
 
 /** Nombre de filtres actifs (affiché sur le bouton « Filtres »). */
 export function nbFiltresActifs(periode: PeriodeSuivis, issue: IssueSuivis): number {
@@ -155,7 +147,7 @@ export function filtrerLignes(
   lignes: LigneVote[],
   f: { periode: PeriodeSuivis; issue: IssueSuivis; selection: ReadonlySet<string>; aujourdhui: string },
 ): LigneVote[] {
-  const borne = borneDate(f.periode, f.aujourdhui);
+  const borne = bornePeriode(f.periode, f.aujourdhui);
   const out: LigneVote[] = [];
   for (const l of lignes) {
     if (borne && (l.date || "") < borne) continue;
