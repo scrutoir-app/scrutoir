@@ -47,14 +47,15 @@ const db = openDb();
   // peut laisser passer 7 000 scrutins « vides » (profils/participation à zéro) — les
   // seuls comptages députés/scrutins/groupes n'y verraient rien.
   const nbVotes = (db.prepare("SELECT COUNT(*) AS c FROM votes").get() as any).c as number;
-  const nbGp = (db.prepare("SELECT COUNT(*) AS c FROM groupe_positions").get() as any).c as number;
+  const nbGp = (db.prepare("SELECT COUNT(*) AS c FROM groupe_positions WHERE position IS NOT NULL").get() as any).c as number;
   const nbAmend = (db.prepare("SELECT COUNT(*) AS c FROM amendements").get() as any).c as number;
-  // Ordres de grandeur réels (juil. 2026) : 1 179 670 votes, 90 756 consignes, 5 915 exposés.
+  // Ordres de grandeur réels (juil. 2026) : 1 179 670 votes, 5 915 exposés ; (oct. 2026) ~91 500
+  // positions de groupe tranchées (égalités et groupes sans exprimé : position NULL, non comptées).
   const MIN_DEP = 400, MIN_SCR = 1000, MIN_PAR = 5, MIN_VOTES = 900_000, MIN_GP = 50_000, MIN_AMEND = 3_000;
   if (nbDep < MIN_DEP || nbScr < MIN_SCR || nbPar < MIN_PAR || nbVotes < MIN_VOTES || nbGp < MIN_GP || nbAmend < MIN_AMEND) {
     console.error(
       `❌ GARDE-FOU : données suspectes (${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes, ` +
-      `${nbVotes} votes, ${nbGp} consignes, ${nbAmend} exposés d'amendements).\n` +
+      `${nbVotes} votes, ${nbGp} positions de groupe, ${nbAmend} exposés d'amendements).\n` +
       `   Seuils minimaux : ${MIN_DEP}/${MIN_SCR}/${MIN_PAR}/${MIN_VOTES}/${MIN_GP}/${MIN_AMEND}. ` +
       `Export ANNULÉ pour ne pas écraser les données en ligne.`
     );
@@ -85,7 +86,7 @@ const db = openDb();
   }
   console.log(
     `Garde-fou OK : ${nbDep} députés, ${nbScr} scrutins, ${nbPar} groupes, ${nbVotes} votes, ` +
-    `${nbGp} consignes, ${nbAmend} exposés, 0 stub, dernier scrutin ${maxDate} (${age} j).`
+    `${nbGp} positions de groupe, ${nbAmend} exposés, 0 stub, dernier scrutin ${maxDate} (${age} j).`
   );
 }
 
@@ -140,7 +141,7 @@ const dossierScrutinsQ = db.prepare(
 const posQ = db.prepare(
   `SELECT g.abrev AS abrev, gp.position AS position
    FROM groupe_positions gp JOIN groupes g ON g.uid = gp.groupe_uid
-   WHERE gp.scrutin_uid = ? AND g.abrev IS NOT NULL`
+   WHERE gp.scrutin_uid = ? AND g.abrev IS NOT NULL AND gp.position IS NOT NULL`
 );
 const catDossierQ = db.prepare(
   `SELECT sc.categorie_id AS cat, COUNT(*) n
@@ -216,7 +217,8 @@ for (const p of partis) {
   write(`groupe/${p.uid}.json`, map);
 }
 
-// 5) Députés : profil (3 périodes) + dissidences + carte des votes (position + consigne)
+// 5) Députés : profil (3 périodes) + dissidences + carte des votes (position + position majoritaire
+//    du groupe, champ historique `consigne` ; null = égalité ou pas de position)
 const votesStmt = db.prepare(
   `SELECT v.scrutin_uid, v.position, gp.position AS consigne
    FROM votes v

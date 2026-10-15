@@ -212,7 +212,7 @@ export const getVotesBruts = (uid: string): Promise<Record<string, string>> =>
 export const getParti = (uid: string, periode: Periode) =>
   j<Record<Periode, ProfilParti>>(`parti/${uid}`).then((p) => p[periode]);
 
-/** Votes d'un député AVEC la consigne de son groupe : { scrutin_uid: [position, consigne] }.
+/** Votes d'un député AVEC la position majoritaire de son groupe : { scrutin_uid: [position, consigne] }.
  *  Sert à dériver « suit / s'écarte du groupe » (fiche député). Fichier élu déjà mis en cache. */
 export const getDeputeVotes = (uid: string) => depute(uid).then((d) => d.votes);
 

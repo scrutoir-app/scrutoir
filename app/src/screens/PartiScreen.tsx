@@ -40,10 +40,12 @@ type Onglet = "accord" | "votes" | "groupe";
 type VoteCle = { s: ScrutinResume; g: GroupeVentilation };
 
 // « Fracture » sur un scrutin = nb d'élus votant le camp TRANCHÉ opposé à la ligne majoritaire.
+// Sans ligne (égalité en tête) : le plus petit des deux camps tranchés (10 pour, 10 contre → 10).
 function fracture(g: GroupeVentilation): number {
   const maj = positionMajoritaire(g);
   if (maj === "pour") return g.contre || 0;
   if (maj === "contre") return g.pour || 0;
+  if (maj === null) return Math.min(g.pour || 0, g.contre || 0);
   return Math.max(g.pour || 0, g.contre || 0);
 }
 

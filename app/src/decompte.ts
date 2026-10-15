@@ -12,6 +12,25 @@ export type PositionVote = "pour" | "contre" | "abstention";
 
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "); // 1 312
 
+/**
+ * Position majoritaire d'un GROUPE sur un scrutin, calculée sur ses votants : la position la plus
+ * nombreuse parmi pour / contre / abstention. Égalité en tête ou aucun vote exprimé → null (pas de
+ * position : on ne départage pas). SOURCE UNIQUE de la règle : `parseScrutins.ts` l'écrit dans
+ * `groupe_positions` (loyauté, écarts, cohésion, positions des partis) et l'app la reprend telle
+ * quelle (hémicycles, verdicts, ligne de chaque groupe).
+ * On ne lit pas la `positionMajoritaire` publiée par l'AN : elle compare les décomptes comme du
+ * TEXTE (« 2 » > « 10 », « 12 » > « 106 »), d'où ~3 % de positions contraires au décompte
+ * (n° 8280 : RN « pour » avec 12 pour, 106 contre). Elle est gardée en base (`position_an`), pour audit.
+ */
+export function positionMajoritaire(c: Partial<Compte>): PositionVote | null {
+  const p = c.pour || 0, ct = c.contre || 0, a = c.abstention || 0;
+  const max = Math.max(p, ct, a);
+  if (max <= 0) return null;
+  const tete = [p, ct, a].filter((n) => n === max).length;
+  if (tete > 1) return null;
+  return p === max ? "pour" : ct === max ? "contre" : "abstention";
+}
+
 /** « 10 pour, 1 abst. » (seules les positions non nulles, ordre pour · contre · abst.) ; "" si aucun vote. */
 export function decompteClair(c: Compte): string {
   return [

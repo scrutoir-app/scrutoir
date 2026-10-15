@@ -7,6 +7,14 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.20.1 — 2026-10-15
+**Position des groupes : calculée sur leurs votants, plus recopiée de l'Assemblée.** La « position majoritaire » que l'AN publie pour chaque groupe compare les décomptes comme du texte : « 2 » passe devant « 10 », « 12 » devant « 106 ». Elle contredit donc son propre décompte sur 3 069 couples scrutin × groupe (3,3 %), dont 40 des 72 votes solennels. Exemple : n° 8280 (aide à mourir, lecture définitive), RN « pour » avec 12 pour et 106 contre. Cette règle reproduit les 102 720 couples de la législature, sans exception : ce champ n'est ni une consigne de groupe ni un signe de vote libre.
+- **Pipeline.** La position d'un groupe est la plus nombreuse parmi ses votants (listes nominatives), comparée en nombres (`positionMajoritaire`, `decompte.ts`, testé). Égalité en tête (1 952 couples) ou aucun vote exprimé (9 256 couples, que l'AN publie « pour ») : pas de position, donc ni écart, ni base de loyauté ou de cohésion. La valeur de l'AN reste en base (`groupe_positions.position_an`), pour audit seulement.
+- **Effets mesurés** sur une base reconstruite : loyauté médiane des députés 93 % → 97 % ; votes à l'écart du groupe 89 327 → 41 433 ; cohésion moyenne des groupes 92 % → 95 % (EPR 86 → 95, DR 88 → 93, SOC 91 → 96, RN 96 → 99). Les petits groupes ne comptent plus « pour » sur les scrutins où aucun de leurs membres n'a voté (positions de la fiche parti, fil des partis suivis) : GDR passe de 5 277 à 3 381 « pour ».
+- **Fiche scrutin.** La position de chaque groupe est celle de son décompte, comme l'hémicycle du haut ; les deux se contredisaient (RN « Pour » sous un hémicycle rouge sur le n° 8280). Égalité : pastille neutre « Égalité ». La même règle sert à « Comme toi ? » de tes suivis, aux camps du fil et à la « fracture » de la fiche parti.
+- **Libellés.** « Consigne » disparaît, l'AN n'en publie pas : « Son groupe : Contre » dans les dissidences, « majorité du groupe » dans les votes par thème, « majorité « Pour » » dans les votes d'un groupe. Infos dit que la position est calculée sur les votants et pourquoi celle de l'AN n'est pas reprise.
+- Tests : `decompte.test.ts` (cas réels n° 8280, 2106, 7731, 4241 et égalités), `verdict.test.ts`, `stats.test.ts` (une position NULL ne compte nulle part).
+
 ## 1.20.0 — 2026-10-15
 **Fiches scrutin, député et parti refaites d'après les trois maquettes validées le 15/10.** Chiffres en avant, base en petit, détail derrière un lien. Plus de capitales.
 
