@@ -7,6 +7,11 @@
 import type { ContexteJe } from "./jeProximite";
 import type { Reponse } from "./score";
 import type { GroupeVentilation } from "../types";
+import { positionMajoritaire, type PositionVote } from "../decompte";
+
+// Règle unique (décompte des votants, égalité ou aucun exprimé → null), la même que celle écrite
+// en base par le pipeline : l'hémicycle, les verdicts et la ligne de chaque groupe ne divergent plus.
+export { positionMajoritaire };
 
 /** Sens du verdict, formulé CÔTÉ UTILISATEUR (jamais côté parti). */
 export type Sens = "align" | "oppose" | "partage"; // dans ton sens / à l'opposé / partagé
@@ -22,7 +27,7 @@ export interface Verdict {
 export interface GroupePos {
   abrev: string | null;
   taille: number;
-  position: "pour" | "contre" | "abstention";
+  position: PositionVote | null; // null = égalité en tête ou aucun vote exprimé
 }
 
 const tranche = (p: unknown): p is "pour" | "contre" => p === "pour" || p === "contre";
@@ -37,16 +42,6 @@ export function campGagnant(sortCode: string | null | undefined): "pour" | "cont
 /** Taille d'un groupe (effectif exprimé + absents) — sert de poids dans la déduction. */
 export function tailleGroupe(g: Pick<GroupeVentilation, "pour" | "contre" | "abstention" | "absent">): number {
   return (g.pour || 0) + (g.contre || 0) + (g.abstention || 0) + (g.absent || 0);
-}
-
-/** Position MAJORITAIRE d'un groupe sur le scrutin (abstention incluse ; absents ignorés). */
-export function positionMajoritaire(
-  g: Pick<GroupeVentilation, "pour" | "contre" | "abstention">
-): "pour" | "contre" | "abstention" {
-  const p = g.pour || 0, c = g.contre || 0, a = g.abstention || 0;
-  if (p >= c && p >= a) return "pour";
-  if (c >= p && c >= a) return "contre";
-  return "abstention";
 }
 
 /** Ventilation d'un scrutin → groupes ordonnables pour l'hémicycle et la déduction. */

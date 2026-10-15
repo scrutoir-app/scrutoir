@@ -1,6 +1,27 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { decompteClair, decompteGroupe } from "./decompte";
+import { decompteClair, decompteGroupe, positionMajoritaire } from "./decompte";
+
+test("position majoritaire : la plus nombreuse, comparée en NOMBRES (pas comme l'AN, en texte)", () => {
+  // Cas réels où la positionMajoritaire de l'AN contredit son propre décompte (tri texte).
+  assert.equal(positionMajoritaire({ pour: 12, contre: 106, abstention: 0 }), "contre"); // n° 8280, RN (AN : « pour »)
+  assert.equal(positionMajoritaire({ pour: 64, contre: 18, abstention: 9 }), "pour"); // n° 8280, EPR (AN : « abstention »)
+  assert.equal(positionMajoritaire({ pour: 121, contre: 0, abstention: 2 }), "pour"); // n° 2106, RN (AN : « abstention »)
+  assert.equal(positionMajoritaire({ pour: 2, contre: 10, abstention: 0 }), "contre"); // n° 7731, EPR (AN : « pour »)
+  assert.equal(positionMajoritaire({ pour: 0, contre: 7, abstention: 66 }), "abstention"); // n° 4241, EPR (AN : « contre »)
+  assert.equal(positionMajoritaire({ pour: 1, contre: 0, abstention: 0 }), "pour");
+});
+
+test("position majoritaire : égalité en tête ou aucun exprimé → pas de position", () => {
+  assert.equal(positionMajoritaire({ pour: 10, contre: 10, abstention: 2 }), null);
+  assert.equal(positionMajoritaire({ pour: 5, contre: 0, abstention: 5 }), null);
+  assert.equal(positionMajoritaire({ pour: 3, contre: 3, abstention: 3 }), null);
+  assert.equal(positionMajoritaire({ pour: 2, contre: 10, abstention: 10 }), null); // AN : « contre » (« 2 » mis à part)
+  assert.equal(positionMajoritaire({ pour: 0, contre: 0, abstention: 0 }), null); // AN : « pour »
+  assert.equal(positionMajoritaire({}), null);
+  // Égalité derrière la tête : la tête reste nette.
+  assert.equal(positionMajoritaire({ pour: 9, contre: 4, abstention: 4 }), "pour");
+});
 
 test("décompte en clair : positions non nulles, dans l'ordre pour · contre · abst.", () => {
   assert.equal(decompteClair({ pour: 14, contre: 0, abstention: 0 }), "14 pour");

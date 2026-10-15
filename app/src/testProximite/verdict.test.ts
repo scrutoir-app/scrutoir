@@ -42,6 +42,10 @@ test("positionMajoritaire / tailleGroupe / groupesPos", () => {
   assert.equal(positionMajoritaire(g("A", 10, 3, 2)), "pour");
   assert.equal(positionMajoritaire(g("A", 3, 10, 2)), "contre");
   assert.equal(positionMajoritaire(g("A", 1, 1, 9)), "abstention");
+  // Égalité en tête ou aucun exprimé : pas de position (plus de « pour » par défaut).
+  assert.equal(positionMajoritaire(g("A", 4, 4, 1)), null);
+  assert.equal(positionMajoritaire(g("A", 0, 0, 0, 3)), null);
+  assert.equal(groupesPos([g("A", 4, 4)])[0].position, null);
   assert.equal(tailleGroupe(g("A", 10, 3, 2, 5)), 20);
   assert.deepEqual(groupesPos([g("A", 10, 3, 0, 2)]), [{ abrev: "A", taille: 15, position: "pour" }]);
 });

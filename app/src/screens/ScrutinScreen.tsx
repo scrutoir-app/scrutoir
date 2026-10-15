@@ -19,7 +19,7 @@ import { ProfilTabs } from "../components/profil";
 import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
 import { catUI } from "../categoryUI";
 import { ceQuiEstVote } from "../typeScrutin";
-import { decompteClair } from "../decompte";
+import { decompteClair, positionMajoritaire } from "../decompte";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
 import type { ContexteJe } from "../testProximite/jeProximite";
 import { verdictScrutin, groupesPos, tailleGroupe } from "../testProximite/verdict";
@@ -148,7 +148,7 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const geo = useMemo(() => (data ? data.groupes.map((g) => ({ abrev: g.abrev, nb_deputes: tailleGroupe(g) })) : []), [data]);
   const positions = useMemo(() => {
     const m: Record<string, "pour" | "contre" | "abstention"> = {};
-    if (data) groupesPos(data.groupes).forEach((g) => { if (g.abrev) m[g.abrev] = g.position; });
+    if (data) groupesPos(data.groupes).forEach((g) => { if (g.abrev && g.position) m[g.abrev] = g.position; });
     return m;
   }, [data]);
 
@@ -379,7 +379,9 @@ const ICON_CHEVRON = 15;
 // --- Ligne « position d'un groupe » (onglet Par groupe) ----------------------
 // Décompte EN CLAIR (« 10 pour, 1 abst. »). Zones tactiles SÉPARÉES (pas de Touchable
 // imbriqué) : le nom + la position ouvrent la FICHE PARTI ; le décompte ouvre la liste
-// nominative des VOTANTS (position majoritaire).
+// nominative des VOTANTS (position majoritaire). La position est celle du décompte affiché
+// (`positionMajoritaire`, même règle qu'en base) : jamais la positionMajoritaire de l'AN,
+// qui peut le contredire. Égalité en tête → pastille neutre « Égalité ».
 function GroupeRow({
   g, premier, onParti, onVotants,
 }: {
@@ -390,8 +392,8 @@ function GroupeRow({
 }) {
   const nom = g.abrev ?? g.libelle;
   const exprimes = g.pour + g.contre + g.abstention;
-  const majorite = g.pour >= g.contre && g.pour >= g.abstention ? "pour" : g.contre >= g.abstention ? "contre" : "abstention";
-  const posValue = g.consigne ?? (exprimes > 0 ? majorite : null);
+  const posValue = positionMajoritaire(g);
+  const etiquette = posValue ? positionLabel(posValue) : exprimes > 0 ? "Égalité" : null;
   const compte = decompteClair(g);
   const chip = posValue === "pour" ? { bg: C.adopteBg, fg: C.adopteFg }
     : posValue === "contre" ? { bg: C.rejeteBg, fg: C.rejeteFg }
@@ -403,17 +405,17 @@ function GroupeRow({
         activeOpacity={0.7}
         onPress={onParti}
         accessibilityRole="button"
-        accessibilityLabel={`Ouvrir la fiche du groupe ${nom}${posValue ? `, position ${positionLabel(posValue)}` : ""}`}
+        accessibilityLabel={`Ouvrir la fiche du groupe ${nom}${etiquette ? `, position ${etiquette}` : ""}`}
         style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, minWidth: 0, minHeight: 52 }}
       >
         <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: couleurGroupe(g.couleur) }} />
         <Text style={[T.callout, { fontFamily: F.bold, color: C.text, minWidth: 70 }]} numberOfLines={1}>{nom}</Text>
-        {posValue && <Chip label={positionLabel(posValue)} bg={chip.bg} fg={chip.fg} ph={8} pv={2} />}
+        {etiquette && <Chip label={etiquette} bg={chip.bg} fg={chip.fg} ph={8} pv={2} />}
       </TouchableOpacity>
       {compte ? (
         <TouchableOpacity
           activeOpacity={0.6}
-          onPress={() => onVotants(exprimes > 0 ? majorite : "pour")}
+          onPress={() => onVotants(posValue ?? "pour")}
           accessibilityRole="button"
           accessibilityLabel={`Voir les votants de ${nom} : ${compte}`}
           hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}

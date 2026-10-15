@@ -30,7 +30,7 @@ export function VotesPartiScreen({
       scrutins={scrutins == null ? null : filtered}
       contexte={{
         titre: "Votes du groupe",
-        sousTitre: `${libelle} · consigne « ${positionLabel(position)} » · ${categorieLibelle} · ${filtered.length} scrutins`,
+        sousTitre: `${libelle} · majorité « ${positionLabel(position)} » · ${categorieLibelle} · ${filtered.length} scrutins`,
       }}
       filtres={Bar}
       emptyLabel="Aucun scrutin."

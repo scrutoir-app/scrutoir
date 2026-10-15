@@ -65,6 +65,9 @@ function fixture(): Database.Database {
   gp.run("s2", "G1", "contre");
   gp.run("s2", "G2", "pour");
   gp.run("s4", "G1", "pour");
+  // Pas de position (égalité ou aucun exprimé) : la ligne existe, position NULL, et la valeur
+  // brute de l'AN (tri texte, parfois contraire au décompte) n'est gardée que pour audit.
+  db.prepare("INSERT INTO groupe_positions (scrutin_uid, groupe_uid, position, position_an) VALUES (?,?,NULL,?)").run("s3", "G1", "contre");
 
   const v = db.prepare("INSERT INTO votes (scrutin_uid, depute_uid, position, groupe_uid) VALUES (?,?,?,?)");
   v.run("s1", "A", "pour", "G1");
@@ -184,6 +187,18 @@ test("confrontation : bornée par la période", () => {
   assert.equal(c.communs, 1);
   assert.equal(c.accords, 0);
   assert.equal(c.desaccords, 1);
+});
+
+test("position NULL : ni écart, ni base de loyauté, ni cohésion (position_an jamais lue)", () => {
+  const db = fixture();
+  // s3 : B a voté pour, G1 n'a pas de position (position_an « contre ») → aucun écart.
+  assert.deepEqual(dissidences(db, "B"), []);
+  const soc = profilDepute(db, "B", "all")!.categories.find((c) => c.id === "soc")!;
+  assert.equal(soc.pour, 1);
+  assert.equal(soc.base_loyaute, 0);
+  assert.equal(soc.loyaute_pct, null);
+  // Cohésion de G1 inchangée : le vote de B sur s3 n'entre pas dans la base.
+  assert.equal(profilParti(db, "G1", "all")!.cohesion_pct, 83);
 });
 
 test("profilParti : cohésion, réussite de la consigne, président, participation moyenne", () => {

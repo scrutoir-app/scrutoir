@@ -92,7 +92,7 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
   {
     id: "chiffres",
     titre: "Lire les chiffres",
-    sousTitre: "Barre de vote, consigne du groupe, confrontation",
+    sousTitre: "Barre de vote, position du groupe, confrontation",
     blocs: [
       {
         titre: "Lecture de la barre de vote",
@@ -115,11 +115,13 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
       {
         // ⚠️ Point ouvert (non tranché) : les fiches député et parti affichent un pourcentage
         // de votes « avec son groupe », que ce texte dit ne pas montrer. Texte gardé tel quel.
-        titre: "Consigne du groupe (pas de score de loyauté)",
+        titre: "Position du groupe (pas de score de loyauté)",
         texte:
           "Plutôt qu'un score de loyauté agrégé — qui se prête à un jugement hâtif — on affiche la " +
-          "consigne du groupe (position majoritaire fournie par l'Assemblée) à côté de chaque vote, et " +
-          "les écarts sont listés dans les « dissidences ». À toi de lire l'écart.",
+          "position majoritaire du groupe à côté de chaque vote, et les écarts sont listés dans les " +
+          "« dissidences ». Cette position est celle de la majorité des membres du groupe qui ont voté. " +
+          "L'Assemblée publie aussi une « position majoritaire », mais elle contredit parfois son propre " +
+          "décompte : on ne la reprend pas. À toi de lire l'écart.",
       },
       {
         titre: "Confronter deux élus",

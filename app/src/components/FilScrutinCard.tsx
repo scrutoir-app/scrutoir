@@ -99,7 +99,7 @@ export function FilScrutinCard({
 
   const positions = useMemo(() => {
     const m: Record<string, "pour" | "contre" | "abstention"> = {};
-    detail?.pos.forEach((g) => { if (g.abrev) m[g.abrev] = g.position; });
+    detail?.pos.forEach((g) => { if (g.abrev && g.position) m[g.abrev] = g.position; });
     return m;
   }, [detail]);
   const geo = useMemo(() => (detail?.groupes ?? []).map((g) => ({ abrev: g.abrev, nb_deputes: tailleGroupe(g) })), [detail]);

@@ -40,7 +40,8 @@ const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", 
 const moisAnnee = (iso: string | null | undefined) => (iso ? `${MOIS[Number(iso.slice(5, 7)) - 1] ?? ""} ${iso.slice(0, 4)}` : null);
 const pluriel = (n: number, mot: string) => `${n} ${mot}${n > 1 ? "s" : ""}`;
 
-// Suit / s'écarte de la ligne du groupe sur un scrutin (position du député vs consigne).
+// Suit / s'écarte de la ligne du groupe sur un scrutin (position du député vs position majoritaire
+// du groupe, champ `consigne` ; null = égalité dans le groupe → ni l'un ni l'autre).
 function ecartGroupe(pos: string, consigne: string | null): "suit" | "ecarte" | null {
   if (!EXPR(pos) || !EXPR(consigne)) return null;
   return pos === consigne ? "suit" : "ecarte";

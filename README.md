@@ -11,8 +11,9 @@ n'est mise en avant, seul le vote parle.**
 
 - **Recherche** de député·e·s, de partis et de scrutins.
 - **Fiche élu·e** : participation relative, votes par thème (Pour / Contre / Abstention /
-  Absent · Non votant), dissidences, consigne du groupe par scrutin. *Pas de score de loyauté
-  agrégé* (jugé trompeur) — on montre l'écart à la consigne, à vous de lire.
+  Absent · Non votant), dissidences, position majoritaire du groupe par scrutin (calculée sur
+  ses votants). *Pas de score de loyauté agrégé* (jugé trompeur) — on montre l'écart au groupe,
+  à vous de lire.
 - **Détail d'un scrutin** : résultat, exposé de l'amendement, position par groupe, votants,
   lien vers la source officielle.
 - **Confrontation de deux élu·e·s** : accords / désaccords par thème (barres divergentes),
