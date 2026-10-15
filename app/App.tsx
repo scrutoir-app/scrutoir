@@ -13,7 +13,8 @@ import { C, F, inputText, RADIUS, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { SearchResultsList } from "./src/components/SearchResultsList";
-import { FilScrutinsScreen } from "./src/screens/FilScrutinsScreen";
+import { ScrutinsScreen } from "./src/screens/ScrutinsScreen";
+import { ScrutinsListeScreen } from "./src/screens/ScrutinsListeScreen";
 import { GrandsScrutinsScreen } from "./src/screens/GrandsScrutinsScreen";
 import { PartisScreen } from "./src/screens/PartisScreen";
 import { PartiScreen } from "./src/screens/PartiScreen";
@@ -57,8 +58,8 @@ import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
-  // Onglet de consultation des scrutins (Récents + Par thème). Clé de route historique
-  // « themes » conservée (invisible à l'utilisateur) pour éviter toute régression de nav.
+  // Onglet Scrutins (sous-onglets Recherche et Textes). Clé de route historique « themes »
+  // conservée (invisible à l'utilisateur) pour éviter toute régression de nav.
   { root: "themes", label: "Scrutins", icon: "grid" },
   { root: "partis", label: "Partis", icon: "users" },
   // « Suivis » n'a plus d'onglet : le fil vit sur l'accueil, l'écran complet est atteint
@@ -70,7 +71,7 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 // n'a pas d'onglet → rattaché à l'Accueil (sa recherche « Sur quoi ils ont voté ? »).
 const TOUR_PHRASES: Record<string, string> = {
   search: "La semaine à l'Assemblée, le focus actualité, tes suivis, et la recherche pour trouver et suivre un député.",
-  themes: "Tous les votes de l'Assemblée : en Fil immersif ou en Liste, avec un verdict « comme toi » sur chaque scrutin.",
+  themes: "Cherche un sujet, une loi ou un nom, ou parcours les textes votés récemment : un texte par carte, les amendements qui ont compté en second.",
   partis: "Les groupes classés selon ta proximité. Ouvre la fiche d'un parti pour le suivre, ou ne plus le suivre.",
   apropos: "La méthode, les sources et les limites de Scrutoir. Tu peux rouvrir cette visite à tout moment via le « ? » de l'accueil.",
 };
@@ -175,8 +176,8 @@ function AppInner() {
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
   const [gq, setGq] = useState("");
   const [gqFocus, setGqFocus] = useState(false); // focus visible (bordure accent, cf. plus bas)
-  // L'onglet Scrutins ("themes") est désormais le Fil immersif plein cadre (barre de contrôles
-  // en surimpression, filtre par catégorie intégré) → pas de barre de recherche globale par-dessus.
+  // L'onglet Scrutins ("themes") porte sa propre recherche (sous-onglet Recherche) → pas de barre
+  // de recherche globale par-dessus.
   const ongletAvecRecherche = ["partis", "suivis", "apropos"].includes(root);
   const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
   useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
@@ -225,6 +226,7 @@ function AppInner() {
 
   const titres: Record<Route["name"], string> = {
     search: "", themes: "", apropos: "", partis: "", suivis: "",
+    scrutinsListe: "Scrutins",
     grandsScrutins: "Grands scrutins", parti: "Parti", membresParti: "Élus du groupe", votesParti: "Votes du groupe",
     depute: "Député", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
@@ -333,7 +335,8 @@ function AppInner() {
           {/* Accueil = refonte v3 « Tes accords » (recherche réelle + bande perso + flux des suivis).
               Remplace l'ancien SearchScreen (conservé comme référence, plus rendu). */}
           {current.name === "search" && <AccueilAccordsScreen nav={nav} />}
-          {current.name === "themes" && <FilScrutinsScreen nav={nav} />}
+          {current.name === "themes" && <ScrutinsScreen nav={nav} />}
+          {current.name === "scrutinsListe" && <ScrutinsListeScreen q={current.q} nav={nav} />}
           {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
           {current.name === "parti" && <PartiScreen uid={current.uid} nav={nav} />}
