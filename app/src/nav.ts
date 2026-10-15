@@ -55,7 +55,7 @@ export type Route =
   | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m"; hasard?: boolean; angle?: AngleShuffle }
   | {
       name: "confrontationListe";
-      kind: "accord" | "desaccord";
+      kind: "accord" | "desaccord" | "tous"; // tous = tous les votes en commun (« Derniers votes »)
       themeLibelle: string;
       sousTitre: string;
       scrutins: ConfrontationScrutin[];

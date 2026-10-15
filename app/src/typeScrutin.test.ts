@@ -137,3 +137,14 @@ test("le filtre par type existant est inchangé", () => {
   assert.equal(classerScrutin({ titre: "l'amendement n° 3 à l'article 2 du projet de loi …" }), "amendement");
   assert.equal(classerScrutin({ titre: "l'ensemble de la proposition de loi …" }), "proposition");
 });
+
+test("amendement au texte de la CMP : « au » / « à la » ne traînent pas en fin de titre", () => {
+  const r = v("l'amendement n° 7 du Gouvernement au projet de loi d'urgence pour la protection et la souveraineté agricoles (texte de la commission mixte paritaire).");
+  assert.equal(r.titre, "Amendement n° 7 du Gouvernement");
+  assert.equal(r.texte, "Projet de loi d'urgence pour la protection et la souveraineté agricoles");
+  assert.deepEqual(r.precisions, ["Texte de la commission mixte paritaire"]);
+  assert.equal(
+    v("l'amendement n° 1 du Gouvernement à la proposition de loi visant à réduire l'impact environnemental de l'industrie textile (texte de la commission mixte paritaire).").titre,
+    "Amendement n° 1 du Gouvernement",
+  );
+});

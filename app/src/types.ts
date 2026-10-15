@@ -253,6 +253,9 @@ export interface ConfrontationScrutin {
   resume: string | null;
   posA: string;
   posB: string;
+  // Pour dire ce qui a été voté (Face à face, « Derniers votes ») — absents des routes anciennes.
+  type_vote?: string | null;
+  dossier_titre?: string | null;
 }
 export interface ConfrontationTheme {
   id: string;

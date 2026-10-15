@@ -487,7 +487,7 @@ export async function getConfrontation(aUid: string, bUid: string, periode: Peri
     if (borne && (s.date ?? "") < borne) continue;
     const t = themes.get(s.categorie ?? "");
     if (!t) continue;
-    const sc = { uid: s.uid, numero: s.numero, date: s.date, titre: s.titre, objet: null, sort_code: s.sort_code, resume: null, posA, posB: vb[0] };
+    const sc = { uid: s.uid, numero: s.numero, date: s.date, titre: s.titre, objet: null, sort_code: s.sort_code, resume: null, posA, posB: vb[0], type_vote: s.type_vote ?? null, dossier_titre: s.dossier_titre ?? null };
     t.communs++; communs++;
     if (posA === vb[0]) t.accords.push(sc);
     else { t.desaccords.push(sc); desaccords++; }

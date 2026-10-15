@@ -1,40 +1,49 @@
 import React, { useEffect, useRef, useState } from "react";
-import {
-  View, Text, TextInput, TouchableOpacity, ScrollView, Image, ActivityIndicator, Linking, Animated, Platform,
-} from "react-native";
+import { View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator, Animated, Platform } from "react-native";
+import Svg, { Circle } from "react-native-svg";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { C, F, T, tnum, inputText, RADIUS, shadowCard, formatDate, positionLabel, couleurPosition } from "../theme";
-import { SEUIL_FIABILITE, scrutinSourceUrl } from "../config";
+import { C, F, T, tnum, inputText, RADIUS, S, ICON, CONTROL, couleurGroupe } from "../theme";
+import { SEUIL_FIABILITE } from "../config";
 import { catUI } from "../categoryUI";
-import { rechercher, getConfrontation, getConfrontationShuffle } from "../api";
-import { Card, Chip } from "../components/ui";
-import { BarreDivergente } from "../components/BarreDivergente";
+import { rechercher, getConfrontation, getConfrontationShuffle, getDeputesByUids } from "../api";
+import { Card, Button } from "../components/ui";
+import { ProfilAvatar } from "../components/profil";
+import { Segments } from "../components/texteUI";
+import { ScrutoirMark } from "../components/ScrutoirMark";
 import { DuelDeputesBar } from "../components/DuelDeputesBar";
 import { ErreurChargement } from "../components/ErreurChargement";
-import { PositionCells } from "../components/PositionCells";
 import { track } from "../analytics";
-import type { DeputeResume, Confrontation, ConfrontationScrutin, ConfrontationTheme, Periode, AngleShuffle } from "../types";
+import {
+  tauxAccord, phraseBandeau, derniersVotes, votesCommuns, ventilerThemes, ailesPapillon, phraseHorsSeuil, positionCourte, ligneVote,
+  type LigneTheme,
+} from "../confrontation";
+import type { DeputeResume, Confrontation, ConfrontationScrutin, Periode, AngleShuffle } from "../types";
 import type { Nav } from "../nav";
 
-const PERIODES: { v: Periode; label: string }[] = [
-  { v: "all", label: "Depuis 2024" },
-  { v: "12m", label: "12 mois" },
-  { v: "6m", label: "6 mois" },
+/**
+ * Face à face de deux élus (maquette validée le 15/10/2026, 3e proposition) : bandeau sombre avec
+ * l'anneau d'accord et la relance (« Changer d'élus », « Duel au hasard ») ; derniers votes en deux
+ * colonnes ; thèmes en barres papillon chiffrées (pareils ←, opposés →), dépliables vers le détail
+ * des scrutins. Chiffres : règle de `getConfrontation` (scrutins avec thème, positions exprimées
+ * des deux), rangés par `confrontation.ts` (pur, testé).
+ */
+
+const PERIODES: { key: Periode; label: string }[] = [
+  { key: "all", label: "Tout" },
+  { key: "12m", label: "12 mois" },
+  { key: "6m", label: "6 mois" },
 ];
 
-// Libellé du bandeau « Pourquoi ce duel » selon l'angle du tirage. Ton neutre,
-// sobre, sans vocabulaire de combat — c'est ce qui écarte tout soupçon partisan.
+// Pourquoi ce duel (tirage au hasard) : ton neutre, sobre, sans vocabulaire de combat.
 const ANGLE_LABEL: Record<AngleShuffle, string> = {
   fracture_interne: "Même groupe, votes les plus éloignés.",
   alliance_contre_nature: "Groupes opposés, votes étonnamment proches.",
   faux_duel: "Ni alliés ni adversaires : ça se joue dossier par dossier.",
 };
-const ANGLE_ICON: Record<AngleShuffle, keyof typeof Feather.glyphMap> = {
-  fracture_interne: "git-branch",
-  alliance_contre_nature: "git-merge",
-  faux_duel: "git-commit",
-};
 const ANGLES_SHUFFLE: AngleShuffle[] = ["fracture_interne", "alliance_contre_nature", "faux_duel"];
+
+// Largeur d'une colonne de position (pastille) : en-tête et lignes alignés.
+const COL = 56;
 
 export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle, nav }: { a?: string; b?: string; periode?: Periode; hasard?: boolean; angle?: AngleShuffle; nav: Nav }) {
   const [depA, setDepA] = useState<DeputeResume | null>(null);
@@ -44,34 +53,36 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
   const [loading, setLoading] = useState(false);
   const [erreur, setErreur] = useState(false);
   const [essai, setEssai] = useState(0); // bump = « Réessayer » (relance le chargement du duel)
-  // Angle du dernier tirage shuffle (null dès qu'un sélecteur est touché à la main).
+  // Angle du dernier tirage au hasard (null dès qu'un élu est choisi à la main).
   const [shuffleAngle, setShuffleAngle] = useState<AngleShuffle | null>(null);
   const [shuffling, setShuffling] = useState(false);
+  // « Changer d'élus » : les deux sélecteurs reviennent à la place du bandeau.
+  const [edition, setEdition] = useState(false);
 
-  // Barre sticky des deux élus : apparaît quand les sélecteurs ont défilé hors champ.
+  // Barre sticky des deux élus : apparaît quand le bandeau a défilé hors champ.
   const scrollY = useRef(new Animated.Value(0)).current;
-  const barOpacity = scrollY.interpolate({ inputRange: [120, 190], outputRange: [0, 1], extrapolate: "clamp" });
-  const barTranslate = scrollY.interpolate({ inputRange: [120, 190], outputRange: [-10, 0], extrapolate: "clamp" });
+  const barOpacity = scrollY.interpolate({ inputRange: [220, 290], outputRange: [0, 1], extrapolate: "clamp" });
+  const barTranslate = scrollY.interpolate({ inputRange: [220, 290], outputRange: [-10, 0], extrapolate: "clamp" });
 
-  // Sélection manuelle d'un élu → on quitte le contexte « tirage » (plus de bandeau).
-  const choisirA = (d: DeputeResume) => { setDepA(d); setShuffleAngle(null); };
-  const choisirB = (d: DeputeResume) => { setDepB(d); setShuffleAngle(null); };
+  // Choix à la main → on quitte le contexte « tirage » ; les deux choisis → retour au bandeau.
+  const choisirA = (d: DeputeResume) => { setDepA(d); setShuffleAngle(null); if (depB) setEdition(false); };
+  const choisirB = (d: DeputeResume) => { setDepB(d); setShuffleAngle(null); if (depA) setEdition(false); };
   const viderA = () => { setDepA(null); setShuffleAngle(null); };
   const viderB = () => { setDepB(null); setShuffleAngle(null); };
 
-  // Shuffle : pioche une paire dans un autre angle que le précédent (effet machine
-  // à sous), remplit les deux sélecteurs → le useEffect ci-dessous charge le duel.
+  // Duel au hasard : une paire dans un autre angle que le précédent, puis le bandeau.
   async function lancerShuffle() {
     if (shuffling) return;
     setShuffling(true);
     try {
-      const dispo = ANGLES_SHUFFLE.filter((a) => a !== shuffleAngle);
+      const dispo = ANGLES_SHUFFLE.filter((x) => x !== shuffleAngle);
       const cible = dispo[Math.floor(Math.random() * dispo.length)];
       const res = await getConfrontationShuffle(cible);
       if (res) {
         setDepA(res.a);
         setDepB(res.b);
         setShuffleAngle(res.angle);
+        setEdition(false);
         track("shuffle", res.angle);
       }
     } catch {
@@ -81,20 +92,23 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
     }
   }
 
-  // Pré-sélection éventuelle (uid passés en route) → on récupère le résumé via une recherche légère.
-  // « Duel au hasard » (depuis l'accueil) : aucun élu fourni → on lance directement un tirage.
-  // « Duel du jour » : la paire arrive avec son `angle` (route) → on rétablit le bandeau « Pourquoi
-  // ce duel » comme pour un tirage shuffle (sinon le duel du jour n'a aucune explication explicite).
+  // Pré-sélection (uids en route), « Duel au hasard » depuis l'accueil (aucun élu fourni), « Duel du
+  // jour » (paire + angle en route → on rétablit la ligne « Pourquoi ce duel »).
   useEffect(() => {
-    if (a && !depA) hydrate(a, setDepA);
-    if (b && !depB) hydrate(b, setDepB);
+    if ((a && !depA) || (b && !depB)) {
+      getDeputesByUids([a, b].filter(Boolean) as string[])
+        .then((ds) => {
+          const byUid = new Map(ds.map((d) => [d.uid, d]));
+          if (a && byUid.get(a)) setDepA(byUid.get(a)!);
+          if (b && byUid.get(b)) setDepB(byUid.get(b)!);
+        })
+        .catch(() => {});
+    }
     if (hasard && !a && !b) lancerShuffle();
     if (angle && a && b) setShuffleAngle(angle);
   }, []);
 
-  // Persiste le duel dans la route : en naviguant vers la liste détaillée puis en
-  // revenant, l'écran est démonté/remonté ; les uids dans la route le restaurent
-  // (via `hydrate` ci-dessus) au lieu de repartir d'une page vide.
+  // Persiste le duel dans la route : au retour de la liste détaillée, l'écran remonté le restaure.
   useEffect(() => {
     if (depA && depB) nav.replace({ name: "confrontation", a: depA.uid, b: depB.uid, periode, angle: shuffleAngle ?? undefined });
   }, [depA?.uid, depB?.uid, periode, shuffleAngle]);
@@ -116,24 +130,24 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
     if (depA && depB) track("confront", [depA.uid, depB.uid].sort().join("|"));
   }, [depA?.uid, depB?.uid]);
 
-  const pret = depA && depB;
-
-  const tauxAccord = data && data.communs ? Math.round((data.accords / data.communs) * 100) : null;
+  const pret = !!depA && !!depB;
+  const pareils = data?.accords ?? 0;
+  const communs = data?.communs ?? 0;
+  const taux = data && !loading ? tauxAccord(pareils, communs) : null;
+  const ouvrirFiche = (d: DeputeResume) => nav.push({ name: "depute", uid: d.uid });
 
   return (
     <View style={{ flex: 1 }}>
       {/* Barre sticky : les deux élus + le taux d'accord, révélée au scroll. */}
-      {pret && data && !loading && (
-        <Animated.View
-          style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, opacity: barOpacity, transform: [{ translateY: barTranslate }], pointerEvents: "none" }}
-        >
+      {pret && data && !loading && !edition && (
+        <Animated.View style={{ position: "absolute", top: 0, left: 0, right: 0, zIndex: 10, opacity: barOpacity, transform: [{ translateY: barTranslate }], pointerEvents: "none" }}>
           <DuelDeputesBar
             a={depA!}
             b={depB!}
             center={
               <View style={{ paddingVertical: 4, paddingHorizontal: 11, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.md, alignItems: "center" }}>
-                <Text style={[tnum, { fontFamily: F.extra, fontSize: 17, lineHeight: 20, color: C.text }]}>{tauxAccord != null ? `${tauxAccord}%` : "—"}</Text>
-                <Text style={[T.micro, { fontFamily: F.semibold, color: C.textMuted }]}>d'accord</Text>
+                <Text style={[T.heading, tnum, { fontFamily: F.extra, color: C.text }]}>{taux != null ? `${taux} %` : "—"}</Text>
+                <Text style={[T.micro, { color: C.textMuted }]}>d'accord</Text>
               </View>
             }
           />
@@ -141,65 +155,152 @@ export function ConfrontationScreen({ a, b, periode: periodeInit, hasard, angle,
       )}
 
       <Animated.ScrollView
-        contentContainerStyle={{ padding: 16, paddingBottom: 44 }}
+        contentContainerStyle={{ paddingHorizontal: S.s16, paddingTop: S.s14, paddingBottom: S.s44 }}
         showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
         scrollEventThrottle={16}
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { y: scrollY } } }], { useNativeDriver: Platform.OS !== "web" })}
       >
-      <Text style={[T.title, { color: C.text }]}>Confronter deux élus</Text>
-      <Text style={[T.small, { color: C.textMuted, marginTop: 4 }]}>
-        Sur les seuls scrutins publics nominatifs où les deux ont voté. Un silence de données n'est pas un désaccord.
-      </Text>
+        {pret && !edition ? (
+          <Bandeau
+            depA={depA!}
+            depB={depB!}
+            taux={taux}
+            phrase={data && !loading ? phraseBandeau(pareils, communs) : "Calcul des votes en commun…"}
+            angle={shuffleAngle}
+            shuffling={shuffling}
+            onChanger={() => setEdition(true)}
+            onHasard={lancerShuffle}
+            onFiche={ouvrirFiche}
+          />
+        ) : (
+          <Card radius={RADIUS.xl} padding={S.s16}>
+            <Text accessibilityRole="header" style={[T.heading, { color: C.text }]}>Choisis deux élus</Text>
+            <Text style={[T.small, { color: C.textMuted, marginTop: S.s4 }]}>On compare leurs votes là où les deux ont pris position.</Text>
+            <View style={{ flexDirection: "row", gap: S.s10, marginTop: S.s12 }}>
+              <DeputeSlot depute={depA} onPick={choisirA} onClear={viderA} onOpen={ouvrirFiche} />
+              <DeputeSlot depute={depB} onPick={choisirB} onClear={viderB} onOpen={ouvrirFiche} />
+            </View>
+            <View style={{ flexDirection: "row", gap: S.s10, marginTop: S.s14 }}>
+              {edition && pret && <Button label="Annuler" variant="outline" style={{ flex: 1 }} onPress={() => setEdition(false)} />}
+              <Button
+                label="Duel au hasard"
+                variant="primary"
+                style={{ flex: 1 }}
+                loading={shuffling}
+                onPress={lancerShuffle}
+                accessibilityLabel="Tirer deux élus au hasard"
+                iconLeft={<MaterialCommunityIcons name="shuffle-variant" size={ICON.md} />}
+              />
+            </View>
+          </Card>
+        )}
 
-      {!pret && (
-        <Text style={[T.body, { color: C.textFaint, marginTop: 16 }]}>
-          Choisis deux élus pour comparer leurs votes.
-        </Text>
-      )}
+        {pret && !edition && (
+          <View style={{ marginTop: S.s14 }}>
+            <Segments<Periode> plein label="Période" items={PERIODES} actif={periode} onChange={setPeriode} />
+          </View>
+        )}
 
-      {/* Sélecteurs symétriques */}
-      <View style={{ flexDirection: "row", gap: 10, marginTop: 10 }}>
-        <DeputeSlot depute={depA} onPick={choisirA} onClear={viderA} onOpen={(d) => nav.push({ name: "depute", uid: d.uid })} />
-        <DeputeSlot depute={depB} onPick={choisirB} onClear={viderB} onOpen={(d) => nav.push({ name: "depute", uid: d.uid })} />
+        {pret && !edition && loading && <ActivityIndicator color={C.textMuted} style={{ marginTop: S.s32 }} />}
+        {pret && !edition && erreur && !loading && <ErreurChargement compact onRetry={() => setEssai((n) => n + 1)} />}
+        {pret && !edition && data && !loading && <Resultats data={data} depA={depA!} depB={depB!} nav={nav} />}
+      </Animated.ScrollView>
+    </View>
+  );
+}
+
+/* ------------------------------------------------------------------ Bandeau sombre */
+
+function Bandeau({
+  depA, depB, taux, phrase, angle, shuffling, onChanger, onHasard, onFiche,
+}: {
+  depA: DeputeResume; depB: DeputeResume; taux: number | null; phrase: string; angle: AngleShuffle | null;
+  shuffling: boolean; onChanger: () => void; onHasard: () => void; onFiche: (d: DeputeResume) => void;
+}) {
+  return (
+    <View style={{ position: "relative", overflow: "hidden", backgroundColor: C.heroBg, borderRadius: RADIUS.xl, paddingTop: S.s20, paddingHorizontal: S.s16, paddingBottom: S.s16 }}>
+      {/* Filigrane : l'hémicycle du logo, en blanc très léger. */}
+      <View pointerEvents="none" style={{ position: "absolute", left: -31, top: -40 }}>
+        <ScrutoirMark size={420} color={C.heroWatermark} accent="transparent" />
       </View>
 
-      {/* Shuffle — juste sous la rangée des sélecteurs. Re-clic = nouveau tirage. */}
-      <View style={{ borderTopWidth: 1, borderTopColor: C.border, marginTop: 18 }} />
-      <View style={{ alignItems: "center", marginTop: 14, gap: 9 }}>
-        <Text style={[T.small, { color: C.textMuted }]}>Pas d'idée ? Laisse-toi surprendre.</Text>
+      <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+        <EluBandeau d={depA} onPress={() => onFiche(depA)} />
+        <Anneau taux={taux} />
+        <EluBandeau d={depB} onPress={() => onFiche(depB)} />
+      </View>
+
+      <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.onHeroMuted, textAlign: "center", marginTop: S.s12 }]}>{phrase}</Text>
+      {angle && (
+        <Text style={[T.micro, { color: C.onHeroMuted, textAlign: "center", marginTop: S.s4 }]}>Tiré au hasard. {ANGLE_LABEL[angle]}</Text>
+      )}
+
+      <View style={{ flexDirection: "row", gap: S.s8, marginTop: S.s14 }}>
         <TouchableOpacity
-          onPress={lancerShuffle}
-          disabled={shuffling}
-          accessibilityLabel="Tirer une paire au hasard"
-          style={{
-            width: 46, height: 46, borderRadius: RADIUS.pill, borderWidth: 1.5, borderColor: C.accent,
-            backgroundColor: C.surface, alignItems: "center", justifyContent: "center", ...shadowCard,
-          }}
+          onPress={onChanger}
+          accessibilityRole="button"
+          activeOpacity={0.8}
+          style={{ flex: 1, height: CONTROL.md, borderRadius: RADIUS.md, backgroundColor: C.heroGhost, borderWidth: 1, borderColor: C.heroTrack, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: S.s8 }}
         >
-          {shuffling ? <ActivityIndicator size="small" color={C.accent} /> : <MaterialCommunityIcons name="shuffle-variant" size={20} color={C.accent} />}
+          <Feather name="repeat" size={ICON.md} color={C.onHero} />
+          <Text style={[T.small, { fontFamily: F.bold, color: C.onHero }]}>Changer d'élus</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={onHasard}
+          disabled={shuffling}
+          accessibilityRole="button"
+          accessibilityLabel="Duel au hasard : tirer deux autres élus"
+          activeOpacity={0.85}
+          style={{ flex: 1, height: CONTROL.md, borderRadius: RADIUS.md, backgroundColor: C.onHero, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: S.s8 }}
+        >
+          {shuffling ? <ActivityIndicator size="small" color={C.heroInk} /> : <MaterialCommunityIcons name="shuffle-variant" size={ICON.md} color={C.heroInk} />}
+          <Text style={[T.small, { fontFamily: F.bold, color: C.heroInk }]}>Duel au hasard</Text>
         </TouchableOpacity>
       </View>
+    </View>
+  );
+}
 
-      {/* Période */}
-      {pret && (
-        <View style={{ flexDirection: "row", backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, padding: 3, marginTop: 14 }}>
-          {PERIODES.map((p) => {
-            const actif = p.v === periode;
-            return (
-              <TouchableOpacity key={p.v} onPress={() => setPeriode(p.v)} style={{ flex: 1, paddingVertical: 7, borderRadius: RADIUS.pill, backgroundColor: actif ? C.surface : "transparent", alignItems: "center", ...(actif ? shadowCard : {}) }}>
-                <Text style={[T.small, { fontFamily: actif ? F.bold : F.medium, color: actif ? C.text : C.textMuted }]}>{p.label}</Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      )}
+function EluBandeau({ d, onPress }: { d: DeputeResume; onPress: () => void }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.75}
+      accessibilityRole="button"
+      accessibilityLabel={`Voir la fiche de ${d.nom_complet}`}
+      style={{ flex: 1, minWidth: 0, alignItems: "center", paddingTop: S.s14 }}
+    >
+      <ProfilAvatar uri={d.photo_url} size={54} ring={couleurGroupe(d.couleur)} />
+      <Text style={[T.small, { fontFamily: F.bold, color: C.onHero, marginTop: S.s8, textAlign: "center" }]} numberOfLines={2}>{d.nom_complet}</Text>
+      <Text style={[T.micro, { color: C.onHeroMuted, marginTop: 2 }]} numberOfLines={1}>{d.abrev ?? "—"}</Text>
+    </TouchableOpacity>
+  );
+}
 
-      {loading && <ActivityIndicator color={C.textMuted} style={{ marginTop: 30 }} />}
-
-      {pret && erreur && !loading && <ErreurChargement compact onRetry={() => setEssai((n) => n + 1)} />}
-
-      {pret && data && !loading && <Resultats data={data} depA={depA!} depB={depB!} periode={periode} shuffleAngle={shuffleAngle} nav={nav} />}
-      </Animated.ScrollView>
+/** Anneau d'accord : part des votes pareils (vert), le reste opposé (rouge). */
+function Anneau({ taux }: { taux: number | null }) {
+  const taille = 112;
+  const r = 44;
+  const circ = 2 * Math.PI * r;
+  const arc = taux != null ? (circ * taux) / 100 : 0;
+  return (
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel={taux != null ? `${taux} % d'accord` : "Taux d'accord en cours de calcul"}
+      style={{ width: taille, height: taille }}
+    >
+      <Svg width={taille} height={taille}>
+        <Circle cx={taille / 2} cy={taille / 2} r={r} fill="none" stroke={taux != null ? C.contre : C.heroTrack} strokeWidth={11} />
+        {taux != null && taux > 0 && (
+          <Circle cx={taille / 2} cy={taille / 2} r={r} fill="none" stroke={C.pour} strokeWidth={11} strokeDasharray={`${arc} ${circ}`} transform={`rotate(-90 ${taille / 2} ${taille / 2})`} />
+        )}
+      </Svg>
+      <View style={{ position: "absolute", left: 0, top: 0, width: taille, height: taille, alignItems: "center", justifyContent: "center" }}>
+        <Text style={[T.title, tnum, { color: C.onHero }]}>{taux != null ? `${taux} %` : "—"}</Text>
+        <Text style={[T.micro, { color: C.onHeroMuted }]}>d'accord</Text>
+      </View>
     </View>
   );
 }
@@ -222,31 +323,22 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
 
   if (depute) {
     return (
-      <Card padding={11} style={{ flex: 1, alignItems: "center" }}>
-        {/* Photo + nom → fiche de l'élu (un visage est tappable par convention). */}
-        <TouchableOpacity
-          activeOpacity={0.7}
-          onPress={() => onOpen(depute)}
-          accessibilityRole="button"
-          accessibilityLabel={`Voir la fiche de ${depute.nom_complet}`}
-          style={{ alignItems: "center" }}
-        >
-          <Image source={{ uri: depute.photo_url ?? undefined }} style={{ width: 52, height: 52, borderRadius: 26, backgroundColor: C.surfaceAlt }} />
-          <Text style={[T.body, { fontFamily: F.bold, color: C.text, marginTop: 7, textAlign: "center" }]} numberOfLines={2}>{depute.nom_complet}</Text>
-          <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 1 }]}>{depute.abrev ?? "—"}</Text>
+      <View style={{ flex: 1, alignItems: "center", backgroundColor: C.bg, borderRadius: RADIUS.md, padding: S.s10 }}>
+        <TouchableOpacity activeOpacity={0.7} onPress={() => onOpen(depute)} accessibilityRole="button" accessibilityLabel={`Voir la fiche de ${depute.nom_complet}`} style={{ alignItems: "center" }}>
+          <ProfilAvatar uri={depute.photo_url} size={44} ring={couleurGroupe(depute.couleur)} />
+          <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginTop: S.s6, textAlign: "center" }]} numberOfLines={2}>{depute.nom_complet}</Text>
+          <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>{depute.abrev ?? "—"}</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onClear} style={{ marginTop: 7 }}>
-          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Changer</Text>
-        </TouchableOpacity>
-      </Card>
+        <Button label="Changer" variant="text" size="sm" onPress={onClear} accessibilityLabel={`Changer ${depute.nom_complet}`} />
+      </View>
     );
   }
 
   return (
-    <Card padding={10} style={{ flex: 1 }}>
+    <View style={{ flex: 1, minWidth: 0 }}>
       {/* Bordure accent au focus = focus clavier visible (l'outline navigateur est désactivée). */}
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.sm, paddingHorizontal: 10, height: 38, borderWidth: 1, borderColor: qFocus ? C.accent : "transparent" }}>
-        <Feather name="search" size={15} color={C.textFaint} />
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 7, backgroundColor: C.bg, borderRadius: RADIUS.sm, paddingHorizontal: S.s10, height: CONTROL.md, borderWidth: 1, borderColor: qFocus ? C.accent : C.borderStrong }}>
+        <Feather name="search" size={ICON.sm} color={C.textFaint} />
         <TextInput
           value={q}
           onChangeText={setQ}
@@ -254,251 +346,212 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
           onBlur={() => setQFocus(false)}
           placeholder="Un élu…"
           placeholderTextColor={C.textFaint}
-          style={[inputText, { flex: 1, color: C.text, outlineStyle: "none" }] as any}
+          accessibilityLabel="Chercher un élu"
+          style={[inputText, { flex: 1, minWidth: 0, color: C.text, outlineStyle: "none" }] as any}
           autoCorrect={false}
         />
       </View>
       {res.map((d) => (
-        <TouchableOpacity key={d.uid} onPress={() => { onPick(d); setQ(""); setRes([]); }} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 7 }}>
-          <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: C.surfaceAlt }} />
-          <View style={{ flex: 1 }}>
+        <TouchableOpacity key={d.uid} onPress={() => { onPick(d); setQ(""); setRes([]); }} accessibilityRole="button" accessibilityLabel={`Choisir ${d.nom_complet}`} style={{ flexDirection: "row", alignItems: "center", gap: S.s8, minHeight: CONTROL.md }}>
+          <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.surfaceAlt }} />
+          <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[T.small, { fontFamily: F.semibold, color: C.text }]} numberOfLines={1}>{d.nom_complet}</Text>
-            <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted }]}>{d.abrev ?? "—"}</Text>
+            <Text style={[T.micro, { color: C.textMuted }]}>{d.abrev ?? "—"}</Text>
           </View>
         </TouchableOpacity>
       ))}
-    </Card>
+    </View>
   );
 }
 
 /* ------------------------------------------------------------------ Résultats */
 
-function Resultats({ data, depA, depB, periode, shuffleAngle, nav }: { data: Confrontation; depA: DeputeResume; depB: DeputeResume; periode: Periode; shuffleAngle: AngleShuffle | null; nav: Nav }) {
-  // Spectre : thèmes assez couverts, triés du plus divergent au plus convergent.
-  const fiables = data.themes
-    .filter((t) => t.communs >= SEUIL_FIABILITE)
-    .sort((a, b) => b.desaccords.length / b.communs - a.desaccords.length / a.communs);
-  // Non couverts = aucun scrutin commun ; insuffisants = trop peu pour conclure.
-  const nonCouverts = data.themes.filter((t) => t.communs === 0);
-  const insuffisants = data.themes.filter((t) => t.communs > 0 && t.communs < SEUIL_FIABILITE);
-  const periodeLabel = PERIODES.find((p) => p.v === periode)?.label ?? "";
-  const tauxAccord = data.communs ? Math.round((data.accords / data.communs) * 100) : null;
+function Resultats({ data, depA, depB, nav }: { data: Confrontation; depA: DeputeResume; depB: DeputeResume; nav: Nav }) {
+  const derniers = derniersVotes(data.themes, 3);
+  const { fiables, peu, aucun } = ventilerThemes(data.themes, SEUIL_FIABILITE);
+  const court = (t: LigneTheme) => ({ ...t, libelle: catUI(t.id).court ?? t.libelle });
+  const horsSeuil = phraseHorsSeuil(peu.map(court), aucun.map(court));
+  const sousTitre = `${depA.nom_complet} et ${depB.nom_complet}`;
+
+  const ouvrirListe = (kind: "accord" | "desaccord" | "tous", themeLibelle: string, scrutins: ConfrontationScrutin[], themeCommuns: number) =>
+    nav.push({ name: "confrontationListe", kind, themeLibelle, sousTitre, scrutins, depA, depB, communs: themeCommuns });
 
   return (
-    <View style={{ marginTop: 18 }}>
-      {/* Bandeau « Pourquoi ce duel » : présent uniquement sur un tirage shuffle,
-          au-dessus de la synthèse. Explique l'angle, écarte tout soupçon partisan. */}
-      {shuffleAngle && (
-        <View
-          style={{
-            flexDirection: "row", alignItems: "center", gap: 10, marginBottom: 10,
-            backgroundColor: C.surfaceSunken, borderRadius: RADIUS.md, paddingVertical: 11, paddingHorizontal: 13,
-          }}
-        >
-          <Feather name={ANGLE_ICON[shuffleAngle]} size={18} color={C.accent} />
-          <View style={{ flex: 1 }}>
-            <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, letterSpacing: 0.4, textTransform: "uppercase" }]}>
-              Pourquoi ce duel
-            </Text>
-            <Text style={[T.small, { fontFamily: F.semibold, color: C.text, marginTop: 1 }]}>{ANGLE_LABEL[shuffleAngle]}</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Carte de synthèse — honnête même sortie de l'app (capture d'écran) */}
-      <Card>
-        <View style={{ flexDirection: "row", justifyContent: "space-around" }}>
-          <Synthese n={data.desaccords} label="Désaccords" color={C.contre} />
-          <Synthese n={data.accords} label="Accords" color={C.pour} />
-          <Synthese n={tauxAccord != null ? `${tauxAccord}%` : "—"} label="Taux d'accord" color={C.text} />
-        </View>
-        {data.communs > 0 && (
-          <View style={{ flexDirection: "row", height: 8, borderRadius: 4, overflow: "hidden", backgroundColor: C.surfaceSunken, marginTop: 12 }}>
-            <View style={{ flex: data.accords || 0.0001, backgroundColor: C.pour }} />
-            <View style={{ flex: data.desaccords || 0.0001, backgroundColor: C.contre }} />
-          </View>
-        )}
-        <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 11, textAlign: "center" }]}>
-          {periodeLabel} · scrutins publics nominatifs (17ᵉ législature){"\n"}où {depA.nom_complet} et {depB.nom_complet} ont tous deux voté
-        </Text>
-      </Card>
-
-      {data.communs === 0 && (
-        <Text style={[T.body, { color: C.textMuted, marginTop: 20, textAlign: "center" }]}>
-          Aucun scrutin nominatif commun sur cette période. Leurs positions ne sont pas comparables par ce canal.
-        </Text>
-      )}
-
-      {fiables.length > 0 && (
-        <View style={{ marginTop: 22 }}>
-          <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Accord par thème</Text>
-          <Text style={[T.small, { color: C.textFaint, marginTop: 2, marginBottom: 11 }]}>
-            Du plus divergent au plus convergent. Touche un thème pour le détail.
-          </Text>
-          <View style={{ gap: 9 }}>
-            {fiables.map((t) => (
-              <ThemeSpectrumRow key={t.id} theme={t} depA={depA} depB={depB} sousTitre={`${depA.nom_complet} vs ${depB.nom_complet}`} nav={nav} />
-            ))}
-          </View>
-        </View>
-      )}
-
-      {(nonCouverts.length > 0 || insuffisants.length > 0) && (
-        <View style={{ marginTop: 22 }}>
-          <Text style={[T.body, { fontFamily: F.extra, color: C.textMuted }]}>Non couvert</Text>
-          <Text style={[T.small, { color: C.textFaint, marginTop: 2, marginBottom: 9 }]}>
-            Pas (ou trop peu) de scrutin nominatif commun — invérifiable par ce canal, ce n'est pas un désaccord.
-          </Text>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 7 }}>
-            {[...insuffisants, ...nonCouverts].map((t) => (
-              <View key={t.id} style={{ flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.pill, paddingVertical: 5, paddingHorizontal: 10 }}>
-                <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{t.libelle}</Text>
-                <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint }]}>{t.communs}</Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      )}
-    </View>
-  );
-}
-
-function Synthese({ n, label, color }: { n: number | string; label: string; color: string }) {
-  return (
-    <View style={{ alignItems: "center" }}>
-      <Text style={[T.title, tnum, { color }]}>{n}</Text>
-      <Text style={[T.micro, { color: C.textMuted, marginTop: 2 }]}>{label}</Text>
-    </View>
-  );
-}
-
-/** Ligne de spectre : thème + barre divergente accords/désaccords, dépliable. */
-function ThemeSpectrumRow({ theme, depA, depB, sousTitre, nav }: { theme: ConfrontationTheme; depA: DeputeResume; depB: DeputeResume; sousTitre: string; nav: Nav }) {
-  const [open, setOpen] = useState(false);
-  const ui = catUI(theme.id);
-  const d = theme.desaccords.length;
-  const a = theme.accords.length;
-
-  // Ouvre la liste filtrée sur une page dédiée (avec filtres année/mois).
-  const ouvrir = (kind: "accord" | "desaccord") =>
-    nav.push({
-      name: "confrontationListe",
-      kind,
-      themeLibelle: theme.libelle,
-      sousTitre,
-      scrutins: kind === "accord" ? theme.accords : theme.desaccords,
-      depA,
-      depB,
-      communs: theme.communs,
-    });
-
-  return (
-    <Card padding={0} style={{ overflow: "hidden" }}>
-      <TouchableOpacity activeOpacity={0.6} onPress={() => setOpen((o) => !o)} style={{ padding: 13 }}>
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-          <View style={{ width: 28, height: 28, borderRadius: 9, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
-            <MaterialCommunityIcons name={ui.icon as any} size={16} color={ui.fg} />
-          </View>
-          <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{theme.libelle}</Text>
-          <Feather name={open ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
-        </View>
-
-        {/* Répartition accords / désaccords, axe central partagé (comme la fiche parti) :
-            accords (vert) partent du centre vers la gauche, désaccords (rouge) vers la droite. */}
-        <View style={{ marginTop: 10 }}>
-          <BarreDivergente pour={a} contre={d} />
-        </View>
-
-        <Text style={[T.micro, { fontFamily: F.medium, color: C.textMuted, marginTop: 6 }]}>
-          <Text style={{ fontFamily: F.bold, color: C.pour }}>{a} accord{a > 1 ? "s" : ""}</Text>
-          {" · "}
-          <Text style={{ fontFamily: F.bold, color: C.contre }}>{d} désaccord{d > 1 ? "s" : ""}</Text>
-          {" sur "}{theme.communs} comparés
-        </Text>
-      </TouchableOpacity>
-
-      {open && (
-        <View style={{ paddingHorizontal: 13, paddingBottom: 13 }}>
-          {/* Mêmes boutons que Pour / Contre : Accord / Désaccord → page liste dédiée */}
-          <PositionCells
-            cells={[
-              { pos: "accord", n: a, label: "Accord", color: C.pour },
-              { pos: "desaccord", n: d, label: "Désaccord", color: C.contre },
-            ]}
-            onCell={(pos) => ouvrir(pos as "accord" | "desaccord")}
-          />
-        </View>
-      )}
-    </Card>
-  );
-}
-
-export function ScrutinLigne({ sc, nav }: { sc: ConfrontationScrutin; nav: Nav }) {
-  const [voirTexte, setVoirTexte] = useState(false);
-  const expose = (sc.resume || "").trim();
-  const resume = expose || (sc.objet || "").trim();
-  const labelOuvrir = expose ? "Voir le résumé ▾" : "Voir l'intitulé complet ▾";
-  const url = scrutinSourceUrl(sc.numero);
-  return (
-    <View style={{ borderTopWidth: 1, borderTopColor: C.border, paddingTop: 9 }}>
-      <TouchableOpacity activeOpacity={0.6} onPress={() => nav.push({ name: "scrutin", uid: sc.uid })}>
-        <Text style={[T.body, { fontFamily: F.semibold, color: C.text }]} numberOfLines={2}>
-          {sc.titre || sc.objet}
-        </Text>
-      </TouchableOpacity>
-      <View style={{ flexDirection: "row", alignItems: "center", marginTop: 7 }}>
-        <PosChip pos={sc.posA} />
-        <View style={{ flex: 1, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          <Text style={[T.micro, tnum, { fontFamily: F.medium, color: C.textFaint }]}>
-            {formatDate(sc.date)} · n° {sc.numero}
-          </Text>
-          {url && (
-            <TouchableOpacity onPress={() => Linking.openURL(url)} hitSlop={8}>
-              <Feather name="external-link" size={13} color={C.accent} />
-            </TouchableOpacity>
-          )}
-        </View>
-        <PosChip pos={sc.posB} />
+    <View>
+      {/* ===== Derniers votes, en deux colonnes ===== */}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: S.s20, marginBottom: S.s8, paddingHorizontal: 2 }}>
+        <Text accessibilityRole="header" style={[T.heading, { color: C.text }]}>Derniers votes</Text>
+        {/* Aligné sur les colonnes de pastilles (marge interne des lignes : 14, de l'en-tête : 2). */}
+        <View style={{ paddingRight: S.s12 }}><EnteteColonnes a={depA} b={depB} /></View>
       </View>
-      {/* Résumé du texte : caché par défaut, à la demande (reco confrontation) */}
-      {!!resume && (
-        <>
-          <TouchableOpacity onPress={() => setVoirTexte((v) => !v)} style={{ marginTop: 7 }} hitSlop={6}>
-            <Text style={[T.micro, { fontFamily: F.bold, color: C.accent }]}>
-              {voirTexte ? "Masquer ▴" : labelOuvrir}
-            </Text>
+      {data.communs === 0 ? (
+        <Card radius={RADIUS.lg}>
+          <Text style={[T.small, { color: C.textMuted }]}>Aucun vote en commun sur cette période : leurs positions ne se comparent pas par ce canal.</Text>
+        </Card>
+      ) : (
+        <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden" }}>
+          {derniers.map((sc, i) => <LigneVoteDuel key={sc.uid} sc={sc} premier={i === 0} depA={depA} depB={depB} nav={nav} />)}
+          <TouchableOpacity
+            onPress={() => ouvrirListe("tous", "Tous les thèmes", votesCommuns(data.themes), data.communs)}
+            accessibilityRole="button"
+            style={{ minHeight: CONTROL.md, alignItems: "center", justifyContent: "center", borderTopWidth: 1, borderTopColor: C.border }}
+          >
+            <Text style={[T.small, tnum, { fontFamily: F.bold, color: C.accent }]}>{data.communs > 1 ? `Voir les ${data.communs} votes en commun` : "Voir le vote en commun"}</Text>
           </TouchableOpacity>
-          {voirTexte && (
-            <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted, marginTop: 5 }]}>
-              {resume}
-            </Text>
-          )}
+        </Card>
+      )}
+
+      {/* ===== Par thème : barres papillon ===== */}
+      {fiables.length > 0 && (
+        <>
+          <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: S.s20, marginBottom: S.s8, paddingHorizontal: 2 }}>
+            <Text accessibilityRole="header" style={[T.heading, { color: C.text }]}>Par thème</Text>
+            <View style={{ flexDirection: "row", gap: S.s12 }}>
+              <Text style={[T.micro, { fontFamily: F.bold, color: C.adopteFg }]}>← pareils</Text>
+              <Text style={[T.micro, { fontFamily: F.bold, color: C.rejeteFg }]}>opposés →</Text>
+            </View>
+          </View>
+          <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden" }}>
+            {fiables.map((t, i) => {
+              const th = data.themes.find((x) => x.id === t.id)!;
+              return (
+                <ThemePapillon
+                  key={t.id}
+                  ligne={court(t)}
+                  premier={i === 0}
+                  onPareils={() => ouvrirListe("accord", court(t).libelle, th.accords, th.communs)}
+                  onOpposes={() => ouvrirListe("desaccord", court(t).libelle, th.desaccords, th.communs)}
+                />
+              );
+            })}
+          </Card>
         </>
       )}
+      {!!horsSeuil && <Text style={[T.small, { color: C.textFaint, marginTop: S.s10, paddingHorizontal: 2 }]}>{horsSeuil}</Text>}
+
+      <Text style={[T.micro, { color: C.textFaint, marginTop: S.s16, paddingHorizontal: 2 }]}>
+        Votes en commun : scrutins publics nominatifs de la 17ᵉ législature (depuis 2024), rattachés à un thème, où les deux ont voté pour, contre ou se sont abstenus. Quand l'un des deux n'a pas voté, le scrutin ne compte pas.
+      </Text>
     </View>
   );
 }
 
-function PosChip({ pos }: { pos: string }) {
-  const col = couleurPosition(pos);
+/** Les deux élus au-dessus des colonnes de positions (mêmes largeurs que les pastilles). */
+export function EnteteColonnes({ a, b }: { a: DeputeResume; b: DeputeResume }) {
   return (
-    <Chip
-      label={positionLabel(pos)}
-      bg={C.surfaceSunken}
-      fg={C.text}
-      ph={8}
-      pv={3}
-      icon={<View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: col }} />}
-    />
+    <View style={{ flexDirection: "row", gap: S.s8 }}>
+      {[a, b].map((d) => (
+        <View key={d.uid} style={{ width: COL, alignItems: "center" }} accessible accessibilityLabel={`Colonne de ${d.nom_complet}`}>
+          <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 24, height: 24, borderRadius: 12, borderWidth: 2, borderColor: couleurGroupe(d.couleur), backgroundColor: C.surfaceAlt }} />
+        </View>
+      ))}
+    </View>
   );
 }
 
-/** Récupère un DeputeResume à partir d'un uid (pré-sélection via route). */
-async function hydrate(uid: string, set: (d: DeputeResume) => void) {
-  try {
-    const r = await getConfrontation(uid, uid, "all");
-    if (r?.a) set(r.a);
-  } catch {
-    /* ignore */
-  }
+/** Pastille de position en colonne : Pour (vert doux), Contre (rouge doux), Abst. (neutre). */
+function PastillePosition({ pos }: { pos: string }) {
+  const bg = pos === "pour" ? C.adopteBg : pos === "contre" ? C.rejeteBg : C.surfaceSunken;
+  const fg = pos === "pour" ? C.adopteFg : pos === "contre" ? C.rejeteFg : C.textMuted;
+  return (
+    <View style={{ width: COL, alignItems: "center", paddingVertical: 4, borderRadius: RADIUS.pill, backgroundColor: bg }}>
+      <Text style={[T.micro, { fontFamily: F.bold, color: fg }]}>{positionCourte(pos)}</Text>
+    </View>
+  );
+}
+
+const ANNEE = new Date().toISOString().slice(0, 4);
+
+/** Une ligne de vote du duel : ce qui a été voté, puis la position de chacun en colonnes. */
+export function LigneVoteDuel({ sc, premier, depA, depB, nav }: { sc: ConfrontationScrutin; premier: boolean; depA: DeputeResume; depB: DeputeResume; nav: Nav }) {
+  const { meta, titre } = ligneVote(sc, ANNEE);
+  return (
+    <>
+      {!premier && <View style={{ height: 1, backgroundColor: C.border, marginLeft: S.s14 }} />}
+      <TouchableOpacity
+        onPress={() => nav.push({ name: "scrutin", uid: sc.uid })}
+        activeOpacity={0.7}
+        accessibilityRole="button"
+        accessibilityLabel={`${titre}. ${depA.nom_complet} : ${positionCourte(sc.posA)}. ${depB.nom_complet} : ${positionCourte(sc.posB)}.`}
+        style={{ flexDirection: "row", alignItems: "center", gap: S.s10, paddingHorizontal: S.s14, paddingVertical: 11 }}
+      >
+        <View style={{ flex: 1, minWidth: 0 }}>
+          <Text style={[T.micro, tnum, { color: C.textFaint }]}>{meta}</Text>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginTop: 2 }]} numberOfLines={2}>{titre}</Text>
+        </View>
+        <View style={{ flexDirection: "row", gap: S.s8 }}>
+          <PastillePosition pos={sc.posA} />
+          <PastillePosition pos={sc.posB} />
+        </View>
+      </TouchableOpacity>
+    </>
+  );
+}
+
+/** Un thème : % d'accord, barre papillon chiffrée (pareils ←, opposés →), dépliable vers le détail. */
+function ThemePapillon({ ligne, premier, onPareils, onOpposes }: { ligne: LigneTheme; premier: boolean; onPareils: () => void; onOpposes: () => void }) {
+  const [ouvert, setOuvert] = useState(false);
+  const ui = catUI(ligne.id);
+  const { gauche, droite } = ailesPapillon(ligne.pareils, ligne.opposes);
+  const pl = (n: number, s: string) => `${n} vote${n > 1 ? "s" : ""} ${s}${n > 1 ? "s" : ""}`;
+  const voir = (n: number, s: string) => (n > 1 ? `Voir les ${n} ${s}s` : n === 1 ? `Voir le vote ${s}` : `Aucun vote ${s}`);
+  return (
+    <>
+      {!premier && <View style={{ height: 1, backgroundColor: C.border, marginLeft: S.s14 }} />}
+      <View style={{ paddingHorizontal: S.s14, paddingVertical: S.s12 }}>
+        <TouchableOpacity
+          onPress={() => setOuvert((o) => !o)}
+          activeOpacity={0.7}
+          accessibilityRole="button"
+          accessibilityState={{ expanded: ouvert }}
+          aria-expanded={ouvert}
+          accessibilityLabel={`${ligne.libelle} : ${ligne.pct} % d'accord, ${pl(ligne.pareils, "pareil")}, ${pl(ligne.opposes, "opposé")}`}
+          style={{ gap: 7 }}
+        >
+          <View style={{ flexDirection: "row", alignItems: "center", gap: S.s8 }}>
+            <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: ui.bg, alignItems: "center", justifyContent: "center" }}>
+              <MaterialCommunityIcons name={ui.icon as any} size={ICON.xs} color={ui.fg} />
+            </View>
+            <Text style={[T.body, { flex: 1, fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{ligne.libelle}</Text>
+            <Text style={[T.small, tnum, { fontFamily: F.extra, color: C.text }]}>{ligne.pct} %</Text>
+            <Feather name={ouvert ? "chevron-up" : "chevron-down"} size={ICON.sm} color={C.textFaint} />
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: S.s6 }}>
+            <Text style={[T.micro, tnum, { width: 26, textAlign: "right", fontFamily: F.bold, color: C.adopteFg }]}>{ligne.pareils}</Text>
+            <View style={{ flex: 1, flexDirection: "row", alignItems: "center", height: 10 }}>
+              <View style={{ flex: 1, height: 10, flexDirection: "row", justifyContent: "flex-end" }}>
+                <View style={{ width: `${gauche}%`, backgroundColor: C.pour, borderTopLeftRadius: 5, borderBottomLeftRadius: 5 }} />
+              </View>
+              <View style={{ width: 2, height: 16, backgroundColor: C.hairlineStrong }} />
+              <View style={{ flex: 1, height: 10, flexDirection: "row" }}>
+                <View style={{ width: `${droite}%`, backgroundColor: C.contre, borderTopRightRadius: 5, borderBottomRightRadius: 5 }} />
+              </View>
+            </View>
+            <Text style={[T.micro, tnum, { width: 26, fontFamily: F.bold, color: C.rejeteFg }]}>{ligne.opposes}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {ouvert && (
+          <View style={{ flexDirection: "row", gap: S.s8, marginTop: S.s10 }}>
+            <BoutonDetail label={voir(ligne.pareils, "pareil")} bg={C.adopteBg} fg={C.adopteFg} disabled={!ligne.pareils} onPress={onPareils} />
+            <BoutonDetail label={voir(ligne.opposes, "opposé")} bg={C.rejeteBg} fg={C.rejeteFg} disabled={!ligne.opposes} onPress={onOpposes} />
+          </View>
+        )}
+      </View>
+    </>
+  );
+}
+
+function BoutonDetail({ label, bg, fg, disabled, onPress }: { label: string; bg: string; fg: string; disabled: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      disabled={disabled}
+      accessibilityRole="button"
+      accessibilityState={{ disabled }}
+      style={{ flex: 1, minHeight: 40, borderRadius: RADIUS.md, backgroundColor: bg, alignItems: "center", justifyContent: "center", opacity: disabled ? 0.6 : 1 }}
+    >
+      <Text style={[T.small, tnum, { fontFamily: F.bold, color: fg }]}>{label}</Text>
+    </TouchableOpacity>
+  );
 }
