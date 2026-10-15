@@ -7,6 +7,14 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.26.1 — 2026-10-15
+**Pipeline : `@huggingface/transformers` 4.2.0 → 4.3.1.** Rien de visible, sauf de légers réordonnancements dans la recherche par sujet. `npm audit --omit=dev` du pipeline passe de 4 hautes à **0** : adm-zip 0.6.1 et global-agent 4.1.3, via onnxruntime-node 1.30.0 ; sharp 0.35.5. Aucune n'était exploitable : adm-zip ne servait qu'au script d'installation d'onnxruntime-node, et sharp n'est jamais appelé (le pipeline ne traite que du texte). Lockfile seul : mineure dans le `^4.2.0` déjà déclaré.
+- **L'app reste en 4.2.0, volontairement.** Le runtime servi aux visiteurs aurait dû passer à onnxruntime-web 1.31, dont le fichier WASM chargé pèse 25,6 Mio : au-delà des 25 Mio par fichier de Cloudflare Pages, le build échoue. L'app n'a pas d'alerte atteignable (ses 4 hautes liées à transformers sont des paquets Node, jamais servis). Ce qu'il faudra faire pour monter le runtime web est noté dans `CLAUDE.md`.
+- **Index de la recherche par sujet** (`embeddings.bin`, régénéré chaque nuit par le pipeline) : vecteurs quasi identiques. Mesuré sur la même base, 8 560 scrutins : cosinus ≥ 0,9993 entre les index 4.2.0 et 4.3.1.
+  - **Requêtes faites dans le navigateur** (runtime servi, inchangé), 20 requêtes : même premier résultat 17 fois sur 20, 92,5 % de recouvrement du top 10. Les écarts sont des inversions entre résultats quasi à égalité, sur les mêmes scrutins.
+  - **Pas de bump d'`EMBED_VERSION`.** L'écart déjà présent entre le runtime du navigateur et celui du pipeline est 5 fois plus grand (cosinus ~0,9976).
+- Vérifications : `npm run embeddings` complet en 4.3.1 (macOS), garde de `refresh.yml` sans React (184/184), `tsc` du pipeline.
+
 ## 1.26.0 — 2026-10-15
 **Onglet Partis : ton affinité avec chaque groupe, une fois situé.** Demande d'Anthony : lire l'appli et les scrutins par le prisme de l'utilisateur, c'est pour ça qu'on l'invite à répondre aux scrutins. Revient sur un retrait de la 1.22.0.
 - **Situé.** Chaque ligne de groupe montre son « % comme toi » en avant et sa base en petit (« sur 21 votes »), les mêmes chiffres que le spectre du résultat du test (même moteur, `lignesSpectre`). Sous 5 votes comparés (`SEUIL_FIABILITE`), pas de % : « pas assez de votes » en gris ; les non-inscrits, sans position de groupe : « aucun vote comparé ». La liste est triée par affinité décroissante, sans rang (choix, facile à inverser : une ligne dans `affiniteGroupes`). Les sièges passent à côté du sigle. Une phrase sous « Les groupes » dit ce que mesure le % et le seuil. L'encart sombre mène au détail du résultat (marge d'erreur, affiner).
