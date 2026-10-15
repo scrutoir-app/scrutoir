@@ -10,6 +10,7 @@ import { StatCol, ProfilTabs, PctCard, ProfilAvatar, SectionTitle, AccordSection
 import { catUI } from "../categoryUI";
 import { getParti, getPartis, getCategories, getGrandsScrutins, getScrutin, getDeputesParti } from "../api";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
+import { accordsParTheme } from "../testProximite/baseAccord";
 import { useFollow } from "../hooks/useFollows";
 import { positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
 import { partagerLien } from "../share";
@@ -35,13 +36,7 @@ type Onglet = "accord" | "votes" | "groupe";
 function accordParTheme(je: ReturnType<typeof useJe>, abrev: string | null, cats: CategorieRef[]): LigneAccord[] {
   if (!je || !abrev) return [];
   const lib = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
-  const out: LigneAccord[] = [];
-  for (const [theme, parGroupe] of Object.entries(je.resultat.parTheme)) {
-    const sc = parGroupe[abrev];
-    if (!sc || sc.pct == null || sc.comparable < 1) continue;
-    out.push({ id: theme, libelle: lib(theme), pct: sc.pct });
-  }
-  return out.sort((a, b) => b.pct - a.pct);
+  return accordsParTheme(je.resultat, abrev).map((l) => ({ ...l, libelle: lib(l.id) }));
 }
 
 // Scrutin clé + ventilation de CE groupe (position majoritaire + décompte interne).
@@ -196,9 +191,8 @@ function OngletAccord({
       lignes={lignes}
       situe={situe}
       onSituer={onSituer}
-      catsPreview={cats}
-      lead="Ton accord avec ce groupe, thème par thème — vert tu les rejoins, rouge tu diverges."
-      leadLocked="Ton accord avec ce groupe, thème par thème."
+      invitation="Réponds à quelques votes réels de l'Assemblée : on compare tes réponses aux positions de ce groupe, thème par thème."
+      lead="Ton accord avec ce groupe, thème par thème."
       emptyMsg="Pas encore assez de scrutins comparés avec ce groupe pour ventiler par thème."
     />
   );

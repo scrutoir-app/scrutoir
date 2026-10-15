@@ -23,7 +23,7 @@ import { decompteClair } from "../decompte";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
 import type { ContexteJe } from "../testProximite/jeProximite";
 import { verdictScrutin, groupesPos, tailleGroupe } from "../testProximite/verdict";
-import { chargerTest } from "../testProximite/storage";
+import { chargerTest, estSitue } from "../testProximite/storage";
 import type { GroupeVentilation, AmendGroupe, AmendInstitutionnel, PartiResume, DossierResume } from "../types";
 import type { Nav } from "../nav";
 import { ParcoursLoi } from "../components/ParcoursLoi";
@@ -56,12 +56,6 @@ function ordreParti(je: ContexteJe | null, a: string | null, b: string | null): 
     if (pb !== pa) return pb - pa;
   }
   return idxHemicycle(a) - idxHemicycle(b);
-}
-
-/** Utilisateur situé = au moins une réponse pour/contre au test (sync, lu au montage). */
-function estSitue(): boolean {
-  const t = chargerTest();
-  return !!t && Object.values(t.reponses).some((r) => r === "pour" || r === "contre");
 }
 
 // --- Formatage -------------------------------------------------------------
