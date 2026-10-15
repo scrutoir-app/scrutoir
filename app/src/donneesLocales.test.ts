@@ -29,7 +29,9 @@ Object.defineProperty(globalThis, "caches", {
   },
 });
 
-// Espion sur toute sortie réseau (fetch + sendBeacon, les deux canaux de track()).
+// Espion sur toute sortie réseau (fetch + sendBeacon, les deux canaux de track()). Hors build
+// de production, la mesure est coupée par défaut (`endpointAnalytics`) : on lui donne une URL.
+process.env.EXPO_PUBLIC_ANALYTICS_URL = "https://espion.test/collect";
 const envois: string[] = [];
 globalThis.fetch = (async (url: unknown) => {
   envois.push(String(url));

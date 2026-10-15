@@ -133,7 +133,8 @@ cd ../app && npm run web                            # app -> http://localhost:80
   dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;
   `GET /stats` = tableau de bord privé en **HTTP Basic Auth** (mot de passe = `DASH_KEY`, plus de clé dans l'URL).
   Classements : duels, **partis** suivis/consultés (event `follow_parti`/`parti`), députés suivis/consultés,
-  scrutins, écrans, thèmes, recherches. App : `src/analytics.ts track()` (sendBeacon, URL figée), hooks dans
+  scrutins, écrans, thèmes, recherches. App : `src/analytics.ts track()` (sendBeacon ; URL = `EXPO_PUBLIC_ANALYTICS_URL` si posée au build, vide
+  ou `off` = coupée, sinon le Worker de prod SEULEMENT en build de production : `expo start` n'envoie rien), hooks dans
   App.tsx (écran/entité/install), ConfrontationScreen (duels), follows.ts (follow/unfollow + follow_parti),
   SearchScreen (recherches), ScrutinScreen (clic source). Secrets Worker (NON committés) : `DASH_KEY` +
   `CF_API_TOKEN` (Account Analytics:Read). Déploiement : `cd analytics && wrangler deploy`. (Endpoint public
