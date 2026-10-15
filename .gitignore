@@ -14,3 +14,5 @@ app/public/vendor/*.min.js
 
 # Secrets locaux wrangler (worker analytics) — jamais committés
 analytics/.dev.vars
+# Cache et fichiers temporaires de wrangler (worker analytics)
+analytics/.wrangler/

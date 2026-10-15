@@ -13,6 +13,7 @@ import {
   baseAffinite,
   pctAffinite,
   libelleVoteCompare,
+  communesValides,
 } from "./trouverDepute";
 
 const params = (url: string) => new URL(url).searchParams;
@@ -81,4 +82,22 @@ test("désaccord : « son vote », jamais « lui » (vrai pour une députée)", 
   assert.equal(libelleVoteCompare("contre", "pour"), "Toi : Contre · son vote : Pour");
   assert.equal(libelleVoteCompare("pour", "pour"), "Vous deux : Pour");
   assert.ok(!libelleVoteCompare("pour", "contre").includes("lui"));
+});
+
+test("réponse de l'API Géo : seules les communes bien formées passent", () => {
+  const ok = { nom: "Foix", code: "09122", codeDepartement: "09", codesPostaux: ["09000"], _score: 0.9 };
+  assert.deepEqual(communesValides([ok]), [{ nom: "Foix", code: "09122", codeDepartement: "09", codesPostaux: ["09000"] }]);
+  assert.deepEqual(communesValides([{ nom: "Foix", code: "09122", codeDepartement: "09" }]), [{ nom: "Foix", code: "09122", codeDepartement: "09" }]);
+  // Entrées mal formées ignorées, une à une ; codes postaux non textuels écartés.
+  assert.deepEqual(
+    communesValides([null, 42, "Foix", { nom: "Sans code" }, { nom: 1, code: "1", codeDepartement: "01" }, { ...ok, codesPostaux: ["09000", 9000, null] }]),
+    [{ nom: "Foix", code: "09122", codeDepartement: "09", codesPostaux: ["09000"] }],
+  );
+});
+
+test("réponse de l'API Géo inattendue (objet d'erreur, texte, null) : liste vide, l'écran ne casse pas", () => {
+  assert.deepEqual(communesValides({ code: 400, message: "Bad Request" }), []);
+  assert.deepEqual(communesValides("<html>"), []);
+  assert.deepEqual(communesValides(null), []);
+  assert.deepEqual(communesValides(undefined), []);
 });

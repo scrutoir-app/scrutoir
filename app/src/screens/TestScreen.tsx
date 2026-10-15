@@ -4,7 +4,7 @@ import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { getTestProximite, getPartis, getCategories } from "../api";
 import { catUI } from "../categoryUI";
-import { scrutinSourceUrl } from "../config";
+import { lienAN, scrutinSourceUrl } from "../config";
 import { useReduceMotion } from "../components/HeroScrutins";
 import type { CategorieRef } from "../types";
 import type { Nav } from "../nav";
@@ -272,7 +272,7 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
 /** Lien vers la page du scrutin sur le site de l'Assemblée (n° et date en clair). Inerte
  *  (`actif` faux) sur la carte du dessous : même rendu, mais ni appui ni focus clavier. */
 function LienSource({ question, actif = true, glisseRecent }: { question: QuestionProximite; actif?: boolean; glisseRecent?: () => boolean }) {
-  const url = question.source_url ?? scrutinSourceUrl(question.id);
+  const url = lienAN(question.source_url) ?? scrutinSourceUrl(question.id);
   const libelle = `${libelleScrutin(question.id, question.date)}, sur le site de l'Assemblée`;
   if (!url) return null;
   if (!actif)

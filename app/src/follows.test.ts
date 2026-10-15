@@ -3,7 +3,9 @@ import assert from "node:assert/strict";
 import { getFollows, isFollowed, suivreSansMesure, toggleFollow, toggleFollowSansUid } from "./follows";
 
 // Espion sur les deux canaux de sortie de track() (sendBeacon, sinon fetch) : aucun appel
-// réseau réel, et on compte ce qui serait parti vers le Worker analytics.
+// réseau réel, et on compte ce qui serait parti vers le Worker analytics. Hors build de
+// production, la mesure est coupée par défaut (`endpointAnalytics`) : on lui donne une URL.
+process.env.EXPO_PUBLIC_ANALYTICS_URL = "https://espion.test/collect";
 const envois: string[] = [];
 globalThis.fetch = (async (_url: unknown, init?: { body?: unknown }) => {
   envois.push(String(init?.body ?? ""));

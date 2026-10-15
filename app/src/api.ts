@@ -7,7 +7,7 @@ import type { QuestionProximite } from "./testProximite/score";
 import { normaliser } from "./search/normalize";
 import { ALIAS_PARTIS } from "./search/aliases";
 import { indexerTextes, aujourdhuiParis, type IndexTextes } from "./hebdo";
-import { urlCommunesSaisie, urlCommuneParCoord } from "./trouverDepute";
+import { urlCommunesSaisie, urlCommuneParCoord, communesValides } from "./trouverDepute";
 import { bornePeriode } from "./periode";
 
 /**
@@ -549,7 +549,8 @@ export async function getDuelDuJour(): Promise<ShuffleConfrontation | null> {
 
 // --- Recherche de commune (API Géo officielle, reste dynamique côté client) --
 // Les URL (et donc tout ce qui part vers geo.api.gouv.fr) sont construites dans `trouverDepute.ts`,
-// pur et testé : la saisie, ou la position arrondie à 100 m, rien d'autre.
+// pur et testé : la saisie, ou la position arrondie à 100 m, rien d'autre. Les réponses y sont
+// vérifiées aussi (`communesValides`) avant d'arriver à l'écran.
 export interface Commune {
   nom: string;
   code: string;
@@ -561,7 +562,7 @@ export async function rechercheCommunes(q: string): Promise<Commune[]> {
   if (!url) return [];
   const res = await fetch(url);
   if (!res.ok) return [];
-  return (await res.json()) as Commune[];
+  return communesValides(await res.json());
 }
 
 /**
@@ -574,8 +575,7 @@ export async function communeParCoord(lat: number, lon: number): Promise<Commune
   try {
     const res = await fetch(urlCommuneParCoord(lat, lon));
     if (!res.ok) return null;
-    const list = (await res.json()) as Commune[];
-    return list[0] ?? null;
+    return communesValides(await res.json())[0] ?? null;
   } catch {
     return null;
   }

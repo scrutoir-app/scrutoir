@@ -40,6 +40,33 @@ export function urlCommuneParCoord(lat: number, lon: number): string {
   return `${API_GEO}?lat=${arrondirCoord(lat)}&lon=${arrondirCoord(lon)}&fields=${CHAMPS}&format=json`;
 }
 
+/** Une commune telle que l'écran l'utilise (même forme que `Commune` de api.ts). */
+interface CommuneGeo {
+  nom: string;
+  code: string;
+  codeDepartement: string;
+  codesPostaux?: string[];
+}
+
+const texteCourt = (v: unknown): v is string => typeof v === "string" && v.length > 0 && v.length <= 200;
+
+/**
+ * Réponse de l'API Géo, vérifiée avant usage : une liste, et seulement les communes bien formées
+ * (nom, code et département en texte ; codes postaux en texte). Une réponse inattendue (objet
+ * d'erreur, liste de n'importe quoi) donne [] au lieu de casser l'écran.
+ */
+export function communesValides(x: unknown): CommuneGeo[] {
+  if (!Array.isArray(x)) return [];
+  const out: CommuneGeo[] = [];
+  for (const c of x) {
+    if (!c || typeof c !== "object") continue;
+    const { nom, code, codeDepartement, codesPostaux } = c as Record<string, unknown>;
+    if (!texteCourt(nom) || !texteCourt(code) || !texteCourt(codeDepartement)) continue;
+    out.push(Array.isArray(codesPostaux) ? { nom, code, codeDepartement, codesPostaux: codesPostaux.filter(texteCourt) } : { nom, code, codeDepartement });
+  }
+  return out;
+}
+
 /** « 1re », « 2e »… (numéro de circonscription tel qu'en base, une chaîne). */
 export function rangCirco(circo: string | number): string {
   return `${circo}${String(circo) === "1" ? "re" : "e"}`;
