@@ -72,7 +72,7 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 const TOUR_PHRASES: Record<string, string> = {
   search: "La semaine à l'Assemblée, le focus actualité, tes suivis, et la recherche pour trouver et suivre un député.",
   themes: "Cherche un sujet, une loi ou un nom, ou parcours les textes votés récemment : un texte par carte, les amendements qui ont compté en second.",
-  partis: "Les groupes classés selon ta proximité. Ouvre la fiche d'un parti pour le suivre, ou ne plus le suivre.",
+  partis: "Les groupes de l'Assemblée et leurs sièges. Touche un groupe pour ouvrir sa fiche, ou la cloche pour le suivre.",
   apropos: "La méthode, les sources et les limites de Scrutoir. Tu peux rouvrir cette visite à tout moment via le « ? » de l'accueil.",
 };
 
@@ -176,9 +176,9 @@ function AppInner() {
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
   const [gq, setGq] = useState("");
   const [gqFocus, setGqFocus] = useState(false); // focus visible (bordure accent, cf. plus bas)
-  // L'onglet Scrutins ("themes") porte sa propre recherche (sous-onglet Recherche) → pas de barre
-  // de recherche globale par-dessus.
-  const ongletAvecRecherche = ["partis", "suivis", "apropos"].includes(root);
+  // Les onglets Scrutins (sous-onglet Recherche) et Partis (maquette du 15/10 : l'hémicycle et la
+  // liste, sans barre) n'ont pas de barre de recherche globale par-dessus.
+  const ongletAvecRecherche = ["suivis", "apropos"].includes(root);
   const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
   useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
 
