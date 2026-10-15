@@ -12,7 +12,7 @@
     "better-sqlite3": "^13.0.3",
     "cors": "^2.8.5",
     "express": "^4.21.2",
-    "tsx": "^4.19.2"
+    "tsx": "^4.23.15"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",
