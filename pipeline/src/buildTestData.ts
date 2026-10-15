@@ -25,13 +25,17 @@ if (!fs.existsSync(QUESTIONS_DIR)) {
 }
 
 const db = openDb();
-const parUid = db.prepare("SELECT pour, contre, abstention FROM scrutins WHERE uid = ?");
-const parNumero = db.prepare("SELECT pour, contre, abstention FROM scrutins WHERE numero = ?");
+const parUid = db.prepare("SELECT pour, contre, abstention, titre, date FROM scrutins WHERE uid = ?");
+const parNumero = db.prepare("SELECT pour, contre, abstention, titre, date FROM scrutins WHERE numero = ?");
 
 interface Sortie {
   id: number;
   theme: string;
   these: string | null;
+  // Intitulé officiel AN et date du scrutin : affichés sur la carte du test, à côté du résumé
+  // (`these`), pour que le texte réellement voté reste visible.
+  titre: string | null;
+  date: string | null;
   famille_clivage: string;
   positions: Record<string, string>;
   totaux: { pour: number; contre: number; abstention: number };
@@ -51,6 +55,8 @@ for (const f of fs.readdirSync(QUESTIONS_DIR).filter((f) => f.endsWith(".json"))
       id: q.numero,
       theme,
       these: q.these ?? null,
+      titre: (t as any).titre ?? null,
+      date: (t as any).date ?? null,
       famille_clivage: q.famille_clivage,
       positions: q.positions_par_groupe ?? {},
       totaux: { pour: (t as any).pour, contre: (t as any).contre, abstention: (t as any).abstention },

@@ -9,6 +9,8 @@ export interface QuestionProximite {
   id: number;
   theme: string;
   these?: string | null;
+  titre?: string | null; // intitulé officiel AN du scrutin (affiché sur la carte du test)
+  date?: string | null; // date du scrutin (ISO)
   famille_clivage?: string;
   positions: Record<string, PositionGroupe>;
   totaux?: { pour: number; contre: number; abstention: number };
