@@ -31,15 +31,18 @@ export function VerdictPastille({
   onPress,
   mode = "pill",
   style,
+  invite = false,
 }: {
   verdict: Verdict;
   onPress?: () => void;
   mode?: "pill" | "row"; // pill = Fil/Liste ; row = fiche détail (phrase complète)
   style?: StyleProp<ViewStyle>;
+  /** Verrouillé : ajoute l'invitation « Situe-toi pour le savoir » au libellé (fiche scrutin). */
+  invite?: boolean;
 }) {
   const { fg, bg } = couleurs(verdict);
   const deduit = verdict.niveau === "deduit";
-  const label = verdictLabel(verdict);
+  const label = verdictLabel(verdict) + (invite && verdict.niveau === "verrouille" ? " Situe-toi pour le savoir" : "");
   const a11y =
     verdict.niveau === "verrouille"
       ? "Comme toi ? Situe-toi (ouvrir l'explication)"

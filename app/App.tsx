@@ -278,7 +278,9 @@ function AppInner() {
               <Text style={{ fontSize: 15, color: C.accent, marginLeft: 2, fontFamily: F.semibold }}>Retour</Text>
             </TouchableOpacity>
             <Text style={{ flex: 1, textAlign: "center", fontSize: 16, fontFamily: F.bold, color: C.text, marginRight: 64 }}>
-              {titres[current.name]}
+              {current.name === "scrutin" && /V(\d+)$/.test(current.uid)
+                ? `Scrutin n° ${current.uid.match(/V(\d+)$/)![1]}`
+                : titres[current.name]}
             </Text>
           </View>
         )}
