@@ -173,6 +173,8 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   // ScrollView. Seul le contenu SOUS le champ bascule (accueil ↔ résultats). Sans ça, taper la
   // 1re lettre remplaçait tout l'arbre → le TextInput était démonté/remonté → perte du focus.
   const recherche = !!q.trim();
+  // Boutons ronds du masthead (aide, paramètres). Construit au rendu : `C` est vivant.
+  const mastheadBouton = { width: 40, height: 40, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border, backgroundColor: C.surface, alignItems: "center", justifyContent: "center", ...shadowCard } as const;
   return (
     <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 36 }}>
       {/* 1 — Masthead (logo officiel brand/ScrutoirMark), caché en mode recherche */}
@@ -180,16 +182,28 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
         <View style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingHorizontal: 16, paddingTop: 14, paddingBottom: 2 }}>
           <ScrutoirMark size={30} />
           <Text style={[T.title, { fontFamily: F.extra, color: C.text, letterSpacing: -0.4 }]}>Scrutoir</Text>
-          {/* Rejoue la visite guidée de l'accueil (seul point d'entrée de rattrapage). */}
-          <TouchableOpacity
-            onPress={() => ouvrirTourNav()}
-            accessibilityRole="button"
-            accessibilityLabel="Revoir la visite guidée"
-            hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            style={{ marginLeft: "auto", width: 40, height: 40, borderRadius: RADIUS.md, borderWidth: 1, borderColor: C.border, backgroundColor: C.surface, alignItems: "center", justifyContent: "center", ...shadowCard }}
-          >
-            <Feather name="help-circle" size={19} color={C.textMuted} />
-          </TouchableOpacity>
+          <View style={{ marginLeft: "auto", flexDirection: "row", gap: 8 }}>
+            {/* Rejoue la visite guidée de l'accueil (seul point d'entrée de rattrapage). */}
+            <TouchableOpacity
+              onPress={() => ouvrirTourNav()}
+              accessibilityRole="button"
+              accessibilityLabel="Revoir la visite guidée"
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}
+              style={mastheadBouton}
+            >
+              <Feather name="help-circle" size={19} color={C.textMuted} />
+            </TouchableOpacity>
+            {/* Seul accès à Paramètres (thème, avatars, données sur l'appareil). */}
+            <TouchableOpacity
+              onPress={() => nav.push({ name: "parametres" })}
+              accessibilityRole="button"
+              accessibilityLabel="Paramètres"
+              hitSlop={{ top: 8, bottom: 8, left: 4, right: 8 }}
+              style={mastheadBouton}
+            >
+              <Feather name="settings" size={19} color={C.textMuted} />
+            </TouchableOpacity>
+          </View>
         </View>
       )}
 

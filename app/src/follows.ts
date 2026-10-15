@@ -59,6 +59,21 @@ export function toggleFollow(uid: string) {
   );
 }
 
+/**
+ * Retire TOUS les suivis (Paramètres → « Tout effacer sur cet appareil »), avec la date de
+ * dernière consultation de l'onglet Suivis. SANS track() : un effacement n'envoie rien
+ * (contrairement à toggleFollow, qui mesure chaque geste unitaire).
+ */
+export function viderSuivis(): void {
+  seenCache = "";
+  try {
+    if (typeof localStorage !== "undefined") localStorage.removeItem(SEEN_KEY);
+  } catch {
+    /* fallback mémoire */
+  }
+  write([]);
+}
+
 /** Hook React : suit l'état de suivi d'un élu (re-render au changement). */
 export function useFollow(uid: string): [boolean, () => void] {
   const [, force] = useState(0);
