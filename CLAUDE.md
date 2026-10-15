@@ -226,7 +226,7 @@ Vient EN PLUS de la recherche exacte (élu/loi/parti/n°, inchangée et priorita
   `app/scripts/prepare-embeddings-assets.mjs`, chaîné EN 1er dans `build:web`). La lib transformers est chargée
   **HORS Metro** (balise `<script type=module>` + **import map** résolvant onnxruntime-web/-common, cf. `embedder.ts`) ;
   backend WASM **asyncify**, `numThreads=1`.
-- ⚠️ **Versions de transformers : app ≠ pipeline, volontairement (v1.25.3).** Pipeline en 4.3.1 (onnxruntime-node
+- ⚠️ **Versions de transformers : app ≠ pipeline, volontairement (v1.26.1).** Pipeline en 4.3.1 (onnxruntime-node
   1.30, audit npm à 0) ; app restée en **4.2.0** (onnxruntime-web 1.26.0-dev servi aux visiteurs). Vecteurs compatibles,
   mesuré : index 4.2.0 vs 4.3.1 sur la même base, cosinus ≥ 0,9993 par scrutin ; l'écart navigateur ↔ Node
   existant (cosinus ~0,9976) est 5× plus grand. **Avant de monter l'app** (onnxruntime-web ≥ 1.31) :
