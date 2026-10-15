@@ -6,6 +6,16 @@ scrutin + sonorité d'un lieu d'observation ; picto = hémicycle de sièges + po
 tribune/pupille, `components/ScrutoirMark.tsx`). ⚠️ Dispo nom à sécuriser : INPI cl. 9 & 42 + domaines.
 Objectif : confronter discours et actes, de façon **neutre** (aucune couleur de parti ne domine).
 
+## ⚠️ Règle fondatrice : zéro coût
+Scrutoir est gratuit et doit le rester : il ne doit **rien coûter à Anthony en dehors de son abonnement
+Claude et de sa connexion internet**. Donc aucun service payant, aucune clé d'API facturée à l'usage
+(API Anthropic comprise), aucun abonnement tiers. Avant d'ajouter un outil, un SDK, une action CI ou un
+hébergement, vérifier qu'il est gratuit pour ce projet ; sinon, ne pas l'ajouter et le signaler.
+- Retirés pour cette raison (15/10/2026) : le plugin Semgrep et la revue CI `claude-code-security-review`.
+- `pipeline/src/classifyIA.ts` reste un no-op : **ne pas définir `ANTHROPIC_API_KEY`**.
+- Gratuits et gardés : Cloudflare Pages (offre gratuite), GitHub Actions / CodeQL / Dependabot (dépôt
+  public), npm audit, Playwright, plugins Claude Code (abonnement).
+
 ## Stack & structure
 - `pipeline/` — ingestion Open Data AN → base **SQLite** (Node + TypeScript, `tsx`).
 - `api/` — API HTTP Express au-dessus de la base (port **4000**).
@@ -356,7 +366,7 @@ Vient EN PLUS de la recherche exacte (élu/loi/parti/n°, inchangée et priorita
   (était 40% ; le reste = procédural/niche). Dataset **Dossiers législatifs** téléchargé
   (`data/raw/Dossiers.json.zip`) — a servi à diagnostiquer les thèmes manquants. **Reco 2 scaffoldée** :
   `pipeline/src/classifyIA.ts` (`npm run classify:ia`, modèle Haiku 4.5) reclasse les non-classés via
-  l'API Anthropic, **gardé par `ANTHROPIC_API_KEY`** (no-op sans clé). Mots-clés conservés par défaut.
+  l'API Anthropic, **gardé par `ANTHROPIC_API_KEY`** (no-op sans clé ; à NE PAS activer : API payante, cf. règle zéro coût). Mots-clés conservés par défaut.
 - **Exposé d'amendement** : jointure heuristique date+numéro+auteur (~91%), `pipeline/src/linkAmendements.ts`.
 - **Détecteur de questions (test de proximité)** : `pipeline/src/detecteurQuestions.ts`
   (`npm run detect-questions [-- <theme>…]`, aussi chaîné dans `ingest.ts` après classify). Lit `votes.db`, filtre les

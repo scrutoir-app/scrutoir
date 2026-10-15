@@ -1,13 +1,12 @@
-name: Sécurité (revue Claude + npm audit)
+name: Sécurité (npm audit)
 
-# Deux filets sur chaque PR :
-# - revue de sécurité IA du diff (anthropics/claude-code-security-review), avec le modèle
-#   de menace du projet (.claude/claude-security-guidance.md : opinions politiques = RGPD art. 9) ;
-# - npm audit sur les trois paquets (app, api, pipeline) : bloque sur « critical », signale « high ».
+# npm audit sur les trois paquets (app, api, pipeline) : bloque sur « critical », signale « high ».
 #
-# ⚠️ L'action n'est pas durcie contre l'injection de prompt : elle ne tourne que sur les PR
-# ouvertes depuis ce dépôt (pas les forks, qui n'ont de toute façon pas accès aux secrets),
-# et pas sur les PR Dependabot (pas d'accès aux secrets Actions ; npm audit les couvre).
+# Règle du projet : Scrutoir ne doit rien coûter en dehors de l'abonnement Claude d'Anthony et de
+# sa connexion. Pas de service payant ni de clé d'API facturée à l'usage : la revue IA par
+# anthropics/claude-code-security-review (clé API Anthropic) a été retirée pour cette raison.
+# La revue de sécurité se fait en session Claude Code (skill security-review, modèle de menace
+# .claude/claude-security-guidance.md). Restent gratuits : npm audit ici, CodeQL et Dependabot.
 on:
   pull_request:
 
@@ -19,46 +18,6 @@ permissions:
   contents: read
 
 jobs:
-  revue-claude:
-    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    permissions:
-      contents: read
-      pull-requests: write # commentaires de findings sur la PR
-    steps:
-      # Sans le secret, l'action échouait une fois puis se désactivait toute seule (« already run »)
-      # en affichant un succès : la revue semblait passer alors qu'elle n'avait jamais tourné.
-      # On le dit explicitement (annotation + résumé) et on saute la revue.
-      - name: Clé API présente ?
-        id: cle
-        env:
-          CLE: ${{ secrets.CLAUDE_API_KEY }}
-        run: |
-          if [ -z "$CLE" ]; then
-            echo "::warning title=Revue Claude non lancée::Secret CLAUDE_API_KEY absent du dépôt (Settings > Secrets and variables > Actions). La revue de sécurité IA n'a pas tourné."
-            echo "### Revue de sécurité Claude : non lancée (secret CLAUDE_API_KEY absent)" >> "$GITHUB_STEP_SUMMARY"
-            echo "ok=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "ok=true" >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Checkout
-        if: steps.cle.outputs.ok == 'true'
-        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha || github.sha }}
-          fetch-depth: 2
-
-      - name: Revue de sécurité Claude
-        if: steps.cle.outputs.ok == 'true'
-        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # main @ 2026-02-11
-        with:
-          comment-pr: true
-          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
-          claude-model: claude-opus-5-5
-          custom-security-scan-instructions: .claude/claude-security-guidance.md
-
   npm-audit:
     runs-on: ubuntu-latest
     timeout-minutes: 10
