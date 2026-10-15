@@ -1,14 +1,118 @@
-import React from "react";
+import React, { useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity } from "react-native";
-import { C, F, T, RADIUS } from "../theme";
+import { Feather } from "@expo/vector-icons";
+import { C, F, T, RADIUS, S, ICON, CONTROL } from "../theme";
 import { APP_VERSION } from "../config";
+import { Card } from "../components/ui";
+import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
+import { INFOS_TITRE, EN_BREF, FAMILLES_INFOS, type FamilleInfos, type BlocInfos } from "../content/infos";
 import type { Nav } from "../nav";
 
-function Bloc({ titre, children }: { titre: string; children: React.ReactNode }) {
+// Interligne des paragraphes longs (cran `small`, aéré pour la lecture).
+const LIGNE = 18;
+
+// Niveau de titre (h2, h3) : RN ne type pas `aria-level`, react-native-web le lit.
+const niveau = (n: 2 | 3) => ({ "aria-level": n }) as object;
+
+// Espaces insécables à l'affichage : un guillemet ne reste plus seul en bout de ligne.
+const insecables = (t: string) => t.replace(/« /g, "«\u00A0").replace(/ »/g, "\u00A0»");
+
+/** « En bref » : les trois points à retenir, avant tout détail. */
+function EnBref() {
   return (
-    <View style={{ marginBottom: 18 }}>
-      <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginBottom: 5 }]}>{titre}</Text>
-      <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted }]}>{children}</Text>
+    <Card radius={RADIUS.lg}>
+      <Text accessibilityRole="header" {...niveau(2)} style={[T.callout, { fontFamily: F.bold, color: C.text }]}>En bref</Text>
+      {EN_BREF.map((p) => (
+        <View key={p.icone} style={{ flexDirection: "row", alignItems: "flex-start", gap: S.s10, marginTop: S.s10 }}>
+          <View style={{ width: 28, height: 28, borderRadius: RADIUS.sm, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
+            <Feather name={p.icone} size={ICON.sm} color={C.accent} />
+          </View>
+          <Text style={[T.small, { flex: 1, lineHeight: LIGNE, color: C.text, paddingTop: 5 }]}>{p.texte}</Text>
+        </View>
+      ))}
+    </Card>
+  );
+}
+
+/**
+ * Mini-schéma de la barre de vote : la vraie barre des fiches scrutin, avec des valeurs
+ * d'illustration, puis la légende du sens de lecture. Un seul élément pour un lecteur d'écran
+ * (les valeurs d'illustration ne sont pas lues).
+ */
+function SchemaBarre() {
+  return (
+    <View
+      accessible
+      accessibilityRole="image"
+      accessibilityLabel="Schéma de la barre de vote : le pour à gauche, l'abstention au centre, le contre à droite"
+      style={{ marginTop: S.s10 }}
+    >
+      <View importantForAccessibility="no-hide-descendants" aria-hidden>
+        <VoteBarDivergenteCentree pour={179} contre={98} abstention={45} height={12} />
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 5 }}>
+          <Text style={[T.micro, { fontFamily: F.bold, color: C.adopteFg }]}>← pour</Text>
+          <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>abstention au centre</Text>
+          <Text style={[T.micro, { fontFamily: F.bold, color: C.rejeteFg }]}>contre →</Text>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function Bloc({ bloc, premier }: { bloc: BlocInfos; premier: boolean }) {
+  const titre = <Text accessibilityRole="header" {...niveau(3)} style={[T.small, { fontFamily: F.bold, color: C.text }]}>{insecables(bloc.titre)}</Text>;
+  const texte = (
+    <Text style={[T.small, { lineHeight: LIGNE, color: bloc.schemaBarre ? C.text : C.textMuted, marginTop: bloc.schemaBarre ? S.s8 : S.s4 }]}>
+      {insecables(bloc.texte)}
+    </Text>
+  );
+  // Le bloc de la barre de vote est posé dans un encart, avec son schéma (cf. maquette).
+  if (bloc.schemaBarre) {
+    return (
+      <View style={{ marginTop: premier ? 0 : S.s14, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.md, padding: S.s12 }}>
+        {titre}
+        <SchemaBarre />
+        {texte}
+      </View>
+    );
+  }
+  return (
+    <View style={{ marginTop: premier ? 0 : S.s16 }}>
+      {titre}
+      {texte}
+    </View>
+  );
+}
+
+/**
+ * Une famille repliable : en-tête (titre + sous-titre + chevron), blocs affichés une fois dépliée.
+ * Motif d'accordéon WAI-ARIA : le bouton (état déplié annoncé) est posé dans un titre de niveau 2.
+ */
+function Famille({ famille, premiere }: { famille: FamilleInfos; premiere: boolean }) {
+  const [ouvert, setOuvert] = useState(false);
+  return (
+    <View>
+      {!premiere && <View style={{ height: 1, backgroundColor: C.border, marginLeft: S.s14 }} />}
+      <View accessibilityRole="header" {...niveau(2)}>
+        <TouchableOpacity
+          activeOpacity={0.6}
+          onPress={() => setOuvert((o) => !o)}
+          accessibilityRole="button"
+          aria-expanded={ouvert}
+          style={{ flexDirection: "row", alignItems: "center", gap: S.s12, minHeight: 52, paddingHorizontal: S.s14, paddingVertical: S.s8 }}
+        >
+          <View style={{ flex: 1 }}>
+            <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{insecables(famille.titre)}</Text>
+            <Text style={[T.micro, { color: C.textFaint, marginTop: 1 }]}>{famille.sousTitre}</Text>
+          </View>
+          <Feather name={ouvert ? "chevron-up" : "chevron-down"} size={ICON.md} color={C.textFaint} />
+        </TouchableOpacity>
+      </View>
+      {ouvert && (
+        <View style={{ paddingHorizontal: S.s14, paddingTop: S.s2, paddingBottom: S.s16 }}>
+          {famille.blocs.map((b, i) => <Bloc key={b.titre} bloc={b} premier={i === 0} />)}
+        </View>
+      )}
     </View>
   );
 }
@@ -16,164 +120,28 @@ function Bloc({ titre, children }: { titre: string; children: React.ReactNode })
 export function AProposScreen({ nav }: { nav: Nav }) {
   return (
     <View style={{ flex: 1 }}>
-      <View style={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 12 }}>
-        <Text style={[T.title, { color: C.text }]}>À propos & limites</Text>
+      <View style={{ paddingHorizontal: S.s16, paddingTop: S.s14, paddingBottom: S.s12 }}>
+        <Text accessibilityRole="header" style={[T.title, { color: C.text, marginHorizontal: S.s2 }]}>{INFOS_TITRE}</Text>
       </View>
-      <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingBottom: 30 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingHorizontal: S.s16, paddingBottom: S.s32 }} showsVerticalScrollIndicator={false}>
+        <EnBref />
 
-      <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 6 }]}>
-        À quoi sert Scrutoir ?
-      </Text>
-      <Text style={[T.body, { color: C.text, marginTop: 6 }]}>
-        Scrutoir aide à comparer le discours des politiques à leurs actes. L'app rend lisibles les
-        votes réels des députés à l'Assemblée : cherche un élu et vois comment il ou elle a
-        voté par thème, ouvre un scrutin pour comprendre le texte, confronte deux élus sur leurs
-        accords et désaccords, ou retrouve ton député par commune. Le tout de façon neutre —
-        aucune couleur de parti n'est mise en avant, seul le vote parle.
-      </Text>
+        {/* Le détail, rangé par familles, toutes repliées à l'ouverture. */}
+        <Card radius={RADIUS.lg} padding={0} style={{ marginTop: S.s14, overflow: "hidden" }}>
+          {FAMILLES_INFOS.map((f, i) => <Famille key={f.id} famille={f} premiere={i === 0} />)}
+        </Card>
 
-      <Text style={[T.callout, { fontFamily: F.bold, color: C.text, marginTop: 18 }]}>
-        Pourquoi Scrutoir ?
-      </Text>
-      <Text style={[T.body, { color: C.text, marginTop: 6 }]}>
-        C'est un vieux mot français. L'escritoire était un bureau d'écriture, un meuble où l'on
-        consignait, archivait, gardait trace. Le mot a disparu au XVIIIᵉ siècle. On l'a repris parce
-        qu'il porte deux choses à la fois : la racine de scrutin, et l'idée d'un endroit où l'on
-        regarde de près. C'est exactement ce que fait l'app.
-      </Text>
-
-      <Text style={[T.small, { color: C.textMuted, marginTop: 16, marginBottom: 18 }]}>
-        Scrutoir s'appuie sur les scrutins publics nominatifs de l'Assemblée Nationale (17ᵉ législature) —
-        les seuls votes attribués nominativement à chaque député. Pour rester honnête, voici
-        précisément ce que l'app couvre — et ce qu'elle ne couvre pas.
-      </Text>
-
-      <View style={{ backgroundColor: C.loyalMoyenBg, borderRadius: RADIUS.md, padding: 13, marginBottom: 20 }}>
-        <Text style={[T.small, { color: C.loyalMoyen }]}>
-          ⚠️ Les chiffres ne reflètent qu'une partie de l'activité d'un député. À lire avec
-          nuance, sans en tirer de conclusion hâtive.
-        </Text>
-      </View>
-
-      <Bloc titre="Seuls les scrutins publics nominatifs">
-        L'Assemblée n'enregistre le vote individuel que pour les « scrutins publics ». La plupart
-        des votes ont lieu à main levée et ne sont pas attribués nominativement : ils sont absents
-        de l'application.
-      </Bloc>
-
-      <Bloc titre="« Absent », « Non votant » et participation">
-        Un député absent n'apparaît pas dans un scrutin : l'absence est déduite (scrutins d'un
-        thème moins les votes), et bornée aux dates réelles du mandat (pas d'absences « fantômes »
-        avant l'entrée en fonction). « Non votant » = présent mais n'ayant pas pris part (ex. la
-        présidence de séance) — distinct d'« Absent ». Le taux de participation est montré en relatif
-        (« plus assidu que X % ») car il est bas pour tout le monde.
-      </Bloc>
-
-      <Bloc titre="Lecture de la barre de vote">
-        Sur chaque carte, le pour part vers la gauche, le contre vers la droite, et
-        l'abstention occupe le centre à sa taille réelle. La longueur colorée est rapportée
-        à la moitié de l'hémicycle, donc une barre courte sur piste longue signale une
-        faible participation. Comme l'abstention tient le centre, la largeur restante de
-        chaque camp se réduit quand l'abstention monte. Comparer la longueur des barres d'un
-        vote à forte abstention avec celle d'un vote à faible abstention n'est donc pas
-        fiable. Chaque carte se lit pour elle-même.
-      </Bloc>
-
-      <Bloc titre="Classification thématique approximative">
-        L'Assemblée ne range pas les scrutins par thème. Le classement (Écologie, Sécurité…) est
-        calculé automatiquement à partir de l'intitulé. Il est imparfait : certains scrutins ne
-        sont pas classés, d'autres peuvent l'être par erreur.
-      </Bloc>
-
-      <Bloc titre="Un vote « Pour » ou « Contre » ne dit pas tout">
-        Le sens d'un vote dépend du texte. On peut voter contre une loi parce qu'on la juge
-        insuffisante. Les pourcentages sont des indicateurs, pas des jugements.
-      </Bloc>
-
-      <Bloc titre="Consigne du groupe (pas de score de loyauté)">
-        Plutôt qu'un score de loyauté agrégé — qui se prête à un jugement hâtif — on affiche la
-        consigne du groupe (position majoritaire fournie par l'Assemblée) à côté de chaque vote, et
-        les écarts sont listés dans les « dissidences ». À toi de lire l'écart.
-      </Bloc>
-
-      <Bloc titre="Confronter deux élus">
-        On compare deux députés sur les seuls scrutins nominatifs où les deux ont voté. Un thème
-        sans scrutin commun est « non couvert » (invérifiable) — un silence de données n'est pas un
-        désaccord.
-      </Bloc>
-
-      <Bloc titre="Le test de proximité">
-        Le test te confronte à de vrais scrutins, choisis parce qu'ils portent sur un texte entier
-        et qu'ils ont divisé l'Assemblée (pas les votes quasi-unanimes ni les amendements de détail).
-        Pour chaque vote, on regarde si ta réponse rejoint la position de chaque groupe : on ne
-        compte que les votes où toi ET le groupe avez tranché « pour » ou « contre » (abstention et
-        « sans avis » sont exclus). Le résultat est un spectre — ta proximité avec tous les groupes,
-        thème par thème — et jamais un parti unique : on ne se résume pas à une étiquette.
-      </Bloc>
-
-      <Bloc titre="Exposé des amendements">
-        Quand un scrutin porte sur un amendement, on affiche son exposé. Le lien scrutin↔amendement
-        est reconstitué automatiquement (date + numéro + auteur) : il aboutit pour ~9 amendements
-        sur 10, sinon l'exposé n'est pas affiché.
-      </Bloc>
-
-      <Bloc titre="Les amendements">
-        Pour chaque texte de loi, Scrutoir indique combien d'amendements chaque groupe a déposés, et
-        ce qu'ils sont devenus : adoptés, rejetés, ou restés sans suite. Ces données proviennent du
-        même Open Data de l'Assemblée nationale. Un grand nombre d'amendements ne dit rien de la
-        qualité du travail. Selon les cas, c'est un texte réécrit en profondeur, ou un même amendement
-        répété de nombreuses fois pour ralentir le débat. Nous affichons le nombre, le sort et
-        l'article visé côte à côte, pour que vous fassiez la part des choses, sans porter de jugement
-        à votre place.
-      </Bloc>
-
-      <Bloc titre="Source & période">
-        Open Data de l'Assemblée Nationale (licence Etalab, mise à jour quotidienne), 17ᵉ
-        législature (depuis juin 2024). Les amendements déposés sur les textes proviennent du même
-        Open Data de l'Assemblée nationale. Données non officielles, à titre informatif.
-      </Bloc>
-
-      <Bloc titre="Tes réponses restent chez toi">
-        Tes réponses au test de proximité sont une opinion politique — une donnée sensible. Elles ne
-        sont ni envoyées ni stockées sur un serveur : tout le calcul se fait sur ton appareil. Ton
-        dernier résultat est gardé en local (sur ce navigateur) pour que tu puisses le revoir, et un
-        lien de partage encode tes réponses dans l'adresse elle-même — il recalcule tout à l'ouverture,
-        sans compte ni base de données.
-      </Bloc>
-
-      <Bloc titre="Mesure d'audience">
-        Scrutoir mesure de façon anonyme ce qui est consulté sur l'application (élus, duels,
-        partis, thèmes), afin d'améliorer le service et de dégager des tendances d'intérêt
-        agrégées. Aucune donnée ne permet de t'identifier individuellement. Nous ne
-        profilons personne et nous ne vendons aucune donnée d'usage à des partis ou à des
-        candidats. Aucun compte n'est nécessaire pour utiliser Scrutoir.
-      </Bloc>
-
-      <Bloc titre="Concrètement">
-        Pas de cookie ni de traceur publicitaire. Aucune adresse IP ni identifiant n'est
-        conservé. Les mesures se limitent à des compteurs agrégés — « combien de fois tel
-        contenu est consulté ou suivi » — jamais reliés à une personne. Et la liste des
-        élus et partis que tu suis, elle, reste sur ton appareil : elle n'est
-        envoyée à personne.
-      </Bloc>
-
-      <TouchableOpacity
-        activeOpacity={0.6}
-        onPress={() => nav.push({ name: "mentions" })}
-        style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingVertical: 12, borderTopWidth: 1, borderTopColor: C.accentSoft }}
-      >
-        <Text style={[T.body, { fontFamily: F.bold, color: C.accent }]}>Mentions légales & confidentialité</Text>
-        <Text style={[T.callout, { fontFamily: F.bold, color: C.accent }]}>›</Text>
-      </TouchableOpacity>
-
-      <View style={{ marginTop: 6, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.accentSoft }}>
-        <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>
-          Scrutoir · version {APP_VERSION}
-        </Text>
-        <Text style={[T.small, { fontFamily: F.regular, color: C.textFaint, marginTop: 2 }]}>
-          Indique ce numéro avec tes retours pour situer la version concernée.
-        </Text>
-      </View>
+        <View style={{ marginTop: S.s12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: S.s12 }}>
+          <TouchableOpacity
+            activeOpacity={0.6}
+            onPress={() => nav.push({ name: "mentions" })}
+            accessibilityRole="link"
+            style={{ minHeight: CONTROL.md, justifyContent: "center", paddingHorizontal: S.s2 }}
+          >
+            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Mentions légales et confidentialité</Text>
+          </TouchableOpacity>
+          <Text style={[T.micro, { color: C.textFaint }]}>Version {APP_VERSION}</Text>
+        </View>
       </ScrollView>
     </View>
   );

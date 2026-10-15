@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.18.1 — 2026-10-15
+**Infos : l'essentiel d'abord, le détail replié.** L'onglet Infos s'appelle « À propos et limites » et se lit en deux temps. En tête, « En bref » donne trois points avec une icône : seuls les scrutins publics, où chaque vote est nominatif, sont montrés ; les pourcentages sont des indicateurs, pas des jugements ; les réponses au test restent sur l'appareil. Il remplace l'encadré d'avertissement. Dessous, les seize blocs sont rangés en cinq familles repliables, toutes fermées à l'ouverture, chacune avec un sous-titre : *Les données*, *Lire les chiffres* (avec un mini-schéma de la barre de vote : pour à gauche, abstention au centre, contre à droite), *Le test de proximité*, *Vie privée* et *Pourquoi « Scrutoir »*. Le texte des blocs n'a pas changé, seulement leur rangement (`content/infos.ts`). Les guillemets ne restent plus seuls en bout de ligne (espaces insécables à l'affichage). Les en-têtes de famille sont des boutons qui annoncent leur état déplié, utilisables au clavier sur le web. En pied : « Mentions légales et confidentialité », puis la version.
+
 ## 1.18.0 — 2026-10-15
 **Paramètres : l'accès revient, et une section « Sur cet appareil ».** L'écran Paramètres n'avait plus d'accès depuis la refonte de l'accueil (sa roue dentée vivait dans l'ancien `SearchScreen`, plus rendu) : thème clair/sombre/auto et logos des groupes étaient hors d'atteinte. La roue dentée revient en haut de l'accueil, à côté du « ? » de la visite guidée.
 - **Affichage** : Apparence (Clair / Sombre / Auto) et Avatars des groupes (Sigles / Logos officiels) dans une seule carte, consignes courtes (« Auto suit ton appareil », « Sur tes suivis »).
