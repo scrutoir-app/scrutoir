@@ -3,6 +3,8 @@
     "id": 1319,
     "theme": "agriculture",
     "these": "Prolonger le relèvement de 10 % du seuil de revente à perte (SRP+10) et l'encadrement des promotions sur les produits alimentaires (dispositifs Egalim).",
+    "titre": "l’ensemble de la proposition de loi visant à renforcer la stabilité économique et la compétitivité du secteur agroalimentaire (texte de la commission mixte paritaire).",
+    "date": "2025-04-09",
     "famille_clivage": "RN_isolé",
     "positions": {
       "LFI-NFP": "contre",
@@ -28,6 +30,8 @@
     "id": 2957,
     "theme": "agriculture",
     "these": "Lever des contraintes réglementaires qui pèsent sur le métier d'agriculteur.",
+    "titre": "l'ensemble de la proposition de loi visant à lever les contraintes à l'exercice du métier d'agriculteur (texte de la commission mixte paritaire).",
+    "date": "2025-07-08",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -53,6 +57,8 @@
     "id": 3273,
     "theme": "agriculture",
     "these": "Rendre obligatoire l'affichage de l'origine de tous les aliments.",
+    "titre": "l'ensemble de la proposition de loi visant à rendre systématique l'information du consommateur sur l'origine des denrées alimentaires par le moyen de l'étiquetage (première lecture).",
+    "date": "2025-10-30",
     "famille_clivage": "droite_RN_vs_gauche",
     "positions": {
       "LFI-NFP": "contre",
@@ -78,6 +84,8 @@
     "id": 7259,
     "theme": "agriculture",
     "these": "Adopter la loi d'urgence agricole (dérogations pour le néonicotinoïde acétamipride, retenues d'eau, allègement de normes).",
+    "titre": "l'ensemble du projet de loi d'urgence pour la protection et la souveraineté agricoles (première lecture).",
+    "date": "2026-06-02",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -103,6 +111,8 @@
     "id": 7303,
     "theme": "agriculture",
     "these": "Abaisser les limites de cadmium (métal lourd) autorisées dans l'alimentation.",
+    "titre": "l'ensemble de la proposition de loi visant à protéger l'alimentation des Français et des Françaises des contaminations au cadmium (première lecture).",
+    "date": "2026-06-03",
     "famille_clivage": "droite_RN_vs_gauche",
     "positions": {
       "LFI-NFP": "pour",
@@ -128,6 +138,8 @@
     "id": 2460,
     "theme": "ecologie",
     "these": "Ratifier l'amendement au Protocole de Londres autorisant le transport de CO₂ entre pays pour le stocker sous les fonds marins (captage-stockage du carbone).",
+    "titre": "l'ensemble du projet de loi autorisant la ratification de la résolution LP.3(4) portant amendement de l’article 6 du Protocole de Londres de 1996 à la Convention de 1972 sur la prévention de la pollution des mers résultant de l’immersion de déchets et autres matières (texte de la commission mixte paritaire).",
+    "date": "2025-06-17",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -153,6 +165,8 @@
     "id": 2653,
     "theme": "ecologie",
     "these": "Adopter la loi de programmation sur l'énergie dans sa version instaurant un moratoire sur les nouvelles éoliennes et le solaire.",
+    "titre": "l'ensemble de la proposition de loi portant programmation nationale pour l'énergie et le climat pour les années 2025 à 2035 (première lecture).",
+    "date": "2025-06-24",
     "famille_clivage": "RN_isolé",
     "positions": {
       "LFI-NFP": "contre",
@@ -178,6 +192,8 @@
     "id": 881,
     "theme": "economie",
     "these": "Instaurer un impôt plancher de 2 % sur le patrimoine des ultra-riches.",
+    "titre": "l'ensemble de la proposition de loi instaurant un impôt plancher de 2 % sur le patrimoine des ultra riches (première lecture).",
+    "date": "2025-02-20",
     "famille_clivage": "gauche_vs_centre_droite",
     "positions": {
       "LFI-NFP": "pour",
@@ -202,6 +218,8 @@
     "id": 3056,
     "theme": "economie",
     "these": "Simplifier les règles d urbanisme pour faciliter la construction de logements.",
+    "titre": "l'ensemble de la proposition de loi de simplification du droit de l'urbanisme et du logement (texte de la commission mixte paritaire).",
+    "date": "2025-10-15",
     "famille_clivage": "gauche_vs_centre_droite",
     "positions": {
       "LFI-NFP": "contre",
@@ -227,6 +245,8 @@
     "id": 6184,
     "theme": "economie",
     "these": "Alléger les démarches et obligations administratives qui pèsent sur les entreprises.",
+    "titre": "l'ensemble du projet de loi de simplification de la vie économique (texte de la commission mixte paritaire).",
+    "date": "2026-04-14",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -252,6 +272,8 @@
     "id": 6319,
     "theme": "economie",
     "these": "Durcir la lutte contre la fraude en ciblant surtout la fraude aux prestations sociales, avec la possibilité de suspendre les allocations chômage en cas de soupçon.",
+    "titre": "l'ensemble du projet de loi relatif à la lutte contre les fraudes sociales et fiscales (texte de la commission mixte paritaire).",
+    "date": "2026-05-05",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -277,6 +299,8 @@
     "id": 7380,
     "theme": "economie",
     "these": "Nationaliser ArcelorMittal pour préserver l emploi et la souveraineté industrielle.",
+    "titre": "l'ensemble de la proposition de loi visant à la nationalisation d'ArcelorMittal France afin de préserver la souveraineté industrielle de la France (deuxième lecture).",
+    "date": "2026-06-11",
     "famille_clivage": "gauche_vs_centre_droite",
     "positions": {
       "LFI-NFP": "pour",
@@ -302,6 +326,8 @@
     "id": 840,
     "theme": "education",
     "these": "Prolonger les dispositifs d'égalité des chances pour l'accès aux grandes écoles.",
+    "titre": "l'ensemble de la proposition de loi visant à proroger le dispositif d'expérimentation favorisant l'égalité des chances pour l'accès à certaines écoles de service public (première lecture).",
+    "date": "2025-02-18",
     "famille_clivage": "RN_isolé",
     "positions": {
       "LFI-NFP": "abstention",
@@ -327,6 +353,8 @@
     "id": 2880,
     "theme": "education",
     "these": "Renforcer la lutte contre l'antisémitisme dans l'enseignement supérieur (sensibilisation obligatoire, signalement, sanctions disciplinaires).",
+    "titre": "l'ensemble de la proposition de loi relative à la lutte contre l'antisémitisme dans l'enseignement supérieur (texte de la commission mixte paritaire).",
+    "date": "2025-07-02",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -352,6 +380,8 @@
     "id": 5845,
     "theme": "education",
     "these": "Renforcer l'enseignement de la défense nationale à l'école.",
+    "titre": "l'ensemble de la proposition de loi visant à renforcer l'enseignement de la défense nationale dans le cadre du parcours de citoyenneté (première lecture).",
+    "date": "2026-03-26",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -373,6 +403,8 @@
     "id": 1303,
     "theme": "institutions",
     "these": "Étendre le scrutin de liste à toutes les communes, y compris les plus petites.",
+    "titre": "l'ensemble de la proposition de loi visant à harmoniser le mode de scrutin aux élections municipales afin de garantir la vitalité démocratique, la cohésion municipale et la parité (deuxième lecture).",
+    "date": "2025-04-07",
     "famille_clivage": "droite_RN_vs_gauche",
     "positions": {
       "LFI-NFP": "pour",
@@ -398,6 +430,8 @@
     "id": 2954,
     "theme": "institutions",
     "these": "Réformer le mode d'élection des maires de Paris, Lyon et Marseille pour un vote plus direct.",
+    "titre": "l'ensemble de la proposition de loi visant à réformer le mode d’élection des membres du conseil de Paris et des conseils municipaux de Lyon et de Marseille (nouvelle lecture).",
+    "date": "2025-07-07",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "pour",
@@ -423,6 +457,8 @@
     "id": 5192,
     "theme": "institutions",
     "these": "Protéger les mineurs sur les réseaux sociaux (vérification d'âge, restrictions).",
+    "titre": "l'ensemble de la proposition de loi visant à protéger les mineurs des risques auxquels les expose l'utilisation des réseaux sociaux (première lecture).",
+    "date": "2026-01-26",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -448,6 +484,8 @@
     "id": 6045,
     "theme": "institutions",
     "these": "Fusionner départements et régions en collectivités uniques pour simplifier le millefeuille territorial.",
+    "titre": "l'ensemble de la proposition de loi visant à simplifier le millefeuille territorial par la collectivité unique (première lecture).",
+    "date": "2026-04-08",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -473,6 +511,8 @@
     "id": 7454,
     "theme": "institutions",
     "these": "Inscrire dans la Constitution un statut d'autonomie pour la Corse au sein de la République.",
+    "titre": "l'ensemble du projet de loi constitutionnelle pour une Corse autonome au sein de la République (première lecture).",
+    "date": "2026-06-23",
     "famille_clivage": "droite_RN_vs_gauche",
     "positions": {
       "LFI-NFP": "pour",
@@ -498,6 +538,8 @@
     "id": 3182,
     "theme": "international-defense",
     "these": "Reporter les élections provinciales de Nouvelle-Calédonie pour laisser aboutir les négociations sur son avenir institutionnel (accord de juillet 2025).",
+    "titre": "l'ensemble de la proposition de loi organique visant à reporter le renouvellement général des membres du congrès et des assemblées de province de la Nouvelle-Calédonie afin de permettre la poursuite de la discussion en vue d'un accord consensuel sur l'avenir institutionnel de la Nouvelle-Calédonie (texte de la commission mixte paritaire).",
+    "date": "2025-10-28",
     "famille_clivage": "transpartisan",
     "positions": {
       "LFI-NFP": "contre",
@@ -523,6 +565,8 @@
     "id": 6736,
     "theme": "international-defense",
     "these": "Renforcer le budget militaire pluriannuel via la loi de programmation militaire.",
+    "titre": "l'ensemble du projet de loi actualisant la programmation militaire pour les années 2024 à 2030 et portant diverses dispositions intéressant la défense (première lecture).",
+    "date": "2026-05-19",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -548,6 +592,8 @@
     "id": 2975,
     "theme": "logement",
     "these": "Adopter la loi de programmation pour la refondation de Mayotte (reconstruction et rattrapage après le cyclone).",
+    "titre": "l'ensemble du projet de loi de programmation pour la refondation de Mayotte (texte de la commission mixte paritaire).",
+    "date": "2025-07-09",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -573,6 +619,8 @@
     "id": 7027,
     "theme": "logement",
     "these": "Mobiliser les logements vacants pour répondre à la crise du logement.",
+    "titre": "l'ensemble de la proposition de loi pour la mobilisation de l'habitat existant en réponse à la crise du logement (première lecture).",
+    "date": "2026-05-28",
     "famille_clivage": "autre",
     "positions": {
       "LFI-NFP": "contre",
@@ -598,6 +646,8 @@
     "id": 7408,
     "theme": "logement",
     "these": "Réserver davantage de logements aux travailleurs des services publics (police, soignants, enseignants).",
+    "titre": "l'ensemble de la proposition de loi visant à améliorer l'accès au logement des travailleurs des services publics (texte de la commission mixte paritaire).",
+    "date": "2026-06-17",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -623,6 +673,8 @@
     "id": 8280,
     "theme": "sante",
     "these": "Légaliser l'aide à mourir sous conditions (fin de vie).",
+    "titre": "l'ensemble de la proposition de loi relative au droit à l'aide à mourir (lecture définitive).",
+    "date": "2026-07-15",
     "famille_clivage": "droite_RN_vs_gauche",
     "positions": {
       "LFI-NFP": "pour",
@@ -648,6 +700,8 @@
     "id": 1262,
     "theme": "securite-justice",
     "these": "Garantir l'exécution effective des courtes peines de prison ferme.",
+    "titre": "l'ensemble de la proposition de loi visant à faire exécuter les peines d’emprisonnement ferme (première lecture).",
+    "date": "2025-04-03",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -673,6 +727,8 @@
     "id": 1624,
     "theme": "securite-justice",
     "these": "Durcir la réponse pénale envers les mineurs délinquants et responsabiliser leurs parents.",
+    "titre": "l'ensemble de la proposition de loi visant à renforcer l'autorité de la justice à l'égard des mineurs délinquants et de leurs parents (texte de la commission mixte paritaire).",
+    "date": "2025-05-13",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -698,6 +754,8 @@
     "id": 2958,
     "theme": "securite-justice",
     "these": "Maintenir en rétention de sûreté des personnes condamnées jugées encore dangereuses après leur peine.",
+    "titre": "l'ensemble de la proposition de loi visant à faciliter le maintien en rétention des personnes condamnées pour des faits d’une particulière gravité et présentant de forts risques de récidive (première lecture).",
+    "date": "2025-07-08",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -723,6 +781,8 @@
     "id": 3061,
     "theme": "securite-justice",
     "these": "Inscrire l'absence de consentement dans la définition pénale du viol.",
+    "titre": "l'ensemble de la proposition de loi modifiant la définition pénale du viol et des agressions sexuelles (texte de la commission mixte paritaire).",
+    "date": "2025-10-23",
     "famille_clivage": "RN_isolé",
     "positions": {
       "LFI-NFP": "pour",
@@ -748,6 +808,8 @@
     "id": 6124,
     "theme": "securite-justice",
     "these": "Pénaliser plus durement l'organisation de rave-parties non autorisées.",
+    "titre": "l'ensemble de la proposition de loi visant à renforcer la pénalisation de l’organisation de rave-parties (première lecture).",
+    "date": "2026-04-09",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -772,6 +834,8 @@
     "id": 7405,
     "theme": "securite-justice",
     "these": "Renforcer les pouvoirs de sécurité et la rétention administrative pour prévenir les attentats.",
+    "titre": "l'ensemble de la proposition de loi visant à renforcer la sécurité, la rétention administrative et la prévention des risques d’attentat (texte de la commission mixte paritaire).",
+    "date": "2026-06-16",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -797,6 +861,8 @@
     "id": 7987,
     "theme": "securite-justice",
     "these": "Reconnaître une présomption de légitime défense pour les policiers et gendarmes qui font usage de leur arme dans l'exercice de leurs fonctions.",
+    "titre": "l'ensemble de la proposition de loi visant à reconnaître une présomption de légitime défense pour les forces de l'ordre, dans l'exercice de leurs fonctions (première lecture).",
+    "date": "2026-07-07",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -822,6 +888,8 @@
     "id": 8042,
     "theme": "securite-justice",
     "these": "Réformer la justice criminelle : instaurer un « plaider-coupable » pour les crimes reconnus et élargir les cours criminelles (magistrats et citoyens assesseurs).",
+    "titre": "l'ensemble du projet de loi sur la justice criminelle et le respect des victimes (texte de la commission mixte paritaire).",
+    "date": "2026-07-08",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -847,6 +915,8 @@
     "id": 2272,
     "theme": "solidarites",
     "these": "Verser les allocations familiales dès le premier enfant.",
+    "titre": "l'ensemble de la proposition de loi visant à accorder le versement des allocations familiales dès le premier enfant (première lecture).",
+    "date": "2025-06-05",
     "famille_clivage": "transpartisan",
     "positions": {
       "LFI-NFP": "pour",
@@ -872,6 +942,8 @@
     "id": 7313,
     "theme": "solidarites",
     "these": "Interdire la vaisselle en plastique dans la restauration des crèches et des écoles.",
+    "titre": "l'ensemble de la proposition de loi visant à garantir l'interdiction de la vaisselle en plastique dans la restauration collective accueillant du jeune public et liée à la petite enfance (première lecture).",
+    "date": "2026-06-04",
     "famille_clivage": "RN_isolé",
     "positions": {
       "LFI-NFP": "pour",
@@ -897,6 +969,8 @@
     "id": 5254,
     "theme": "travail",
     "these": "Rendre gratuit le stationnement des hôpitaux publics pour les patients et les visiteurs.",
+    "titre": "l'ensemble de la proposition de loi visant à garantir la gratuité des parkings des hôpitaux publics pour les patients, les visiteurs et les personnels sur leur temps de travail (première lecture).",
+    "date": "2026-01-29",
     "famille_clivage": "transpartisan",
     "positions": {
       "LFI-NFP": "abstention",
@@ -921,6 +995,8 @@
     "id": 7039,
     "theme": "travail",
     "these": "Pérenniser le contrat de professionnalisation expérimental (formation en alternance).",
+    "titre": "l'ensemble de la proposition de loi portant pérennisation du contrat de professionnalisation expérimental (première lecture).",
+    "date": "2026-05-28",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
@@ -946,6 +1022,8 @@
     "id": 7260,
     "theme": "travail",
     "these": "Appliquer la nouvelle convention d'assurance chômage, qui durcit les règles d'indemnisation.",
+    "titre": "l'ensemble du projet de loi portant transposition de l'avenant n° 3 du 25 février 2026 au protocole d'accord du 10 novembre 2023 relatif à l'assurance chômage (deuxième lecture).",
+    "date": "2026-06-02",
     "famille_clivage": "gauche_vs_reste",
     "positions": {
       "LFI-NFP": "contre",
