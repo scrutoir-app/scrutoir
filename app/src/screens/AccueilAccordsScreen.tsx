@@ -18,7 +18,7 @@ import { ouvrirTourNav } from "../tour";
 import { tourAccueilAFaire, marquerTourAccueilVu } from "../accueilTourPrefs";
 import { useJe } from "../testProximite/jeProximite";
 import { chargerTest } from "../testProximite/storage";
-import { dernierAccord, progressionTest, type Accord } from "../testProximite/accordsTexte";
+import { accordsParTexte, progressionTest, type Accord } from "../testProximite/accordsTexte";
 import type { PartiResume, CategorieRef, VoteSuivi } from "../types";
 import type { QuestionProximite } from "../testProximite/score";
 import type { Nav } from "../nav";
@@ -184,11 +184,13 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   // Tes accords : sur le dernier texte où tu t'es situé, chaque groupe de l'hémicycle a-t-il voté
   // comme toi ? Calcul pur (accordsTexte.ts) à partir des questions et de l'index des scrutins.
   const groupes = useMemo(() => partis.filter((p) => p.abrev && ORDRE_HEMICYCLE.includes(p.abrev)), [partis]);
-  const accord = useMemo(() => {
+  // Même calcul que l'écran Tes accords : un texte dont la question a quitté le test n'est pas compté.
+  const accords = useMemo(() => {
     if (!situes || !questions.length || !groupes.length) return null;
-    return dernierAccord(situes.refs, questions, reponses, (n) => situes.num2dos.get(n), groupes.map((g) => g.abrev!));
+    return accordsParTexte(situes.refs, questions, reponses, (n) => situes.num2dos.get(n), groupes.map((g) => g.abrev!));
   }, [situes, questions, reponses, groupes]);
-  const nbTextes = situes?.refs.length ?? 0;
+  const accord = accords?.[0] ?? null;
+  const nbTextes = accords?.length ?? situes?.refs.length ?? 0;
   const couleurAccord: Record<Accord, string> = { comme: C.pour, pas: C.contre, neutre: C.siege };
 
   // Entrée en fondu-montée (une valeur partagée), coupée si « animations réduites ».
