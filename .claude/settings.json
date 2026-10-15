@@ -1,0 +1,32 @@
+{
+  "enabledPlugins": {
+    "expo@expo-plugins": true,
+    "frontend-design@claude-plugins-official": true,
+    "security-guidance@claude-plugins-official": true,
+    "pr-review-toolkit@claude-code-plugins": true,
+    "code-review@claude-code-plugins": true,
+    "semgrep@claude-plugins-official": true
+  },
+  "extraKnownMarketplaces": {
+    "expo-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "expo/skills"
+      }
+    },
+    "claude-code-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "anthropics/claude-code",
+        "sparsePaths": [
+          ".claude-plugin",
+          "plugins"
+        ]
+      }
+    }
+  },
+  "env": {
+    "EXPO_SKILLS_TELEMETRY": "0",
+    "SEMGREP_SEND_METRICS": "off"
+  }
+}

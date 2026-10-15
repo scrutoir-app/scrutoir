@@ -1,0 +1,63 @@
+name: Sécurité (revue Claude + npm audit)
+
+# Deux filets sur chaque PR :
+# - revue de sécurité IA du diff (anthropics/claude-code-security-review), avec le modèle
+#   de menace du projet (.claude/claude-security-guidance.md : opinions politiques = RGPD art. 9) ;
+# - npm audit sur les trois paquets (app, api, pipeline).
+#
+# ⚠️ L'action n'est pas durcie contre l'injection de prompt : elle ne tourne que sur les PR
+# ouvertes depuis ce dépôt (pas les forks, qui n'ont de toute façon pas accès aux secrets),
+# et pas sur les PR Dependabot (pas d'accès aux secrets Actions ; npm audit les couvre).
+on:
+  pull_request:
+
+concurrency:
+  group: security-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  revue-claude:
+    if: github.event.pull_request.head.repo.full_name == github.repository && github.actor != 'dependabot[bot]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      pull-requests: write # commentaires de findings sur la PR
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+          fetch-depth: 2
+
+      - name: Revue de sécurité Claude
+        uses: anthropics/claude-code-security-review@0c6a49f1fa56a1d472575da86a94dbc1edb78eda # main @ 2026-02-11
+        with:
+          comment-pr: true
+          claude-api-key: ${{ secrets.CLAUDE_API_KEY }}
+          claude-model: claude-opus-5-5
+          custom-security-scan-instructions: .claude/claude-security-guidance.md
+
+  npm-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        package: [app, api, pipeline]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "24"
+
+      # Lit le package-lock.json, pas besoin d'installer. Échoue à partir de « high ».
+      - name: npm audit (${{ matrix.package }})
+        working-directory: ${{ matrix.package }}
+        run: npm audit --audit-level=high
