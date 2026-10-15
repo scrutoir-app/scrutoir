@@ -66,11 +66,10 @@ const nomCourt = (libelle: string) => libelle.split(/\s*[&,]\s*/)[0];
 
 // Cloche « suivre » posée sur chaque ligne du spectre : SEULE voie de suivi depuis le résultat
 // (plus aucun suivi silencieux). Câblée sur le VRAI état de suivi (`useFollow`, même store que
-// la fiche parti et l'accueil). uid = PO… du groupe (depuis `getPartis`, abrev → uid).
-// ⚠️ E2 : `toggleFollow` envoie `follow_parti` + uid à l'analytics ; depuis cet écran, ce geste
-// peut trahir le résultat du test (cf. PR v1.21.0, correctif proposé, non appliqué ici).
+// la fiche parti et l'accueil). uid = PO… du groupe (depuis `getPartis`, abrev → uid). Mesure
+// SANS uid (`sansUid`) : ici, le groupe suivi laisserait deviner le résultat du test.
 function SuivreGroupe({ uid, nom }: { uid: string; nom: string }) {
-  const [suivi, toggle] = useFollow(uid);
+  const [suivi, toggle] = useFollow(uid, { sansUid: true });
   if (!uid) return <View style={{ width: 44 }} />;
   return (
     <TouchableOpacity

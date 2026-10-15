@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { getFollows, isFollowed, suivreSansMesure, toggleFollow } from "./follows";
+import { getFollows, isFollowed, suivreSansMesure, toggleFollow, toggleFollowSansUid } from "./follows";
 
 // Espion sur les deux canaux de sortie de track() (sendBeacon, sinon fetch) : aucun appel
 // réseau réel, et on compte ce qui serait parti vers le Worker analytics.
@@ -45,4 +45,38 @@ test("suivi au geste de l'utilisateur : toujours mesuré (témoin de l'espion)",
   assert.ok(isFollowed("PO800002"));
   assert.equal(envois.length, 1);
   assert.match(envois[0], /"t":"follow_parti"/);
+  assert.match(envois[0], /"e":"PO800002"/); // les autres écrans gardent l'uid
+});
+
+// Cloche du spectre sur l'écran de résultat du test (E2) : le geste est compté, mais l'envoi
+// ne dit pas quel groupe (pas d'uid, contexte « test »), à la pose comme au retrait.
+test("cloche du résultat du test : suivi posé, mesuré SANS uid", () => {
+  envois.length = 0;
+  toggleFollowSansUid("PO800003");
+  assert.ok(isFollowed("PO800003"));
+  assert.equal(envois.length, 1);
+  const e = JSON.parse(envois[0]);
+  assert.equal(e.t, "follow_parti");
+  assert.equal(e.e, "");
+  assert.equal(e.x, "test");
+  assert.ok(!envois[0].includes("PO800003"));
+});
+
+test("cloche du résultat du test : retrait, même règle (sans uid)", () => {
+  envois.length = 0;
+  toggleFollowSansUid("PO800003");
+  assert.ok(!isFollowed("PO800003"));
+  assert.equal(envois.length, 1);
+  const e = JSON.parse(envois[0]);
+  assert.equal(e.t, "unfollow_parti");
+  assert.equal(e.e, "");
+  assert.ok(!envois[0].includes("PO800003"));
+});
+
+test("cloche du résultat du test : uid vide ignoré, rien n'est envoyé", () => {
+  envois.length = 0;
+  const avant = getFollows();
+  toggleFollowSansUid("");
+  assert.deepEqual(getFollows(), avant);
+  assert.equal(envois.length, 0);
 });

@@ -46,16 +46,29 @@ export function isFollowed(uid: string): boolean {
   return read().includes(uid);
 }
 
-export function toggleFollow(uid: string) {
+/** Ajoute ou retire le suivi sur l'appareil ; renvoie le type d'événement de mesure du geste. */
+function basculer(uid: string): string {
   const cur = read();
   const wasFollowed = cur.includes(uid);
   write(wasFollowed ? cur.filter((u) => u !== uid) : [...cur, uid]);
   // Analytics : on distingue parti (uid PO…) et député (PA…) pour des classements nets.
   const isParti = uid.startsWith("PO");
-  track(
-    wasFollowed ? (isParti ? "unfollow_parti" : "unfollow") : (isParti ? "follow_parti" : "follow"),
-    uid
-  );
+  return wasFollowed ? (isParti ? "unfollow_parti" : "unfollow") : (isParti ? "follow_parti" : "follow");
+}
+
+export function toggleFollow(uid: string) {
+  track(basculer(uid), uid);
+}
+
+/**
+ * Suivi au geste depuis l'écran de RÉSULTAT du test de proximité : même suivi sur l'appareil
+ * que `toggleFollow`, et le geste reste compté, mais sans l'uid (contexte « test » seulement).
+ * Depuis ce résultat, le groupe suivi est souvent le plus proche : son uid laisserait deviner
+ * le résultat du test (opinion politique, RGPD art. 9). Les autres écrans gardent `toggleFollow`.
+ */
+export function toggleFollowSansUid(uid: string) {
+  if (!uid) return;
+  track(basculer(uid), "", "test");
 }
 
 /**
