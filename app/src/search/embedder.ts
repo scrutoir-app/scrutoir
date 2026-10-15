@@ -90,6 +90,21 @@ function chargerLib(): Promise<any> {
   return libP;
 }
 
+/**
+ * Supprime le cache propre à transformers.js (`env.cacheKey`, « transformers-cache »),
+ * rempli par les versions qui laissaient `useBrowserCache` actif. Best-effort, sans attente :
+ * absent, `caches.delete` ne fait rien. Le SW purge aussi ce cache à son activation.
+ */
+function purgerCacheTransformers(cacheKey: unknown): void {
+  try {
+    if (typeof caches === "undefined" || typeof cacheKey !== "string") return;
+    if (cacheKey.startsWith("scrutoir-")) return; // jamais un cache du SW
+    caches.delete(cacheKey).catch(() => {});
+  } catch {
+    /* Cache API indisponible : rien à purger */
+  }
+}
+
 /** Charge (une seule fois) le pipeline d'extraction de features (modèle local). */
 export function chargerEmbedder(): Promise<any> {
   if (!extractorP) {
@@ -99,6 +114,12 @@ export function chargerEmbedder(): Promise<any> {
       tf.env.allowRemoteModels = false;
       tf.env.allowLocalModels = true;
       tf.env.localModelPath = "/models/";
+      // Le SW met déjà le modèle en cache (`scrutoir-model-*`). Laissé actif, le cache
+      // navigateur de transformers.js en rangeait une 2e copie dans `transformers-cache`
+      // (~129 Mio de plus sur l'appareil). On le coupe et on purge la copie laissée par
+      // les versions précédentes (sans toucher au cache du SW).
+      tf.env.useBrowserCache = false;
+      purgerCacheTransformers(tf.env.cacheKey);
       const wasm = tf.env.backends?.onnx?.wasm;
       if (wasm) {
         wasm.wasmPaths = "/ort/"; // runtime WASM auto-hébergé

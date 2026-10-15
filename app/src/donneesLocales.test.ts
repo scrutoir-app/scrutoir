@@ -54,6 +54,7 @@ async function remplir() {
   cachesMem.set("scrutoir-model-v1", [ONNX]);
   cachesMem.set("transformers-cache", [ONNX]);
   cachesMem.set("scrutoir-shell-v9", ["https://scrutoir.fr/index.html"]);
+  cachesMem.set("scrutoir-data-v4", ["https://data.scrutoir.fr/data/version.json"]);
   store.set("scrutoir.scheme", "dark");
   store.set("scrutoir.partyLogos", "1");
   envois.length = 0; // le remplissage passe par les gestes normaux (toggleFollow mesure) : on repart de zéro
@@ -90,11 +91,11 @@ test("effacer les scrutins gardés : liste vide, rien d'envoyé", async () => {
   assert.equal(envois.length, 0);
 });
 
-test("supprimer le modèle : opt-in retiré, caches du modèle purgés, coquille gardée", async () => {
+test("supprimer le modèle : opt-in retiré, caches du modèle purgés, coquille et données gardées", async () => {
   await remplir();
   await supprimerModele();
   assert.equal(store.has("scrutoir.semantique.optin"), false);
-  assert.deepEqual([...cachesMem.keys()], ["scrutoir-shell-v9"]);
+  assert.deepEqual([...cachesMem.keys()].sort(), ["scrutoir-data-v4", "scrutoir-shell-v9"]);
   assert.equal(await lireEtatModele(), null);
   assert.equal(envois.length, 0);
 });
@@ -111,6 +112,15 @@ test("tout effacer : plus aucune donnée personnelle, affichage conservé, rien 
   assert.equal(store.get("scrutoir.scheme"), "dark");
   assert.equal(store.get("scrutoir.partyLogos"), "1");
   assert.equal(envois.length, 0);
+});
+
+test("modèle : seule la copie du SW compte, une ancienne copie transformers-cache ne vaut pas opt-in", async () => {
+  await remplir();
+  await supprimerModele();
+  cachesMem.set("transformers-cache", [ONNX]); // copie d'avant la 1.19.2, sans cache du SW
+  assert.equal(await lireEtatModele(), null);
+  await supprimerModele();
+  assert.equal(cachesMem.has("transformers-cache"), false);
 });
 
 // Témoin : un geste mesuré (toggleFollow) est bien capté par l'espion — les 0 ci-dessus

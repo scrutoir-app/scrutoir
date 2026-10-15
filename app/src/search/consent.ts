@@ -38,23 +38,30 @@ export async function autoriserSemantique(): Promise<void> {
   }
 }
 
+/** Cache du SW qui contient le modèle (`scrutoir-model-*`, sans figer la version ici). */
+function estCacheModeleSW(nom: string): boolean {
+  return nom.startsWith("scrutoir-model-");
+}
+
 /**
- * Caches qui contiennent le modèle : celui du SW (`scrutoir-model-*`, sans figer la
- * version ici) ET celui de transformers.js (`env.cacheKey`, qui garde sa propre copie des
- * fichiers chargés depuis /models/ quand `useBrowserCache` est actif — le cas par défaut).
+ * Caches à vider pour supprimer le modèle : celui du SW, et `transformers-cache`, la copie
+ * que transformers.js rangeait lui-même avant la 1.19.2 (`useBrowserCache`, coupé depuis
+ * dans embedder.ts). Elle reste sur les appareils tant que le SW v36 n'est pas activé.
  */
 function estCacheModele(nom: string): boolean {
-  return nom.startsWith("scrutoir-model-") || nom === "transformers-cache";
+  return estCacheModeleSW(nom) || nom === "transformers-cache";
 }
 
 /**
  * Le modèle est-il déjà en cache ? (opt-in implicite : plus rien à télécharger).
+ * Seul le cache du SW compte : transformers.js ne lit plus `transformers-cache`, une copie
+ * restée là ne dispense pas du téléchargement.
  */
 export async function modeleDejaEnCache(): Promise<boolean> {
   try {
     if (typeof caches === "undefined") return false;
     for (const nom of await caches.keys()) {
-      if (!estCacheModele(nom)) continue;
+      if (!estCacheModeleSW(nom)) continue;
       const cles = await (await caches.open(nom)).keys();
       if (cles.some((r) => r.url.endsWith("/model_quantized.onnx"))) return true;
     }
