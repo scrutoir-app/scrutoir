@@ -36,11 +36,11 @@ export function VotesListeScreen({
       ? `${nom} — n'a pas pris part`
       : `${nom} — a voté « ${positionLabel(position)} »`;
 
-  // Annotation par-item : consigne du groupe sur ce scrutin + marqueur « écart ».
+  // Annotation par-item : position majoritaire du groupe sur ce scrutin (champ `consigne`) + marqueur « écart ».
   const renderAnnotation = (s: VoteScrutin) =>
     voteExprime && s.consigne != null ? (
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
-        <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>consigne du groupe :</Text>
+        <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint }]}>majorité du groupe :</Text>
         <Text style={[T.micro, { fontFamily: F.bold, color: couleurPosition(s.consigne) }]}>{positionLabel(s.consigne)}</Text>
         {s.consigne !== position && <Text style={[T.micro, { fontFamily: F.bold, color: C.contre }]}>· écart</Text>}
       </View>

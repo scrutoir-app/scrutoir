@@ -6,7 +6,7 @@ import { HemicyclePositions } from "./HemicyclePositions";
 import { ScrutinMotif } from "./ScrutinMotif";
 import { VerdictPastille } from "./VerdictPastille";
 import { useScrutinGroupes } from "../scrutinGroupes";
-import { useKept } from "../keptScrutins";
+import { useKept } from "../hooks/useKept";
 import { verdictScrutin, positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
 import { catUI } from "../categoryUI";
 import type { ContexteJe } from "../testProximite/jeProximite";
@@ -99,7 +99,7 @@ export function FilScrutinCard({
 
   const positions = useMemo(() => {
     const m: Record<string, "pour" | "contre" | "abstention"> = {};
-    detail?.pos.forEach((g) => { if (g.abrev) m[g.abrev] = g.position; });
+    detail?.pos.forEach((g) => { if (g.abrev && g.position) m[g.abrev] = g.position; });
     return m;
   }, [detail]);
   const geo = useMemo(() => (detail?.groupes ?? []).map((g) => ({ abrev: g.abrev, nb_deputes: tailleGroupe(g) })), [detail]);

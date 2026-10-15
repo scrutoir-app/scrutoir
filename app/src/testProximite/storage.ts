@@ -121,3 +121,9 @@ export function lireHashPartage(): { reponses: Record<number, Reponse>; poids?: 
   const m = window.location.hash.match(/test=([^&]+)/);
   return m ? decoderPartage(m[1]) : null;
 }
+
+/** Utilisateur « situé » = au moins une réponse pour/contre enregistrée (lecture synchrone, au montage). */
+export function estSitue(): boolean {
+  const t = chargerTest();
+  return !!t && Object.values(t.reponses).some((r) => r === "pour" || r === "contre");
+}

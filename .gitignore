@@ -19,3 +19,6 @@ analytics/.dev.vars
 .claude/worktrees/
 .claude/settings.local.json
 .claude/*.local.md
+
+# Cache et fichiers temporaires de wrangler (worker analytics)
+analytics/.wrangler/

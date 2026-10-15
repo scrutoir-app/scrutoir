@@ -13,7 +13,8 @@ import { C, F, inputText, RADIUS, shadowCard } from "./src/theme";
 import type { Route, Nav } from "./src/nav";
 import { SearchScreen } from "./src/screens/SearchScreen";
 import { SearchResultsList } from "./src/components/SearchResultsList";
-import { FilScrutinsScreen } from "./src/screens/FilScrutinsScreen";
+import { ScrutinsScreen } from "./src/screens/ScrutinsScreen";
+import { ScrutinsListeScreen } from "./src/screens/ScrutinsListeScreen";
 import { GrandsScrutinsScreen } from "./src/screens/GrandsScrutinsScreen";
 import { PartisScreen } from "./src/screens/PartisScreen";
 import { PartiScreen } from "./src/screens/PartiScreen";
@@ -57,8 +58,8 @@ import { track } from "./src/analytics";
 
 const TABS: { root: Route["name"]; label: string; icon: any }[] = [
   { root: "search", label: "Accueil", icon: "home" },
-  // Onglet de consultation des scrutins (Récents + Par thème). Clé de route historique
-  // « themes » conservée (invisible à l'utilisateur) pour éviter toute régression de nav.
+  // Onglet Scrutins (sous-onglets Recherche et Textes). Clé de route historique « themes »
+  // conservée (invisible à l'utilisateur) pour éviter toute régression de nav.
   { root: "themes", label: "Scrutins", icon: "grid" },
   { root: "partis", label: "Partis", icon: "users" },
   // « Suivis » n'a plus d'onglet : le fil vit sur l'accueil, l'écran complet est atteint
@@ -70,8 +71,8 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 // n'a pas d'onglet → rattaché à l'Accueil (sa recherche « Sur quoi ils ont voté ? »).
 const TOUR_PHRASES: Record<string, string> = {
   search: "La semaine à l'Assemblée, le focus actualité, tes suivis, et la recherche pour trouver et suivre un député.",
-  themes: "Tous les votes de l'Assemblée : en Fil immersif ou en Liste, avec un verdict « comme toi » sur chaque scrutin.",
-  partis: "Les groupes classés selon ta proximité. Ouvre la fiche d'un parti pour le suivre, ou ne plus le suivre.",
+  themes: "Cherche un sujet, une loi ou un nom, ou parcours les textes votés récemment : un texte par carte, les amendements qui ont compté en second.",
+  partis: "Les groupes de l'Assemblée. Une fois situé, chacun dit à quel point il vote comme toi. Touche un groupe pour ouvrir sa fiche, ou la cloche pour le suivre.",
   apropos: "La méthode, les sources et les limites de Scrutoir. Tu peux rouvrir cette visite à tout moment via le « ? » de l'accueil.",
 };
 
@@ -128,7 +129,7 @@ function AppInner() {
     if (type === "depute") setStack([{ name: "search" }, { name: "depute", uid: id }]);
     else if (type === "scrutin") setStack([{ name: "themes" }, { name: "scrutin", uid: id }]);
     else if (type === "parti") setStack([{ name: "partis" }, { name: "parti", uid: id }]);
-    else if (type === "texte") setStack([{ name: "search" }, { name: "dossierScrutins", ref: id }]); // deep-link SEO d'un texte (dossier) → liste ScrutinList
+    else if (type === "texte") setStack([{ name: "search" }, { name: "dossierScrutins", ref: id }]); // deep-link SEO d'un texte (dossier) → page du texte
     else if (type === "theme")
       getCategories()
         .then((cats) => {
@@ -175,9 +176,9 @@ function AppInner() {
   // Recherche EN LIGNE depuis les onglets de navigation (Accueil a déjà sa propre recherche).
   const [gq, setGq] = useState("");
   const [gqFocus, setGqFocus] = useState(false); // focus visible (bordure accent, cf. plus bas)
-  // L'onglet Scrutins ("themes") est désormais le Fil immersif plein cadre (barre de contrôles
-  // en surimpression, filtre par catégorie intégré) → pas de barre de recherche globale par-dessus.
-  const ongletAvecRecherche = ["partis", "suivis", "apropos"].includes(root);
+  // Les onglets Scrutins (sous-onglet Recherche) et Partis (maquette du 15/10 : l'hémicycle et la
+  // liste, sans barre) n'ont pas de barre de recherche globale par-dessus.
+  const ongletAvecRecherche = ["suivis", "apropos"].includes(root);
   const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
   useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
 
@@ -201,9 +202,9 @@ function AppInner() {
   // dans ConfrontationScreen). Ne casse jamais l'app (track() est protégé).
   useEffect(() => {
     const c = current;
-    if (c.name === "depute") track("depute", c.uid);
+    if (c.name === "depute") track("depute", c.depuis ? "" : c.uid, c.depuis);
     else if (c.name === "scrutin") track("scrutin", c.uid);
-    else if (c.name === "parti") track("parti", c.uid);
+    else if (c.name === "parti") (c.sansUid ? track("parti", "", "test") : track("parti", c.uid));
     else if (c.name === "categorie") track("theme", c.id);
     else track("screen", c.name);
   }, [current]);
@@ -225,12 +226,13 @@ function AppInner() {
 
   const titres: Record<Route["name"], string> = {
     search: "", themes: "", apropos: "", partis: "", suivis: "",
+    scrutinsListe: "Scrutins",
     grandsScrutins: "Grands scrutins", parti: "Parti", membresParti: "Élus du groupe", votesParti: "Votes du groupe",
     depute: "Député", scrutin: "Scrutin", categorie: "Thème",
     dissidences: "Dissidences", votesCategorie: "Votes par thème",
     votesDepute: "Détail des votes", votants: "Votants",
-    confrontation: "Confrontation",
-    confrontationListe: "Confrontation",
+    confrontation: "Face à face",
+    confrontationListe: "Face à face",
     monDepute: "Trouver un député",
     mentions: "Mentions légales",
     parametres: "Paramètres",
@@ -238,7 +240,7 @@ function AppInner() {
     test: "Test de proximité",
     testResultat: "Ta proximité",
     testParTheme: "Par thème",
-    dossierScrutins: "Tout le texte",
+    dossierScrutins: "Texte",
     accords: "Tes accords",
   };
   const showHeader = stack.length > 1;
@@ -278,7 +280,9 @@ function AppInner() {
               <Text style={{ fontSize: 15, color: C.accent, marginLeft: 2, fontFamily: F.semibold }}>Retour</Text>
             </TouchableOpacity>
             <Text style={{ flex: 1, textAlign: "center", fontSize: 16, fontFamily: F.bold, color: C.text, marginRight: 64 }}>
-              {titres[current.name]}
+              {current.name === "scrutin" && /V(\d+)$/.test(current.uid)
+                ? `Scrutin n° ${current.uid.match(/V(\d+)$/)![1]}`
+                : titres[current.name]}
             </Text>
           </View>
         )}
@@ -331,15 +335,16 @@ function AppInner() {
           {/* Accueil = refonte v3 « Tes accords » (recherche réelle + bande perso + flux des suivis).
               Remplace l'ancien SearchScreen (conservé comme référence, plus rendu). */}
           {current.name === "search" && <AccueilAccordsScreen nav={nav} />}
-          {current.name === "themes" && <FilScrutinsScreen nav={nav} />}
+          {current.name === "themes" && <ScrutinsScreen nav={nav} />}
+          {current.name === "scrutinsListe" && <ScrutinsListeScreen q={current.q} nav={nav} />}
           {current.name === "grandsScrutins" && <GrandsScrutinsScreen nav={nav} />}
           {current.name === "partis" && <PartisScreen nav={nav} />}
-          {current.name === "parti" && <PartiScreen uid={current.uid} nav={nav} />}
+          {current.name === "parti" && <PartiScreen uid={current.uid} sansUid={current.sansUid} nav={nav} />}
           {current.name === "membresParti" && <MembresPartiScreen uid={current.uid} libelle={current.libelle} nav={nav} />}
           {current.name === "votesParti" && (
             <VotesPartiScreen uid={current.uid} libelle={current.libelle} categorie={current.categorie} categorieLibelle={current.categorieLibelle} position={current.position} periode={current.periode} nav={nav} />
           )}
-          {current.name === "depute" && <DeputeScreen uid={current.uid} nav={nav} />}
+          {current.name === "depute" && <DeputeScreen uid={current.uid} depuis={current.depuis} nav={nav} />}
           {current.name === "scrutin" && <ScrutinScreen uid={current.uid} nav={nav} />}
           {current.name === "categorie" && <CategorieScreen id={current.id} libelle={current.libelle} nav={nav} />}
           {current.name === "dissidences" && <DissidencesScreen uid={current.uid} nom={current.nom} nav={nav} />}
@@ -358,7 +363,7 @@ function AppInner() {
           {current.name === "confrontationListe" && (
             <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} depA={current.depA} depB={current.depB} communs={current.communs} nav={nav} />
           )}
-          {current.name === "monDepute" && <TrouverDeputeScreen nav={nav} />}
+          {current.name === "monDepute" && <TrouverDeputeScreen mode={current.mode} commune={current.commune} circo={current.circo} nav={nav} />}
           {current.name === "parametres" && <ParametresScreen nav={nav} />}
           {current.name === "suivis" && <SuivisScreen source={current.source} nav={nav} />}
           {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}

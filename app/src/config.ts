@@ -8,7 +8,7 @@
  *   - MINEUR   (1.x.0) : nouvelle fonctionnalité visible.
  *   - MAJEUR   (x.0.0) : refonte importante.
  */
-export const APP_VERSION = "1.17.6";
+export const APP_VERSION = "1.26.0";
 
 /**
  * Seuil minimal de votes nominatifs exprimés (pour + contre + abstention) pour
@@ -27,6 +27,15 @@ export function scrutinSourceUrl(numero: number | null | undefined): string | nu
  *  amendements déposés sur le texte). L'uid de dossier (DLR…) est l'identifiant d'URL. */
 export function dossierSourceUrl(ref: string | null | undefined): string | null {
   return ref ? `https://www.assemblee-nationale.fr/dyn/17/dossiers/${ref}` : null;
+}
+
+/**
+ * Lien vers le site de l'Assemblée lu dans les DONNÉES (ex. `source_url` du test) : gardé seulement
+ * s'il est en https sur www.assemblee-nationale.fr, sinon null. Avant de l'ouvrir : un fichier de
+ * données altéré ne doit pas pouvoir faire ouvrir un `javascript:` ou un autre site.
+ */
+export function lienAN(url: string | null | undefined): string | null {
+  return typeof url === "string" && /^https:\/\/www\.assemblee-nationale\.fr\//.test(url) ? url : null;
 }
 
 /** Portail officiel « Vos députés » (pour aider à identifier sa circonscription). */

@@ -1,12 +1,18 @@
 import type { ConfrontationScrutin, DeputeResume, AngleShuffle } from "./types";
 import type { Reponse } from "./testProximite/score";
+import type { Commune } from "./api";
 
 export type Route =
   | { name: "search" }
+  // Onglet Scrutins (clé historique « themes ») : sous-onglets Recherche et Textes.
   | { name: "themes" }
+  // Scrutins un par un : les 150 derniers (sans q), ou ceux dont l'intitulé cite q.
+  | { name: "scrutinsListe"; q?: string }
   | { name: "grandsScrutins" }
   | { name: "partis" }
-  | { name: "parti"; uid: string }
+  // sansUid : ouverte depuis la liste triée par affinité (onglet Partis situé) → mesurée sans
+  // dire quel groupe (comme la cloche du résultat du test, écart E2 du lot 3).
+  | { name: "parti"; uid: string; sansUid?: boolean }
   | { name: "membresParti"; uid: string; libelle: string }
   | {
       name: "votesParti";
@@ -17,7 +23,9 @@ export type Route =
       position: string;
       periode: "all" | "12m" | "6m";
     }
-  | { name: "depute"; uid: string }
+  // depuis = "affinite" : ouverte depuis le deck d'affinité (après « N % comme toi ») → la mesure
+  // d'audience compte la visite sans l'uid (RGPD art. 9, comme le suivi depuis ce deck).
+  | { name: "depute"; uid: string; depuis?: "affinite" }
   | { name: "scrutin"; uid: string }
   | { name: "categorie"; id: string; libelle: string }
   | { name: "dissidences"; uid: string; nom: string }
@@ -49,7 +57,7 @@ export type Route =
   | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m"; hasard?: boolean; angle?: AngleShuffle }
   | {
       name: "confrontationListe";
-      kind: "accord" | "desaccord";
+      kind: "accord" | "desaccord" | "tous"; // tous = tous les votes en commun (« Derniers votes »)
       themeLibelle: string;
       sousTitre: string;
       scrutins: ConfrontationScrutin[];
@@ -57,7 +65,9 @@ export type Route =
       depB: DeputeResume;
       communs: number; // total de scrutins communs du thème (pour le taux affiché)
     }
-  | { name: "monDepute" }
+  // Trouver ton député : mode, commune et circonscription choisies, gardés au départ vers une
+  // fiche (App.tsx ne rend que l'écran du sommet : au retour, l'écran est remonté). En mémoire.
+  | { name: "monDepute"; mode?: "cp" | "affinite"; commune?: Commune; circo?: number }
   // source : pré-filtre l'écran Suivis sur une catégorie de suivis (élus / partis).
   | { name: "suivis"; source?: "deputes" | "partis" }
   | { name: "mentions" }

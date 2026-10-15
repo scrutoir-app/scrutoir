@@ -71,12 +71,14 @@ export function createSchema(db: Database.Database): void {
       PRIMARY KEY (scrutin_uid, depute_uid)
     );
 
-    -- Consigne de vote (position majoritaire) de chaque groupe par scrutin,
-    -- fournie directement par l'AN. Sert a calculer la loyaute des deputes.
+    -- Position majoritaire de chaque groupe par scrutin, CALCULÉE sur ses votants
+    -- (positionMajoritaire, app/src/decompte.ts). L'AN ne publie aucune consigne de groupe.
+    -- Sert à la loyauté des députés, aux écarts, à la cohésion et aux positions des partis.
     CREATE TABLE IF NOT EXISTS groupe_positions (
       scrutin_uid TEXT NOT NULL REFERENCES scrutins(uid),
       groupe_uid  TEXT NOT NULL,
-      position    TEXT,                  -- pour|contre|abstention
+      position    TEXT,                  -- pour|contre|abstention ; NULL = égalité ou aucun exprimé
+      position_an TEXT,                  -- positionMajoritaire brute de l'AN, pour audit SEULEMENT (tri texte : « 2 » > « 10 »)
       PRIMARY KEY (scrutin_uid, groupe_uid)
     );
 
@@ -187,6 +189,11 @@ export function createSchema(db: Database.Database): void {
   }
   try {
     db.exec("ALTER TABLE scrutins ADD COLUMN dossier_ref TEXT");
+  } catch {
+    /* colonne déjà présente */
+  }
+  try {
+    db.exec("ALTER TABLE groupe_positions ADD COLUMN position_an TEXT");
   } catch {
     /* colonne déjà présente */
   }

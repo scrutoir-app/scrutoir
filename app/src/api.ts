@@ -6,6 +6,9 @@ import type {
 import type { QuestionProximite } from "./testProximite/score";
 import { normaliser } from "./search/normalize";
 import { ALIAS_PARTIS } from "./search/aliases";
+import { indexerTextes, aujourdhuiParis, type IndexTextes } from "./hebdo";
+import { urlCommunesSaisie, urlCommuneParCoord, communesValides } from "./trouverDepute";
+import { bornePeriode } from "./periode";
 
 /**
  * Couche données « tout statique » : l'app lit des fichiers JSON pré-générés
@@ -53,6 +56,19 @@ export async function getSourceHebdo(): Promise<{ scrutins: ScrutinIdx[]; dossie
   return { scrutins, dossiers };
 }
 
+/** Tous les textes de la législature (onglet Scrutins, page d'un texte), regroupés une fois par
+ *  session depuis les mêmes index que la semaine à l'Assemblée (aucun fichier nouveau). */
+let textesP: Promise<IndexTextes> | null = null;
+export function getIndexTextes(): Promise<IndexTextes> {
+  if (!textesP) {
+    textesP = getSourceHebdo().then(({ scrutins, dossiers }) => indexerTextes(scrutins, dossiers));
+    textesP.catch(() => {
+      textesP = null; // même règle que `j()` : pas d'échec figé en cache
+    });
+  }
+  return textesP;
+}
+
 /** Map numéro de scrutin → dossier_ref (depuis l'index), pour relier tes réponses de test aux textes. */
 async function numeroVersDossier(): Promise<Map<number, string>> {
   const scrs = await scrutinsIndex();
@@ -60,6 +76,8 @@ async function numeroVersDossier(): Promise<Map<number, string>> {
   for (const s of scrs) if (s.numero != null && s.dossier_ref) m.set(s.numero, s.dossier_ref);
   return m;
 }
+/** Même map, pour « Tes accords » de l'accueil : le calcul reste sur l'appareil (index public). */
+export const getNumeroVersDossier = () => numeroVersDossier();
 
 /** Les TEXTES où l'utilisateur s'est situé (≥1 réponse pour/contre), avec le nb de scrutins tranchés. */
 export async function getDossiersSitues(reponses: Record<number, string>): Promise<{ dossier: DossierResume; nbSitue: number }[]> {
@@ -120,6 +138,7 @@ export async function getTextesSituesApercu(
 export function viderCacheDonnees(): void {
   cache.clear();
   scrMapP = null;
+  textesP = null;
 }
 
 let scrMapP: Promise<Map<string, ScrutinIdx>> | null = null;
@@ -144,12 +163,9 @@ interface DeputeFile {
 const depute = (uid: string) => j<DeputeFile>(`depute/${uid}`);
 
 // --- Helpers (portés du backend) --------------------------------------------
-function bornePeriode(p: Periode): string | null {
-  if (p === "all") return null;
-  const d = new Date();
-  d.setMonth(d.getMonth() - (p === "12m" ? 12 : 6));
-  return d.toISOString().slice(0, 10);
-}
+// Borne d'une période glissante, comptée depuis la date du jour à Paris (règle partagée avec le
+// pipeline, bornée au dernier jour du mois visé : cf. periode.ts).
+const borneDuJour = (p: Periode): string | null => bornePeriode(p, aujourdhuiParis());
 const EXPRIME = (pos: string) => pos === "pour" || pos === "contre" || pos === "abstention";
 
 // Normalisation + alias de partis partagés avec la recherche sémantique (src/search).
@@ -210,7 +226,7 @@ export const getVotesBruts = (uid: string): Promise<Record<string, string>> =>
 export const getParti = (uid: string, periode: Periode) =>
   j<Record<Periode, ProfilParti>>(`parti/${uid}`).then((p) => p[periode]);
 
-/** Votes d'un député AVEC la consigne de son groupe : { scrutin_uid: [position, consigne] }.
+/** Votes d'un député AVEC la position majoritaire de son groupe : { scrutin_uid: [position, consigne] }.
  *  Sert à dériver « suit / s'écarte du groupe » (fiche député). Fichier élu déjà mis en cache. */
 export const getDeputeVotes = (uid: string) => depute(uid).then((d) => d.votes);
 
@@ -271,6 +287,8 @@ export async function getVotesSuivis(uids: string[], limit = 80): Promise<VoteSu
         position: Array.isArray(tuple) ? tuple[0] : (tuple as unknown as string),
         sort_code: sc.sort_code ?? null,
         categorie: sc.categorie ?? null,
+        type_vote: sc.type_vote ?? null,
+        dossier_ref: sc.dossier_ref ?? null,
       });
     }
   });
@@ -308,6 +326,8 @@ export async function getVotesPartisSuivis(partiUids: string[], limit = 80): Pro
         position: pos,
         sort_code: sc.sort_code ?? null,
         categorie: sc.categorie ?? null,
+        type_vote: sc.type_vote ?? null,
+        dossier_ref: sc.dossier_ref ?? null,
       });
     }
   });
@@ -363,7 +383,7 @@ function voteScrutin(s: ScrutinResume, position: string, consigne: string | null
 }
 export async function getVotesDepute(uid: string, categorie: string, position: string, periode: Periode): Promise<VoteScrutin[]> {
   const [d, scrMap] = await Promise.all([depute(uid), scrutinsMap()]);
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   if (position === "absent") {
     // Déduit : scrutins du thème dans la fenêtre du mandat, sans ligne de vote.
     const debut = [d.mandat_debut, borne].filter(Boolean).sort().pop() ?? null;
@@ -394,7 +414,7 @@ const groupePositions = (uid: string) => j<Record<string, string>>(`groupe/${uid
 /** Scrutins où le GROUPE a tenu une position donnée sur un thème (drill-down fiche parti). */
 export async function getVotesParti(groupeUid: string, categorie: string, position: string, periode: Periode): Promise<VoteScrutin[]> {
   const [pos, scrMap] = await Promise.all([groupePositions(groupeUid), scrutinsMap()]);
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   const out: VoteScrutin[] = [];
   for (const [su, p] of Object.entries(pos)) {
     if (p !== position) continue;
@@ -408,7 +428,7 @@ export async function getVotesParti(groupeUid: string, categorie: string, positi
 
 export async function getVotesDeputeCategorie(uid: string, categorie: string, periode: Periode): Promise<VoteScrutin[]> {
   const [d, scrMap] = await Promise.all([depute(uid), scrutinsMap()]);
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   const out: VoteScrutin[] = [];
   for (const [su, [pos, consigne]] of Object.entries(d.votes)) {
     const s = scrMap.get(su);
@@ -452,7 +472,7 @@ export async function getConfrontation(aUid: string, bUid: string, periode: Peri
   ]);
   const a = deps.find((d) => d.uid === aUid)!;
   const b = deps.find((d) => d.uid === bUid)!;
-  const borne = bornePeriode(periode);
+  const borne = borneDuJour(periode);
   const themes = new Map<string, any>();
   cats.forEach((c) => themes.set(c.id, { id: c.id, libelle: c.libelle, ordre: c.ordre, communs: 0, desaccords: [], accords: [] }));
   let communs = 0, desaccords = 0;
@@ -465,7 +485,7 @@ export async function getConfrontation(aUid: string, bUid: string, periode: Peri
     if (borne && (s.date ?? "") < borne) continue;
     const t = themes.get(s.categorie ?? "");
     if (!t) continue;
-    const sc = { uid: s.uid, numero: s.numero, date: s.date, titre: s.titre, objet: null, sort_code: s.sort_code, resume: null, posA, posB: vb[0] };
+    const sc = { uid: s.uid, numero: s.numero, date: s.date, titre: s.titre, objet: null, sort_code: s.sort_code, resume: null, posA, posB: vb[0], type_vote: s.type_vote ?? null, dossier_titre: s.dossier_titre ?? null };
     t.communs++; communs++;
     if (posA === vb[0]) t.accords.push(sc);
     else { t.desaccords.push(sc); desaccords++; }
@@ -528,6 +548,9 @@ export async function getDuelDuJour(): Promise<ShuffleConfrontation | null> {
 }
 
 // --- Recherche de commune (API Géo officielle, reste dynamique côté client) --
+// Les URL (et donc tout ce qui part vers geo.api.gouv.fr) sont construites dans `trouverDepute.ts`,
+// pur et testé : la saisie, ou la position arrondie à 100 m, rien d'autre. Les réponses y sont
+// vérifiées aussi (`communesValides`) avant d'arriver à l'écran.
 export interface Commune {
   nom: string;
   code: string;
@@ -535,30 +558,24 @@ export interface Commune {
   codesPostaux?: string[];
 }
 export async function rechercheCommunes(q: string): Promise<Commune[]> {
-  const s = q.trim();
-  const estCP = /^\d{5}$/.test(s);
-  const base = "https://geo.api.gouv.fr/communes";
-  const url = estCP
-    ? `${base}?codePostal=${s}&fields=nom,code,codeDepartement,codesPostaux&format=json`
-    : `${base}?nom=${encodeURIComponent(s)}&fields=nom,code,codeDepartement,codesPostaux&boost=population&limit=8&format=json`;
+  const url = urlCommunesSaisie(q);
+  if (!url) return [];
   const res = await fetch(url);
   if (!res.ok) return [];
-  return (await res.json()) as Commune[];
+  return communesValides(await res.json());
 }
 
 /**
  * Commune à des coordonnées GPS (reverse geocoding API Géo officielle) — pour « Me localiser ».
  * Renvoie la commune contenant le point, ou null. La géoloc est déclenchée côté écran (le
- * navigateur demande l'autorisation) ; on n'envoie que lat/lon à l'API publique geo.api.gouv.fr,
- * aucune donnée personnelle, aucun stockage.
+ * navigateur demande l'autorisation) ; on n'envoie que lat/lon ARRONDIES (~100 m) à l'API publique
+ * geo.api.gouv.fr, aucune autre donnée, aucun stockage.
  */
 export async function communeParCoord(lat: number, lon: number): Promise<Commune | null> {
-  const url = `https://geo.api.gouv.fr/communes?lat=${lat}&lon=${lon}&fields=nom,code,codeDepartement,codesPostaux&format=json`;
   try {
-    const res = await fetch(url);
+    const res = await fetch(urlCommuneParCoord(lat, lon));
     if (!res.ok) return null;
-    const list = (await res.json()) as Commune[];
-    return list[0] ?? null;
+    return communesValides(await res.json())[0] ?? null;
   } catch {
     return null;
   }

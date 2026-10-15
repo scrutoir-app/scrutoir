@@ -5,8 +5,9 @@ import { C, F, T, RADIUS, couleurPosition, couleurGroupe, positionLabel } from "
 import { Card, Chip } from "./ui";
 import { HemicyclePicto } from "./HemicyclePicto";
 import { useData } from "../hooks/useData";
-import { useFollows } from "../follows";
+import { useFollows } from "../hooks/useFollows";
 import { getDeputesByUids, getVotesBruts } from "../api";
+import { positionMajoritaire } from "../decompte";
 import type { GroupeVentilation, PartiResume } from "../types";
 import type { ContexteJe } from "../testProximite/jeProximite";
 import type { Reponse } from "../testProximite/score";
@@ -20,12 +21,9 @@ import type { Nav } from "../nav";
 
 const estTranche = (p: string | null | undefined): p is "pour" | "contre" => p === "pour" || p === "contre";
 
-/** Position tenue par un GROUPE sur ce scrutin : consigne si donnée, sinon vote majoritaire exprimé. */
+/** Position tenue par un GROUPE sur ce scrutin : majorité de ses votants (égalité ou aucun vote → null). */
 function positionGroupe(g: GroupeVentilation): string | null {
-  const exprimes = g.pour + g.contre + g.abstention;
-  const majorite =
-    g.pour >= g.contre && g.pour >= g.abstention ? "pour" : g.contre >= g.abstention ? "contre" : "abstention";
-  return g.consigne ?? (exprimes > 0 ? majorite : null);
+  return positionMajoritaire(g);
 }
 
 interface Ligne {

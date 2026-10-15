@@ -17,6 +17,11 @@ import {
   libelleParution,
   libelleReprise,
   ventilation,
+  raisonsCompte,
+  articleVise,
+  voteDeReference,
+  indexerTextes,
+  trierTextes,
   type ScrutinSrc,
   type DossierSrc,
 } from "./hebdo";
@@ -213,4 +218,107 @@ test("focus : le vote sur l'ensemble porte ses décomptes, et rien sans ce vote"
   assert.deepEqual(t.voteEnsemble, { uid: "V41", date: "2026-10-13", solennel: true, pour: 503, contre: 0, abstention: 67 });
   const [sans] = textesFocus({ motsCles: /réponse intégrale/i }, scr.slice(0, 1), ds);
   assert.equal(sans.voteEnsemble, null);
+});
+
+// --- Onglet Scrutins : un texte par carte ----------------------------------------------------
+
+const VSS = "la proposition de loi apportant une réponse intégrale aux violences sexuelles (première lecture).";
+
+test("amendements qui ont compté : vote serré, ou suppression / rétablissement d'un article adopté", () => {
+  const am = (titre: string, pour: number, contre: number, sort_code = "adopte") => ({ titre, pour, contre, sort_code, type_vote: null });
+  // Serré : écart sous 5 % des voix exprimées (pour + contre), quel que soit le sort.
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 4 à l'article 44 de la proposition de loi …", 167, 177, "rejete")), ["serre"]);
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 3 à l'article 2 de la proposition de loi …", 100, 110, "rejete")), ["serre"]); // 10/210 ≈ 4,8 %
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 6 à l'article 2 de la proposition de loi …", 100, 112, "rejete")), []); // 12/212 ≈ 5,7 %
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 9 à l'article 2 …", 49, 49, "rejete")), ["serre"]); // égalité
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 8 à l'article 2 …", 0, 0, "rejete")), []); // aucun exprimé
+  // Suppression / rétablissement : seulement s'il est adopté (rejeté, il ne supprime rien).
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 5 de rétablissement de l'article 46 (supprimé) de la proposition de loi …", 213, 111)), ["retablissement"]);
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 7 de rétablissement de l'article 46 (supprimé) de la proposition de loi …", 98, 257, "rejete")), []);
+  assert.deepEqual(raisonsCompte(am("l'amendement n° 244 et les amendements identiques suivants de suppression de l'article 62 …", 121, 77)), ["suppression"]);
+  // Seuls les amendements sont concernés : un article serré n'est pas « un amendement qui a compté ».
+  assert.deepEqual(raisonsCompte(am("l'article 41 de la proposition de loi …", 88, 86)), []);
+  assert.equal(articleVise({ titre: "l'amendement n° 247 de suppression de l'article 5 bis de la proposition de loi …" }), "5 bis");
+  assert.equal(articleVise({ titre: "l'amendement n° 5 de rétablissement de l'article 46 (supprimé) …" }), "46");
+  assert.equal(articleVise({ titre: "l'amendement n° 4 à l'article 44 …" }), null);
+  // Suffixes en lettres gardés, casse d'origine : deux articles distincts restent distincts.
+  assert.equal(articleVise({ titre: "l'amendement n° 12 de suppression de l'article 11 quinquies A de la proposition de loi …" }), "11 quinquies A");
+  assert.equal(articleVise({ titre: "l'amendement n° 13 de suppression de l'article 20 bis AB (supprimé) de la proposition de loi …" }), "20 bis AB");
+  assert.equal(articleVise({ titre: "l'amendement n° 14 de suppression de l'article 2 de la proposition de loi …" }), "2");
+});
+
+test("vote de référence : l'ensemble d'abord, sinon une motion, puis un article ; rien pour des amendements seuls", () => {
+  const ens = voteDeReference([
+    s("V20", "2026-10-01", "l'article 1 de la proposition de loi …", { pour: 80, contre: 2 }),
+    s("V21", "2026-10-13", VSS, { type_vote: "scrutin public solennel", pour: 503, contre: 0, abstention: 67 }),
+    s("V22", "2026-10-13", "l'amendement n° 5 à l'article 46 …", { pour: 213, contre: 111 }),
+  ])!;
+  assert.equal(ens.uid, "V21");
+  assert.equal(ens.final, true);
+  assert.equal(ens.solennel, true);
+  assert.equal(ens.lecture, "1re lecture");
+  assert.equal(ens.objet, null);
+
+  const motion = voteDeReference([
+    s("V30", "2026-10-13", "la motion de rejet préalable, déposée par M. X, du projet de loi de finances pour 2027 (première lecture).", { sort_code: "rejete", pour: 149, contre: 236 }),
+    s("V31", "2026-10-14", "l'amendement n° 12 à l'article 2 du projet de loi de finances pour 2027 …"),
+  ])!;
+  assert.equal(motion.uid, "V30");
+  assert.equal(motion.final, false);
+  assert.equal(motion.objet, "Motion de rejet préalable");
+
+  // Motion de censure rattachée au texte (49.3) : ni vote sur l'ensemble ni verdict, même plus récente.
+  const budget = [
+    s("V70", "2025-11-04", "l'ensemble de la première partie du projet de loi de finances pour 2026 (première lecture).", { pour: 300, contre: 200 }),
+    s("V71", "2025-12-15", "la motion de censure déposée en application de l'article 49, alinéa 3, de la Constitution, par M. X.", { type_vote: "motion de censure", sort_code: "rejete", pour: 135, contre: 0 }),
+  ];
+  const cens = voteDeReference(budget)!;
+  assert.equal(cens.uid, "V71");
+  assert.equal(cens.final, false);
+  assert.equal(cens.objet, "Motion de censure");
+  const plfss = voteDeReference([...budget, s("V72", "2025-12-01", "l'ensemble du projet de loi de finances pour 2026 (nouvelle lecture).", { pour: 280, contre: 250 })])!;
+  assert.equal(plfss.uid, "V72"); // le vote sur l'ensemble prime sur une censure plus récente
+  assert.equal(plfss.final, true);
+  // L'ensemble de la première partie n'est pas le vote sur l'ensemble du texte.
+  const partie = voteDeReference(budget.slice(0, 1))!;
+  assert.equal(partie.final, false);
+  assert.equal(partie.objet, "Première partie");
+  // Motion de censure seule (sans texte) : c'est le vote final, son objet reste dit.
+  const seule = voteDeReference(budget.slice(1))!;
+  assert.equal(seule.final, true);
+  assert.equal(seule.objet, "Motion de censure");
+
+  const article = voteDeReference([s("V40", "2026-10-12", "l'article unique du projet de loi autorisant l'approbation de la convention …")])!;
+  assert.equal(article.objet, "Article unique");
+
+  assert.equal(voteDeReference([s("V50", "2026-10-08", "l'amendement n° 7 de suppression de l'article unique de la proposition de loi …", { sort_code: "rejete" })]), null);
+});
+
+test("index des textes : toute la législature par texte, récents d'abord, tri par importance au choix", () => {
+  const scrs: ScrutinSrc[] = [
+    s("V60", "2026-06-10", "l'ensemble de la proposition de loi visant à réformer les bourses (première lecture).", { dossier_ref: "DLR1", cats: ["education"] }),
+    s("V61", "2026-10-07", "l'amendement n° 1 de suppression de l'article 2 de la proposition de loi visant à réformer les bourses (deuxième lecture).", { dossier_ref: "DLR1", pour: 60, contre: 40, cats: ["education", "solidarites"] }),
+    s("V62", "2026-10-07", "l'amendement n° 2 à l'article 2 de la proposition de loi visant à réformer les bourses.", { dossier_ref: "DLR1", sort_code: "rejete", pour: 10, contre: 90 }),
+    s("V63", "2026-10-08", "la proposition de résolution visant à garantir l'accès à l'eau (article 34-1 de la Constitution).", { sort_code: "rejete", pour: 156, contre: 160, categorie: "ecologie" }),
+  ];
+  const { textes, scrutinsDe, cleDe } = indexerTextes(scrs, D);
+  assert.deepEqual(textes.map((t) => t.cle), ["t:proposition de resolution visant a garantir l acces a l eau", "DLR1"]);
+  const bourses = textes[1];
+  assert.equal(bourses.nb, 3); // juin ET octobre : les décomptes portent sur toute la législature
+  assert.equal(bourses.premiereDate, "2026-06-10");
+  assert.equal(bourses.derniereDate, "2026-10-07");
+  assert.equal(bourses.ontCompte, 1); // la suppression adoptée ; l'amendement rejeté à 10–90 ne compte pas
+  assert.equal(bourses.reference?.uid, "V60");
+  assert.equal(bourses.theme, "education");
+  assert.deepEqual([...bourses.cats].sort(), ["education", "solidarites"]);
+  assert.equal(scrutinsDe.get("DLR1")!.length, 3);
+  assert.equal(cleDe.get("V61"), "DLR1"); // chaque scrutin retrouve son texte (recherche regroupée)
+  // Résolution : un seul vote, sur l'ensemble (format compact).
+  const eau = textes[0];
+  assert.equal(eau.genreLabel, "Proposition de résolution");
+  assert.equal(eau.reference?.final, true);
+  assert.equal(eau.reference?.sort_code, "rejete");
+  assert.equal(cleDe.get("V63"), eau.cle);
+  // Plus importants : volume + vote sur l'ensemble (3 + 20 > 1 + 20).
+  assert.deepEqual(trierTextes(textes, "poids").map((t) => t.cle), ["DLR1", eau.cle]);
 });

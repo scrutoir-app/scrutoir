@@ -161,7 +161,7 @@ export interface Dissidence {
 
 export interface VoteScrutin extends ScrutinResume {
   position: string;
-  consigne?: string | null; // consigne du groupe sur ce scrutin (pour lire l'écart)
+  consigne?: string | null; // position majoritaire du groupe sur ce scrutin, calculée (pour lire l'écart)
 }
 
 // Un vote d'un élu suivi (feed de l'onglet Suivis).
@@ -178,6 +178,9 @@ export interface VoteSuivi {
   position: string;
   sort_code: string | null;
   categorie?: string | null;
+  // Écran Suivis : ce qui a été voté (ceQuiEstVote) et le texte de loi en contexte.
+  type_vote?: string | null;
+  dossier_ref?: string | null;
 }
 
 export interface Votant {
@@ -250,6 +253,9 @@ export interface ConfrontationScrutin {
   resume: string | null;
   posA: string;
   posB: string;
+  // Pour dire ce qui a été voté (Face à face, « Derniers votes ») — absents des routes anciennes.
+  type_vote?: string | null;
+  dossier_titre?: string | null;
 }
 export interface ConfrontationTheme {
   id: string;

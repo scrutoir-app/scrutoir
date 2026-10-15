@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { alea, melanger, tirerLot, jourCourant, TAILLE_LOT } from "./selectionDuJour";
+import { alea, melanger, tirerLot, jourCourant, TAILLE_LOT, lotDuJour, tailleLotDuJour, reinitialiserSelection } from "./selectionDuJour";
 
 /** Vivier factice : 60 députés d'affinité 1 % à 60 % (le tirage n'utilise que uid + pct). */
 const vivier = (n = 60) =>
@@ -62,4 +62,18 @@ test("melanger ne modifie pas l'entrée", () => {
 test("le jour est daté en heure locale (AAAA-MM-JJ)", () => {
   assert.equal(jourCourant(new Date(2026, 7, 20, 23, 30)), "2026-08-20");
   assert.match(jourCourant(), /^\d{4}-\d{2}-\d{2}$/);
+});
+
+test("taille du lot du jour : celle du tirage, même quand la liste rejouée a rétréci", () => {
+  reinitialiserSelection();
+  const vivier = Array.from({ length: 30 }, (_, i) => ({ resume: { uid: `PA${i}` }, score: { pct: i / 30 } }));
+  assert.equal(tailleLotDuJour("2026-10-15"), 0);
+  const lot = lotDuJour(vivier, TAILLE_LOT, "2026-10-15");
+  assert.equal(tailleLotDuJour("2026-10-15"), TAILLE_LOT);
+  // Deux cartes tranchées (suivies ou passées) quittent le vivier : la liste rejouée rétrécit, pas la taille.
+  const reste = vivier.filter((d) => d.resume.uid !== lot[0].resume.uid && d.resume.uid !== lot[1].resume.uid);
+  assert.equal(lotDuJour(reste, TAILLE_LOT, "2026-10-15").length, TAILLE_LOT - 2);
+  assert.equal(tailleLotDuJour("2026-10-15"), TAILLE_LOT);
+  assert.equal(tailleLotDuJour("2026-10-16"), 0);
+  reinitialiserSelection();
 });

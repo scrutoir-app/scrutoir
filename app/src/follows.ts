@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { track } from "./analytics";
 
 /**
@@ -47,38 +46,68 @@ export function isFollowed(uid: string): boolean {
   return read().includes(uid);
 }
 
-export function toggleFollow(uid: string) {
+/** Ajoute ou retire le suivi sur l'appareil ; renvoie le type d'événement de mesure du geste. */
+function basculer(uid: string): string {
   const cur = read();
   const wasFollowed = cur.includes(uid);
   write(wasFollowed ? cur.filter((u) => u !== uid) : [...cur, uid]);
   // Analytics : on distingue parti (uid PO…) et député (PA…) pour des classements nets.
   const isParti = uid.startsWith("PO");
-  track(
-    wasFollowed ? (isParti ? "unfollow_parti" : "unfollow") : (isParti ? "follow_parti" : "follow"),
-    uid
-  );
+  return wasFollowed ? (isParti ? "unfollow_parti" : "unfollow") : (isParti ? "follow_parti" : "follow");
 }
 
-/** Hook React : suit l'état de suivi d'un élu (re-render au changement). */
-export function useFollow(uid: string): [boolean, () => void] {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    listeners.add(l);
-    return () => { listeners.delete(l); };
-  }, []);
-  return [isFollowed(uid), () => toggleFollow(uid)];
+export function toggleFollow(uid: string) {
+  track(basculer(uid), uid);
 }
 
-/** Hook React : liste réactive des élus suivis (pour l'écran Suivis). */
-export function useFollows(): string[] {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    listeners.add(l);
-    return () => { listeners.delete(l); };
-  }, []);
-  return getFollows();
+/**
+ * Suivi au geste depuis un écran qui montre le résultat du test : même suivi sur l'appareil que
+ * `toggleFollow`, et le geste reste compté, mais sans l'uid (contexte seulement). Depuis le
+ * RÉSULTAT (« test »), le groupe suivi est souvent le plus proche ; depuis le deck d'AFFINITÉ
+ * (« affinite », Trouver ton député), on suit après avoir vu « N % comme toi ». Dans les deux cas
+ * l'uid laisserait deviner le résultat du test (opinion politique, RGPD art. 9). Les autres
+ * écrans gardent `toggleFollow`.
+ */
+export function toggleFollowSansUid(uid: string, contexte: "test" | "affinite" = "test") {
+  if (!uid) return;
+  track(basculer(uid), "", contexte);
+}
+
+/**
+ * Suivi AUTOMATIQUE (non initié par l'utilisateur) : ajoute l'élu s'il n'est pas déjà suivi,
+ * SANS événement analytics. Réservé aux suivis déduits d'un résultat — ex. le groupe le plus
+ * proche au test de proximité : tracer ce uid enverrait le résultat du test, donnée d'opinion
+ * politique (RGPD art. 9) qui ne doit pas quitter l'appareil. Idempotent, ne retire jamais.
+ */
+export function suivreSansMesure(uid: string) {
+  const cur = read();
+  if (!uid || cur.includes(uid)) return;
+  write([...cur, uid]);
+}
+
+/**
+ * Retire TOUS les suivis (Paramètres → « Tout effacer sur cet appareil »), avec la date de
+ * dernière consultation de l'onglet Suivis. SANS track() : un effacement n'envoie rien
+ * (contrairement à toggleFollow, qui mesure chaque geste unitaire).
+ */
+export function viderSuivis(): void {
+  seenCache = "";
+  try {
+    if (typeof localStorage !== "undefined") localStorage.removeItem(SEEN_KEY);
+  } catch {
+    /* fallback mémoire */
+  }
+  write([]);
+}
+
+/**
+ * Abonnement aux changements, pour les hooks React (`hooks/useFollows.ts`). Renvoie le
+ * désabonnement. Ce module reste PUR (sans React) : les tests de la garde du refresh
+ * quotidien l'importent depuis pipeline/, où react n'est pas installé.
+ */
+export function abonnerSuivis(l: () => void): () => void {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
 }
 
 // Date (YYYY-MM-DD) de la dernière consultation de l'onglet Suivis : sert à marquer

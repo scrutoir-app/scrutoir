@@ -3,6 +3,7 @@ import path from "node:path";
 import type Database from "better-sqlite3";
 import { SCRUTINS_DIR } from "./download.js";
 import { normalize } from "./categories.js";
+import { positionMajoritaire } from "../../app/src/decompte";
 
 function readJson(file: string): any {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -45,10 +46,12 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
     `INSERT OR IGNORE INTO deputes (uid, prenom, nom, nom_complet, actif)
      VALUES (?, '', '', ?, 0)`
   );
+  // Une ligne par (scrutin, groupe), même sans position (égalité, aucun exprimé) : l'upsert
+  // écrase aussi, dans une base locale existante, l'ancienne valeur recopiée de l'AN.
   const insGroupePos = db.prepare(
-    `INSERT INTO groupe_positions (scrutin_uid, groupe_uid, position)
-     VALUES (?, ?, ?)
-     ON CONFLICT(scrutin_uid, groupe_uid) DO UPDATE SET position=excluded.position`
+    `INSERT INTO groupe_positions (scrutin_uid, groupe_uid, position, position_an)
+     VALUES (?, ?, ?, ?)
+     ON CONFLICT(scrutin_uid, groupe_uid) DO UPDATE SET position=excluded.position, position_an=excluded.position_an`
   );
   const connus = new Set<string>(
     db.prepare("SELECT uid FROM deputes").all().map((r: any) => r.uid)
@@ -101,15 +104,18 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
       const groupes = asArray(s.ventilationVotes?.organe?.groupes?.groupe);
       for (const grp of groupes) {
         const groupeUid = grp.organeRef ?? null;
-        const posMaj = grp.vote?.positionMajoritaire ?? null;
-        if (groupeUid && posMaj) insGroupePos.run(uid, groupeUid, posMaj);
         const dn = grp.vote?.decompteNominatif ?? {};
+        // Position du groupe = majorité de SES votants, comptés sur les listes nominatives
+        // insérées ci-dessous (mêmes votes que la loyauté et la fiche scrutin). La
+        // positionMajoritaire de l'AN (tri texte, cf. decompte.ts) n'est gardée que pour audit.
+        const compte = { pour: 0, contre: 0, abstention: 0 };
         for (const [bucketKey, position] of BUCKETS) {
           const bucket = dn[bucketKey];
           if (!bucket) continue;
           for (const votant of asArray(bucket.votant)) {
             const depUid = votant?.acteurRef;
             if (!depUid) continue;
+            if (position === "pour" || position === "contre" || position === "abstention") compte[position]++;
             if (!connus.has(depUid)) {
               insStub.run(depUid, depUid);
               connus.add(depUid);
@@ -123,6 +129,7 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
             nVotes++;
           }
         }
+        if (groupeUid) insGroupePos.run(uid, groupeUid, positionMajoritaire(compte), grp.vote?.positionMajoritaire ?? null);
       }
     }
   });

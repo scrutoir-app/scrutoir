@@ -133,7 +133,8 @@ cd ../app && npm run web                            # app -> http://localhost:80
   dans **Analytics Engine** (dataset `scrutoir_events`) — n'enregistre QUE depuis nos origines (anti-spam) ;
   `GET /stats` = tableau de bord privé en **HTTP Basic Auth** (mot de passe = `DASH_KEY`, plus de clé dans l'URL).
   Classements : duels, **partis** suivis/consultés (event `follow_parti`/`parti`), députés suivis/consultés,
-  scrutins, écrans, thèmes, recherches. App : `src/analytics.ts track()` (sendBeacon, URL figée), hooks dans
+  scrutins, écrans, thèmes, recherches. App : `src/analytics.ts track()` (sendBeacon ; URL = `EXPO_PUBLIC_ANALYTICS_URL` si posée au build, vide
+  ou `off` = coupée, sinon le Worker de prod SEULEMENT en build de production : `expo start` n'envoie rien), hooks dans
   App.tsx (écran/entité/install), ConfrontationScreen (duels), follows.ts (follow/unfollow + follow_parti),
   SearchScreen (recherches), ScrutinScreen (clic source). Secrets Worker (NON committés) : `DASH_KEY` +
   `CF_API_TOKEN` (Account Analytics:Read). Déploiement : `cd analytics && wrangler deploy`. (Endpoint public
@@ -254,7 +255,7 @@ Vient EN PLUS de la recherche exacte (élu/loi/parti/n°, inchangée et priorita
 - **Fiche élu** : **Participation** relative (« plus assidu·e que X% »), période (Depuis 2024 / 12m / 6m),
   **cartes thème « tout cliquable »** (titre + 4 cases Pour/Contre/Abst/**Absent** + ligne **Non votant**),
   drill-downs. ⚠️ **Plus de score de loyauté agrégé ni de réussite** (recos 6/7) : à la place, la
-  **consigne du groupe est affichée par scrutin** dans le drill-down des votes (« consigne : X · écart »)
+  **position majoritaire du groupe est affichée par scrutin** dans le drill-down des votes (« majorité du groupe : X · écart »)
   + les dissidences. **Seuil de fiabilité** (reco 3, `app/src/config.ts SEUIL_FIABILITE`) : sous le seuil
   de votes exprimés, la case est grisée (« trop peu pour dégager une position »). **Circonscription** +
   bouton **Suivre** (cloche, `app/src/follows.ts`). Lien **source AN** sur le détail scrutin.
@@ -331,6 +332,14 @@ Vient EN PLUS de la recherche exacte (élu/loi/parti/n°, inchangée et priorita
   **présidence de séance** : Braun-Pivet ~7300) est comptée et **étiquetée « Non votant »**, plus
   fondue dans l'« absent » déduit. `CategorieStats.nonvotant`, ligne dédiée sur la carte thème.
 - `sort_code` : « **n'a pas adopté** » contient « adopté » → géré (négation) dans `parseScrutins.ts`.
+- **`positionMajoritaire` de l'AN = FAUSSE dans ~3 % des cas** (v1.20.1) : l'AN prend le max des décomptes
+  comparés comme du **texte** (« 2 » > « 10 », « 12 » > « 106 » ; égalité → pour, puis contre ; 0 exprimé → « pour »).
+  Règle vérifiée sur 102 720 couples (scrutin, groupe) sur 102 720. Ex. n° 8280 : RN « pour » avec 12 pour / 106 contre.
+  Donc `groupe_positions.position` est **recalculée** à l'ingestion sur les votants nominatifs
+  (`positionMajoritaire`, `app/src/decompte.ts`, source UNIQUE aussi côté app) : égalité en tête ou aucun exprimé →
+  `NULL` (ni écart, ni base de loyauté/cohésion, pastille « Égalité » sur la fiche scrutin). La valeur AN brute est
+  gardée dans `position_an`, **pour audit seulement — ne jamais la lire**. L'AN ne publie aucune consigne de groupe :
+  le champ JSON historique `consigne` = cette position calculée (libellés : « position / majorité du groupe »).
 - **Classification** thématique (12 catégories neutres, `pipeline/src/categories.ts`) : mots-clés en
   **mots entiers** + **propagation** aux amendements. Vocabulaire enrichi → **~10% non classés**
   (était 40% ; le reste = procédural/niche). Dataset **Dossiers législatifs** téléchargé

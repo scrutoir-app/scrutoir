@@ -1,13 +1,12 @@
 import type Database from "better-sqlite3";
+import { bornePeriode as borneDepuis } from "../../app/src/periode";
 
 export type Periode = "all" | "12m" | "6m";
 
-/** Renvoie la date plancher ISO pour une periode, ou null pour "all". */
+/** Renvoie la date plancher ISO pour une periode, ou null pour "all" : même règle que l'app
+ *  (app/src/periode.ts), bornée au dernier jour du mois visé. Jour de référence en UTC. */
 export function bornePeriode(p: Periode, aujourdhui = new Date()): string | null {
-  if (p === "all") return null;
-  const d = new Date(aujourdhui);
-  d.setMonth(d.getMonth() - (p === "12m" ? 12 : 6));
-  return d.toISOString().slice(0, 10);
+  return borneDepuis(p, aujourdhui.toISOString().slice(0, 10));
 }
 
 export interface DeputeResume {
@@ -298,7 +297,7 @@ export function listePartis(db: Database.Database): PartiResume[] {
 export interface ProfilParti {
   parti: { uid: string; libelle: string; abrev: string | null; couleur: string | null; nb_deputes: number };
   president: { uid: string; nom_complet: string; photo_url: string | null } | null;
-  cohesion_pct: number | null; // % de votes des membres conformes à la consigne du groupe
+  cohesion_pct: number | null; // % de votes des membres conformes à la position majoritaire du groupe
   participation_moy_pct: number | null; // participation moyenne des membres
   reussite_globale_pct: number | null;
   amendements: number; // amendements déposés par le groupe
@@ -317,7 +316,7 @@ export interface ProfilParti {
   }>;
 }
 
-/** Profil d'un parti : réussite globale + par thème (sur sa consigne de vote). */
+/** Profil d'un parti : réussite globale + par thème (sur sa position majoritaire, calculée sur ses votants). */
 export function profilParti(db: Database.Database, uid: string, periode: Periode = "all"): ProfilParti | null {
   const parti = db
     .prepare(
@@ -373,7 +372,7 @@ export function profilParti(db: Database.Database, uid: string, periode: Periode
     )
     .get(uid) as any) ?? null;
 
-  // Cohésion : votes des membres conformes à la consigne du groupe
+  // Cohésion : votes des membres conformes à la position majoritaire du groupe (égalités exclues)
   const coh = db
     .prepare(
       `SELECT
@@ -491,7 +490,10 @@ export function scrutinsParCategorie(db: Database.Database, categorieId: string,
     .all(categorieId, categorieId, limit) as any[];
 }
 
-/** Dissidences : scrutins ou le depute a vote contre la consigne de son groupe. */
+/**
+ * Dissidences : scrutins où le député a voté autrement que la position majoritaire de son groupe
+ * (champ historique `consigne` = groupe_positions.position, calculée ; NULL = égalité, jamais un écart).
+ */
 export function dissidences(db: Database.Database, deputeUid: string, limit = 100) {
   return db
     .prepare(
@@ -589,7 +591,7 @@ export function votantsScrutin(
     .all({ uid: scrutinUid, pos: position, grp: groupeUid }) as any[];
 }
 
-/** Detail d'un scrutin : resultat + ventilation par groupe (avec consigne). */
+/** Detail d'un scrutin : resultat + ventilation par groupe (avec sa position majoritaire, champ `consigne`). */
 export function detailScrutin(db: Database.Database, uid: string) {
   const scrutin = db
     .prepare(`SELECT * FROM scrutins WHERE uid = ?`)
@@ -624,7 +626,7 @@ export function detailScrutin(db: Database.Database, uid: string) {
   return { scrutin, groupes, amendement: amendement ?? null };
 }
 
-/** Recherche le vote precis d'un depute sur un scrutin, avec conformite a la consigne. */
+/** Recherche le vote precis d'un depute sur un scrutin, avec conformite a la position de son groupe. */
 export function voteDeputeSurScrutin(db: Database.Database, scrutinUid: string, deputeUid: string) {
   return db
     .prepare(

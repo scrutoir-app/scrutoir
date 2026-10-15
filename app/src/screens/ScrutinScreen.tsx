@@ -2,28 +2,29 @@ import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Linking, LayoutChangeEvent } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import {
-  C, F, T, tnum, RADIUS, formatDate, positionLabel, couleurPosition,
+  C, F, T, tnum, RADIUS, S, positionLabel, couleurGroupe,
 } from "../theme";
 import { Card, Chip } from "../components/ui";
 import { scrutinSourceUrl, dossierSourceUrl } from "../config";
-import { getScrutin, getPartis } from "../api";
+import { getScrutin, getPartis, getDossiers } from "../api";
 import { useData } from "../hooks/useData";
 import { ErreurChargement } from "../components/ErreurChargement";
 import { track } from "../analytics";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { HemicyclePositions } from "../components/HemicyclePositions";
-import { ScrutinMotif } from "../components/ScrutinMotif";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
 import { VerdictPastille } from "../components/VerdictPastille";
 import { LegendeVerdict } from "../components/LegendeVerdict";
 import { ProfilTabs } from "../components/profil";
 import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
 import { catUI } from "../categoryUI";
+import { ceQuiEstVote } from "../typeScrutin";
+import { decompteClair, positionMajoritaire } from "../decompte";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
 import type { ContexteJe } from "../testProximite/jeProximite";
 import { verdictScrutin, groupesPos, tailleGroupe } from "../testProximite/verdict";
-import { chargerTest } from "../testProximite/storage";
-import type { GroupeVentilation, AmendGroupe, AmendInstitutionnel, PartiResume } from "../types";
+import { chargerTest, estSitue } from "../testProximite/storage";
+import type { GroupeVentilation, AmendGroupe, AmendInstitutionnel, PartiResume, DossierResume } from "../types";
 import type { Nav } from "../nav";
 import { ParcoursLoi } from "../components/ParcoursLoi";
 import { AccordSuivis } from "../components/AccordSuivis";
@@ -57,14 +58,16 @@ function ordreParti(je: ContexteJe | null, a: string | null, b: string | null): 
   return idxHemicycle(a) - idxHemicycle(b);
 }
 
-/** Utilisateur situé = au moins une réponse pour/contre au test (sync, lu au montage). */
-function estSitue(): boolean {
-  const t = chargerTest();
-  return !!t && Object.values(t.reponses).some((r) => r === "pour" || r === "contre");
-}
-
 // --- Formatage -------------------------------------------------------------
 const fmt = (n: number) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "); // 1 312
+const MOIS = ["janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre", "octobre", "novembre", "décembre"];
+/** « 14 octobre 2026 » (date du scrutin, en toutes lettres). */
+function dateLongue(iso: string | null): string {
+  if (!iso) return "";
+  const [y, m, d] = iso.split("-");
+  const j = Number(d);
+  return `${j === 1 ? "1er" : j} ${MOIS[Number(m) - 1] ?? ""} ${y}`;
+}
 function artShort(raw: string | null): string {
   return raw ? raw.toLowerCase().replace(/\s+/g, " ").trim() : ""; // "ART. 4" → "art. 4"
 }
@@ -94,19 +97,25 @@ function repartitionArticles(a: { articleTop: string | null; articleTopN: number
 }
 
 export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
-  // `partis` (picto hémicycle) est décoratif : son échec ne bloque pas l'écran.
+  // `partis` (picto hémicycle) et `dossiers` (thème du texte, pour son picto) sont décoratifs :
+  // leur échec ne bloque pas l'écran.
   const { data: charge, loading, error, retry } = useData(
-    () => Promise.all([getScrutin(uid), getPartis().catch(() => [] as PartiResume[])]),
+    () => Promise.all([
+      getScrutin(uid),
+      getPartis().catch(() => [] as PartiResume[]),
+      getDossiers().catch(() => [] as DossierResume[]),
+    ]),
     [uid]
   );
   const data = charge?.[0] ?? null;
   const partis = charge?.[1] ?? [];
+  const dossiers = charge?.[2] ?? [];
   const [briefOuvert, setBriefOuvert] = useState(false);
   const [parcours, setParcours] = useState(false);
   const [legende, setLegende] = useState(false);
   const [onglet, setOnglet] = useState<"groupe" | "amend">("groupe");
   const [triNombre, setTriNombre] = useState(false); // tri amendements : false = par groupe, true = par nombre
-  const [heroBox, setHeroBox] = useState({ w: 0, h: 0 }); // pour le filigrane de thème
+  const [heroW, setHeroW] = useState(0); // largeur du héros (taille de l'hémicycle)
   const je = useJe(); // résultat du test de proximité (pour ordonner les groupes au plus proche)
   const [situe] = useState(estSitue);
   const reponses = chargerTest()?.reponses ?? {};
@@ -139,7 +148,7 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const geo = useMemo(() => (data ? data.groupes.map((g) => ({ abrev: g.abrev, nb_deputes: tailleGroupe(g) })) : []), [data]);
   const positions = useMemo(() => {
     const m: Record<string, "pour" | "contre" | "abstention"> = {};
-    if (data) groupesPos(data.groupes).forEach((g) => { if (g.abrev) m[g.abrev] = g.position; });
+    if (data) groupesPos(data.groupes).forEach((g) => { if (g.abrev && g.position) m[g.abrev] = g.position; });
     return m;
   }, [data]);
 
@@ -156,14 +165,27 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const titreCourt = (s.titre || s.objet || "").slice(0, 80);
   const amObjet = data.amendement;
   const ecart = Math.abs((s.pour ?? 0) - (s.contre ?? 0));
-  const cat = catUI(s.categorie ?? "");
+  // Thème : celui du texte (index des dossiers) — le détail d'un scrutin n'en porte pas.
+  const themeId = (s.dossier_ref && dossiers.find((d) => d.ref === s.dossier_ref)?.categorie) || s.categorie || "";
+  const cat = catUI(themeId);
+  // Ce qui a été voté : lu mécaniquement dans l'intitulé officiel (jamais reformulé).
+  const vote = ceQuiEstVote(s);
+  const texteNom = s.dossier_titre || vote.texte; // intitulé officiel du dossier, sinon celui du scrutin
+  const meta = [...vote.precisions, dateLongue(s.date)].filter(Boolean).join(" · ");
+  const surAmendement = vote.nature === "amendement" || vote.nature === "sous-amendement";
+  const aExpose = !!amObjet && !!(amObjet.expose || amObjet.dispositif);
+  const sourceUrl = scrutinSourceUrl(s.numero);
+  const ouvrirSource = () => { track("source", String(s.numero ?? "")); Linking.openURL(sourceUrl!); };
   const verdict = verdictScrutin({
     ctx: je, situe,
     reponse: s.numero != null ? reponses[s.numero] : undefined,
     groupes: groupesPos(data.groupes),
     sortCode: s.sort_code,
   });
-  const heroHemi = Math.min((heroBox.w || 320) * 0.8, 300);
+  const heroHemi = Math.min((heroW || 320) * 0.8, 300);
+  const ouvrirTexte = s.dossier_ref
+    ? () => nav.push({ name: "dossierScrutins", ref: s.dossier_ref!, titre: s.dossier_titre || vote.texte || "Ce texte" })
+    : undefined;
 
   const goVotants = (position: string, g: GroupeVentilation) =>
     nav.push({ name: "votants", scrutinUid: uid, titre: titreCourt, position, groupe: g.uid, groupeLibelle: g.abrev ?? g.libelle });
@@ -171,116 +193,106 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   return (
     <ScrollView contentContainerStyle={{ padding: 16, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
       {/* ============ HÉRO (toujours visible) ============ */}
-      <Card padding={0} style={{ overflow: "hidden" }}>
-        <View onLayout={(e: LayoutChangeEvent) => setHeroBox({ w: e.nativeEvent.layout.width, h: e.nativeEvent.layout.height })}>
-          {/* Filigrane de thème en fond */}
-          {heroBox.w > 0 && <ScrutinMotif categorieId={s.categorie} width={heroBox.w} height={heroBox.h} />}
-
-          <View style={{ padding: 16 }}>
-            {/* Badge résultat + écart de N voix */}
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <View
-                style={{
-                  flexDirection: "row", alignItems: "center", gap: 5, borderRadius: RADIUS.sm,
-                  paddingHorizontal: 10, paddingVertical: 5, backgroundColor: adopte ? C.adopteBg : C.rejeteBg,
-                }}
-              >
-                <Feather name={adopte ? "check" : "x"} size={15} color={adopte ? C.adopteFg : C.rejeteFg} />
-                <Text style={[T.callout, { fontFamily: F.extra, color: adopte ? C.adopteFg : C.rejeteFg }]}>{adopte ? "Adopté" : "Rejeté"}</Text>
-              </View>
-              <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>écart de {fmt(ecart)} voix</Text>
-            </View>
-
-            {/* Hémicycle coloré par position */}
-            <View style={{ alignItems: "center", marginTop: 6, marginBottom: 4 }}>
-              <HemicyclePositions groupes={geo} positions={positions} size={heroHemi} />
-            </View>
-
-            {/* Barre de vote divergente + décomptes */}
-            <VoteBarDivergenteCentree pour={s.pour} contre={s.contre} abstention={s.abstention} decompte />
-
-            {/* Titre + thème · date · n° */}
-            <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 14 }]}>
-              {s.dossier_titre || s.titre || s.objet}
-            </Text>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 7 }}>
-              {!!s.categorie && (
-                <View style={{ width: 22, height: 22, borderRadius: RADIUS.sm, backgroundColor: cat.bg, alignItems: "center", justifyContent: "center" }}>
-                  <MaterialCommunityIcons name={cat.icon as any} size={13} color={cat.fg} />
+      <Card padding={S.s16} radius={RADIUS.xl}>
+        <View onLayout={(e: LayoutChangeEvent) => setHeroW(e.nativeEvent.layout.width)}>
+          {/* Texte de loi visé, en lien vers « Tout le texte » (picto de thème à gauche) */}
+          {!!texteNom && (
+            <TouchableOpacity
+              onPress={ouvrirTexte}
+              disabled={!ouvrirTexte}
+              activeOpacity={0.7}
+              accessibilityRole={ouvrirTexte ? "link" : undefined}
+              accessibilityLabel={ouvrirTexte ? `Voir tout le texte : ${texteNom}${cat.court ? `, thème ${cat.court}` : ""}` : undefined}
+              style={{ flexDirection: "row", alignItems: "center", gap: S.s8, minHeight: 36 }}
+            >
+              {!!themeId && (
+                <View style={{ width: 24, height: 24, borderRadius: 8, backgroundColor: cat.bg, alignItems: "center", justifyContent: "center" }}>
+                  <MaterialCommunityIcons name={cat.icon as any} size={14} color={cat.fg} />
                 </View>
               )}
-              <Text style={[T.micro, tnum, { color: C.textFaint }]} numberOfLines={1}>
-                {cat.court ? `${cat.court} · ` : ""}{formatDate(s.date)} · scrutin n° {s.numero}
-              </Text>
-              <TouchableOpacity
-                onPress={() => setParcours(true)}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                accessibilityLabel="Qu'est-ce qu'un scrutin ? Voir le parcours d'une loi"
-              >
-                <Feather name="info" size={14} color={C.accent} />
-              </TouchableOpacity>
-            </View>
+              <Text style={[T.small, { flex: 1, fontFamily: F.bold, color: C.accent }]}>{texteNom}</Text>
+              {ouvrirTexte && <Feather name="chevron-right" size={ICON_CHEVRON} color={C.accent} />}
+            </TouchableOpacity>
+          )}
+          {/* Lecture · date (+ ⓘ parcours d'une loi) */}
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6, marginTop: 2 }}>
+            <Text style={[T.micro, tnum, { color: C.textFaint, flexShrink: 1 }]}>{meta}</Text>
+            <TouchableOpacity
+              onPress={() => setParcours(true)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              accessibilityRole="button"
+              accessibilityLabel="Qu'est-ce qu'un scrutin ? Voir le parcours d'une loi"
+            >
+              <Feather name="info" size={14} color={C.accent} />
+            </TouchableOpacity>
+          </View>
 
-            {/* Objet du texte / exposé de l'amendement — TOUJOURS dans le héro */}
-            {amObjet && (amObjet.expose || amObjet.dispositif) ? (
-              <View style={{ marginTop: 12, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.sm, padding: 12 }}>
-                <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, letterSpacing: 0.4, marginBottom: 5 }]}>
-                  EXPOSÉ DE L'AMENDEMENT{amObjet.numero ? ` N° ${amObjet.numero}` : ""}
-                </Text>
-                {!briefOuvert ? (
+          {/* Type de vote + ce qui a été voté (titre) */}
+          <View style={{ flexDirection: "row", marginTop: S.s14 }}>
+            <Chip label={vote.etiquette} bg={C.surfaceAlt} fg={C.accent} ph={8} />
+          </View>
+          <Text accessibilityRole="header" style={[T.title, { color: C.text, marginTop: 6 }]}>{vote.titre}</Text>
+
+          {/* Résultat + écart de N voix */}
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, marginTop: S.s12 }}>
+            <Chip label={adopte ? "Adopté" : "Rejeté"} bg={adopte ? C.adopteBg : C.rejeteBg} fg={adopte ? C.adopteFg : C.rejeteFg} ph={8} />
+            <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>écart de {fmt(ecart)} voix</Text>
+          </View>
+
+          {/* Hémicycle (sièges du logo) coloré par position */}
+          <View style={{ alignItems: "center", marginTop: S.s10, marginBottom: 4 }}>
+            <HemicyclePositions groupes={geo} positions={positions} size={heroHemi} />
+          </View>
+
+          {/* Barre de vote divergente + décomptes en clair (« 33 pour · 1 abst. · 73 contre ») */}
+          <VoteBarDivergenteCentree pour={s.pour} contre={s.contre} abstention={s.abstention} height={8} decompte />
+
+          {/* Ce que proposait l'amendement : l'exposé s'il est dans nos données, sinon on le dit */}
+          {(surAmendement || aExpose) && (
+            <View style={{ marginTop: S.s18 }}>
+              <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>
+                Ce que proposait {vote.nature === "sous-amendement" ? "le sous-amendement" : "l'amendement"}
+              </Text>
+              {aExpose ? (
+                !briefOuvert ? (
                   <>
-                    <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted }]} numberOfLines={5}>
-                      {amObjet.expose || amObjet.dispositif}
+                    <Text style={[T.body, { color: C.textMuted, marginTop: 4 }]} numberOfLines={5}>
+                      {amObjet!.expose || amObjet!.dispositif}
                     </Text>
-                    {((amObjet.expose || "").length > 220 || !!amObjet.dispositif) && (
-                      <TouchableOpacity onPress={() => setBriefOuvert(true)} style={{ marginTop: 8 }} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                        <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Lire la suite ▾</Text>
+                    {((amObjet!.expose || "").length > 220 || !!amObjet!.dispositif) && (
+                      <TouchableOpacity onPress={() => setBriefOuvert(true)} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
+                        <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Lire la suite</Text>
                       </TouchableOpacity>
                     )}
                   </>
                 ) : (
                   <>
-                    {!!amObjet.dispositif && <Bloc titre="Ce que l'amendement modifie" texte={amObjet.dispositif} />}
-                    {!!amObjet.expose && <Bloc titre="Justification de l'auteur" texte={amObjet.expose} />}
-                    <TouchableOpacity onPress={() => setBriefOuvert(false)} style={{ marginTop: 10 }} hitSlop={{ top: 6, bottom: 6, left: 6, right: 6 }}>
-                      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Replier ▴</Text>
+                    {!!amObjet!.dispositif && <Bloc titre="Ce que l'amendement modifie" texte={amObjet!.dispositif} />}
+                    {!!amObjet!.expose && <Bloc titre="Justification de l'auteur" texte={amObjet!.expose} />}
+                    <TouchableOpacity onPress={() => setBriefOuvert(false)} accessibilityRole="button" style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
+                      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Replier</Text>
                     </TouchableOpacity>
                   </>
-                )}
-              </View>
-            ) : !!s.dossier_titre ? (
-              <View style={{ marginTop: 12, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.sm, padding: 12 }}>
-                <Text style={[T.micro, { fontFamily: F.bold, color: C.textFaint, letterSpacing: 0.4, marginBottom: 5 }]}>OBJET DU TEXTE</Text>
-                <Text style={[T.small, { fontFamily: F.regular, color: C.textMuted }]}>Intitulé officiel du dossier législatif.</Text>
-              </View>
-            ) : null}
-
-            {/* Verdict personnel « comme toi » — pastille COMPACTE (même composant que le Fil/Liste),
-                verrouillée si non situé, tap → overlay légende 2 pages. */}
-            <View style={{ flexDirection: "row", marginTop: 12 }}>
-              <VerdictPastille verdict={verdict} onPress={() => setLegende(true)} />
+                )
+              ) : (
+                <>
+                  <Text style={[T.body, { color: C.textMuted, marginTop: 4 }]}>Son exposé n'est pas encore dans nos données.</Text>
+                  {sourceUrl && (
+                    <TouchableOpacity onPress={ouvrirSource} accessibilityRole="link" style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start" }}>
+                      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Le lire sur le site de l'Assemblée</Text>
+                    </TouchableOpacity>
+                  )}
+                </>
+              )}
             </View>
+          )}
+
+          {/* Verdict personnel « comme toi » — pastille verrouillée si non situé, tap → légende. */}
+          <View style={{ flexDirection: "row", marginTop: S.s12 }}>
+            <VerdictPastille verdict={verdict} onPress={() => setLegende(true)} invite />
           </View>
         </View>
       </Card>
-
-      {/* ============ VOIR TOUT LE TEXTE → liste du dossier (ScrutinList) ============ */}
-      {s.dossier_ref && (
-        <Card
-          onPress={() => nav.push({ name: "dossierScrutins", ref: s.dossier_ref!, titre: s.dossier_titre || s.titre || "Ce texte" })}
-          activeOpacity={0.7}
-          style={{ marginTop: 12, flexDirection: "row", alignItems: "center", gap: 11, backgroundColor: C.accentSoft, borderWidth: 0 }}
-        >
-          <View style={{ width: 38, height: 38, borderRadius: 10, backgroundColor: C.accent, alignItems: "center", justifyContent: "center" }}>
-            <Feather name="pie-chart" size={19} color={C.onAccent} />
-          </View>
-          <View style={{ flex: 1, minWidth: 0 }}>
-            <Text style={[T.small, { fontFamily: F.extra, color: C.text }]}>Voir tout le texte</Text>
-            <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>Qui a voté comme toi, scrutin par scrutin</Text>
-          </View>
-          <Feather name="arrow-right" size={18} color={C.accent} />
-        </Card>
-      )}
 
       {/* Toi & tes suivis (sur les scrutins tranchés au test) */}
       <AccordSuivis scrutinUid={uid} numero={s.numero} groupes={data.groupes} partis={partis} je={je} nav={nav} />
@@ -295,15 +307,15 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
       </View>
 
       {onglet === "groupe" ? (
-        <Card padding={0} style={{ marginTop: 12, paddingHorizontal: 14, paddingVertical: 4 }}>
-          <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 10, marginBottom: 2 }]}>
+        <Card padding={0} radius={RADIUS.lg} style={{ marginTop: 10, overflow: "hidden" }}>
+          <Text style={[T.micro, { fontFamily: F.medium, color: C.textFaint, marginTop: 10, marginBottom: 4, paddingHorizontal: 14 }]}>
             {data.groupes.length} groupes · {je ? "ordre selon ta proximité" : "ordre de l'hémicycle"} · touche un groupe pour sa fiche
           </Text>
-          {groupesOrd.map((g) => (
+          {groupesOrd.map((g, i) => (
             <GroupeRow
               key={g.uid}
               g={g}
-              partis={partis}
+              premier={i === 0}
               onParti={() => nav.push({ name: "parti", uid: g.uid })}
               onVotants={(pos) => goVotants(pos, g)}
             />
@@ -343,10 +355,10 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
       )}
 
       {/* ============ LIEN SOURCE AN (permanent, hors onglets) ============ */}
-      {scrutinSourceUrl(s.numero) && (
+      {sourceUrl && (
         <Card
           activeOpacity={0.7}
-          onPress={() => { track("source", String(s.numero ?? "")); Linking.openURL(scrutinSourceUrl(s.numero)!); }}
+          onPress={ouvrirSource}
           padding={12}
           accessibilityLabel="Voir le scrutin sur assemblee-nationale.fr"
           style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, marginTop: 14, minHeight: 44 }}
@@ -362,67 +374,58 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   );
 }
 
+const ICON_CHEVRON = 15;
+
 // --- Ligne « position d'un groupe » (onglet Par groupe) ----------------------
-// Zones tactiles SÉPARÉES (pas de Touchable imbriqué) : le cluster gauche + le chevron ouvrent
-// la FICHE PARTI ; le décompte ouvre la liste nominative des VOTANTS (position majoritaire).
+// Décompte EN CLAIR (« 10 pour, 1 abst. »). Zones tactiles SÉPARÉES (pas de Touchable
+// imbriqué) : le nom + la position ouvrent la FICHE PARTI ; le décompte ouvre la liste
+// nominative des VOTANTS (position majoritaire). La position est celle du décompte affiché
+// (`positionMajoritaire`, même règle qu'en base) : jamais la positionMajoritaire de l'AN,
+// qui peut le contredire. Égalité en tête → pastille neutre « Égalité ».
 function GroupeRow({
-  g, partis, onParti, onVotants,
+  g, premier, onParti, onVotants,
 }: {
   g: GroupeVentilation;
-  partis: PartiResume[];
+  premier: boolean;
   onParti: () => void;
   onVotants: (position: string) => void;
 }) {
   const nom = g.abrev ?? g.libelle;
   const exprimes = g.pour + g.contre + g.abstention;
-  const majorite = g.pour >= g.contre && g.pour >= g.abstention ? "pour" : g.contre >= g.abstention ? "contre" : "abstention";
-  const posValue = g.consigne ?? (exprimes > 0 ? majorite : null);
-  // Dissidence : votes exprimés différents de la consigne.
-  const dissidents = g.consigne
-    ? exprimes - (g.consigne === "pour" ? g.pour : g.consigne === "contre" ? g.contre : g.abstention)
-    : 0;
-  const compte = [
-    g.pour > 0 ? `${g.pour} p` : null,
-    g.contre > 0 ? `${g.contre} c` : null,
-    g.abstention > 0 ? `${g.abstention} a` : null,
-  ].filter(Boolean).join(" · ");
+  const posValue = positionMajoritaire(g);
+  const etiquette = posValue ? positionLabel(posValue) : exprimes > 0 ? "Égalité" : null;
+  const compte = decompteClair(g);
+  const chip = posValue === "pour" ? { bg: C.adopteBg, fg: C.adopteFg }
+    : posValue === "contre" ? { bg: C.rejeteBg, fg: C.rejeteFg }
+    : { bg: C.surfaceSunken, fg: C.textMuted };
 
   return (
-    <View style={{ borderTopWidth: 1, borderTopColor: C.border, flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, paddingVertical: 8 }}>
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 8, minHeight: 52, paddingHorizontal: 14, ...(premier ? {} : { borderTopWidth: 1, borderTopColor: C.border }) }}>
       <TouchableOpacity
         activeOpacity={0.7}
         onPress={onParti}
         accessibilityRole="button"
-        accessibilityLabel={`Ouvrir la fiche du groupe ${nom}`}
-        style={{ flexDirection: "row", alignItems: "center", gap: 8, flex: 1, minWidth: 0 }}
+        accessibilityLabel={`Ouvrir la fiche du groupe ${nom}${etiquette ? `, position ${etiquette}` : ""}`}
+        style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, minWidth: 0, minHeight: 52 }}
       >
-        <HemicyclePicto groupes={partis} activeAbrev={g.abrev} color={g.couleur ?? C.textFaint} size={PICTO_SIZE} />
-        <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: g.couleur ?? C.textFaint }} />
-        <Text style={[T.small, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{nom}</Text>
-        {posValue && (
-          <Chip label={positionLabel(posValue)} bg={C.surfaceSunken} fg={couleurPosition(posValue)} radius={RADIUS.pill} ph={8} />
-        )}
-        {dissidents > 0 && (
-          <Chip label="dissidence" bg={C.surfaceSunken} fg={C.textMuted} radius={RADIUS.pill} ph={8} bold={false} />
-        )}
+        <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: couleurGroupe(g.couleur) }} />
+        <Text style={[T.callout, { fontFamily: F.bold, color: C.text, minWidth: 70 }]} numberOfLines={1}>{nom}</Text>
+        {etiquette && <Chip label={etiquette} bg={chip.bg} fg={chip.fg} ph={8} pv={2} />}
       </TouchableOpacity>
       {compte ? (
         <TouchableOpacity
           activeOpacity={0.6}
-          onPress={() => onVotants(exprimes > 0 ? majorite : "pour")}
+          onPress={() => onVotants(posValue ?? "pour")}
           accessibilityRole="button"
-          accessibilityLabel={`Voir les votants de ${nom}`}
+          accessibilityLabel={`Voir les votants de ${nom} : ${compte}`}
           hitSlop={{ top: 8, bottom: 8, left: 6, right: 6 }}
           style={{ paddingVertical: 4, paddingHorizontal: 2 }}
         >
-          <Text style={[T.micro, tnum, { color: C.textMuted }]} numberOfLines={1}>{compte}</Text>
+          <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]} numberOfLines={1}>{compte}</Text>
         </TouchableOpacity>
       ) : (
-        <Text style={[T.micro, { color: C.textFaint }]}>—</Text>
+        <Text style={[T.small, { color: C.textFaint }]}>aucun vote</Text>
       )}
-      <TouchableOpacity onPress={onParti} accessibilityRole="button" accessibilityLabel={`Ouvrir la fiche du groupe ${nom}`} hitSlop={{ top: 8, bottom: 8, left: 4, right: 4 }}>
-        <Feather name="chevron-right" size={16} color={C.textFaint} />
-      </TouchableOpacity>
     </View>
   );
 }
@@ -560,10 +563,10 @@ function Legende({ couleur, label }: { couleur: string; label: string }) {
 function Bloc({ titre, texte }: { titre: string; texte: string }) {
   return (
     <>
-      <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted, marginTop: 12, marginBottom: 3, textTransform: "uppercase", letterSpacing: 0.4 }]}>
+      <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted, marginTop: 12, marginBottom: 3 }]}>
         {titre}
       </Text>
-      <Text style={[T.small, { fontFamily: F.regular, color: C.text }]}>{texte}</Text>
+      <Text style={[T.body, { color: C.text }]}>{texte}</Text>
     </>
   );
 }

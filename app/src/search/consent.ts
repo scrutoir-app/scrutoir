@@ -38,15 +38,30 @@ export async function autoriserSemantique(): Promise<void> {
   }
 }
 
+/** Cache du SW qui contient le modèle (`scrutoir-model-*`, sans figer la version ici). */
+function estCacheModeleSW(nom: string): boolean {
+  return nom.startsWith("scrutoir-model-");
+}
+
 /**
- * Le modèle est-il déjà assemblé dans le cache du SW ? (opt-in implicite : plus rien
- * à télécharger). On balaie les caches `scrutoir-model-*` sans figer la version ici.
+ * Caches à vider pour supprimer le modèle : celui du SW, et `transformers-cache`, la copie
+ * que transformers.js rangeait lui-même avant la 1.19.2 (`useBrowserCache`, coupé depuis
+ * dans embedder.ts). Elle reste sur les appareils tant que le SW v36 n'est pas activé.
+ */
+function estCacheModele(nom: string): boolean {
+  return estCacheModeleSW(nom) || nom === "transformers-cache";
+}
+
+/**
+ * Le modèle est-il déjà en cache ? (opt-in implicite : plus rien à télécharger).
+ * Seul le cache du SW compte : transformers.js ne lit plus `transformers-cache`, une copie
+ * restée là ne dispense pas du téléchargement.
  */
 export async function modeleDejaEnCache(): Promise<boolean> {
   try {
     if (typeof caches === "undefined") return false;
     for (const nom of await caches.keys()) {
-      if (!nom.startsWith("scrutoir-model-")) continue;
+      if (!estCacheModeleSW(nom)) continue;
       const cles = await (await caches.open(nom)).keys();
       if (cles.some((r) => r.url.endsWith("/model_quantized.onnx"))) return true;
     }
@@ -67,5 +82,33 @@ export async function stockageSuffisant(): Promise<boolean> {
     return est.quota - est.usage > 300 * 1024 * 1024;
   } catch {
     return true;
+  }
+}
+
+/**
+ * Retire l'opt-in : la section Sujet repasse au repli lexical et re-proposera « Activer ».
+ * Purement local, rien n'est envoyé.
+ */
+export function revoquerSemantique(): void {
+  try {
+    if (typeof localStorage !== "undefined") localStorage.removeItem(CLE_OPTIN);
+  } catch {
+    /* stockage indisponible : rien à retirer */
+  }
+}
+
+/**
+ * Supprime le modèle de l'appareil (Paramètres → « Sur cet appareil ») : révoque l'opt-in
+ * PUIS vide les caches du modèle (sinon un modèle encore en cache vaudrait opt-in
+ * implicite, cf. modeleDejaEnCache). Le modèle déjà chargé en mémoire reste utilisable
+ * jusqu'au rechargement de la page, mais la recherche ne s'en sert plus (opt-in retiré).
+ */
+export async function supprimerModele(): Promise<void> {
+  revoquerSemantique();
+  try {
+    if (typeof caches === "undefined") return;
+    for (const nom of await caches.keys()) if (estCacheModele(nom)) await caches.delete(nom);
+  } catch {
+    /* Cache API indisponible : rien à purger */
   }
 }

@@ -5,11 +5,15 @@ import { C, F, T, tnum, RADIUS, couleurGroupe } from "../theme";
 import { Card, Button } from "../components/ui";
 import { getTestProximite, getPartis, getCategories } from "../api";
 import { catUI } from "../categoryUI";
+import { SEUIL_FIABILITE } from "../config";
 import type { PartiResume, CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
-import { useFollow, useFollows } from "../follows";
+import { lignesSpectre, surNVotes, phraseBase, phraseMarge, type LigneSpectre } from "../testProximite/spectre";
+import { nbNeuves, SEUIL_AFFINER } from "../testProximite/config";
+import { useFollow, useFollows } from "../hooks/useFollows";
+import { tourAccueilAFaire } from "../accueilTourPrefs";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
 
 const NIVEAUX = [
@@ -57,26 +61,77 @@ function CurseurPoids({ valeur, onChange }: { valeur: number; onChange: (v: numb
   );
 }
 
-// Nom court d'un groupe (1ʳᵉ partie avant « & » / « , ») pour le CTA « Suivre … ».
+// Nom court d'un groupe (1ʳᵉ partie avant « & » / « , ») pour les libellés « Suivre … ».
 const nomCourt = (libelle: string) => libelle.split(/\s*[&,]\s*/)[0];
 
-// Bouton « suivre » COMPACT posé sur chaque ligne du spectre. Câblé sur le VRAI état de suivi
-// (`useFollow`, même store que la fiche parti et le fil d'accueil) — jamais un état local.
-// uid = PO… du groupe (depuis `getPartis`, abrev → uid). Style aligné sur le suivi de l'app.
+// Cloche « suivre » posée sur chaque ligne du spectre : SEULE voie de suivi depuis le résultat
+// (plus aucun suivi silencieux). Câblée sur le VRAI état de suivi (`useFollow`, même store que
+// la fiche parti et l'accueil). uid = PO… du groupe (depuis `getPartis`, abrev → uid). Mesure
+// SANS uid (`sansUid`) : ici, le groupe suivi laisserait deviner le résultat du test.
 function SuivreGroupe({ uid, nom }: { uid: string; nom: string }) {
-  const [suivi, toggle] = useFollow(uid);
-  if (!uid) return null;
+  const [suivi, toggle] = useFollow(uid, { sansUid: true });
+  if (!uid) return <View style={{ width: 44 }} />;
   return (
     <TouchableOpacity
       onPress={toggle}
-      hitSlop={8}
       accessibilityRole="button"
       accessibilityState={{ selected: suivi }}
       accessibilityLabel={suivi ? `Ne plus suivre ${nom}` : `Suivre ${nom}`}
-      style={{ width: 30, height: 30, borderRadius: 9, alignItems: "center", justifyContent: "center", backgroundColor: suivi ? C.accentSoft : C.surfaceAlt, borderWidth: 1, borderColor: suivi ? C.accent : C.border }}
+      style={{ width: 44, height: 44, alignItems: "center", justifyContent: "center" }}
     >
-      <Feather name={suivi ? "check" : "bell"} size={15} color={suivi ? C.accent : C.textMuted} />
+      <View style={{ width: 30, height: 30, borderRadius: RADIUS.pill, alignItems: "center", justifyContent: "center", backgroundColor: suivi ? C.accent : "transparent" }}>
+        <Feather name="bell" size={18} color={suivi ? C.onAccent : C.textFaint} />
+      </View>
     </TouchableOpacity>
+  );
+}
+
+// Piste hachurée d'une ligne sous le seuil : pas de barre, pas de %, juste « pas assez ».
+function PisteHachuree() {
+  return (
+    <View style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: C.surfaceSunken, overflow: "hidden", flexDirection: "row", gap: 4 }}>
+      {Array.from({ length: 30 }, (_, i) => <View key={i} style={{ width: 6, height: 8, backgroundColor: C.borderStrong }} />)}
+    </View>
+  );
+}
+
+/** Une ligne du spectre : pastille · nom + « sur N votes » · barre · % · cloche. Sous le seuil :
+ *  ligne grise, piste hachurée et « pas assez de votes » à la place de la barre, du % et de la
+ *  cloche (comme la maquette ; ces groupes restent suivables depuis l'onglet Partis). */
+function LigneGroupe({ ligne, couleur, uid, nom, filet }: { ligne: LigneSpectre; couleur: string; uid: string; nom: string; filet: boolean }) {
+  const fiable = ligne.pct != null;
+  const pct = Math.round((ligne.pct ?? 0) * 100);
+  return (
+    <>
+      {filet && <View style={{ height: 1, backgroundColor: C.border, marginLeft: 38 }} />}
+      <View style={{ flexDirection: "row", alignItems: "center", paddingVertical: 8, paddingLeft: 14, paddingRight: fiable ? 6 : 12 }}>
+        <View
+          accessible
+          accessibilityLabel={`${ligne.abrev} : ${fiable ? `${pct} %` : "pas assez de votes"}, ${surNVotes(ligne.votes)}`}
+          style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10 }}
+        >
+          <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: fiable ? couleur : C.borderStrong }} />
+          <View style={{ width: 86 }}>
+            <Text style={[T.body, { fontFamily: F.bold, lineHeight: 20, color: fiable ? C.text : C.textFaint }]} numberOfLines={1}>{ligne.abrev}</Text>
+            <Text style={[T.micro, tnum, { color: C.textFaint }]}>{surNVotes(ligne.votes)}</Text>
+          </View>
+          {fiable ? (
+            <>
+              <View style={{ flex: 1, height: 8, borderRadius: 4, backgroundColor: C.surfaceSunken, overflow: "hidden" }}>
+                <View style={{ height: 8, borderRadius: 4, width: `${pct}%`, backgroundColor: couleur }} />
+              </View>
+              <Text style={[T.body, tnum, { fontFamily: F.extra, color: C.text, width: 46, textAlign: "right" }]}>{pct} %</Text>
+            </>
+          ) : (
+            <>
+              <PisteHachuree />
+              <Text style={[T.micro, { color: C.textFaint, textAlign: "right" }]} numberOfLines={1}>pas assez de votes</Text>
+            </>
+          )}
+        </View>
+        {fiable && <SuivreGroupe uid={uid} nom={nom} />}
+      </View>
+    </>
   );
 }
 
@@ -170,225 +225,182 @@ export function TestResultatScreen({
     () => (jouees.length && groupes.length ? calculerProximite(jouees, reponses, poids, groupes) : null),
     [jouees, reponses, poids, groupes]
   );
-
-  // Groupe le plus proche (FIABLE : ≥ 2 votes comparés) — cible du CTA « Suivre ».
-  const topAbrev = useMemo(() => {
-    if (!resultat) return null;
-    const comparable = (abrev: string) =>
-      Object.values(resultat.parTheme).reduce((s, t) => s + (t[abrev]?.comparable ?? 0), 0);
-    const fiables = resultat.global.filter((g) => comparable(g.abrev) >= 2);
-    return (fiables[0] ?? resultat.global[0])?.abrev ?? null;
-  }, [resultat]);
-  const topParti = topAbrev ? partis.find((p) => p.abrev === topAbrev) : null;
-  const [suiviTop, toggleSuiviTop] = useFollow(topParti?.uid ?? "");
+  // Spectre : ≥ SEUIL_FIABILITE votes comparés → % ; en dessous → ligne grise en bas, sans %.
+  const lignes = useMemo(() => (resultat ? lignesSpectre(resultat, groupes.map((g) => g.abrev)) : null), [resultat, groupes]);
   // Sortie de fin de parcours : si l'utilisateur suit déjà au moins un parti/député, son
-  // accueil aura du contenu → « Voir mon accueil » ; sinon « Découvrir l'appli » (pas de
-  // promesse d'un feed vide). Réactif : suivre le groupe ci-dessus bascule le libellé.
+  // accueil aura ses suivis → « Voir mon accueil » ; sinon « Découvrir l'appli ». Réactif :
+  // suivre un groupe par sa cloche bascule le libellé.
   const aSuivi = useFollows().length > 0;
+  const tourAFaire = useMemo(() => tourAccueilAFaire(), []);
 
-  if (!resultat) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
+  if (!resultat || !lignes) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
-  const couleur = (abrev: string) => partis.find((p) => p.abrev === abrev)?.couleur ?? C.textFaint;
+  const couleur = (abrev: string) => couleurGroupe(partis.find((p) => p.abrev === abrev)?.couleur ?? null);
   const uidDe = (abrev: string) => partis.find((p) => p.abrev === abrev)?.uid ?? "";
   const nomDe = (abrev: string) => nomCourt(partis.find((p) => p.abrev === abrev)?.libelle ?? abrev);
   const libelle = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
-  const comparableTotal = (abrev: string) =>
-    themes.reduce((s, t) => s + (resultat.parTheme[t]?.[abrev]?.comparable ?? 0), 0);
-  const nbVotes = Object.values(reponses).filter((r) => r === "pour" || r === "contre").length;
+  // Base de tout le résultat : les scrutins (encore au catalogue) où tu as tranché, pour ou contre.
+  const nbTranches = jouees.filter((q) => reponses[q.id] === "pour" || reponses[q.id] === "contre").length;
+  // « Affiner » seulement s'il reste assez de scrutins neufs (jamais pour un lien partagé).
+  const peutAffiner = !partage && !!all && nbNeuves(all, reponses) >= SEUIL_AFFINER;
 
-  // Résumé NEUTRE et honnête : le groupe le plus proche, seulement s'il est fiable
-  // (≥ 2 votes comparés, comme la matrice). Sinon, message sans groupe (pas de faux verdict).
+  // Message du partage, NEUTRE et honnête : le groupe le plus proche seulement s'il passe le
+  // seuil (même règle que l'écran : pas de % sous SEUIL_FIABILITE votes comparés).
   const resumePartage = (): string => {
-    const top = [...resultat.global]
-      .filter((g) => comparableTotal(g.abrev) >= 2)
-      .sort((a, b) => b.pct - a.pct)[0];
+    const top = lignes.fiables[0];
     return top
-      ? `Voici mon résultat : proche du groupe ${top.abrev} à ${Math.round(top.pct * 100)} %. Et toi ?`
+      ? `Voici mon résultat : proche du groupe ${top.abrev} à ${Math.round(top.pct! * 100)} %. Et toi ?`
       : `Voici mon résultat au test de proximité Scrutoir. Et toi ?`;
   };
 
+  // Partage : uniquement sur ce geste explicite (rien ne part avant).
   const onShare = async () => {
     const r = await partager(urlPartage(reponses, poids), resumePartage());
     setPartageMsg(r === "copied" ? "Lien copié !" : r === "shared" ? null : "Copie indisponible");
     if (r) setTimeout(() => setPartageMsg(null), 2500);
   };
 
-  // Résultat replié : top-N parties, le reste derrière « Voir les N partis ».
+  // Résultat replié : les TOP_N groupes au-dessus du seuil, puis les lignes grises ; le reste
+  // derrière « Voir les N groupes ».
   const TOP_N = 4;
-  const total = resultat.global.length;
-  const visibles = montrerTout ? resultat.global : resultat.global.slice(0, TOP_N);
+  const total = lignes.fiables.length + lignes.faibles.length;
+  const visibles = [...(montrerTout ? lignes.fiables : lignes.fiables.slice(0, TOP_N)), ...lignes.faibles];
+  const repliable = lignes.fiables.length > TOP_N;
   // Résumé de l'accordéon de pondérations (replié par défaut).
   const ajustes = themes.filter((t) => (poids[t] ?? 1) !== 1).length;
-  const resumePoids = ajustes
-    ? `${ajustes} thème${ajustes > 1 ? "s" : ""} ajusté${ajustes > 1 ? "s" : ""} · recalcul en direct`
-    : "Tout sur Normal · ajuste pour recalculer";
+  const resumePoids = ajustes ? `${ajustes} thème${ajustes > 1 ? "s" : ""} ajusté${ajustes > 1 ? "s" : ""}` : "Tous les thèmes au même poids";
   // Liste des pondérations : premiers thèmes repliés, le reste derrière « Voir les N thèmes ».
   const POIDS_N = 5;
   const themesVisibles = themesTous ? themes : themes.slice(0, POIDS_N);
 
   return (
-    <ScrollView contentContainerStyle={{ paddingHorizontal: 18, paddingTop: 14, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
-      <Text style={[T.title, { fontFamily: F.extra, color: C.text }]}>Ton point de départ</Text>
-      <Text style={[T.small, { color: C.textMuted, marginTop: 6, marginBottom: 16 }]}>
-        De qui tu es proche, selon leurs votes — sur les {nbVotes} où tu t'es prononcé·e. Un spectre, pas un verdict.
-      </Text>
+    <ScrollView contentContainerStyle={{ paddingHorizontal: 16, paddingTop: 14, paddingBottom: 44 }} showsVerticalScrollIndicator={false}>
+      <Text accessibilityRole="header" style={[T.title, { color: C.text, marginHorizontal: 2 }]}>Ton point de départ</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: 6, marginBottom: 14, marginHorizontal: 2 }]}>{phraseBase(nbTranches)}</Text>
 
-      {/* Résultat : une carte, des rangées compactes (pastille · nom · barre · %). Top-N replié,
-          le reste derrière « Voir les N partis ». Pastille discrète = échantillon faible (< 7). */}
-      <Card bordered padding={0} style={{ overflow: "hidden" }}>
-        {visibles.map((g, i) => {
-          const n = comparableTotal(g.abrev);
-          const fiable = n >= 2;
-          const faible = fiable && n < 7;
-          const col = couleurGroupe(couleur(g.abrev));
-          const dernier = i === visibles.length - 1;
-          return (
-            <View key={g.abrev} style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 11, paddingHorizontal: 12, ...(dernier ? {} : { borderBottomWidth: 1, borderBottomColor: C.border }) }}>
-              <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: fiable ? col : C.textFaint }} />
-              <Text style={[T.small, { fontFamily: F.bold, color: C.text, width: 62 }]} numberOfLines={1}>{g.abrev}</Text>
-              <View style={{ flex: 1, height: 7, borderRadius: 4, backgroundColor: C.surfaceSunken, overflow: "hidden" }}>
-                {fiable && <View style={{ height: 7, borderRadius: 4, width: `${Math.round(g.pct * 100)}%`, backgroundColor: col }} />}
-              </View>
-              {/* Compteur de votes comparés : visible en liste dépliée (transparence) ou
-                  toujours pour un échantillon faible (< 7), signalé par une pastille discrète. */}
-              {fiable && (montrerTout || faible) && (
-                <View style={faible ? { backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 7, paddingVertical: 2 } : undefined}>
-                  <Text style={[T.micro, tnum, { color: faible ? C.textMuted : C.textFaint }]}>{n}</Text>
-                </View>
-              )}
-              <Text style={[tnum, { fontFamily: F.extra, fontSize: 15, color: fiable ? C.text : C.textFaint, width: 44, textAlign: "right" }]}>
-                {fiable ? `${Math.round(g.pct * 100)}%` : "—"}
-              </Text>
-              {/* Suivre CE groupe (vrai état de suivi, même que la fiche parti / l'accueil). */}
-              <SuivreGroupe uid={uidDe(g.abrev)} nom={nomDe(g.abrev)} />
-            </View>
-          );
-        })}
-        {total > TOP_N && (
-          <TouchableOpacity onPress={() => setMontrerTout((v) => !v)} activeOpacity={0.7} style={{ paddingVertical: 10, alignItems: "center", borderTopWidth: 1, borderTopColor: C.border }}>
-            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>
-              {montrerTout ? "Réduire" : `Voir les ${total} partis ›`}
-            </Text>
+      {/* Spectre : une carte, une ligne par groupe (« sur N votes » sous le nom). Sous le seuil,
+          lignes grises en bas, sans %. Top-N replié. */}
+      <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden" }}>
+        {visibles.map((l, i) => (
+          <LigneGroupe key={l.abrev} ligne={l} couleur={couleur(l.abrev)} uid={uidDe(l.abrev)} nom={nomDe(l.abrev)} filet={i > 0} />
+        ))}
+        {repliable && (
+          <TouchableOpacity
+            onPress={() => setMontrerTout((v) => !v)}
+            activeOpacity={0.7}
+            accessibilityRole="button"
+            accessibilityState={{ expanded: montrerTout }}
+            style={{ minHeight: 44, alignItems: "center", justifyContent: "center", borderTopWidth: 1, borderTopColor: C.border }}
+          >
+            <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>{montrerTout ? "Réduire" : `Voir les ${total} groupes`}</Text>
           </TouchableOpacity>
         )}
       </Card>
-      <Text style={[T.micro, { color: C.textFaint, marginTop: 8, paddingHorizontal: 4 }]}>
-        Suis un groupe pour retrouver ses votes sur ton accueil.
-      </Text>
 
-      {/* Un SEUL mécanisme de suivi : les cloches par ligne du spectre ci-dessus (plus de carte
-          « Reste au courant » en doublon). « Trouver ton député » reste en accès autonome et
-          discret — action DISTINCTE (suivre son député local), l'app ne le mémorise pas. */}
-      <Button
-        label="Trouver ton député"
-        onPress={() => nav.push({ name: "monDepute" })}
-        variant="outline"
-        size="sm"
-        fullWidth
-        iconLeft={<Feather name="user" size={17} color={C.accent} />}
-        style={{ marginTop: 16 }}
-      />
-
-      {/* Ce qui compte pour toi : accordéon REPLIÉ par défaut (réglage ponctuel, ne doit pas
-          occuper la page). À l'ouverture : segmentés Peu/Normal/Fort, recalcul du global en direct. */}
-      <View style={{ marginTop: 24 }}>
-        <Card
-          onPress={() => setPoidsOuvert((v) => !v)}
-          bordered
-          activeOpacity={0.8}
-          accessibilityState={{ expanded: poidsOuvert }}
-          style={{ flexDirection: "row", alignItems: "center", gap: 10 }}
+      {/* Marge d'erreur, dite en une phrase, puis de quoi l'élargir. */}
+      <Text style={[T.small, { color: C.textMuted, marginTop: 10, marginHorizontal: 2 }]}>{phraseMarge(nbTranches, SEUIL_FIABILITE)}</Text>
+      {peutAffiner && (
+        <TouchableOpacity
+          onPress={() => nav.push({ name: "test", mode: "affiner" })}
+          accessibilityRole="button"
+          style={{ minHeight: 44, justifyContent: "center", alignSelf: "flex-start", marginHorizontal: 2 }}
         >
-          <Feather name="sliders" size={19} color={C.accent} />
-          <View style={{ flex: 1 }}>
-            <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>Ce qui compte pour toi</Text>
-            <Text style={[T.micro, { color: C.textMuted, marginTop: 2 }]}>{resumePoids}</Text>
-          </View>
-          <Feather name={poidsOuvert ? "chevron-up" : "chevron-down"} size={18} color={C.textFaint} />
-        </Card>
+          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Affiner mon spectre</Text>
+        </TouchableOpacity>
+      )}
+
+      {/* Deux entrées en liste : trouver son député (action distincte, l'app ne le mémorise pas)
+          et les pondérations par thème (accordéon replié, recalcul du spectre en direct). */}
+      <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden", marginTop: peutAffiner ? 6 : 16 }}>
+        <LigneListe icon="user" titre="Trouver ton député" sousTitre="Par code postal ou par commune" chevron="chevron-right" onPress={() => nav.push({ name: "monDepute" })} />
+        <View style={{ height: 1, backgroundColor: C.border, marginLeft: 60 }} />
+        <LigneListe
+          icon="sliders"
+          titre="Ce qui compte pour toi"
+          sousTitre={resumePoids}
+          chevron={poidsOuvert ? "chevron-up" : "chevron-down"}
+          expanded={poidsOuvert}
+          onPress={() => setPoidsOuvert((v) => !v)}
+        />
         {poidsOuvert && (
-          <View style={{ marginTop: 12 }}>
-            <Text style={[T.small, { color: C.textMuted, marginBottom: 8 }]}>Donne plus ou moins de poids à un thème, le classement se recalcule.</Text>
-            <Card bordered radius={RADIUS.lg} padding={0} style={{ paddingHorizontal: 14 }}>
-              {themesVisibles.map((t, i) => {
-                const dernier = i === themesVisibles.length - 1;
-                return (
-                  <View key={t} style={{ flexDirection: "row", alignItems: "flex-start", gap: 11, paddingVertical: 12, ...(dernier ? {} : { borderBottomWidth: 1, borderBottomColor: C.surfaceSunken }) }}>
-                    {/* Tuile icône de catégorie, teinte NEUTRE (le chrome n'encode pas de donnée). */}
-                    <View style={{ width: 32, height: 32, borderRadius: 9, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
-                      <MaterialCommunityIcons name={catUI(t).icon as any} size={17} color={C.accent} />
-                    </View>
-                    <View style={{ flex: 1 }}>
-                      <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                        <Text style={[T.small, { flex: 1, fontFamily: F.semibold, color: C.text }]} numberOfLines={2}>{libelle(t)}</Text>
-                        <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>{NIV_LABEL(poids[t] ?? 1)}</Text>
-                      </View>
-                      <CurseurPoids valeur={poids[t] ?? 1} onChange={(v) => changerPoids(t, v)} />
-                    </View>
+          <View style={{ borderTopWidth: 1, borderTopColor: C.border, paddingHorizontal: 14, paddingTop: 12, paddingBottom: 4 }}>
+            <Text style={[T.small, { color: C.textMuted }]}>Donne plus ou moins de poids à un thème, le spectre se recalcule.</Text>
+            {themesVisibles.map((t, i) => {
+              const dernier = i === themesVisibles.length - 1;
+              return (
+                <View key={t} style={{ flexDirection: "row", alignItems: "flex-start", gap: 11, paddingVertical: 12, ...(dernier ? {} : { borderBottomWidth: 1, borderBottomColor: C.surfaceSunken }) }}>
+                  {/* Tuile icône de catégorie, teinte NEUTRE (le chrome n'encode pas de donnée). */}
+                  <View style={{ width: 32, height: 32, borderRadius: 9, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
+                    <MaterialCommunityIcons name={catUI(t).icon as any} size={17} color={C.accent} />
                   </View>
-                );
-              })}
-            </Card>
+                  <View style={{ flex: 1 }}>
+                    <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                      <Text style={[T.small, { flex: 1, fontFamily: F.semibold, color: C.text }]} numberOfLines={2}>{libelle(t)}</Text>
+                      <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>{NIV_LABEL(poids[t] ?? 1)}</Text>
+                    </View>
+                    <CurseurPoids valeur={poids[t] ?? 1} onChange={(v) => changerPoids(t, v)} />
+                  </View>
+                </View>
+              );
+            })}
             {themes.length > POIDS_N && (
-              <Button
-                label={themesTous ? "Réduire" : `Voir les ${themes.length} thèmes ›`}
-                onPress={() => setThemesTous((v) => !v)}
-                variant="text"
-                size="sm"
-                fullWidth
-              />
+              <Button label={themesTous ? "Réduire" : `Voir les ${themes.length} thèmes`} onPress={() => setThemesTous((v) => !v)} variant="text" size="sm" fullWidth />
             )}
-            <Button
-              label="Réinitialiser les poids"
-              onPress={reinitPoids}
-              variant="text"
-              size="sm"
-              muted
-              fullWidth
-              style={{ marginTop: themes.length > POIDS_N ? 0 : 8 }}
-            />
+            <Button label="Réinitialiser les poids" onPress={reinitPoids} variant="text" size="sm" muted fullWidth />
           </View>
         )}
-      </View>
+      </Card>
 
-      {/* Sortie de fin de parcours : le test est un point d'entrée → action claire pour entrer
-          dans l'appli. Primaire plein = accueil (« Voir mon accueil » si déjà des suivis, sinon
-          « Découvrir l'appli »). Partage en secondaire contour. Repartir de zéro en lien discret. */}
+      {/* Sortie de fin de parcours : entrer dans l'appli, SANS suivi silencieux (on ne suit
+          que par les cloches du spectre). Puis le partage, sur geste explicite, avec ce qu'il
+          contient. « Repartir de zéro » en lien discret. */}
       <Button
         label={aSuivi ? "Voir mon accueil" : "Découvrir l'appli"}
-        onPress={() => {
-          if (aSuivi) { nav.reset({ name: "search" }); return; }
-          // Sans suivi, l'accueil resterait vide (il renvoie au test). On suit donc, pour
-          // l'instant, le groupe le plus proche → l'accueil a du contenu. Puis on va à l'accueil :
-          // la visite guidée s'y lance d'elle-même (1re arrivée situé) et explique les zones —
-          // c'est elle qui remplace l'ancien message « Tu suis X ».
-          if (topParti && !suiviTop) toggleSuiviTop();
-          nav.reset({ name: "search" });
-        }}
+        onPress={() => nav.reset({ name: "search" })}
         variant="primary"
         fullWidth
-        iconLeft={<Feather name={aSuivi ? "home" : "compass"} size={18} color="#fff" />}
-        iconRight={<Feather name="arrow-right" size={18} color="#fff" />}
-        style={{ marginTop: 24 }}
+        iconLeft={<Feather name={aSuivi ? "home" : "compass"} size={18} />}
+        style={{ marginTop: 20 }}
       />
+      {!aSuivi && (
+        <Text style={[T.micro, { color: C.textFaint, textAlign: "center", marginTop: 6, marginHorizontal: 4, lineHeight: 15 }]}>
+          {tourAFaire ? "Une visite guidée de l'accueil t'attend. " : ""}Quand tu suis un élu ou un groupe, ce bouton devient « Voir mon accueil ».
+        </Text>
+      )}
       <Button
         label={partageMsg ?? "Partager mon résultat"}
         onPress={onShare}
         variant="outline"
-        size="sm"
         fullWidth
-        iconLeft={<Feather name="share-2" size={17} color={C.accent} />}
+        iconLeft={<Feather name="share" size={18} />}
         style={{ marginTop: 10 }}
       />
-      <Button
-        label="Repartir de zéro"
-        onPress={repartirDeZero}
-        variant="text"
-        size="sm"
-        muted
-        fullWidth
-        style={{ marginTop: 14 }}
-      />
+      <Text style={[T.micro, { color: C.textFaint, textAlign: "center", marginTop: 6, marginHorizontal: 4, lineHeight: 15 }]}>
+        Le lien contient tes réponses : toute personne qui l'ouvre les voit.
+      </Text>
+      <Button label="Repartir de zéro" onPress={repartirDeZero} variant="text" size="sm" muted fullWidth style={{ marginTop: 4 }} />
     </ScrollView>
+  );
+}
+
+/** Entrée de liste : tuile-icône · titre + sous-titre · chevron (lien ou accordéon). */
+function LigneListe({ icon, titre, sousTitre, chevron, expanded, onPress }: { icon: any; titre: string; sousTitre: string; chevron: any; expanded?: boolean; onPress: () => void }) {
+  return (
+    <TouchableOpacity
+      onPress={onPress}
+      activeOpacity={0.7}
+      accessibilityRole="button"
+      accessibilityState={expanded == null ? undefined : { expanded }}
+      style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, paddingHorizontal: 14 }}
+    >
+      <View style={{ width: 34, height: 34, borderRadius: RADIUS.sm, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
+        <Feather name={icon} size={18} color={C.accent} />
+      </View>
+      <View style={{ flex: 1 }}>
+        <Text style={[T.body, { fontFamily: F.bold, lineHeight: 20, color: C.text }]}>{titre}</Text>
+        <Text style={[T.small, { color: C.textFaint }]}>{sousTitre}</Text>
+      </View>
+      <Feather name={chevron} size={16} color={C.textFaint} />
+    </TouchableOpacity>
   );
 }

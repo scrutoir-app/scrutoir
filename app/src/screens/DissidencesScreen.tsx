@@ -9,7 +9,8 @@ import { ScrutinList } from "../components/ScrutinList";
 
 // La Dissidence est « sparse » (ni sort_code, ni comptes, ni catégorie) : on la présente comme un
 // ScrutinResume minimal — les cartes complètent le reste depuis le détail (cf. hydratation), et on
-// conserve position/consigne pour l'annotation « A voté / Consigne ».
+// conserve position/consigne pour l'annotation « A voté / Son groupe » (`consigne` = nom historique du
+// champ : position majoritaire du groupe, calculée sur ses votants ; l'AN ne publie aucune consigne).
 type DissidenceScrutin = ScrutinResume & { position: string; consigne: string };
 
 export function DissidencesScreen({ uid, nom, nav }: { uid: string; nom: string; nav: Nav }) {
@@ -40,7 +41,7 @@ export function DissidencesScreen({ uid, nom, nav }: { uid: string; nom: string;
   const renderAnnotation = (s: DissidenceScrutin) => (
     <View style={{ flexDirection: "row", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
       <Chip label={`A voté : ${positionLabel(s.position)}`} fg={C.loyalBas} bg={C.loyalBasBg} radius={8} ph={8} bold={false} />
-      <Chip label={`Consigne : ${positionLabel(s.consigne)}`} fg={C.textMuted} bg={C.surfaceAlt} radius={8} ph={8} bold={false} />
+      <Chip label={`Son groupe : ${positionLabel(s.consigne)}`} fg={C.textMuted} bg={C.surfaceAlt} radius={8} ph={8} bold={false} />
     </View>
   );
 
@@ -49,9 +50,9 @@ export function DissidencesScreen({ uid, nom, nav }: { uid: string; nom: string;
       scrutins={scrutins}
       contexte={{
         titre: "Dissidences",
-        sousTitre: `${nom} · ${scrutins?.length ?? 0} scrutins où le vote diffère de la consigne du groupe (les plus récents d'abord)`,
+        sousTitre: `${nom} · ${scrutins?.length ?? 0} scrutins où le vote diffère de la majorité de son groupe (les plus récents d'abord)`,
       }}
-      emptyLabel="Aucune dissidence : vote toujours conforme à la consigne du groupe."
+      emptyLabel="Aucune dissidence : vote toujours comme la majorité de son groupe."
       onDetail={(u) => nav.push({ name: "scrutin", uid: u })}
       onSituer={() => nav.push({ name: "testIntro" })}
       renderAnnotation={renderAnnotation}
