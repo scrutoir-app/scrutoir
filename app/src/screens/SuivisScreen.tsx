@@ -3,7 +3,8 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "rea
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, RADIUS, shadowCard, couleurGroupe } from "../theme";
 import { getVotesSuivis, getVotesPartisSuivis, getPartis } from "../api";
-import { useFollows, markSeen } from "../follows";
+import { markSeen } from "../follows";
+import { useFollows } from "../hooks/useFollows";
 import { useJe } from "../testProximite/jeProximite";
 import { CarteSuivi } from "../components/CarteSuivi";
 import type { VoteSuivi, PartiResume } from "../types";

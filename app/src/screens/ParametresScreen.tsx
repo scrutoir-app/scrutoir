@@ -6,7 +6,7 @@ import { Card } from "../components/ui";
 import { APP_VERSION } from "../config";
 import { useThemeMode } from "../themeMode";
 import { usePartyLogos } from "../prefs";
-import { useFollows } from "../follows";
+import { useFollows } from "../hooks/useFollows";
 import {
   lireDonneesLocales,
   lireEtatModele,

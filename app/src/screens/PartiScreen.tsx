@@ -10,7 +10,7 @@ import { StatCol, ProfilTabs, PctCard, ProfilAvatar, SectionTitle, AccordSection
 import { catUI } from "../categoryUI";
 import { getParti, getPartis, getCategories, getGrandsScrutins, getScrutin, getDeputesParti } from "../api";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
-import { useFollow } from "../follows";
+import { useFollow } from "../hooks/useFollows";
 import { positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
 import { partagerLien } from "../share";
 import type { ProfilParti, PartiResume, CategorieRef, GroupeVentilation, DeputeResume, ScrutinResume } from "../types";

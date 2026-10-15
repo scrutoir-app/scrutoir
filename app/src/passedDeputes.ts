@@ -1,5 +1,3 @@
-import { useEffect, useState } from "react";
-
 /**
  * Députés « passés » du deck d'affinité (geste « Passer »).
  *
@@ -60,13 +58,12 @@ export function viderPasses(): void {
   if (read().length) write([]);
 }
 
-/** Hook React : liste réactive des députés passés. */
-export function usePassed(): string[] {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    listeners.add(l);
-    return () => { listeners.delete(l); };
-  }, []);
-  return getPassed();
+/**
+ * Abonnement aux changements, pour les hooks React (`hooks/usePassed.ts`). Renvoie le
+ * désabonnement. Ce module reste PUR (sans React) : les tests de la garde du refresh
+ * quotidien l'importent depuis pipeline/, où react n'est pas installé.
+ */
+export function abonnerPasses(l: () => void): () => void {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
 }

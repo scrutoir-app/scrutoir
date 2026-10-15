@@ -9,7 +9,7 @@ import { CategoryVoteCard } from "../components/CategoryVoteCard";
 import { catUI } from "../categoryUI";
 import { getProfil, getPartis, getCategories, getGrandsScrutins, getDissidences, getDeputeVotes, getDeputeMandat } from "../api";
 import { useJe, useProximiteDepute } from "../testProximite/jeProximite";
-import { useFollow } from "../follows";
+import { useFollow } from "../hooks/useFollows";
 import { calculerProximite, scrutinUidDeId, type PositionGroupe } from "../testProximite/score";
 import { partagerLien } from "../share";
 import type { ProfilDepute, PartiResume, CategorieRef, Dissidence, ScrutinResume } from "../types";

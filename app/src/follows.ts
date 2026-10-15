@@ -1,4 +1,3 @@
-import { useEffect, useState } from "react";
 import { track } from "./analytics";
 
 /**
@@ -74,26 +73,14 @@ export function viderSuivis(): void {
   write([]);
 }
 
-/** Hook React : suit l'état de suivi d'un élu (re-render au changement). */
-export function useFollow(uid: string): [boolean, () => void] {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    listeners.add(l);
-    return () => { listeners.delete(l); };
-  }, []);
-  return [isFollowed(uid), () => toggleFollow(uid)];
-}
-
-/** Hook React : liste réactive des élus suivis (pour l'écran Suivis). */
-export function useFollows(): string[] {
-  const [, force] = useState(0);
-  useEffect(() => {
-    const l = () => force((n) => n + 1);
-    listeners.add(l);
-    return () => { listeners.delete(l); };
-  }, []);
-  return getFollows();
+/**
+ * Abonnement aux changements, pour les hooks React (`hooks/useFollows.ts`). Renvoie le
+ * désabonnement. Ce module reste PUR (sans React) : les tests de la garde du refresh
+ * quotidien l'importent depuis pipeline/, où react n'est pas installé.
+ */
+export function abonnerSuivis(l: () => void): () => void {
+  listeners.add(l);
+  return () => { listeners.delete(l); };
 }
 
 // Date (YYYY-MM-DD) de la dernière consultation de l'onglet Suivis : sert à marquer

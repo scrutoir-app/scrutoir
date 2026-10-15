@@ -6,7 +6,7 @@ import { Card, Chip } from "../components/ui";
 import { getPartis } from "../api";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
-import { useFollow } from "../follows";
+import { useFollow } from "../hooks/useFollows";
 import type { ProximiteScore } from "../testProximite/score";
 import type { PartiResume } from "../types";
 import type { Nav } from "../nav";

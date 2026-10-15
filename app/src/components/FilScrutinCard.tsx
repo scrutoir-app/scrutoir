@@ -6,7 +6,7 @@ import { HemicyclePositions } from "./HemicyclePositions";
 import { ScrutinMotif } from "./ScrutinMotif";
 import { VerdictPastille } from "./VerdictPastille";
 import { useScrutinGroupes } from "../scrutinGroupes";
-import { useKept } from "../keptScrutins";
+import { useKept } from "../hooks/useKept";
 import { verdictScrutin, positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
 import { catUI } from "../categoryUI";
 import type { ContexteJe } from "../testProximite/jeProximite";
