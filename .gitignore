@@ -14,5 +14,11 @@ app/public/vendor/*.min.js
 
 # Secrets locaux wrangler (worker analytics) — jamais committés
 analytics/.dev.vars
+
+# Claude Code : config d'équipe versionnée dans .claude/, état local exclu
+.claude/worktrees/
+.claude/settings.local.json
+.claude/*.local.md
+
 # Cache et fichiers temporaires de wrangler (worker analytics)
 analytics/.wrangler/
