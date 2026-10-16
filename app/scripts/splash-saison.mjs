@@ -215,8 +215,7 @@ ${VOLS.map(([w, duree, depart, aile], i) =>
  * moins jusque-là après le départ du splash ; 0 = elle part avec lui), init éventuelle, et
  * sombre:1 pour forcer le splash sombre quel que soit le thème choisi.
  */
-export const SAISON_SCRIPT = `
-    <script>
+export const SAISON_JS = `
       (function(){
         var PERIODES=${JSON.stringify(PERIODES)};
         var saisonActive=${saisonActive.toString()};
@@ -247,4 +246,8 @@ export const SAISON_SCRIPT = `
           stop:retirer
         };
       })();
-    </script>`;
+    `;
+
+/** Balise prête à injecter (patch-pwa.mjs) ; le JS seul (SAISON_JS) sert aussi aux tests. */
+export const SAISON_SCRIPT = `
+    <script>${SAISON_JS}</script>`;

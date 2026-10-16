@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { PERIODES, saisonActive } from "./saisons.mjs";
-import { DECORS, SAISON_SCRIPT } from "./splash-saison.mjs";
+import { DECORS, SAISON_JS } from "./splash-saison.mjs";
 
 const le = (a, m, j, h = 12, min = 0) => new Date(a, m - 1, j, h, min); // heure locale
 
@@ -34,8 +34,8 @@ test("chaque période a un décor, et aucun jour n'appartient à deux périodes"
 });
 
 test("Neige et Minuit forcent le splash sombre (illisibles sur fond clair), pas Halloween", () => {
-  const debut = SAISON_SCRIPT.indexOf("var DECORS=") + "var DECORS=".length;
-  const D = new Function(`return ${SAISON_SCRIPT.slice(debut, SAISON_SCRIPT.indexOf("\n        };", debut) + 10)}`)();
+  const debut = SAISON_JS.indexOf("var DECORS=") + "var DECORS=".length;
+  const D = new Function(`return ${SAISON_JS.slice(debut, SAISON_JS.indexOf("\n        };", debut) + 10)}`)();
   assert.deepEqual(Object.keys(D).sort(), [...DECORS].sort());
   assert.equal(D.neige.sombre, 1);
   assert.equal(D.minuit.sombre, 1);
@@ -43,7 +43,7 @@ test("Neige et Minuit forcent le splash sombre (illisibles sur fond clair), pas 
 });
 
 test("le script de la surcouche généré au build est du JS valide", () => {
-  assert.doesNotThrow(() => new Function(SAISON_SCRIPT.replace(/<\/?script>/g, "")));
+  assert.doesNotThrow(() => new Function(SAISON_JS));
 });
 
 test("bornes à minuit, heure locale de l'utilisateur", () => {
