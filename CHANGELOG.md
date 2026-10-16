@@ -7,6 +7,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.29.0 — 2026-10-16
+**Nouvelle ouverture officielle : « La parole circule ».** Elle remplace le remplissage en boucle de l'hémicycle, hors périodes saisonnières. Maquette validée le 16/10 (vault, `maquette-ouverture-officielle.html`, version L4, retenue parmi une vingtaine de propositions).
+- **Le déroulé.** La tribune (le point focal) apparaît. Un petit point, la parole, en part vers un siège d'un côté de l'hémicycle, puis vers un siège de l'autre côté, et revient. Chaque siège visité s'allume, puis tout l'hémicycle du centre vers les flancs, et enfin le nom et le slogan.
+- **Différente à chaque ouverture.** Les deux sièges et le côté servi en premier sont tirés au hasard : aucun côté n'est favorisé. L'ancien splash, lui, allumait toujours les sièges en partant du flanc droit.
+- **Plus lente, jamais bloquante.** Temps de la maquette ×2 (`TEMPO` dans `patch-pwa.mjs`) : le splash tient 3,3 s au lieu de 1,6 s. Une touche le passe dès que l'appli est prête. Si l'appli tarde, seul le point focal respire.
+- **Animations réduites :** le logo est fixe, sans la parole, et le splash part à 1,6 s comme avant.
+- **Avec les intros saisonnières** (Halloween, Neige, Minuit) : la parole circule sous le décor. Le splash tient la plus longue des deux durées (3,4 s), et la parole passe en clair quand le splash est sombre.
+- Couleur de la parole : le token `text` du thème, en clair comme en sombre.
+
 ## 1.28.0 — 2026-10-16
 **Ouvertures des fêtes : la neige du 19 au 31 décembre, Minuit du 1er au 5 janvier.** Deux nouveaux décors pour le splash, sur le modèle d'Halloween. Maquette validée le 16/10 (vault, `maquette-ouverture-fetes.html`), qui proposait trois variantes : neige, guirlande et Minuit.
 - **Neige** (19/12, début des vacances de Noël, → 31/12 à 23 h 59). Des flocons tombent sur tout l'écran, avec quelques cristaux qui tournent. Ils s'effacent à l'approche du logo, qui reste net. Les flocons sont blancs et cerclés d'un filet pour rester lisibles sur fond clair. La densité suit la surface de l'écran.
