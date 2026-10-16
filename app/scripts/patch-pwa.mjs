@@ -12,13 +12,23 @@
 import { readFile, writeFile, access, rename, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
-import { DARK } from "../src/theme.ts";
+import { LIGHT, DARK } from "../src/theme.ts";
 import { SAISON_STYLE, SAISON_SCRIPT, verifierPeriodes } from "./splash-saison.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const distDir = join(__dirname, "..", "dist");
 const distHtml = join(distDir, "index.html");
 const MARKER = "SCRUTOIR_PWA";
+
+/*
+ * Ouverture officielle « La parole circule » (maquette validée le 2026-10-16, vault
+ * « maquette-ouverture-officielle », version L4). Le logo apparaît ; un petit point (la parole)
+ * part de la tribune, va vers un siège d'un côté, puis vers un siège de l'autre côté, et revient.
+ * Les deux sièges et le côté servi en premier sont tirés au hasard à chaque ouverture : aucun côté
+ * n'est favorisé. Temps de la maquette (ms) × TEMPO : Anthony trouvait l'animation trop rapide au ×1.
+ */
+const TEMPO = 2;
+const ms = (x) => Math.round(x * TEMPO);
 
 const HEAD_TAGS = `
     <!-- ${MARKER} -->
@@ -45,26 +55,31 @@ const HEAD_TAGS = `
     <meta name="twitter:title" content="Scrutoir. Tes députés votent comment ?" />
     <meta name="twitter:description" content="Comment votent les députés français, à partir des données officielles de l'Assemblée nationale. Neutre, gratuit, sans pub." />
     <meta name="twitter:image" content="https://scrutoir.fr/og.png" />
-    <!-- Splash de chargement : hémicycle dont les sièges s'allument un par un -->
+    <!-- Splash : ouverture officielle « La parole circule » (logo, puis la parole passe d'un côté à l'autre) -->
     <style>
       #scrutoir-splash{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;background:#F2F4F7;transition:opacity .45s ease}
       #scrutoir-splash.ss-hide{opacity:0;pointer-events:none}
       #scrutoir-splash .ss-inner{display:flex;flex-direction:column;align-items:center;gap:20px;transform:translateY(-3%)}
       #scrutoir-splash svg{width:132px;height:auto;display:block}
-      #scrutoir-splash .ss-seat{opacity:.16;animation:ss-fill 1.9s ease-in-out infinite}
-      #scrutoir-splash .ss-focal{animation:ss-pulse 1.9s ease-in-out infinite}
-      #scrutoir-splash .ss-word{width:172px;height:auto;display:block}
+      #scrutoir-splash .ss-seat{opacity:.16;transform-box:fill-box;transform-origin:center;animation:ss-arrive ${ms(220)}ms cubic-bezier(.2,0,0,1) var(--ts,0ms) forwards}
+      #scrutoir-splash .ss-focal{opacity:0;transform:scale(.85);transform-box:fill-box;transform-origin:center;animation:ss-arrive ${ms(300)}ms cubic-bezier(.2,0,0,1) forwards}
+      #scrutoir-splash .ss-word{width:172px;height:auto;display:block;opacity:0;transform:translateY(6px);animation:ss-arrive ${ms(450)}ms cubic-bezier(.2,0,0,1) ${ms(1000)}ms forwards}
+      #scrutoir-splash .ss-parole{fill:${LIGHT.text};opacity:0;animation:ss-parole ${ms(760)}ms cubic-bezier(.4,0,.2,1) ${ms(200)}ms forwards}
+      #scrutoir-splash.ss-attente .ss-focal{opacity:1;transform:none;animation:ss-respire ${ms(1200)}ms ease-in-out infinite alternate}
       #scrutoir-splash .ss-brand{display:flex;flex-direction:column;align-items:center;gap:9px}
-      #scrutoir-splash .ss-tagline{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#6B727E}
-      @keyframes ss-fill{0%{opacity:.16}12%{opacity:1}82%{opacity:1}100%{opacity:.16}}
-      @keyframes ss-pulse{0%,100%{opacity:.5}40%{opacity:1}}
-      @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat{opacity:1;animation:none}#scrutoir-splash .ss-focal{animation:none}}
+      #scrutoir-splash .ss-tagline{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#6B727E;opacity:0;animation:ss-arrive ${ms(450)}ms cubic-bezier(.2,0,0,1) ${ms(1080)}ms forwards}
+      @keyframes ss-arrive{to{opacity:1;transform:none}}
+      @keyframes ss-parole{0%{opacity:0;transform:translate(0,0)}8%{opacity:1}33%,40%{transform:translate(var(--ax),var(--ay))}66%,73%{transform:translate(var(--bx),var(--by))}96%{opacity:1}100%{opacity:0;transform:translate(0,0)}}
+      @keyframes ss-respire{from{opacity:1}to{opacity:.55}}
+      /* Animations réduites : le logo, fixe, sans la parole */
+      @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat,#scrutoir-splash .ss-focal,#scrutoir-splash .ss-word,#scrutoir-splash .ss-tagline{opacity:1;transform:none;animation:none}#scrutoir-splash .ss-parole{display:none}}
       /* Variante sombre : posée par l'intro saisonnière seulement (splash-saison.mjs), pour un utilisateur en thème sombre */
       #scrutoir-splash.ss-sombre{background:${DARK.bg}}
       #scrutoir-splash.ss-sombre .ss-ink{fill:${DARK.text}}
       #scrutoir-splash.ss-sombre .ss-hole{fill:${DARK.bg};stroke:${DARK.text}}
       #scrutoir-splash.ss-sombre .ss-focal{fill:#FFFFFF}
       #scrutoir-splash.ss-sombre .ss-tagline{color:${DARK.textFaint}}
+      #scrutoir-splash.ss-sombre .ss-parole{fill:${DARK.text}}
     </style>`;
 
 const SPLASH_BODY = `
@@ -85,17 +100,18 @@ const SPLASH_BODY = `
     </div>
     <script>
       (function(){
-        var NS="http://www.w3.org/2000/svg";
+        var NS="http://www.w3.org/2000/svg",K=${TEMPO};
+        var reduit=false;try{reduit=!!window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
         var svg=document.querySelector("#scrutoir-splash svg");
         if(svg){
           var w=120,h=w*0.72,cx=w/2,cy=h*0.84,rings=[w*0.44,w*0.31],dotR=w*0.046,strokeW=Math.max(1,w*0.0085);
           var seats=[];
           rings.forEach(function(R,ri){
             var n=9-ri*2;
-            for(var i=0;i<=n;i++){var t=Math.PI*(i/n);seats.push({x:cx+R*Math.cos(t),y:cy-R*Math.sin(t),t:t,white:(ri===0&&i===2)});}
+            for(var i=0;i<=n;i++){var t=Math.PI*(i/n);seats.push({x:cx+R*Math.cos(t),y:cy-R*Math.sin(t),t:t,ring:ri,white:(ri===0&&i===2)});}
           });
-          seats.sort(function(a,b){return a.t-b.t;}); // s'allument en balayant l'hémicycle
-          seats.forEach(function(s,i){
+          seats.sort(function(a,b){return a.t-b.t;});
+          seats.forEach(function(s){
             var c=document.createElementNS(NS,"circle");
             c.setAttribute("cx",s.x.toFixed(2));c.setAttribute("cy",s.y.toFixed(2));
             c.setAttribute("r",dotR.toFixed(2));
@@ -106,15 +122,28 @@ const SPLASH_BODY = `
               c.setAttribute("fill","#171A1F");
               c.setAttribute("class","ss-seat ss-ink");
             }
-            c.style.animationDelay=(i*0.07).toFixed(3)+"s";
-            svg.appendChild(c);
+            s.el=c;svg.appendChild(c);
+          });
+          // La parole circule : un siège d'un côté, puis un siège de l'autre, tirés au hasard (côté de départ compris).
+          var gauche=seats.filter(function(s){return s.t>Math.PI/2+0.2;}),droite=seats.filter(function(s){return s.t<Math.PI/2-0.2;});
+          var g=gauche[Math.floor(Math.random()*gauche.length)],d=droite[Math.floor(Math.random()*droite.length)];
+          var A=Math.random()<0.5?g:d,B=A===g?d:g;
+          seats.forEach(function(s){
+            var cr=Math.abs(s.t-Math.PI/2)/(Math.PI/2); // 0 au sommet, 1 aux extrémités : les autres sièges s'allument du centre vers les flancs
+            s.el.style.setProperty("--ts",Math.round((s===A?440:s===B?690:980+cr*160+(1-s.ring)*60)*K)+"ms");
           });
           var f=document.createElementNS(NS,"circle"); // point focal (tribune/pupille)
           f.setAttribute("cx",cx);f.setAttribute("cy",cy.toFixed(2));f.setAttribute("r",(w*0.1).toFixed(2));
           f.setAttribute("fill","#3C4654");f.setAttribute("class","ss-focal");
           svg.appendChild(f);
+          var pa=document.createElementNS(NS,"circle"); // la parole (au-dessus de la tribune)
+          pa.setAttribute("cx",cx);pa.setAttribute("cy",cy.toFixed(2));pa.setAttribute("r","2.2");pa.setAttribute("class","ss-parole");
+          pa.style.setProperty("--ax",(A.x-cx).toFixed(1)+"px");pa.style.setProperty("--ay",(A.y-cy).toFixed(1)+"px");
+          pa.style.setProperty("--bx",(B.x-cx).toFixed(1)+"px");pa.style.setProperty("--by",(B.y-cy).toFixed(1)+"px");
+          svg.appendChild(pa);
         }
-        var t0=Date.now(),MIN=1600,hidden=false,parti=false,minuteur; // plancher : l'anim reste visible >= 1,6 s (le temps que l'hémicycle finisse de se remplir)
+        // Tenue : la fin de l'ouverture (+ un temps de repos) ; animations réduites : le plancher historique de 1,6 s.
+        var t0=Date.now(),TENUE=reduit?1600:${ms(1400 + 250)},hidden=false,parti=false,minuteur;
         // Intro saisonnière (splash-saison.mjs, script suivant) : lue au moment de partir via window.__scrutoirSaison.
         function reallyHide(){
           if(parti)return;parti=true;clearTimeout(minuteur);
@@ -127,9 +156,12 @@ const SPLASH_BODY = `
         function hide(){
           if(hidden)return;hidden=true;
           var S=window.__scrutoirSaison,el=document.getElementById("scrutoir-splash");
-          if(S&&el){el.style.cursor="pointer";el.addEventListener("click",reallyHide);} // intro tenue plus longtemps : une touche la passe dès que l'appli est prête
-          minuteur=setTimeout(reallyHide,Math.max(0,(S?S.tenue:MIN)-(Date.now()-t0)));
+          if(el&&!reduit){el.style.cursor="pointer";el.addEventListener("click",reallyHide);} // jamais bloquant : une touche passe l'ouverture dès que l'appli est prête
+          minuteur=setTimeout(reallyHide,Math.max(0,Math.max(TENUE,S?S.tenue:0)-(Date.now()-t0)));
         }
+        setTimeout(function(){ // l'appli tarde au-delà de l'ouverture : seul le point focal respire
+          var el=document.getElementById("scrutoir-splash");if(!hidden&&el)el.classList.add("ss-attente");
+        },TENUE);
         window.__scrutoirReady=hide;
         setTimeout(hide,7000); // filet de sécurité : ne jamais rester bloqué
       })();
