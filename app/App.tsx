@@ -209,6 +209,14 @@ function AppInner() {
     else track("screen", c.name);
   }, [current]);
 
+  // Intro saisonnière du splash (scripts/splash-saison.mjs) : jamais sur le swipe. Si le décor
+  // vole encore quand on entre dans le test, on le coupe net.
+  useEffect(() => {
+    if ((current.name === "test" || current.name === "testIntro") && typeof window !== "undefined") {
+      (window as any).__scrutoirSaison?.stop?.();
+    }
+  }, [current]);
+
   // Analytics : installation de la PWA (ajout à l'écran d'accueil).
   useEffect(() => {
     if (typeof window === "undefined") return;
