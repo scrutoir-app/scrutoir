@@ -59,6 +59,7 @@ const HEAD_TAGS = `
       @keyframes ss-fill{0%{opacity:.16}12%{opacity:1}82%{opacity:1}100%{opacity:.16}}
       @keyframes ss-pulse{0%,100%{opacity:.5}40%{opacity:1}}
       @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat{opacity:1;animation:none}#scrutoir-splash .ss-focal{animation:none}}
+      /* Variante sombre : posée par l'intro saisonnière seulement (splash-saison.mjs), pour un utilisateur en thème sombre */
       #scrutoir-splash.ss-sombre{background:${DARK.bg}}
       #scrutoir-splash.ss-sombre .ss-ink{fill:${DARK.text}}
       #scrutoir-splash.ss-sombre .ss-hole{fill:${DARK.bg};stroke:${DARK.text}}
@@ -85,11 +86,6 @@ const SPLASH_BODY = `
     <script>
       (function(){
         var NS="http://www.w3.org/2000/svg";
-        // Même préférence de thème que l'appli (theme.ts, clé scrutoir.scheme) : pas de splash clair en mode sombre.
-        var sombre=false;
-        try{var pref=localStorage.getItem("scrutoir.scheme");sombre=pref==="dark"||(pref==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}catch(e){}
-        window.__scrutoirSombre=sombre;
-        if(sombre)document.getElementById("scrutoir-splash").classList.add("ss-sombre");
         var svg=document.querySelector("#scrutoir-splash svg");
         if(svg){
           var w=120,h=w*0.72,cx=w/2,cy=h*0.84,rings=[w*0.44,w*0.31],dotR=w*0.046,strokeW=Math.max(1,w*0.0085);
@@ -172,13 +168,13 @@ async function verifierImportMapSync() {
   }
 }
 
-/** Échoue le build si la clé de préférence de thème lue par le splash a divergé de theme.ts. */
+/** Échoue le build si la clé de préférence de thème lue par l'intro saisonnière a divergé de theme.ts. */
 async function verifierClePreferenceTheme() {
   const src = await readFile(join(__dirname, "..", "src", "theme.ts"), "utf8");
   if (!src.includes('const PREF_KEY = "scrutoir.scheme"')) {
     console.error(
-      "[patch-pwa] CLÉ DE THÈME DÉSYNCHRONISÉE : le splash lit localStorage « scrutoir.scheme »,\n" +
-      "  absent de src/theme.ts (PREF_KEY). Mettre à jour SPLASH_BODY (patch-pwa.mjs) et theme.ts ensemble."
+      "[patch-pwa] CLÉ DE THÈME DÉSYNCHRONISÉE : l'intro saisonnière lit localStorage « scrutoir.scheme »,\n" +
+      "  absent de src/theme.ts (PREF_KEY). Mettre à jour SAISON_SCRIPT (splash-saison.mjs) et theme.ts ensemble."
     );
     process.exit(1);
   }

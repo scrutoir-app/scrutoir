@@ -7,7 +7,9 @@
  *  - jamais sur le swipe : l'appli appelle __scrutoirSaison.stop() à l'entrée du test ;
  *  - couleurs = tokens saison* de theme.ts. La lune et son halo partent avec le splash :
  *    seules des silhouettes neutres finissent leur vol au-dessus de l'accueil ;
- *  - le logo n'est jamais touché : le décor vit autour, dans un repère centré sur le logo.
+ *  - le logo n'est jamais touché : le décor vit autour, dans un repère centré sur le logo ;
+ *  - thème sombre de l'utilisateur (clé scrutoir.scheme de theme.ts) : splash ET décor passent
+ *    en sombre, PENDANT l'intro seulement (hors période, le splash reste clair).
  * Déroulé Halloween (maquette validée le 2026-10-16, vault « maquette-ouverture-halloween ») :
  * splash tenu 3,4 s au lieu de 1,6 s (une touche le passe dès que l'appli est prête),
  * surcouche retirée à 5,1 s.
@@ -129,8 +131,8 @@ ${VOLS.map(([w, duree, depart, aile], i) =>
     </style>`;
 
 /**
- * Script de la surcouche, juste après celui du splash (qui pose window.__scrutoirSombre et
- * lit window.__scrutoirSaison au moment de partir). Hors période : ne fait rien.
+ * Script de la surcouche, juste après celui du splash (qui lit window.__scrutoirSaison au
+ * moment de partir). Hors période : ne fait rien.
  * Trajectoires dans un repère centré sur le logo ; départ et arrivée repoussés hors écran
  * selon la largeur (X), pour ne jamais voir une chauve-souris surgir de nulle part.
  */
@@ -143,10 +145,13 @@ export const SAISON_SCRIPT = `
         try{var q=new URLSearchParams(location.search).get("saison");id=q==="aucune"?null:(q||saisonActive(new Date(),PERIODES));}catch(e){}
         if(id!=="halloween")return;
         try{if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;}catch(e){} // coupure totale
-        var t0=Date.now(),parti=false;
+        var t0=Date.now(),parti=false,sombre=false;
+        try{var pref=localStorage.getItem("scrutoir.scheme");sombre=pref==="dark"||(pref==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}catch(e){}
+        var sp=document.getElementById("scrutoir-splash");
+        if(sombre&&sp)sp.classList.add("ss-sombre"); // splash sombre pendant l'intro seulement
         var el=document.createElement("div");
         el.id="scrutoir-saison";el.setAttribute("aria-hidden","true");
-        if(window.__scrutoirSombre)el.className="sz-sombre";
+        if(sombre)el.className="sz-sombre";
         el.innerHTML=${JSON.stringify(MARKUP)};
         document.body.appendChild(el);
         var vol=false;try{vol=CSS.supports("offset-path",'path("M0 0")');}catch(e){}

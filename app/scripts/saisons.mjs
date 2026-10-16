@@ -14,7 +14,7 @@
  * sans dépendance.
  */
 export const PERIODES = [
-  { id: "halloween", debut: "10-26", fin: "10-31" }, // s'arrête avant la Toussaint
+  { id: "halloween", debut: "10-17", fin: "11-02" }, // ~2 semaines autour du 31 (décision du 2026-10-16)
 ];
 
 /** Id de la période qui contient `date` (heure locale), ou null. */

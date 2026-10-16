@@ -4,20 +4,21 @@ import { PERIODES, saisonActive } from "./saisons.mjs";
 
 const le = (a, m, j, h = 12, min = 0) => new Date(a, m - 1, j, h, min); // heure locale
 
-test("Halloween : du 26 au 31 octobre inclus, chaque année", () => {
-  assert.equal(saisonActive(le(2026, 10, 25), PERIODES), null);
-  assert.equal(saisonActive(le(2026, 10, 26), PERIODES), "halloween");
+test("Halloween : du 17 octobre au 2 novembre inclus, chaque année", () => {
+  assert.equal(saisonActive(le(2026, 10, 16), PERIODES), null);
+  assert.equal(saisonActive(le(2026, 10, 17), PERIODES), "halloween");
   assert.equal(saisonActive(le(2026, 10, 31), PERIODES), "halloween");
-  assert.equal(saisonActive(le(2026, 11, 1), PERIODES), null); // Toussaint : pas de décor
+  assert.equal(saisonActive(le(2026, 11, 2), PERIODES), "halloween");
+  assert.equal(saisonActive(le(2026, 11, 3), PERIODES), null);
   assert.equal(saisonActive(le(2027, 10, 28), PERIODES), "halloween");
   assert.equal(saisonActive(le(2026, 6, 15), PERIODES), null);
 });
 
 test("bornes à minuit, heure locale de l'utilisateur", () => {
-  assert.equal(saisonActive(le(2026, 10, 26, 0, 0), PERIODES), "halloween");
-  assert.equal(saisonActive(le(2026, 10, 31, 23, 59), PERIODES), "halloween");
-  assert.equal(saisonActive(le(2026, 11, 1, 0, 0), PERIODES), null);
-  assert.equal(saisonActive(le(2026, 10, 25, 23, 59), PERIODES), null);
+  assert.equal(saisonActive(le(2026, 10, 17, 0, 0), PERIODES), "halloween");
+  assert.equal(saisonActive(le(2026, 11, 2, 23, 59), PERIODES), "halloween");
+  assert.equal(saisonActive(le(2026, 11, 3, 0, 0), PERIODES), null);
+  assert.equal(saisonActive(le(2026, 10, 16, 23, 59), PERIODES), null);
 });
 
 test("période à cheval sur le 1er janvier", () => {
@@ -49,5 +50,5 @@ test("les périodes configurées sont bien formées (MM-JJ, mois et jour plausib
 test("saisonActive reste inlinable dans le splash (toString autonome)", () => {
   const inline = new Function(`return ${saisonActive.toString()}`)();
   assert.equal(inline(le(2026, 10, 28), PERIODES), "halloween");
-  assert.equal(inline(le(2026, 11, 2), PERIODES), null);
+  assert.equal(inline(le(2026, 11, 3), PERIODES), null);
 });
