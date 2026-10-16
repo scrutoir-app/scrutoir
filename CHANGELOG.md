@@ -7,6 +7,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.28.0 — 2026-10-16
+**Ouvertures des fêtes : la neige du 19 au 31 décembre, Minuit du 1er au 5 janvier.** Deux nouveaux décors pour le splash, sur le modèle d'Halloween. Maquette validée le 16/10 (vault, `maquette-ouverture-fetes.html`), qui proposait trois variantes : neige, guirlande et Minuit.
+- **Neige** (19/12, début des vacances de Noël, → 31/12 à 23 h 59). Des flocons tombent sur tout l'écran, avec quelques cristaux qui tournent. Ils s'effacent à l'approche du logo, qui reste net. Les flocons sont blancs et cerclés d'un filet pour rester lisibles sur fond clair. La densité suit la surface de l'écran.
+- **Minuit** (01/01 à 0 h → 05/01 inclus). Quatre gerbes dorées éclatent au-dessus du logo, l'une après l'autre, à au moins 20 px de lui, fusées comprises, sur des écrans de 640 à 740 px de haut.
+- **Splash sombre pour tout le monde pendant ces deux intros** (décision du 16/10). Flocons et gerbes ne se voient pas sur fond clair. L'écran d'ouverture passe donc en sombre quel que soit le thème choisi ; l'appli s'affiche ensuite dans le thème de chacun, et la préférence n'est pas modifiée. Halloween ne change pas : splash clair pour qui est en clair.
+- **Mêmes règles qu'Halloween.** Splash tenu 3,4 s, une touche le passe dès que l'appli est prête. Une seule surcouche, sans capture des touches. Aucun décor si les animations sont réduites, coupure à l'entrée du test. Ici, tout le décor part avec le splash : rien de saisonnier ne reste sur l'accueil.
+- **Une seule teinte, rien de religieux.** Pas de multicolore, qui rappellerait les couleurs des groupes. Ni crèche, ni étoile, ni ange : appli civique, laïcité.
+- **Tokens.** `saisonNeige` et `saisonOr` dans `theme.ts`, en clair et en sombre.
+- **Code.** `splash-saison.mjs` passe à une table de décors (balisage, fin, initialisation), Halloween inchangé. Planification : deux lignes dans `saisons.mjs`. Les dates sont fixes d'une année sur l'autre et ne suivent pas le calendrier scolaire. Prévisualiser : `?saison=neige`, `?saison=minuit`. Tests : bornes des deux périodes, aucun jour dans deux périodes, un décor par période, sombre forcé pour Neige et Minuit et pas pour Halloween, script généré valide.
+
 ## 1.27.0 — 2026-10-16
 **Ouverture d'Halloween, planifiée du 17 octobre au 2 novembre.** À l'ouverture de l'appli, une lune se lève au-dessus du logo, une araignée descend de sa toile et des chauves-souris traversent l'écran. Hors période, rien ne change. Maquette validée le 16/10 (vault, `maquette-ouverture-halloween.html`).
 - **Planification.** `app/scripts/saisons.mjs` : une ligne par période (`debut` / `fin` en MM-JJ, bornes incluses, heure locale de l'utilisateur, chaque année ; une période peut chevaucher le 1er janvier). Le build échoue si une période n'a pas de décor ou est mal formée. Prévisualiser hors période : `?saison=halloween` ; couper : `?saison=aucune`. Logique testée (`saisons.test.mjs`, ajouté à `npm test` du pipeline, donc à la garde de `refresh.yml`).

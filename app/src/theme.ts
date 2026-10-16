@@ -95,6 +95,11 @@ export const LIGHT = {
   saisonLune: "#F0C88F",
   saisonHalo: "rgba(224,122,45,0.24)",
   saisonSilhouette: "#171A1F",
+  // Fêtes : neige et or des gerbes de Minuit. Une seule teinte : jamais de multicolore (couleurs
+  // des groupes). Ces intros forcent le splash SOMBRE pour tous (splash-saison.mjs) : les valeurs
+  // claires ne servent que si on revient un jour sur ce choix.
+  saisonNeige: "#FFFFFF",
+  saisonOr: "#D4952F",
 };
 
 // Palette SOMBRE — même langage, couleurs de vote relevées pour rester lisibles.
@@ -165,6 +170,8 @@ export const DARK: typeof LIGHT = {
   saisonLune: "#EADFC8",
   saisonHalo: "rgba(236,140,60,0.22)",
   saisonSilhouette: "#535C69",
+  saisonNeige: "#E9EEF5",
+  saisonOr: "#F7D488",
 };
 
 // Familles de police Manrope (chargées dans App via useFonts)
