@@ -88,6 +88,13 @@ export const LIGHT = {
   // Sièges neutres du PictoGroupe (non colorés) + point focal central — déclinés par mode.
   siege: "#D2D6DE",
   siegeFocal: "#AEB4BE",
+
+  // Intro saisonnière du splash (scripts/saisons.mjs, splash-saison.mjs) : lune, halo,
+  // silhouettes (chauves-souris, araignée). Jamais dans le spectre ni à côté des couleurs
+  // de groupe : la lune et son halo partent avec le splash (charte « Animations saisonnières »).
+  saisonLune: "#F0C88F",
+  saisonHalo: "rgba(224,122,45,0.24)",
+  saisonSilhouette: "#171A1F",
 };
 
 // Palette SOMBRE — même langage, couleurs de vote relevées pour rester lisibles.
@@ -152,6 +159,12 @@ export const DARK: typeof LIGHT = {
   // Sièges neutres + focal en sombre (gris froids relevés, lisibles sur fond encre).
   siege: "#39424E",
   siegeFocal: "#5A6573",
+
+  // Intro saisonnière : lune os, halo orangé, silhouettes gris froid (visibles sur la lune
+  // ET sur le fond encre).
+  saisonLune: "#EADFC8",
+  saisonHalo: "rgba(236,140,60,0.22)",
+  saisonSilhouette: "#535C69",
 };
 
 // Familles de police Manrope (chargées dans App via useFonts)
