@@ -24,7 +24,7 @@
     "query": "tsx src/query.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.32.1",
+    "@anthropic-ai/sdk": "^0.133.0",
     "@huggingface/transformers": "^4.2.0",
     "better-sqlite3": "^13.0.3",
     "node-stream-zip": "^1.15.0"
