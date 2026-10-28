@@ -7,6 +7,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.30.0 — 2026-10-28
+**Focus actu : un vote du Sénat, « Casseurs-payeurs ».** Le bloc focus de l'accueil peut maintenant montrer un texte voté par le Sénat, et plus seulement une frise de textes de l'Assemblée. Premier sujet : le projet de loi du gouvernement adopté par les sénateurs dans la nuit du 27 au 28 octobre, par 229 voix contre 105. Il remplace le focus sur la loi intégrale contre les violences sexuelles, prévu jusqu'au 15/11. Maquette : `maquette-focus-actu-senat.html`.
+- **Dans l'ordre :** badge « Vote du Sénat », ce que dit le texte, le résultat au Sénat, les groupes du Sénat, ce que les députés avaient déjà voté, puis où en est le texte.
+- **Groupes du Sénat, repliés par défaut.** Le résumé compte les groupes pour, contre et sans position communiquée, à partir de la saisie. Déplié, chaque groupe montre sa position annoncée et son équivalent à l'Assemblée. Les décomptes par groupe restent vides tant que le scrutin public de senat.fr n'est pas publié : rien n'est estimé. La pastille prend la couleur du groupe équivalent à l'Assemblée ; UC et RDSE, sans équivalent, sont en neutre.
+- **Déjà voté à l'Assemblée.** Amendement n° 435 (Le Fur) au projet de loi Ripost, scrutin du 8 juillet 2026 : 33 pour, 69 contre, 29 abstentions. Décomptes et ventilation par groupe sont lus dans les données du scrutin, pas saisis. La phrase de lecture (RN abstenu, EPR divisé) a été vérifiée contre elles. Lien « Voir le scrutin ».
+- **Pas de bouton « Suivre ce texte ».** Le suivi ne porte que sur des élus et la notification n'existe pas encore : le bouton promettrait une alerte qui ne viendrait pas.
+- **Visite guidée.** Le pas du focus décrit ce qui est affiché, selon que le vote vient du Sénat ou de l'Assemblée.
+- **Code.** `FocusActu` devient `FocusAN | FocusSenat` (`content/focus.ts`). `FocusActu.tsx` aiguille : le rendu Assemblée ne change pas, le rendu Sénat vit dans `FocusSenat.tsx`. Affiché du 28 octobre au 30 novembre.
+
 ## 1.29.0 — 2026-10-16
 **Nouvelle ouverture officielle : « La parole circule ».** Elle remplace le remplissage en boucle de l'hémicycle, hors périodes saisonnières. Maquette validée le 16/10 (vault, `maquette-ouverture-officielle.html`, version L4, retenue parmi une vingtaine de propositions).
 - **Le déroulé.** La tribune (le point focal) apparaît. Un petit point, la parole, en part vers un siège d'un côté de l'hémicycle, puis vers un siège de l'autre côté, et revient. Chaque siège visité s'allume, puis tout l'hémicycle du centre vers les flancs, et enfin le nom et le slogan.

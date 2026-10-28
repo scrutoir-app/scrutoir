@@ -3,28 +3,39 @@ import { View, Text, TouchableOpacity } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, CONTROL, ICON, tnum } from "../theme";
 import { catUI } from "../categoryUI";
-import { FOCUS } from "../content/focus";
+import { FOCUS, type FocusAN } from "../content/focus";
 import { useFocusActu } from "../hooks/useHebdo";
 import { useCibleTour } from "../tourTargets";
 import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
+import { FocusSenatBloc } from "./FocusSenat";
 import { libelleDate, metaFocus, type TexteHebdo, type VoteEnsemble } from "../hebdo";
 import type { Nav } from "../nav";
 
 const VISIBLES = 3;
 
 /**
- * Focus actualité de l'accueil : un sujet choisi (content/focus.ts) et la frise des textes
- * votés en scrutin public qui y répondent, du plus récent au plus ancien. Le critère de
- * sélection est affiché. Rien hors période, pendant le chargement, ou sans texte retenu.
+ * Focus actualité de l'accueil (content/focus.ts). Vote de l'Assemblée : la frise ci-dessous ;
+ * vote du Sénat : FocusSenatBloc. FOCUS est une constante : l'aiguillage ne change jamais
+ * d'un rendu à l'autre (ordre des hooks stable).
  */
 export function FocusActu({ nav }: { nav: Nav }) {
-  const textes = useFocusActu(FOCUS);
+  if (!FOCUS) return null;
+  return FOCUS.chambre === "Senat" ? <FocusSenatBloc focus={FOCUS} nav={nav} /> : <FocusAssemblee focus={FOCUS} nav={nav} />;
+}
+
+/**
+ * Focus sur des textes de l'Assemblée : un sujet choisi et la frise des textes votés en
+ * scrutin public qui y répondent, du plus récent au plus ancien. Le critère de sélection est
+ * affiché. Rien hors période, pendant le chargement, ou sans texte retenu.
+ */
+function FocusAssemblee({ focus, nav }: { focus: FocusAN; nav: Nav }) {
+  const textes = useFocusActu(focus);
   const [ouvert, setOuvert] = useState(false);
   // Cible de la visite guidée (la carte entière), enregistrée seulement quand le focus s'affiche.
   const refTour = useCibleTour("actualite");
-  if (!FOCUS || !textes || textes.length === 0) return null;
+  if (!textes || textes.length === 0) return null;
 
-  const pastille = FOCUS.categorie ? catUI(FOCUS.categorie).fg : C.accent;
+  const pastille = focus.categorie ? catUI(focus.categorie).fg : C.accent;
   // Vote final mis en avant : celui du premier texte de la frise (le plus récent) qui a eu un
   // vote sur l'ensemble en scrutin public. Choix mécanique, comme celui des textes.
   const principal = textes.find((t) => t.voteEnsemble);
@@ -40,9 +51,9 @@ export function FocusActu({ nav }: { nav: Nav }) {
         <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: pastille }} />
         <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>Focus actualité</Text>
       </View>
-      <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 8 }]}>{FOCUS.titre}</Text>
+      <Text style={[T.heading, { fontFamily: F.extra, color: C.text, marginTop: 8 }]}>{focus.titre}</Text>
       {principal && vote && <VoteFinal texte={principal} vote={vote} onOuvrir={() => nav.push({ name: "scrutin", uid: vote.uid })} />}
-      <Text style={[T.small, { color: C.textMuted, marginTop: vote ? 2 : 6 }]}>{FOCUS.contexte}</Text>
+      <Text style={[T.small, { color: C.textMuted, marginTop: vote ? 2 : 6 }]}>{focus.contexte}</Text>
 
       <View style={{ marginTop: 14 }}>
         {liste.map((t, i) => (
@@ -78,13 +89,13 @@ export function FocusActu({ nav }: { nav: Nav }) {
       )}
 
       <View style={{ borderTopWidth: 1, borderTopColor: C.border, paddingTop: 12, paddingBottom: 12 }}>
-        {FOCUS.aSuivre && (
+        {focus.aSuivre && (
           <>
             <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>À suivre</Text>
-            <Text style={[T.small, { color: C.textMuted, marginTop: 3 }]}>{FOCUS.aSuivre}</Text>
+            <Text style={[T.small, { color: C.textMuted, marginTop: 3 }]}>{focus.aSuivre}</Text>
           </>
         )}
-        <Text style={[T.small, { color: C.textFaint, marginTop: FOCUS.aSuivre ? 10 : 0 }]}>{FOCUS.critere}</Text>
+        <Text style={[T.small, { color: C.textFaint, marginTop: focus.aSuivre ? 10 : 0 }]}>{focus.critere}</Text>
       </View>
     </View>
   );
