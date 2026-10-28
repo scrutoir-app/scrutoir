@@ -67,7 +67,7 @@ export function useSemaineAccueil(): SemaineAccueil {
 }
 
 /** Focus actualité de l'accueil (content/focus.ts) et ses textes, ou null hors période / sans focus. */
-export function useFocusActu(focus: import("../content/focus").FocusActu | null) {
+export function useFocusActu(focus: import("../content/focus").FocusAN | null) {
   const [src, setSrc] = useState<Source | null>(null);
   useEffect(() => {
     let vivant = true;

@@ -51,6 +51,7 @@ import { useOnboardingVisible, fermerOnboarding } from "./src/onboardingPrefs";
 import { TourNavigation, type TourStep } from "./src/components/TourNavigation";
 import { useTourNavVisible, fermerTourNav, getTourNote } from "./src/tour";
 import { getCibleTour, type CibleTour } from "./src/tourTargets";
+import { FOCUS } from "./src/content/focus";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
 import { useMajApp } from "./src/swUpdate";
 import { ThemeProvider, useThemeMode } from "./src/themeMode";
@@ -86,8 +87,11 @@ const TOUR_ZONES: { cle: CibleTour; label: string; phrase: string; preferAbove?:
   { cle: "espace", label: "Ton espace", phrase: "À gauche, ta proximité : de quels groupes tu es le plus proche. À droite, tes accords : les textes où tu t'es situé et qui a voté comme toi." },
   { cle: "depute", label: "Trouver ton député", phrase: "Ton élu local par code postal, ou au swipe ceux qui votent le plus comme toi. Tu peux les suivre pour retrouver leurs votes." },
   { cle: "semaine", label: "La semaine à l'Assemblée", phrase: "Chaque vendredi, les textes votés dans la semaine, rangés par thème. Fais glisser les cartes, ou touche la barre, pour passer d'un thème à l'autre." },
-  // Pas sauté hors période du focus (FocusActu n'est alors pas monté).
-  { cle: "actualite", label: "Focus actualité", phrase: "Un sujet d'actualité choisi par Scrutoir, et les textes que l'Assemblée a votés dessus, du plus récent au plus ancien. Le critère qui retient ces textes est écrit en bas de la carte." },
+  // Pas sauté hors période du focus (FocusActu n'est alors pas monté). Libellé et phrase suivent
+  // la chambre du focus en cours (content/focus.ts) : à relire quand on change de focus.
+  FOCUS?.chambre === "Senat"
+    ? { cle: "actualite", label: "Focus actu", phrase: "Un sujet d'actualité choisi par Scrutoir. Ici, un texte voté par le Sénat : ce qu'il contient, la position des groupes de sénateurs, ce que les députés avaient déjà voté, et la suite de son parcours." }
+    : { cle: "actualite", label: "Focus actualité", phrase: "Un sujet d'actualité choisi par Scrutoir, et les textes que l'Assemblée a votés dessus, du plus récent au plus ancien. Le critère qui retient ces textes est écrit en bas de la carte." },
   { cle: "suivis", label: "Tes suivis", phrase: "Suis des élus ou des groupes : l'accueil te dit lesquels ont voté depuis ta dernière visite, et l'écran Suivis montre tous leurs votes." },
 ];
 
