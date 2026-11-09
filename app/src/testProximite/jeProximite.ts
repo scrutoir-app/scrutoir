@@ -60,7 +60,8 @@ export function chargerJe(): Promise<ContexteJe | null> {
     for (const parGroupe of Object.values(resultat.parTheme))
       for (const [abrev, sc] of Object.entries(parGroupe))
         comparableParGroupe[abrev] = (comparableParGroupe[abrev] ?? 0) + sc.comparable;
-    const nbVotes = Object.values(etat.reponses).filter((r) => r === "pour" || r === "contre").length;
+    // Réponses aux questions ACTUELLES seulement (une question retirée du test garde sa réponse).
+    const nbVotes = jouees.filter((q) => etat.reponses[q.id] === "pour" || etat.reponses[q.id] === "contre").length;
     return { reponses: etat.reponses, poids, questions: jouees, resultat, comparableParGroupe, nbVotes };
   });
   return cacheP;

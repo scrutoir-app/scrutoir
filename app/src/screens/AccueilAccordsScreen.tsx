@@ -143,6 +143,13 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
 
   const situe = nbVotes > 0;
   const prog = progressionTest(questions, reponses);
+  // Base affichée sous le spectre : seules les réponses aux questions ACTUELLES du test comptent,
+  // comme dans le calcul du spectre et sur l'écran de résultat. Une question retirée du test garde
+  // sa réponse (utile à « Tes accords »), mais ne doit plus gonfler la base « Sur tes N votes ».
+  const nbVotesSpectre = useMemo(
+    () => (questions.length ? questions.filter((q) => reponses[q.id] === "pour" || reponses[q.id] === "contre").length : nbVotes),
+    [questions, reponses, nbVotes]
+  );
 
   // Lancement AUTOMATIQUE de la visite guidée à la 1re arrivée sur l'accueil une fois situé
   // (une seule fois, persisté). Les zones sont déjà montées ici ; on laisse le court fondu-montée
@@ -372,7 +379,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
                   sousTitre="Un spectre, pas un parti"
                   lien="Voir le spectre"
                   onPress={() => nav.push({ name: "testResultat" })}
-                  accessibilityLabel={`Ta proximité, sur tes ${pluriel(nbVotes, "vote")}. Voir le spectre`}
+                  accessibilityLabel={`Ta proximité, sur tes ${pluriel(nbVotesSpectre, "vote")}. Voir le spectre`}
                 >
                   <View style={{ marginTop: 12, gap: 9 }}>
                     {spectre.map((g, i) => (
@@ -387,7 +394,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
                       </View>
                     ))}
                   </View>
-                  <Text style={[T.micro, tnum, { color: C.textFaint, marginTop: 10 }]}>Sur tes {pluriel(nbVotes, "vote")}</Text>
+                  <Text style={[T.micro, tnum, { color: C.textFaint, marginTop: 10 }]}>Sur tes {pluriel(nbVotesSpectre, "vote")}</Text>
                 </CarteDuo>
 
                 {nbTextes > 0 || !situes ? (

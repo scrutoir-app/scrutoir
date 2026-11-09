@@ -28,6 +28,7 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
   - Seuls les votes avec un vrai affrontement et au moins 120 votants restent candidats. Les propositions de résolution deviennent éligibles.
   - En fin de passage, un rapport liste les scrutins apparus depuis le passage précédent.
   - L'ordre du fichier ne change plus d'un passage à l'autre (les entrées sans score faisaient varier le tri).
+- **Accueil : base du spectre.** « Sur tes N votes » ne compte plus que les réponses aux questions actuelles du test, comme le spectre lui-même et l'écran de résultat. Auparavant, une question retirée gardait sa réponse dans la base, d'où « Sur tes 39 votes » pour un spectre calculé sur 22. La réponse reste utilisée par Tes accords.
 - `SHELL_VERSION` passe en v38 pour proposer la mise à jour.
 
 ## 1.31.1 — 2026-11-09
