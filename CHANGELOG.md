@@ -7,6 +7,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.31.1 — 2026-11-09
+**Test de proximité : thèse du n° 7303 (cadmium) corrigée.** Elle disait « Abaisser les limites de cadmium autorisées dans l'alimentation » ; le texte adopté (T.A. n° 300, article unique) porte sur les **engrais** phosphatés, pas sur les aliments. Nouvelle thèse, relue sur le texte : « Interdire les engrais phosphatés contenant plus de 40 mg de cadmium par kg de phosphate dès 2027, puis plus de 20 mg dès 2030. » Seule la thèse change : mêmes 39 questions, mêmes positions, mêmes décomptes. Source corrigée aussi dans le vault (`questions/agriculture.json`).
+
 ## 1.31.0 — 2026-11-09
 **Instagram : le compte dans l'app, et le spectre partageable en story.**
 - **Écran Infos.** Une ligne « Suivre Scrutoir sur Instagram » (@scrutoir.fr), qui ouvre le compte.
