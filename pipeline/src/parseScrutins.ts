@@ -4,6 +4,7 @@ import type Database from "better-sqlite3";
 import { SCRUTINS_DIR } from "./download.js";
 import { normalize } from "./categories.js";
 import { positionMajoritaire } from "../../app/src/decompte";
+import { groupeCanonique } from "./organesGroupes.js";
 
 function readJson(file: string): any {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -103,7 +104,9 @@ export function chargerScrutins(db: Database.Database): { scrutins: number; vote
       // Ventilation nominative : groupe -> bucket -> votant.acteurRef
       const groupes = asArray(s.ventilationVotes?.organe?.groupes?.groupe);
       for (const grp of groupes) {
-        const groupeUid = grp.organeRef ?? null;
+        // Organe ACTUEL du groupe : un organe historique (ex. l'UDR 2024-2025, PO847173) est
+        // rattaché à son successeur, sinon le groupe disparaît du détail (cf. organesGroupes.ts).
+        const groupeUid = groupeCanonique(grp.organeRef);
         const dn = grp.vote?.decompteNominatif ?? {};
         // Position du groupe = majorité de SES votants, comptés sur les listes nominatives
         // insérées ci-dessous (mêmes votes que la loyauté et la fiche scrutin). La

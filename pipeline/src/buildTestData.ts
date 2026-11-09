@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDb } from "./db.js";
+import { ORDRE_HEMICYCLE } from "../../app/src/components/hemicycleGeo";
 
 /**
  * Compile les questions VALIDÉES à la main (file du Brain) en données servies par l'app
@@ -29,7 +30,7 @@ const db = openDb();
 const parUid = db.prepare("SELECT uid, pour, contre, abstention, titre, date FROM scrutins WHERE uid = ?");
 const parNumero = db.prepare("SELECT uid, pour, contre, abstention, titre, date FROM scrutins WHERE numero = ?");
 // Votants de chaque groupe, rangés comme le détecteur (et donc le test) : par groupe ACTUEL du
-// député (l'UDR de 2024 compte dans l'UDDPLR). L'app en tire la position du groupe avec
+// député (un député sorti ou passé d'un groupe à l'autre compte dans son dernier groupe). L'app en tire la position du groupe avec
 // `positionMajoritaire` (app/src/decompte.ts : égalité = pas de position) pour « Tes accords ».
 const parGroupe = db.prepare(
   `SELECT g.abrev AS abrev,
@@ -85,6 +86,25 @@ for (const f of fs.readdirSync(QUESTIONS_DIR).filter((f) => f.endsWith(".json"))
   }
 }
 db.close();
+
+// Clés de groupe : celles de l'hémicycle (+ NI pour les décomptes). Une clé périmée (ex.
+// « UDDPLR » après le passage de l'AN à « UDR ») sort le groupe du spectre sans bruit : on
+// préfère échouer ici que publier un test qui ignore un groupe.
+const clesValides = new Set([...ORDRE_HEMICYCLE, "NI"]);
+const clesInconnues = new Map<string, number[]>();
+for (const q of out) {
+  for (const k of [...Object.keys(q.positions), ...Object.keys(q.decomptes)]) {
+    if (clesValides.has(k)) continue;
+    const ids = clesInconnues.get(k) ?? [];
+    if (!ids.includes(q.id)) ids.push(q.id);
+    clesInconnues.set(k, ids);
+  }
+}
+if (clesInconnues.size) {
+  for (const [k, ids] of clesInconnues) console.error(`❌ clé de groupe inconnue « ${k} » (questions ${ids.join(", ")})`);
+  console.error("   Renommer la clé dans questions/<theme>.json (positions_par_groupe) ou mettre à jour ORDRE_HEMICYCLE.");
+  process.exit(1);
+}
 
 // Tri déterministe (thème puis id) → diffs stables, sortie idempotente.
 out.sort((a, b) => a.theme.localeCompare(b.theme) || a.id - b.id);

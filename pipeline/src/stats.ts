@@ -32,7 +32,7 @@ const ALIAS_PARTIS: Record<string, string> = {
   pcf: "GDR", communiste: "GDR", communistes: "GDR", "gauche democrate": "GDR",
   horizons: "HOR", "edouard philippe": "HOR", philippe: "HOR",
   liot: "LIOT",
-  udr: "UDDPLR", ciotti: "UDDPLR", "union des droites": "UDDPLR",
+  udr: "UDR", ciotti: "UDR", "union des droites": "UDR",
   "non inscrit": "NI", "non inscrits": "NI", ni: "NI",
 };
 

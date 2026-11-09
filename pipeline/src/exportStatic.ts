@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDb } from "./db.js";
+import { ORGANE_SANS_GROUPE } from "./organesGroupes.js";
+import { ORDRE_HEMICYCLE } from "../../app/src/components/hemicycleGeo";
 import {
   profilDepute,
   detailScrutin,
@@ -81,6 +83,29 @@ const db = openDb();
     console.error(
       `❌ GARDE-FOU : ${stubs.length} député(s) sans identité (stub) : ${stubs.slice(0, 10).map((s) => s.uid).join(", ")}${stubs.length > 10 ? "…" : ""}.\n` +
       `   Vérifier l'ingestion AMO20 (chargerDeputesSortis). Export ANNULÉ.`
+    );
+    process.exit(1);
+  }
+  // GROUPES : un organe renommé par l'AN (nouvel uid) ou une abréviation changée fait
+  // disparaître un groupe EN SILENCE (détail par groupe, hémicycle, spectre du test) : l'UDR
+  // a ainsi manqué de 2 791 scrutins (uid PO847173) puis de l'hémicycle (« UDDPLR » → « UDR »).
+  // 1) tout vote doit pointer un groupe connu (rattacher l'ancien uid dans organesGroupes.ts) ;
+  const orphelins = db.prepare(
+    `SELECT v.groupe_uid AS uid, COUNT(DISTINCT v.scrutin_uid) AS n FROM votes v
+     LEFT JOIN groupes g ON g.uid = v.groupe_uid
+     WHERE v.groupe_uid IS NOT NULL AND v.groupe_uid <> ? AND g.uid IS NULL GROUP BY v.groupe_uid`
+  ).all(ORGANE_SANS_GROUPE) as { uid: string; n: number }[];
+  // 2) tout groupe qui siège (hors non-inscrits) doit avoir sa place dans ORDRE_HEMICYCLE.
+  const horsOrdre = (db.prepare(
+    `SELECT g.abrev AS abrev FROM groupes g WHERE g.abrev IS NOT NULL AND g.abrev <> 'NI'
+       AND EXISTS (SELECT 1 FROM deputes d WHERE d.groupe_uid = g.uid AND d.actif = 1)`
+  ).all() as { abrev: string }[]).filter((r) => !ORDRE_HEMICYCLE.includes(r.abrev));
+  if (orphelins.length || horsOrdre.length) {
+    console.error(
+      `❌ GARDE-FOU : groupes mal rattachés.\n` +
+      (orphelins.length ? `   Votes vers un organe inconnu : ${orphelins.map((o) => `${o.uid} (${o.n} scrutins)`).join(", ")} → rattacher dans pipeline/src/organesGroupes.ts.\n` : "") +
+      (horsOrdre.length ? `   Abréviation absente d'ORDRE_HEMICYCLE : ${horsOrdre.map((r) => r.abrev).join(", ")} → mettre à jour app/src/components/hemicycleGeo.ts.\n` : "") +
+      `   Export ANNULÉ.`
     );
     process.exit(1);
   }

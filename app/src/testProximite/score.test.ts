@@ -4,7 +4,7 @@ import { calculerProximite, scoreVotant, scrutinUidDeId, type QuestionProximite,
 
 // Les 11 groupes + NI (comme /data/partis.json).
 const GROUPES: GroupeProximite[] = [
-  "LFI-NFP", "GDR", "ECOS", "SOC", "LIOT", "DEM", "EPR", "HOR", "DR", "UDDPLR", "RN", "NI",
+  "LFI-NFP", "GDR", "ECOS", "SOC", "LIOT", "DEM", "EPR", "HOR", "DR", "UDR", "RN", "NI",
 ].map((abrev) => ({ abrev }));
 
 // Impôt plancher (id 881, economie) : gauche pour, centre+droite contre, RN abstention,
@@ -14,7 +14,7 @@ const IMPOT_PLANCHER: QuestionProximite = {
   theme: "economie",
   positions: {
     "LFI-NFP": "pour", GDR: "pour", ECOS: "pour", SOC: "pour",
-    DEM: "contre", EPR: "contre", HOR: "contre", DR: "contre", UDDPLR: "contre",
+    DEM: "contre", EPR: "contre", HOR: "contre", DR: "contre", UDR: "contre",
     RN: "abstention", // LIOT absent
   },
 };
@@ -27,7 +27,7 @@ test("répondre « pour » à l'impôt plancher : accord à gauche, désaccord c
     assert.equal(eco[g].pct, 1, `${g} doit être en accord (100 %)`);
     assert.equal(eco[g].comparable, 1);
   }
-  for (const g of ["DEM", "EPR", "HOR", "DR", "UDDPLR"]) {
+  for (const g of ["DEM", "EPR", "HOR", "DR", "UDR"]) {
     assert.equal(eco[g].pct, 0, `${g} doit être en désaccord (0 %)`);
     assert.equal(eco[g].comparable, 1);
   }
@@ -53,7 +53,7 @@ test("global trié décroissant : gauche en tête (100 %), centre-droite en bas 
   for (const g of ["LFI-NFP", "GDR", "ECOS", "SOC"]) {
     assert.equal(r.global.find((x) => x.abrev === g)!.pct, 1);
   }
-  for (const g of ["DEM", "EPR", "HOR", "DR", "UDDPLR"]) {
+  for (const g of ["DEM", "EPR", "HOR", "DR", "UDR"]) {
     assert.equal(r.global.find((x) => x.abrev === g)!.pct, 0);
   }
 });

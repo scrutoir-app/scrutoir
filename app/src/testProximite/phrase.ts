@@ -5,7 +5,7 @@ import type { PositionGroupe, Reponse } from "./score";
 const BLOCS: Record<string, string[]> = {
   GAUCHE: ["LFI-NFP", "GDR", "ECOS", "SOC"],
   CENTRE: ["DEM", "EPR", "HOR", "LIOT"],
-  DROITE: ["DR", "UDDPLR"],
+  DROITE: ["DR", "UDR"],
   RN: ["RN"],
 };
 const blocDe = (abrev: string): string | null => {

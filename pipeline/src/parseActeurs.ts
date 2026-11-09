@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import type Database from "better-sqlite3";
 import { ACTEURS_DIR, ACTEURS_TOUS_DIR, ORGANES_DIR } from "./download.js";
+import { groupeCanonique } from "./organesGroupes.js";
 
 function readJson(file: string): any {
   return JSON.parse(fs.readFileSync(file, "utf8"));
@@ -75,7 +76,7 @@ export function chargerDeputes(db: Database.Database): number {
         (m: any) => m?.typeOrgane === "GP" && !m?.dateFin
       );
       const principal = gpActifs.find((m: any) => m?.infosQualite?.codeQualite === "Président") ?? gpActifs[0];
-      const groupeUid: string | null = principal?.organes?.organeRef ?? null;
+      const groupeUid: string | null = groupeCanonique(principal?.organes?.organeRef);
       const qualite: string | null = principal?.infosQualite?.codeQualite ?? null;
 
       // Dates du mandat de siège (ASSEMBLEE) — borne le calcul des absences/présence.
@@ -188,7 +189,8 @@ export function chargerDeputesSortis(db: Database.Database, legislature = "17"):
       const gpActif = gps.find((m: any) => !m?.dateFin);
       const gpDernier = [...gps].sort((x: any, y: any) => String(x?.dateFin ?? "").localeCompare(String(y?.dateFin ?? ""))).pop();
       const principal = gpActif ?? gpDernier;
-      const gpRef: string | null = principal?.organes?.organeRef ?? null;
+      // Organe historique du même groupe (ex. UDR 2024-2025) → organe actuel, sinon NULL ci-dessous.
+      const gpRef: string | null = groupeCanonique(principal?.organes?.organeRef);
       const groupeUid = gpRef && groupesConnus.has(gpRef) ? gpRef : null;
       const qualite: string | null = principal?.infosQualite?.codeQualite ?? null;
 

@@ -135,7 +135,7 @@ export const ALIAS_PARTIS: Record<string, string> = {
   eelv: "ECOS", verts: "ECOS", ecologiste: "ECOS", ecologistes: "ECOS",
   pcf: "GDR", communiste: "GDR", communistes: "GDR",
   horizons: "HOR", philippe: "HOR",
-  liot: "LIOT", udr: "UDDPLR", ciotti: "UDDPLR",
+  liot: "LIOT", udr: "UDR", ciotti: "UDR",
 };
 
 export interface CorrespondanceAlias {

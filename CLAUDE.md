@@ -272,7 +272,7 @@ Vient EN PLUS de la recherche exacte (élu/loi/parti/n°, inchangée et priorita
 
 ## Ce qui est construit (vue électeur ~terminée)
 - **Recherche** : députés + **partis** (alias usuels dans `pipeline/src/stats.ts` : LR→DR, PS→SOC,
-  EELV→ECOS, Renaissance→EPR, MoDem→DEM, Ciotti→UDDPLR…) + scrutins.
+  EELV→ECOS, Renaissance→EPR, MoDem→DEM, Ciotti→UDR…) + scrutins.
 - **Fiche élu** : **Participation** relative (« plus assidu·e que X% »), période (Depuis 2024 / 12m / 6m),
   **cartes thème « tout cliquable »** (titre + 4 cases Pour/Contre/Abst/**Absent** + ligne **Non votant**),
   drill-downs. ⚠️ **Plus de score de loyauté agrégé ni de réussite** (recos 6/7) : à la place, la

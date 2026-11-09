@@ -2,6 +2,8 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDb } from "./db.js";
+import { ORDRE_HEMICYCLE } from "../../app/src/components/hemicycleGeo";
+import { affrontement, blocsDuScrutin, sensOui, VOTANTS_MIN, type Blocs, type SensOui } from "./sensOui.js";
 
 /**
  * Détecteur de questions pour le « test de proximité ». Tourne APRÈS ingest +
@@ -9,6 +11,11 @@ import { openDb } from "./db.js";
  * CANDIDATS scorée et dédoublonnée. Il ne rédige pas de thèses et ne décide pas
  * l'inclusion finale : il filtre, score, étiquette, et PRÉSERVE les décisions
  * humaines (these, statut) entre deux exécutions. Déterministe, idempotent.
+ *
+ * « Au fil de l'eau » (règle d'Anthony, nov. 2026) : ne retenir que les votes où les blocs
+ * s'affrontent vraiment (un bloc pour, un autre contre, au moins VOTANTS_MIN votants), noter
+ * pour chacun le sens du « oui » (gauche / droite / RN / anti-RN / autre, cf. sensOui.ts) afin
+ * d'équilibrer le test, et lister en fin de run les candidats apparus depuis le passage précédent.
  *
  * Sortie AUTORITATIVE : le Brain (fichier relu à la main, porteur des thèses et des
  * statuts validés → source de vérité). Surchargeable via QUESTIONS_OUT. Si le dossier
@@ -24,14 +31,13 @@ const OUT = process.env.QUESTIONS_OUT
 
 const SIEGES_TOTAL = 577;
 
-// Ordre gauche → droite (clé = abrev RÉEL en base). ⚠️ LFI-NFP / UDDPLR, pas LFI/UDR.
-const ORDRE_HEMICYCLE = ["LFI-NFP", "GDR", "ECOS", "SOC", "LIOT", "DEM", "EPR", "HOR", "DR", "UDDPLR", "RN"];
+// Ordre gauche → droite : ORDRE_HEMICYCLE (app/src/components/hemicycleGeo.ts), source unique.
 
 // Quatre blocs pour la famille de clivage (jeu de départ éditable).
 const BLOCS: Record<string, string[]> = {
   GAUCHE: ["LFI-NFP", "GDR", "ECOS", "SOC"],
   CENTRE: ["DEM", "EPR", "HOR", "LIOT"],
-  DROITE: ["DR", "UDDPLR"],
+  DROITE: ["DR", "UDR"],
   RN: ["RN"],
 };
 
@@ -43,8 +49,12 @@ const LISIBLE_MIN = 40;           // longueur de titre lisible (caractères)
 const LISIBLE_MAX = 160;
 const JARGON = ["ratification", "habilitation", "coordination", "transposition", "ordonnance"];
 
-// Éligibilité : votes sur un texte ENTIER uniquement.
+// Éligibilité : votes sur un texte ENTIER uniquement, propositions de résolution comprises
+// (art. 34-1 : c'est souvent la seule trace votée d'une position, ex. abrogation des retraites
+// n° 2257, accords franco-algériens n° 3260) — sauf celles qui créent une commission d'enquête.
 const ENSEMBLE = /^l['’]ensemble (du|de la|des) (projet|proposition)s? de loi/i;
+const RESOLUTION = /^(l['’]ensemble de )?la proposition de résolution/i;
+const COMMISSION_ENQUETE = /commission d['’]enquête/i;
 const REJET =
   /amendement|sous-amendement|^l['’]article|article (premier|\d)|motion|renvoi en commission|question préalable|rejet préalable|crédits de la mission|seconde délibération|déclaration du gouvernement/i;
 
@@ -60,6 +70,9 @@ interface ScrutinRow {
   sort_code: string | null;
   type_vote: string | null;
   dossier_titre: string | null;
+  pour: number;
+  contre: number;
+  abstention: number;
 }
 
 interface Candidat {
@@ -72,9 +85,17 @@ interface Candidat {
   total: number;
   lisibilite_flag: boolean;
   famille_clivage: string;
+  /** Répondre « oui » revient à voter comme… (cf. sensOui.ts). */
+  sens_oui: SensOui;
+  /** Position de chacun des quatre blocs (majorité de ses votants). */
+  blocs: Blocs;
+  votants: number;
   signature: string;
   positions_par_groupe: Record<string, Pos>;
 }
+
+/** Ordre du rapport des nouveaux candidats. */
+const ORDRE_SENS: SensOui[] = ["gauche", "droite", "RN", "anti-RN", "autre"];
 
 const r4 = (x: number) => Math.round(x * 10000) / 10000;
 
@@ -174,6 +195,35 @@ export function detecterQuestions(
     if (uid) siegesParAbrev.set(abrev, siegesParUid.get(uid) ?? 0);
   }
 
+  /** Votants par groupe, rangés par abréviation (clé attendue par blocsDuScrutin). */
+  const parAbrevDe = (parGroupe: Map<string, { pour: number; contre: number; abstention: number }>) => {
+    const out = new Map<string, { pour: number; contre: number; abstention: number }>();
+    for (const [guid, c] of parGroupe) {
+      const abrev = abrevDeUid.get(guid);
+      if (abrev) out.set(abrev, c);
+    }
+    return out;
+  };
+
+  // Sens du « oui » d'une entrée gardée hors des candidats (décision humaine, amendement ou
+  // résolution ajouté à la main) : on rafraîchit ces trois champs informatifs, rien d'autre.
+  const votantsParGroupe = db.prepare(
+    `SELECT d.groupe_uid g, SUM(v.position='pour') pour, SUM(v.position='contre') contre, SUM(v.position='abstention') abstention
+     FROM votes v JOIN deputes d ON d.uid = v.depute_uid
+     WHERE v.scrutin_uid = ? AND d.groupe_uid IS NOT NULL GROUP BY d.groupe_uid`
+  );
+  const totauxScrutin = db.prepare("SELECT pour + contre + abstention n FROM scrutins WHERE uid = ?");
+  const infosSens = (uid: string): Pick<Candidat, "sens_oui" | "blocs" | "votants"> | null => {
+    const t = totauxScrutin.get(uid) as { n: number } | undefined;
+    if (!t) return null;
+    const parGroupe = new Map<string, { pour: number; contre: number; abstention: number }>();
+    for (const r of votantsParGroupe.all(uid) as Array<{ g: string; pour: number; contre: number; abstention: number }>) {
+      parGroupe.set(r.g, { pour: r.pour, contre: r.contre, abstention: r.abstention });
+    }
+    const blocs = blocsDuScrutin(parAbrevDe(parGroupe));
+    return { sens_oui: sensOui(blocs), blocs, votants: t.n };
+  };
+
   // Scrutins liés par dossier (pour l'importance : texte très débattu).
   const scrutinsParDossier = new Map<string, number>();
   for (const row of db
@@ -184,11 +234,12 @@ export function detecterQuestions(
 
   // 1) FILTRE D'ÉLIGIBILITÉ — votes sur un texte entier uniquement.
   const tous = db
-    .prepare("SELECT uid, numero, date, titre, objet, sort_code, type_vote, dossier_titre FROM scrutins")
+    .prepare("SELECT uid, numero, date, titre, objet, sort_code, type_vote, dossier_titre, pour, contre, abstention FROM scrutins")
     .all() as ScrutinRow[];
   const eligibles = tous.filter((s) => {
     const titre = s.titre ?? "";
     if (REJET.test(titre)) return false;
+    if (RESOLUTION.test(titre)) return !COMMISSION_ENQUETE.test(titre);
     return s.type_vote === "scrutin public solennel" || ENSEMBLE.test(titre);
   });
 
@@ -237,6 +288,12 @@ export function detecterQuestions(
     const clivage = P + C > 0 ? 1 - Math.abs(P - C) / (P + C) : 0;
     if (clivage < SEUIL_CLIVAGE) continue; // quasi-unanime → inutile pour le test
 
+    // Affrontement réel entre blocs (un pour, un autre contre) et participation suffisante :
+    // sinon le vote ne départage personne (abstentions, quasi-unanimité, séance clairsemée).
+    const blocs = blocsDuScrutin(parAbrevDe(parGroupe));
+    const votants = s.pour + s.contre + s.abstention;
+    if (!affrontement(blocs) || votants < VOTANTS_MIN) continue;
+
     const couverture = (P + C) / SIEGES_TOTAL;
     const solennel = s.type_vote === "scrutin public solennel";
     const debattu = s.dossier_titre ? (scrutinsParDossier.get(s.dossier_titre) ?? 0) >= DOSSIER_DEBATTU : false;
@@ -271,6 +328,9 @@ export function detecterQuestions(
       total: r4(total),
       lisibilite_flag: !lisible,
       famille_clivage: familleClivage(bp, clivage),
+      sens_oui: sensOui(blocs),
+      blocs,
+      votants,
       signature,
       positions_par_groupe,
     });
@@ -315,6 +375,15 @@ export function detecterQuestions(
   const filtre = opts?.themes?.length ? new Set(opts.themes) : null;
   fs.mkdirSync(OUT, { recursive: true });
   const resultats: Record<string, number> = {};
+  // Rapport : un scrutin n'est « nouveau » que s'il n'apparaissait dans AUCUN fichier de thème
+  // (un simple changement de thème ne le signale pas).
+  const connusAvant = new Set<string>();
+  for (const f of fs.readdirSync(OUT).filter((f) => f.endsWith(".json"))) {
+    try {
+      for (const o of JSON.parse(fs.readFileSync(path.join(OUT, f), "utf8")) as any[]) connusAvant.add(o.uid);
+    } catch { /* fichier illisible : ignoré pour le rapport */ }
+  }
+  const nouveaux = new Map<string, Candidat>();
   for (const [cat, liste] of parTheme) {
     if (filtre && !filtre.has(cat)) continue;
     liste.sort((a, b) => b.total - a.total || (b.date ?? "").localeCompare(a.date ?? "") || a.uid.localeCompare(b.uid));
@@ -338,21 +407,40 @@ export function detecterQuestions(
         nouveau: !prev,                                         // absent du fichier précédent
       });
       vus.add(c.uid);
+      if (!connusAvant.has(c.uid)) nouveaux.set(c.uid, c);
     }
     // Ne jamais perdre une décision humaine : on conserve les entrées déjà tranchées
     // (validées/rejetées ou avec thèse) même si elles ne sont plus candidates.
     for (const [uid, prev] of existantParUid) {
       if (vus.has(uid)) continue;
       const tranchee = (prev.statut && prev.statut !== "candidat") || prev.these != null;
-      if (tranchee) out.push({ ...prev, nouveau: false });
+      if (tranchee) out.push({ ...prev, ...(infosSens(uid) ?? {}), nouveau: false });
     }
-    out.sort((a, b) => b.total - a.total || (b.date ?? "").localeCompare(a.date ?? "") || a.uid.localeCompare(b.uid));
+    // `total` peut manquer sur une entrée ajoutée à la main : 0 par défaut, sinon le comparateur
+    // renvoie NaN et l'ordre du fichier change d'un passage à l'autre.
+    out.sort((a, b) => (b.total ?? 0) - (a.total ?? 0) || (b.date ?? "").localeCompare(a.date ?? "") || a.uid.localeCompare(b.uid));
 
     fs.writeFileSync(fichier, JSON.stringify(out, null, 2));
     resultats[cat] = out.length;
   }
 
+  rapportNouveaux([...nouveaux.values()]);
   return resultats;
+}
+
+/** Court rapport des candidats apparus depuis le dernier passage, par sens du « oui ». */
+function rapportNouveaux(liste: Candidat[], max = 25): void {
+  if (!liste.length) {
+    console.log("   Aucun nouveau scrutin clivant depuis le dernier passage.");
+    return;
+  }
+  liste.sort((a, b) => ORDRE_SENS.indexOf(a.sens_oui) - ORDRE_SENS.indexOf(b.sens_oui) || b.votants - a.votants || a.uid.localeCompare(b.uid));
+  const parSens = ORDRE_SENS.map((s) => `${s} ${liste.filter((c) => c.sens_oui === s).length}`).join(", ");
+  console.log(`   ${liste.length} nouveau(x) scrutin(s) clivant(s) à examiner (« oui » = ${parSens}) :`);
+  for (const c of liste.slice(0, max)) {
+    console.log(`     [${c.sens_oui}] n° ${c.numero} du ${c.date}, ${c.votants} votants : ${c.titre.slice(0, 110)}`);
+  }
+  if (liste.length > max) console.log(`     … et ${liste.length - max} autre(s)`);
 }
 
 // Exécution directe (npm run detect-questions [-- <theme> ...]) : lançable seul, sans
