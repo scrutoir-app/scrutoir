@@ -2,6 +2,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { openDb } from "./db.js";
+import { ORDRE_HEMICYCLE } from "../../app/src/components/hemicycleGeo";
 
 /**
  * Détecteur de questions pour le « test de proximité ». Tourne APRÈS ingest +
@@ -24,14 +25,13 @@ const OUT = process.env.QUESTIONS_OUT
 
 const SIEGES_TOTAL = 577;
 
-// Ordre gauche → droite (clé = abrev RÉEL en base). ⚠️ LFI-NFP / UDDPLR, pas LFI/UDR.
-const ORDRE_HEMICYCLE = ["LFI-NFP", "GDR", "ECOS", "SOC", "LIOT", "DEM", "EPR", "HOR", "DR", "UDDPLR", "RN"];
+// Ordre gauche → droite : ORDRE_HEMICYCLE (app/src/components/hemicycleGeo.ts), source unique.
 
 // Quatre blocs pour la famille de clivage (jeu de départ éditable).
 const BLOCS: Record<string, string[]> = {
   GAUCHE: ["LFI-NFP", "GDR", "ECOS", "SOC"],
   CENTRE: ["DEM", "EPR", "HOR", "LIOT"],
-  DROITE: ["DR", "UDDPLR"],
+  DROITE: ["DR", "UDR"],
   RN: ["RN"],
 };
 

@@ -3,9 +3,11 @@
 // deux rangs de sièges, mêmes formules. Une seule source pour l'ordre gauche→droite et
 // le placement des points par groupe.
 
-// Ordre gauche → droite (clé = abrev RÉEL en base). ⚠️ LFI-NFP / UDDPLR, pas LFI/UDR
-// (le spec les abrège ; les composants reçoivent les abrevs réels des groupes).
-export const ORDRE_HEMICYCLE = ["LFI-NFP", "GDR", "ECOS", "SOC", "LIOT", "DEM", "EPR", "HOR", "DR", "UDDPLR", "RN"];
+// Ordre gauche → droite (clé = abrev RÉEL en base, `libelleAbrev` de l'AN). ⚠️ « LFI-NFP », pas « LFI ».
+// L'UDR s'abrégeait « UDDPLR » jusqu'en octobre 2026, puis l'AN est passée à « UDR » : une clé
+// absente d'ici fait disparaître le groupe de l'hémicycle (garde-fou dans exportStatic).
+// Source UNIQUE de l'ordre, aussi lue par le pipeline (détecteur de questions, garde-fou).
+export const ORDRE_HEMICYCLE = ["LFI-NFP", "GDR", "ECOS", "SOC", "LIOT", "DEM", "EPR", "HOR", "DR", "UDR", "RN"];
 
 export interface GroupeGeo {
   abrev: string | null;
