@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, TouchableOpacity, Linking } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, S, ICON, CONTROL } from "../theme";
-import { APP_VERSION } from "../config";
+import { APP_VERSION, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "../config";
 import { Card } from "../components/ui";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
 import { INFOS_TITRE, EN_BREF, FAMILLES_INFOS, type FamilleInfos, type BlocInfos } from "../content/infos";
@@ -129,6 +129,26 @@ export function AProposScreen({ nav }: { nav: Nav }) {
         {/* Le détail, rangé par familles, toutes repliées à l'ouverture. */}
         <Card radius={RADIUS.lg} padding={0} style={{ marginTop: S.s14, overflow: "hidden" }}>
           {FAMILLES_INFOS.map((f, i) => <Famille key={f.id} famille={f} premiere={i === 0} />)}
+        </Card>
+
+        {/* Le compte Instagram : le vote de la semaine, les fiches « En clair », les corrections. */}
+        <Card radius={RADIUS.lg} padding={0} style={{ marginTop: S.s14, overflow: "hidden" }}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={() => Linking.openURL(INSTAGRAM_URL)}
+            accessibilityRole="link"
+            accessibilityLabel={`Suivre Scrutoir sur Instagram, ${INSTAGRAM_HANDLE}`}
+            style={{ flexDirection: "row", alignItems: "center", gap: S.s12, paddingVertical: S.s12, paddingHorizontal: S.s14, minHeight: CONTROL.lg }}
+          >
+            <View style={{ width: 34, height: 34, borderRadius: RADIUS.sm, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
+              <Feather name="instagram" size={ICON.base} color={C.accent} />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>Suivre Scrutoir sur Instagram</Text>
+              <Text style={[T.small, { color: C.textFaint }]}>{INSTAGRAM_HANDLE} · le vote de la semaine, en clair</Text>
+            </View>
+            <Feather name="external-link" size={ICON.sm} color={C.textFaint} />
+          </TouchableOpacity>
         </Card>
 
         <View style={{ marginTop: S.s12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: S.s12 }}>

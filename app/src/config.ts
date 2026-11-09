@@ -8,7 +8,7 @@
  *   - MINEUR   (1.x.0) : nouvelle fonctionnalité visible.
  *   - MAJEUR   (x.0.0) : refonte importante.
  */
-export const APP_VERSION = "1.30.0";
+export const APP_VERSION = "1.31.0";
 
 /**
  * Seuil minimal de votes nominatifs exprimés (pour + contre + abstention) pour
@@ -17,6 +17,10 @@ export const APP_VERSION = "1.30.0";
  * votes au lieu d'une position — un échantillon trop faible ne permet pas de conclure.
  */
 export const SEUIL_FIABILITE = 5;
+
+/** Compte Instagram officiel (lien depuis Infos, signature des images partagées en story). */
+export const INSTAGRAM_HANDLE = "@scrutoir.fr";
+export const INSTAGRAM_URL = "https://www.instagram.com/scrutoir.fr/";
 
 /** URL publique d'un scrutin sur le site de l'Assemblée Nationale (source vérifiable). */
 export function scrutinSourceUrl(numero: number | null | undefined): string | null {

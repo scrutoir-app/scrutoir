@@ -7,6 +7,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.31.0 — 2026-11-09
+**Instagram : le compte dans l'app, et le spectre partageable en story.**
+- **Écran Infos.** Une ligne « Suivre Scrutoir sur Instagram » (@scrutoir.fr), qui ouvre le compte.
+- **Résultat du test : « Partager en story ».** Le bouton dessine dans le navigateur une image 1080 × 1920 du spectre complet : tous les groupes, chacun avec sa base « sur N votes », les groupes sous le seuil en gris et sans pourcentage, la phrase de base du résultat, puis « Fais le test sur scrutoir.fr » et @scrutoir.fr. Aucun titre « proche de X », aucune réponse dans l'image. Toujours en thème clair. Partage par la feuille système (Instagram y apparaît sur mobile), sinon l'image est téléchargée.
+- Le bouton n'apparaît pas sur un résultat ouvert depuis le lien de quelqu'un d'autre. Le partage par lien existant ne change pas.
+- **Code.** `share/storyImage.ts` (dessin canvas + Web Share de fichiers), `INSTAGRAM_HANDLE` / `INSTAGRAM_URL` dans `config.ts`. La géométrie du picto et le tracé du logotype sont sortis dans `components/brand/geometrie.ts`, lue à la fois par `ScrutoirMark` / `ScrutoirWordmark` et par le dessin de l'image : le logo n'est pas recopié. `couleurGroupePour(hex, thème)` dans `theme.ts` (l'image est toujours en clair). L'image est préparée dès que le spectre est prêt, pour que Safari iOS ouvre la feuille de partage au tap ; si le partage est refusé, l'image est téléchargée. `SHELL_VERSION` v37 pour proposer la mise à jour.
+
 ## 1.30.0 — 2026-10-28
 **Focus actu : un vote du Sénat, « Casseurs-payeurs ».** Le bloc focus de l'accueil peut maintenant montrer un texte voté par le Sénat, et plus seulement une frise de textes de l'Assemblée. Premier sujet : le projet de loi du gouvernement adopté par les sénateurs dans la nuit du 27 au 28 octobre, par 229 voix contre 105. Il remplace le focus sur la loi intégrale contre les violences sexuelles, prévu jusqu'au 15/11. Maquette : `maquette-focus-actu-senat.html`.
 - **Dans l'ordre :** badge « Vote du Sénat », ce que dit le texte, le résultat au Sénat, les groupes du Sénat, ce que les députés avaient déjà voté, puis où en est le texte.

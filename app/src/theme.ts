@@ -340,8 +340,14 @@ export function positionLabel(p: string | null): string {
  * À utiliser partout où la couleur de parti sert d'aplat/identité (picto, barres, pastilles).
  */
 export function couleurGroupe(hex: string | null | undefined): string {
-  if (!hex) return C.textFaint;
-  if (_scheme !== "dark") return hex;
+  return couleurGroupePour(hex, _scheme === "dark" ? "dark" : "light");
+}
+
+/** `couleurGroupe` pour un thème donné, indépendamment du thème courant (ex. image de partage,
+ *  toujours en clair). Même règle : inchangée en clair, éclaircie en sombre si très foncée. */
+export function couleurGroupePour(hex: string | null | undefined, scheme: "light" | "dark"): string {
+  if (!hex) return (scheme === "dark" ? DARK : LIGHT).textFaint;
+  if (scheme !== "dark") return hex;
   const h = hex.replace("#", "");
   const full = h.length === 3 ? h.split("").map((c) => c + c).join("") : h;
   const n = parseInt(full, 16);

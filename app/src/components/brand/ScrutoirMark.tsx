@@ -1,6 +1,7 @@
 import React from "react";
 import Svg, { Circle } from "react-native-svg";
 import { C, getScheme } from "../../theme";
+import { geometrieMarque } from "./geometrie";
 
 /**
  * NOUVELLE VERSION du picto Scrutoir (juin 2026).
@@ -25,27 +26,11 @@ export function ScrutoirMark({
   whiteSeatRing?: number;
   whiteSeatIndex?: number;
 }) {
-  const w = size;
-  const h = size * 0.72;
-  const cx = w / 2;
-  const cy = h * 0.84;
-  const rings = [w * 0.44, w * 0.31];
-  const dotR = Math.max(1, size * 0.046);
-  const strokeW = Math.max(1, size * 0.0085);
+  const { w, h, dots, dotR, strokeW, focal } = geometrieMarque(size, whiteSeat, whiteSeatRing, whiteSeatIndex);
   // En sombre, on VIDE l'intérieur du siège blanc (jumeau du point du i) et du rond focal :
   // remplissage = couleur de fond → on voit le fond sombre à travers (contour conservé).
   const dark = getScheme() === "dark";
   const evide = dark ? C.bg : null;
-
-  const dots: { x: number; y: number; white: boolean }[] = [];
-  rings.forEach((R, ri) => {
-    const n = 9 - ri * 2;
-    for (let i = 0; i <= n; i++) {
-      const t = Math.PI * (i / n);
-      const white = whiteSeat && ri === whiteSeatRing && i === whiteSeatIndex;
-      dots.push({ x: cx + R * Math.cos(t), y: cy - R * Math.sin(t), white });
-    }
-  });
 
   return (
     <Svg width={w} height={h}>
@@ -58,7 +43,7 @@ export function ScrutoirMark({
       )}
       {/* Point focal : disque PLEIN. En clair = ardoise (accent) ; en sombre = blanc, pour
           être le vrai NÉGATIF du logo clair (≠ creux). */}
-      <Circle cx={cx} cy={cy} r={size * 0.1} fill={dark ? "#FFFFFF" : accent} />
+      <Circle cx={focal.x} cy={focal.y} r={focal.r} fill={dark ? "#FFFFFF" : accent} />
     </Svg>
   );
 }
