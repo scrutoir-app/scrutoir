@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity } from "react-native";
+import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Platform } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, couleurGroupe } from "../theme";
 import { Card, Button } from "../components/ui";
@@ -15,6 +15,7 @@ import { nbNeuves, SEUIL_AFFINER } from "../testProximite/config";
 import { useFollow, useFollows } from "../hooks/useFollows";
 import { tourAccueilAFaire } from "../accueilTourPrefs";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
+import { imageStorySpectre, partagerImage } from "../share/storyImage";
 
 const NIVEAUX = [
   { label: "Peu", v: 0.5 },
@@ -164,6 +165,8 @@ export function TestResultatScreen({
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const [cats, setCats] = useState<CategorieRef[]>([]);
   const [partageMsg, setPartageMsg] = useState<string | null>(null);
+  const [storyMsg, setStoryMsg] = useState<string | null>(null);
+  const [storyBlob, setStoryBlob] = useState<Blob | null>(null);
   // Refonte « proposition 1 » : résultat replié au top-N, pondérations en accordéon replié.
   const [montrerTout, setMontrerTout] = useState(false);
   const [poidsOuvert, setPoidsOuvert] = useState(false);
@@ -232,6 +235,26 @@ export function TestResultatScreen({
   // suivre un groupe par sa cloche bascule le libellé.
   const aSuivi = useFollows().length > 0;
   const tourAFaire = useMemo(() => tourAccueilAFaire(), []);
+  // Base de tout le résultat : les scrutins (encore au catalogue) où tu as tranché, pour ou contre.
+  const nbTranches = jouees.filter((q) => reponses[q.id] === "pour" || reponses[q.id] === "contre").length;
+
+  // Partage en story (web) : une IMAGE du spectre complet, toutes les lignes avec leur base,
+  // sans aucune réponse. Couleur de groupe = hex officiel (rendu clair de couleurGroupe).
+  const fabriquerStory = (l: NonNullable<typeof lignes>) =>
+    imageStorySpectre(
+      [...l.fiables, ...l.faibles].map((x) => ({ ...x, couleur: partis.find((p) => p.abrev === x.abrev)?.couleur ?? null })),
+      phraseBase(nbTranches),
+    );
+  // L'image est préparée dès que le spectre est prêt : au tap, la feuille de partage s'ouvre
+  // tout de suite (Safari iOS refuse navigator.share trop longtemps après le geste).
+  useEffect(() => {
+    if (partage || Platform.OS !== "web" || !lignes) return;
+    let actif = true;
+    setStoryBlob(null);
+    fabriquerStory(lignes).then((b) => { if (actif) setStoryBlob(b); }, () => {});
+    return () => { actif = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lignes, partis, partage, nbTranches]);
 
   if (!resultat || !lignes) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
@@ -239,8 +262,6 @@ export function TestResultatScreen({
   const uidDe = (abrev: string) => partis.find((p) => p.abrev === abrev)?.uid ?? "";
   const nomDe = (abrev: string) => nomCourt(partis.find((p) => p.abrev === abrev)?.libelle ?? abrev);
   const libelle = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
-  // Base de tout le résultat : les scrutins (encore au catalogue) où tu as tranché, pour ou contre.
-  const nbTranches = jouees.filter((q) => reponses[q.id] === "pour" || reponses[q.id] === "contre").length;
   // « Affiner » seulement s'il reste assez de scrutins neufs (jamais pour un lien partagé).
   const peutAffiner = !partage && !!all && nbNeuves(all, reponses) >= SEUIL_AFFINER;
 
@@ -258,6 +279,19 @@ export function TestResultatScreen({
     const r = await partager(urlPartage(reponses, poids), resumePartage());
     setPartageMsg(r === "copied" ? "Lien copié !" : r === "shared" ? null : "Copie indisponible");
     if (r) setTimeout(() => setPartageMsg(null), 2500);
+  };
+
+  // Story : image déjà prête en général (cf. useEffect) ; sinon on la dessine maintenant.
+  const onStory = async () => {
+    let blob = storyBlob;
+    if (!blob) {
+      setStoryMsg("Préparation…");
+      blob = await fabriquerStory(lignes);
+    }
+    if (!blob) { setStoryMsg("Image indisponible"); setTimeout(() => setStoryMsg(null), 2500); return; }
+    const r = await partagerImage(blob);
+    setStoryMsg(r === "downloaded" ? "Image téléchargée" : r === "manual" ? "Partage indisponible" : null);
+    if (r === "downloaded" || r === "manual") setTimeout(() => setStoryMsg(null), 2500);
   };
 
   // Résultat replié : les TOP_N groupes au-dessus du seuil, puis les lignes grises ; le reste
@@ -378,6 +412,21 @@ export function TestResultatScreen({
       <Text style={[T.micro, { color: C.textFaint, textAlign: "center", marginTop: 6, marginHorizontal: 4, lineHeight: 15 }]}>
         Le lien contient tes réponses : toute personne qui l'ouvre les voit.
       </Text>
+      {!partage && Platform.OS === "web" && (
+        <>
+          <Button
+            label={storyMsg ?? "Partager en story"}
+            onPress={onStory}
+            variant="outline"
+            fullWidth
+            iconLeft={<Feather name="instagram" size={18} />}
+            style={{ marginTop: 10 }}
+          />
+          <Text style={[T.micro, { color: C.textFaint, textAlign: "center", marginTop: 6, marginHorizontal: 4, lineHeight: 15 }]}>
+            Une image de ton spectre complet, avec sa base. Tes réponses n'y figurent pas.
+          </Text>
+        </>
+      )}
       <Button label="Repartir de zéro" onPress={repartirDeZero} variant="text" size="sm" muted fullWidth style={{ marginTop: 4 }} />
     </ScrollView>
   );
