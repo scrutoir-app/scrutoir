@@ -7,6 +7,29 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.32.0 — 2026-11-09
+**Test de proximité : 40 questions, plus de sujets portés par la gauche, et l'UDR de retour dans tous les décomptes.**
+- **40 questions au lieu de 39, sur 11 thèmes.** Nouvelle règle : chaque question oppose réellement deux blocs (l'un pour, l'autre contre) et compte au moins 125 votants. Répondre « oui » revient désormais à voter comme la gauche 21 fois et comme la droite 17 fois, contre 9 et 26 auparavant. Nombre de fois où chaque bloc est dans le camp perdant : gauche 15, RN-UDR 18, DR 15, centre 12 (contre 24, 11, 6 et 4).
+- **18 nouvelles questions.**
+  - Seize sujets : ISF, imposition des multinationales, TVA sur l'électricité, abrogation de la réforme des retraites (résolution), congé pour les victimes de violences sexuelles, encadrement des loyers, meublés de tourisme, reste à charge des consultations, régulation de l'installation des médecins, kérosène des jets privés, PFAS, titres de séjour, mineurs isolés, droit du sol à Mayotte, accord franco-algérien de 1968, contrôles Schengen.
+  - Deux questions passent à leur dernière lecture : loi d'urgence agricole (n° 8427 au lieu de 7259 ; dans le texte final, l'acétamipride n'est autorisé que pour la noisette) et programmation militaire (n° 7905 au lieu de 6736).
+  - Sept questions portent sur des amendements et trois sur des résolutions : la plupart des propositions de la gauche n'ont jamais été votées sous une autre forme. Chaque thèse a été relue sur le texte voté.
+- **15 questions retirées :**
+  - aucun vrai affrontement : n° 2954, 5192, 5254, 7027, 7313 ;
+  - trop peu de votants : n° 5845, 7039, 1262, 6124 ;
+  - doublon d'un sujet déjà présent : n° 2957, 7405, 2460, 2975, 3056, 6184.
+- **UDR.**
+  - Le groupe d'Éric Ciotti a eu trois organes successifs à l'Assemblée. L'Open Data ne publie que le dernier : les votes de 2024-2025 tombaient sur un groupe inconnu, et l'UDR manquait au détail de 2 791 scrutins.
+  - L'Assemblée a ensuite renommé l'abréviation « UDDPLR » en « UDR ». Depuis, l'UDR n'apparaissait plus dans le spectre du test, dans l'hémicycle ni dans Tes accords.
+  - Correctif : les anciens organes sont rattachés au groupe actuel (`pipeline/src/organesGroupes.ts`) et la clé devient « UDR » partout.
+  - Garde-fous ajoutés : l'export et la génération du test s'arrêtent si un vote pointe un groupe inconnu ou si un groupe disparaît de l'hémicycle.
+- **Détecteur de questions.**
+  - À chaque import, chaque candidat porte le sens de son « oui », la position des quatre blocs et son nombre de votants.
+  - Seuls les votes avec un vrai affrontement et au moins 120 votants restent candidats. Les propositions de résolution deviennent éligibles.
+  - En fin de passage, un rapport liste les scrutins apparus depuis le passage précédent.
+  - L'ordre du fichier ne change plus d'un passage à l'autre (les entrées sans score faisaient varier le tri).
+- `SHELL_VERSION` passe en v38 pour proposer la mise à jour.
+
 ## 1.31.1 — 2026-11-09
 **Test de proximité : thèse du n° 7303 (cadmium) corrigée.** Elle disait « Abaisser les limites de cadmium autorisées dans l'alimentation » ; le texte adopté (T.A. n° 300, article unique) porte sur les **engrais** phosphatés, pas sur les aliments. Nouvelle thèse, relue sur le texte : « Interdire les engrais phosphatés contenant plus de 40 mg de cadmium par kg de phosphate dès 2027, puis plus de 20 mg dès 2030. » Seule la thèse change : mêmes 39 questions, mêmes positions, mêmes décomptes. Source corrigée aussi dans le vault (`questions/agriculture.json`).
 
