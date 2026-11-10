@@ -4,6 +4,8 @@ import { fileURLToPath } from "node:url";
 import { openDb } from "./db.js";
 import { ORGANE_SANS_GROUPE } from "./organesGroupes.js";
 import { ORDRE_HEMICYCLE } from "../../app/src/components/hemicycleGeo";
+import { aujourdhuiParis, dansLaFenetre, fenetre, vendrediParu } from "../../app/src/hebdo";
+import { focusDeLaSemaine, focusPublie, type ScrutinCandidat } from "../../app/src/focusSemaine";
 import {
   profilDepute,
   detailScrutin,
@@ -21,7 +23,7 @@ import {
  *
  * Sortie : app/public/data/  → servi par Expo web en dev ET copié dans dist/ à
  * l'export (même origine, pas de CORS). L'app lit /data/... en relatif.
- *   deputes.json, scrutins.json, categories.json, partis.json, grands.json
+ *   deputes.json, scrutins.json, categories.json, partis.json, grands.json, hebdo.json
  *   parti/<uid>.json, depute/<uid>.json, scrutin/<uid>.json
  */
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -144,6 +146,31 @@ const scrutinsRaw = db
 // cohérent avec les agrégats du profil qui comptent un scrutin dans chaque catégorie).
 const scrutins = scrutinsRaw.map((s) => ({ ...s, cats: s.cats ? String(s.cats).split(",") : [] }));
 write("scrutins.json", scrutins);
+
+// 2ter) ÉDITION DE LA SEMAINE (`hebdo.json`) : dernière édition parue (vendredi, heure de Paris)
+// et son focus, calculé par la MÊME fonction que l'accueil (app/src/focusSemaine.ts) sur le
+// MÊME index. Lu par le post Instagram du lundi : l'app et Instagram montrent le même vote.
+// `focusRepris` : vendredi de l'édition d'où vient le focus quand la semaine n'a eu aucun
+// scrutin public (`sansScrutinPublic`), sinon null.
+{
+  const vendredi = vendrediParu(aujourdhuiParis());
+  const { debut, fin } = fenetre(vendredi);
+  const f = focusDeLaSemaine(scrutins as ScrutinCandidat[], vendredi);
+  write("hebdo.json", {
+    vendredi,
+    debut,
+    fin,
+    nbScrutins: dansLaFenetre(vendredi, scrutins).length,
+    sansScrutinPublic: !f || f.repli,
+    focusSemaine: f ? focusPublie(f) : null,
+    focusRepris: f?.repli ? f.vendrediSource : null,
+  });
+  console.log(
+    f
+      ? `Focus de la semaine (édition du ${vendredi}) : n° ${f.scrutin.numero}, ${f.votants} votants${f.repli ? ` (repris de l'édition du ${f.vendrediSource})` : ""}.`
+      : `Focus de la semaine (édition du ${vendredi}) : aucun scrutin public.`
+  );
+}
 
 // 2bis) DOSSIERS (regroupement par texte) — socle de la vue « Tes accords » par texte.
 // Index léger `dossiers.json` + un fichier par dossier `dossier/<ref>.json` listant ses scrutins

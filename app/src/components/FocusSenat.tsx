@@ -73,17 +73,7 @@ export function FocusSenatBloc({ focus, nav }: { focus: FocusSenat; nav: Nav }) 
         <Text style={[T.small, { color: C.textMuted, marginTop: 5, lineHeight: 18 }]}>{focus.sousTitre}</Text>
       </View>
 
-      <Carte>
-        <Libelle>Ce que dit le texte</Libelle>
-        {focus.points.map((p, i) => (
-          <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: i ? 8 : 9 }}>
-            <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
-              <Picto icone={p.icone} size={ICON.sm} color={C.text} />
-            </View>
-            <Text style={[T.small, { flex: 1, color: C.text, lineHeight: 18, paddingTop: 5 }]}>{p.texte}</Text>
-          </View>
-        ))}
-      </Carte>
+      <CeQueDitLeTexte points={focus.points} />
 
       <Carte>
         <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
@@ -108,6 +98,23 @@ export function FocusSenatBloc({ focus, nav }: { focus: FocusSenat; nav: Nav }) 
 
       {focus.parcours && focus.parcours.length > 0 && <Parcours etapes={focus.parcours} procedure={focus.procedure} />}
     </View>
+  );
+}
+
+/** « Ce que dit le texte » : une ligne par point saisi, picto à gauche (focus Sénat, et contenu éditorial du focus de la semaine). */
+export function CeQueDitLeTexte({ points }: { points: FocusSenat["points"] }) {
+  return (
+    <Carte>
+      <Libelle>Ce que dit le texte</Libelle>
+      {points.map((p, i) => (
+        <View key={i} style={{ flexDirection: "row", alignItems: "flex-start", gap: 10, marginTop: i ? 8 : 9 }}>
+          <View style={{ width: 28, height: 28, borderRadius: 8, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
+            <Picto icone={p.icone} size={ICON.sm} color={C.text} />
+          </View>
+          <Text style={[T.small, { flex: 1, color: C.text, lineHeight: 18, paddingTop: 5 }]}>{p.texte}</Text>
+        </View>
+      ))}
+    </Carte>
   );
 }
 
@@ -216,11 +223,8 @@ function GroupesSenat({ groupes, note, couleurDe }: { groupes: GroupeSenat[]; no
  * scrutin (jamais saisis). Une ligne par groupe ayant voté, du plus « pour » au plus « contre »
  * (solde pour − contre rapporté aux voix du groupe ; à égalité, ordre de l'hémicycle).
  */
-function DejaVoteAN({ lie, detail, onOuvrir }: { lie: ScrutinLie; detail: DetailScrutin; onOuvrir: () => void }) {
+export function DejaVoteAN({ lie, detail, onOuvrir }: { lie: ScrutinLie; detail: DetailScrutin; onOuvrir: () => void }) {
   const s = detail.scrutin;
-  const groupes = detail.groupes
-    .filter((g) => voix(g) > 0)
-    .sort((a, b) => solde(b) - solde(a) || idxHemicycle(a.abrev) - idxHemicycle(b.abrev));
 
   return (
     <Carte>
@@ -243,27 +247,7 @@ function DejaVoteAN({ lie, detail, onOuvrir }: { lie: ScrutinLie; detail: Detail
       </View>
       <Barre pour={s.pour} contre={s.contre} abstention={s.abstention} hauteur={8} />
 
-      <View style={{ marginTop: 10 }}>
-        {groupes.map((g) => (
-          <View
-            key={g.uid}
-            accessible
-            accessibilityLabel={`${g.libelle} : ${decompteClair(g)}`}
-            style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 6 }}
-          >
-            <Pastille couleur={couleurGroupe(g.couleur)} />
-            <Text style={[T.small, { width: 74, fontFamily: F.bold, color: C.text }]} numberOfLines={1}>
-              {g.abrev ?? g.libelle}
-            </Text>
-            <View style={{ flex: 1 }}>
-              <Barre pour={g.pour} contre={g.contre} abstention={g.abstention} hauteur={6} />
-            </View>
-            <Text style={[T.micro, tnum, { width: 104, textAlign: "right", color: C.textMuted }]} numberOfLines={1}>
-              {deuxPrincipaux(g)}
-            </Text>
-          </View>
-        ))}
-      </View>
+      <VentilationGroupes groupes={detail.groupes} />
 
       {lie.lecture && (
         <View style={{ marginTop: 10, backgroundColor: C.surfaceSunken, borderRadius: RADIUS.sm, paddingVertical: 10, paddingHorizontal: 11 }}>
@@ -284,8 +268,43 @@ function DejaVoteAN({ lie, detail, onOuvrir }: { lie: ScrutinLie; detail: Detail
   );
 }
 
+/**
+ * Ventilation par groupe d'un scrutin de l'Assemblée, LUE dans les données : une ligne par
+ * groupe ayant voté, du plus « pour » au plus « contre » (solde pour − contre rapporté aux voix
+ * du groupe ; à égalité, ordre de l'hémicycle). Pastille = couleur du groupe (couleurGroupe),
+ * barre et décomptes = donnée de vote. Sert à « Déjà voté à l'Assemblée » et au focus de la semaine.
+ */
+export function VentilationGroupes({ groupes }: { groupes: GroupeVentilation[] }) {
+  const lignes = groupes
+    .filter((g) => voix(g) > 0)
+    .sort((a, b) => solde(b) - solde(a) || idxHemicycle(a.abrev) - idxHemicycle(b.abrev));
+  return (
+    <View style={{ marginTop: 10 }}>
+      {lignes.map((g) => (
+        <View
+          key={g.uid}
+          accessible
+          accessibilityLabel={`${g.libelle} : ${decompteClair(g)}`}
+          style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 6 }}
+        >
+          <Pastille couleur={couleurGroupe(g.couleur)} />
+          <Text style={[T.small, { width: 74, fontFamily: F.bold, color: C.text }]} numberOfLines={1}>
+            {g.abrev ?? g.libelle}
+          </Text>
+          <View style={{ flex: 1 }}>
+            <Barre pour={g.pour} contre={g.contre} abstention={g.abstention} hauteur={6} />
+          </View>
+          <Text style={[T.micro, tnum, { width: 104, textAlign: "right", color: C.textMuted }]} numberOfLines={1}>
+            {deuxPrincipaux(g)}
+          </Text>
+        </View>
+      ))}
+    </View>
+  );
+}
+
 /** Frise verticale du parcours du texte : fait (plein, coché), en cours (cerclé), à venir (cerclé clair). */
-function Parcours({ etapes, procedure }: { etapes: Etape[]; procedure?: string }) {
+export function Parcours({ etapes, procedure }: { etapes: Etape[]; procedure?: string }) {
   const etat = { fait: "fait", encours: "en cours", afaire: "à venir" } as const;
   return (
     <Carte>
@@ -323,7 +342,7 @@ function Parcours({ etapes, procedure }: { etapes: Etape[]; procedure?: string }
 
 // --- Briques ---------------------------------------------------------------------------------
 
-function Carte({ children }: { children: React.ReactNode }) {
+export function Carte({ children }: { children: React.ReactNode }) {
   return (
     <Card bordered raised={false} style={{ marginHorizontal: 16, marginTop: 12 }}>
       {children}
@@ -331,7 +350,7 @@ function Carte({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Libelle({ children }: { children: string }) {
+export function Libelle({ children }: { children: string }) {
   return <Text style={[T.small, { fontFamily: F.bold, color: C.textMuted }]}>{children}</Text>;
 }
 
@@ -347,7 +366,7 @@ function Picto({ icone, size, color }: { icone: IconeFocus; size: number; color:
   );
 }
 
-function Chiffre({ n, label, couleur, grand }: { n: number; label: string; couleur: string; grand?: boolean }) {
+export function Chiffre({ n, label, couleur, grand }: { n: number; label: string; couleur: string; grand?: boolean }) {
   return (
     <View>
       <Text style={[grand ? T.title : T.heading, tnum, { fontFamily: F.extra, color: couleur }]}>{n}</Text>
@@ -357,7 +376,7 @@ function Chiffre({ n, label, couleur, grand }: { n: number; label: string; coule
 }
 
 /** Barre horizontale proportionnelle pour / contre / abstention, sur piste neutre. */
-function Barre({ pour, contre, abstention, hauteur }: Compte & { hauteur: number }) {
+export function Barre({ pour, contre, abstention, hauteur }: Compte & { hauteur: number }) {
   return (
     <View style={{ flexDirection: "row", height: hauteur, borderRadius: RADIUS.pill, overflow: "hidden", backgroundColor: C.surfaceSunken }}>
       {pour > 0 && <View style={{ flex: pour, backgroundColor: C.pour }} />}

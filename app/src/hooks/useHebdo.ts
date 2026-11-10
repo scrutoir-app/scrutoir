@@ -6,10 +6,13 @@ import {
   construireEdition,
   editionsAvecContenu,
   textesFocus,
+  texteDuScrutin,
   type EditionHebdo,
   type ScrutinSrc,
   type DossierSrc,
+  type TexteHebdo,
 } from "../hebdo";
+import { focusDeLaSemaine, type FocusSemaine } from "../focusSemaine";
 
 interface Source {
   scrutins: ScrutinSrc[];
@@ -63,6 +66,37 @@ export function useSemaineAccueil(): SemaineAccueil {
     const parues = src.editions.filter((v) => v <= courant);
     const repli = parues[parues.length - 1];
     return { edition: repli ? construireEdition(repli, src.scrutins, src.dossiers) : null, estCourante: false, annee };
+  }, [src, courant, aujourdhui]);
+}
+
+export interface FocusSemaineAccueil {
+  focus: FocusSemaine<ScrutinSrc>;
+  /** Texte du scrutin dans son édition (même titre court que « La semaine à l'Assemblée »). */
+  texte: TexteHebdo | null;
+  annee: string;
+}
+
+/**
+ * Focus de la semaine (focusSemaine.ts) : le scrutin de l'édition parue qui a réuni le plus de
+ * votants, sur la même édition que `useSemaineAccueil`. null tant que les données ne sont pas là.
+ */
+export function useFocusSemaine(): FocusSemaineAccueil | null {
+  const [src, setSrc] = useState<Source | null>(null);
+  useEffect(() => {
+    let vivant = true;
+    chargerSource().then((s) => vivant && setSrc(s)).catch(() => {});
+    return () => {
+      vivant = false;
+    };
+  }, []);
+  const aujourdhui = aujourdhuiParis();
+  const courant = vendrediParu(aujourdhui);
+  return useMemo(() => {
+    if (!src) return null;
+    const focus = focusDeLaSemaine(src.scrutins, courant);
+    if (!focus) return null;
+    const texte = texteDuScrutin(focus.vendrediSource, focus.scrutin.uid, src.scrutins, src.dossiers);
+    return { focus, texte, annee: aujourdhui.slice(0, 4) };
   }, [src, courant, aujourdhui]);
 }
 

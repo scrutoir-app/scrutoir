@@ -443,10 +443,16 @@ function grouperScrutins(scrutins: ScrutinSrc[], parRef: Map<string, DossierSrc>
   return groupes;
 }
 
+/** Scrutins de l'édition du vendredi `v` (sa fenêtre : `fenetre(v)`). */
+export function dansLaFenetre<S extends Pick<ScrutinSrc, "date">>(vendredi: string, scrutins: S[]): S[] {
+  const { debut, fin } = fenetre(vendredi);
+  return scrutins.filter((s) => !!s.date && s.date >= debut && s.date <= fin);
+}
+
 export function construireEdition(vendredi: string, scrutins: ScrutinSrc[], dossiers: DossierSrc[] | Map<string, DossierSrc>): EditionHebdo {
   const { debut, fin } = fenetre(vendredi);
   const parRef = versMap(dossiers);
-  const dansFenetre = scrutins.filter((s) => s.date && s.date >= debut && s.date <= fin);
+  const dansFenetre = dansLaFenetre(vendredi, scrutins);
   const nbScrutins = dansFenetre.length;
   const textes = grouperParTexte(dansFenetre, parRef);
   const ordreTexte = (a: TexteHebdo, b: TexteHebdo) => b.score - a.score || b.nb - a.nb || a.titre.localeCompare(b.titre, "fr");
@@ -470,6 +476,20 @@ export function construireEdition(vendredi: string, scrutins: ScrutinSrc[], doss
   });
 
   return { vendredi, debut, fin, nbScrutins, nbTextes: textes.length, themes, reprise: repriseDe(dansFenetre, scrutins) };
+}
+
+/**
+ * Texte de l'édition du vendredi `v` auquel appartient un scrutin : même regroupement et même
+ * titre court que « La semaine à l'Assemblée ». null si le scrutin n'est pas dans la fenêtre.
+ */
+export function texteDuScrutin(vendredi: string, uid: string, scrutins: ScrutinSrc[], dossiers: DossierSrc[] | Map<string, DossierSrc>): TexteHebdo | null {
+  const parRef = versMap(dossiers);
+  for (const [cle, scrs] of grouperScrutins(dansLaFenetre(vendredi, scrutins), parRef)) {
+    if (!scrs.some((s) => s.uid === uid)) continue;
+    const { theme, ...t } = construireTexte(cle, scrs, cle.startsWith("t:") ? undefined : parRef.get(cle));
+    return t;
+  }
+  return null;
 }
 
 /**
@@ -632,7 +652,7 @@ const plusRecent = (a: ScrutinSrc, b: ScrutinSrc) => (a.date ?? "").localeCompar
 const dernier = (l: ScrutinSrc[]) => l.reduce<ScrutinSrc | null>((m, s) => (!m || plusRecent(s, m) > 0 ? s : m), null);
 
 /** « Motion de rejet préalable », « Article unique », « Article 21 » : l'objet d'un vote marquant. */
-function objetVote(s: ScrutinSrc): string {
+function objetVote(s: Pick<ScrutinSrc, "titre" | "type_vote">): string {
   const t = norm(s.titre);
   if (natureScrutin(s) === "censure") return "Motion de censure";
   const motion = t.match(/motion (de rejet préalable|de renvoi en commission|référendaire|d'ajournement)/);
@@ -643,6 +663,26 @@ function objetVote(s: ScrutinSrc): string {
   const partie = t.match(/^(?:l'ensemble de )?la (première|deuxième|troisième|quatrième) partie/);
   if (partie) return capitaliser(`${partie[1]} partie`);
   return natureScrutin(s) === "procedure" ? "Vote de procédure" : "Scrutin public";
+}
+
+/**
+ * Ce qui a été voté, lu dans l'intitulé : « Vote sur l'ensemble du texte », « Motion de rejet
+ * préalable », « Première partie », « Article 21 », « Amendement n° 435 ». Le sort d'un scrutin
+ * (adopté, rejeté) ne se lit qu'avec son objet : une motion de rejet rejetée n'est pas un texte rejeté.
+ */
+export function objetDuScrutin(s: Pick<ScrutinSrc, "titre" | "type_vote">): string {
+  switch (natureScrutin(s)) {
+    case "ensemble":
+      return "Vote sur l'ensemble du texte";
+    case "declaration":
+      return "Vote sur la déclaration du Gouvernement";
+    case "amendement": {
+      const m = norm(s.titre).match(/amendements? n°\s*(\d+)/);
+      return m ? `Amendement n° ${m[1]}` : "Amendement";
+    }
+    default:
+      return objetVote(s);
+  }
 }
 
 /**

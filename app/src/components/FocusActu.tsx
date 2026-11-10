@@ -8,17 +8,26 @@ import { useFocusActu } from "../hooks/useHebdo";
 import { useCibleTour } from "../tourTargets";
 import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
 import { FocusSenatBloc } from "./FocusSenat";
+import { FocusSemaineBloc } from "./FocusSemaine";
 import { libelleDate, metaFocus, type TexteHebdo, type VoteEnsemble } from "../hebdo";
 import type { Nav } from "../nav";
 
 const VISIBLES = 3;
 
 /**
- * Focus actualité de l'accueil (content/focus.ts). Vote de l'Assemblée : la frise ci-dessous ;
- * vote du Sénat : FocusSenatBloc. FOCUS est une constante : l'aiguillage ne change jamais
- * d'un rendu à l'autre (ordre des hooks stable).
+ * Focus de l'accueil : le FOCUS DE LA SEMAINE, choisi par les données (le scrutin qui a réuni le
+ * plus de votants, focusSemaine.ts). Aucun choix manuel.
  */
 export function FocusActu({ nav }: { nav: Nav }) {
+  return <FocusSemaineBloc nav={nav} />;
+}
+
+/**
+ * Ancien focus MANUEL (content/focus.ts) : frise de textes de l'Assemblée, ou vote du Sénat
+ * (FocusSenatBloc). Gardé dans le code, NON affiché depuis le focus automatique (v1.33.0) : le
+ * remplacement du focus Sénat « Casseurs-payeurs » a été validé le 10/11/2026.
+ */
+export function FocusManuel({ nav }: { nav: Nav }) {
   if (!FOCUS) return null;
   return FOCUS.chambre === "Senat" ? <FocusSenatBloc focus={FOCUS} nav={nav} /> : <FocusAssemblee focus={FOCUS} nav={nav} />;
 }
