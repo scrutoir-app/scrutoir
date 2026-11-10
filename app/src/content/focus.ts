@@ -4,6 +4,11 @@ import type { FocusDef } from "../hebdo";
 /**
  * FOCUS ACTUALITÉ de l'accueil — fichier ÉDITÉ À LA MAIN (pas de flux tiers dans l'app).
  *
+ * ⚠️ Depuis le focus automatique (v1.33.0), l'accueil affiche le FOCUS DE LA SEMAINE, choisi par
+ * les données (focusSemaine.ts). `FOCUS` ci-dessous (vote du Sénat « Casseurs-payeurs ») reste
+ * dans le code SANS être affiché (remplacement validé le 10/11/2026) ; seul `focusEditorial`
+ * (en bas) sert.
+ *
  * Deux formes, selon la chambre qui a voté (`chambre`) :
  * - "AN" : une frise des textes votés en scrutin public à l'Assemblée.
  *   · Le choix du SUJET est éditorial et assumé : il est écrit sous le focus (`critere`).
@@ -69,6 +74,17 @@ export interface FocusSenat extends FocusCommun {
 }
 
 export type FocusActu = FocusAN | FocusSenat;
+
+/**
+ * CONTENU ÉDITORIAL FACULTATIF du focus de la semaine (focusSemaine.ts), indexé par l'uid du
+ * scrutin. Le scrutin est choisi par les données (le plus de votants de la semaine) ; ce contenu
+ * s'ajoute au bloc QUAND il existe pour le scrutin choisi, et n'entre JAMAIS dans le choix.
+ * Mêmes champs et même rendu que le focus Sénat : `points` (« Ce que dit le texte »),
+ * `scrutinANLie` (« Déjà voté à l'Assemblée »), `parcours` et `procedure` (« Où en est le texte »).
+ */
+export type FocusEditorial = Partial<Pick<FocusSenat, "points" | "parcours" | "procedure" | "scrutinANLie">>;
+
+export const focusEditorial: Record<string, FocusEditorial> = {};
 
 export const FOCUS: FocusActu | null = {
   chambre: "Senat",

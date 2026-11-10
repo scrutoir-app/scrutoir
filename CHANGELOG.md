@@ -7,6 +7,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.33.0 — 2026-11-10
+**Accueil : le focus de la semaine est choisi automatiquement, selon une règle unique et publique.**
+- **Règle.** Parmi tous les scrutins publics de l'Assemblée de la semaine de « La semaine à l'Assemblée » (du vendredi au jeudi), on retient celui qui a réuni le plus de votants (pour + contre + abstention). En cas d'égalité, le plus récent l'emporte, puis le numéro le plus élevé. Aucun type de vote n'est exclu, et rien ne permet de forcer le choix. La règle est rappelée en bas du bloc.
+- **Semaine sans scrutin public.** Le focus de la dernière semaine qui en a eu reste affiché, avec la mention « Pas de scrutin public cette semaine. »
+- **Le bloc.** Titre du texte (le même que dans l'édition de la semaine), objet du vote (vote sur l'ensemble, motion de rejet, première partie, amendement…), résultat, barre et nombre de votants, vote de chaque groupe, puis lien « Voir le scrutin ». Un contenu éditorial facultatif (`focusEditorial`, indexé par scrutin) peut s'y ajouter, sans influer sur le choix.
+- **Instagram.** `data/hebdo.json` publie l'édition parue et son focus (`focusSemaine: { uid, numero, votants }`), calculés par la même fonction que l'app (`app/src/focusSemaine.ts`).
+- **Vérifications.** Les quatre semaines d'octobre et novembre 2026 donnent les scrutins attendus (n° 8706, 8895, 9203, 9759). Le nombre de votants calculé est égal au `nombreVotants` officiel de l'Assemblée sur les 9 793 scrutins de l'archive.
+- Le focus manuel « Casseurs-payeurs » (vote du Sénat) reste dans le code, mais n'est plus affiché.
+
 ## 1.32.0 — 2026-11-09
 **Test de proximité : 40 questions, plus de sujets portés par la gauche, et l'UDR de retour dans tous les décomptes.**
 - **40 questions au lieu de 39, sur 11 thèmes.** Nouvelle règle : chaque question oppose réellement deux blocs (l'un pour, l'autre contre) et compte au moins 125 votants. Répondre « oui » revient désormais à voter comme la gauche 21 fois et comme la droite 17 fois, contre 9 et 26 auparavant. Nombre de fois où chaque bloc est dans le camp perdant : gauche 15, RN-UDR 18, DR 15, centre 12 (contre 24, 11, 6 et 4).
