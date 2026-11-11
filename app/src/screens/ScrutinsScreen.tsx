@@ -10,6 +10,7 @@ import { getIndexTextes, getCategories } from "../api";
 import { useData } from "../hooks/useData";
 import { statutCarte, dateCourte } from "../textes";
 import { trierTextes, aujourdhuiParis, type IndexTextes, type TexteFil, type TriTextes } from "../hebdo";
+import { memoireScrutins, retenirScrutins, vueRecherche, NB_TEXTES, type OngletScrutins } from "../rechercheScrutins";
 import type { CategorieRef } from "../types";
 import type { Nav } from "../nav";
 
@@ -19,42 +20,34 @@ import type { Nav } from "../nav";
 // texte par carte, au format validé le 14/10). Le Fil immersif sort de l'onglet : il reste derrière
 // « Voir les 150 derniers scrutins, un par un » (écran `scrutinsListe`, bascule Fil | Liste).
 
-type Onglet = "recherche" | "textes";
-const NB_TEXTES = 30; // textes affichés, puis par tranches de 30
 const NB_SCRUTINS_UN_PAR_UN = 150;
 
-// Mémoire de SESSION de l'onglet : App ne rend que l'écran au sommet de la pile, l'état local se
-// perdrait en ouvrant un texte. En mémoire seulement (rien sur l'appareil, rien sur le réseau).
-const memoire: { onglet: Onglet; q: string; tri: TriTextes; theme: string | null; n: number } = {
-  onglet: "recherche",
-  q: "",
-  tri: "recent",
-  theme: null,
-  n: NB_TEXTES,
-};
-
 export function ScrutinsScreen({ nav }: { nav: Nav }) {
+  // Mémoire de session (rechercheScrutins.ts) : au retour d'un texte ou d'un scrutin, l'onglet
+  // reprend le même sous-onglet et la même requête.
+  const memoire = memoireScrutins();
   const { data: index, error, retry } = useData(() => getIndexTextes(), []);
   const [cats, setCats] = useState<CategorieRef[]>([]);
   useEffect(() => {
     getCategories().then(setCats).catch(() => setCats([]));
   }, []);
 
-  const [onglet, setOnglet] = useState<Onglet>(memoire.onglet);
+  const [onglet, setOnglet] = useState<OngletScrutins>(memoire.onglet);
   const [q, setQ] = useState(memoire.q);
   const [tri, setTri] = useState<TriTextes>(memoire.tri);
   const [theme, setTheme] = useState<string | null>(memoire.theme);
   const [n, setN] = useState(memoire.n);
   useEffect(() => {
-    Object.assign(memoire, { onglet, q, tri, theme, n });
+    retenirScrutins({ onglet, q, tri, theme, n });
   }, [onglet, q, tri, theme, n]);
 
-  // En recherche, les sous-onglets s'effacent : la barre monte en haut (maquette, écran A2).
-  const enRecherche = onglet === "recherche" && !!q.trim();
+  // Une seule recherche visible : sans saisie, le bloc central ; avec, la barre en haut et les
+  // sous-onglets s'effacent (rechercheScrutins.ts).
+  const vue = vueRecherche(onglet, q);
 
   return (
     <View style={{ flex: 1 }}>
-      {!enRecherche && (
+      {vue.sousOnglets && (
         <View style={{ paddingTop: S.s12, paddingBottom: S.s4 }}>
           <Segments
             label="Onglet Scrutins"

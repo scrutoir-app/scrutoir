@@ -14,6 +14,7 @@ import { embedderEstPret } from "../search/embedder";
 import { useSemantique } from "../hooks/useSemantique";
 import { rechercherTextes, phraseResultats, statutCarte, dateCourte } from "../textes";
 import { aujourdhuiParis, type IndexTextes, type TexteFil } from "../hebdo";
+import { vueRecherche } from "../rechercheScrutins";
 import { track } from "../analytics";
 import type { CategorieRef, DeputeResume, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
@@ -59,7 +60,9 @@ export function RechercheTextes({
     const id = setTimeout(() => setTerme(q.trim()), 250);
     return () => clearTimeout(id);
   }, [q]);
-  const vide = !q.trim();
+  // Une seule recherche visible (rechercheScrutins.ts) : sans saisie, le champ est dans le bloc
+  // central et rien n'est en haut ; avec, le même champ passe en haut.
+  const vide = vueRecherche("recherche", q).blocCentral;
 
   const exact = useMemo(() => (index && terme.length >= 2 ? rechercherTextes(terme, index) : null), [index, terme]);
   // Résultats asynchrones ÉTIQUETÉS par leur saisie : ceux d'une saisie précédente ne se mêlent
