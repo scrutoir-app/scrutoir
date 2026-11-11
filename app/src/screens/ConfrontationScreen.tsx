@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, TextInput, TouchableOpacity, Image, ActivityIndicator, Animated, Platform } from "react-native";
 import Svg, { Circle } from "react-native-svg";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
@@ -273,7 +274,7 @@ function EluBandeau({ d, onPress }: { d: DeputeResume; onPress: () => void }) {
     >
       <ProfilAvatar uri={d.photo_url} size={54} ring={couleurGroupe(d.couleur)} />
       <Text style={[T.small, { fontFamily: F.bold, color: C.onHero, marginTop: S.s8, textAlign: "center" }]} numberOfLines={2}>{d.nom_complet}</Text>
-      <Text style={[T.micro, { color: C.onHeroMuted, marginTop: 2 }]} numberOfLines={1}>{d.abrev ?? "—"}</Text>
+      <SigleGroupe abrev={d.abrev} style={[T.micro, { color: C.onHeroMuted }]} numberOfLines={1} conteneur={{ marginTop: 2 }} />
     </TouchableOpacity>
   );
 }
@@ -327,7 +328,7 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
         <TouchableOpacity activeOpacity={0.7} onPress={() => onOpen(depute)} accessibilityRole="button" accessibilityLabel={`Voir la fiche de ${depute.nom_complet}`} style={{ alignItems: "center" }}>
           <ProfilAvatar uri={depute.photo_url} size={44} ring={couleurGroupe(depute.couleur)} />
           <Text style={[T.small, { fontFamily: F.bold, color: C.text, marginTop: S.s6, textAlign: "center" }]} numberOfLines={2}>{depute.nom_complet}</Text>
-          <Text style={[T.micro, { color: C.textMuted, marginTop: 1 }]}>{depute.abrev ?? "—"}</Text>
+          <SigleGroupe abrev={depute.abrev} style={[T.micro, { color: C.textMuted }]} conteneur={{ marginTop: 1 }} />
         </TouchableOpacity>
         <Button label="Changer" variant="text" size="sm" onPress={onClear} accessibilityLabel={`Changer ${depute.nom_complet}`} />
       </View>
@@ -356,7 +357,7 @@ function DeputeSlot({ depute, onPick, onClear, onOpen }: { depute: DeputeResume 
           <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: C.surfaceAlt }} />
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text style={[T.small, { fontFamily: F.semibold, color: C.text }]} numberOfLines={1}>{d.nom_complet}</Text>
-            <Text style={[T.micro, { color: C.textMuted }]}>{d.abrev ?? "—"}</Text>
+            <SigleGroupe abrev={d.abrev} style={[T.micro, { color: C.textMuted }]} conteneur={{ alignSelf: "flex-start" }} />
           </View>
         </TouchableOpacity>
       ))}

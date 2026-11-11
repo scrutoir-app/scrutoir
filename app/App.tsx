@@ -49,6 +49,7 @@ import { useInterstitielParcours } from "./src/parcoursLoiPrefs";
 import { OnboardingOverlay } from "./src/components/OnboardingOverlay";
 import { useOnboardingVisible, fermerOnboarding } from "./src/onboardingPrefs";
 import { TourNavigation, type TourStep } from "./src/components/TourNavigation";
+import { BulleSigleHote } from "./src/components/SigleGroupe";
 import { useTourNavVisible, fermerTourNav, getTourNote } from "./src/tour";
 import { getCibleTour, type CibleTour } from "./src/tourTargets";
 import { useKeyboardOpen } from "./src/useKeyboardOpen";
@@ -459,6 +460,9 @@ function AppInner() {
           />
         )}
       </View>
+      {/* Bulle du sigle d'un groupe touché (nom complet), au-dessus de tout l'écran : hors du
+          conteneur de 480 px, en coordonnées de fenêtre (measureInWindow). */}
+      <BulleSigleHote nav={nav} route={current} />
     </SafeAreaView>
   );
 }

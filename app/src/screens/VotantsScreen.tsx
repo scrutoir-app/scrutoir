@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, positionLabel } from "../theme";
@@ -68,7 +69,7 @@ export function VotantsScreen({
             <Text style={[T.body, { fontFamily: F.bold, color: C.text }]}>{item.nom_complet}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 5, marginTop: 2 }}>
               <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: item.couleur ?? C.textFaint }} />
-              <Text style={[T.small, { color: C.textMuted }]}>{item.abrev ?? "—"}</Text>
+              <SigleGroupe abrev={item.abrev} style={[T.small, { color: C.textMuted }]} />
             </View>
           </View>
           <Feather name="chevron-right" size={18} color={C.textFaint} />

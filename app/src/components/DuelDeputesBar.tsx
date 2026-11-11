@@ -1,4 +1,5 @@
 import React from "react";
+import { SigleGroupe } from "./SigleGroupe";
 import { View, Text, Image } from "react-native";
 import { C, F, T, shadowCard } from "../theme";
 import type { DeputeResume } from "../types";
@@ -7,7 +8,7 @@ import type { DeputeResume } from "../types";
  * Barre compacte des deux élus confrontés, épinglée en haut au scroll. Un élu à
  * gauche, l'autre à droite (en miroir), une métrique au centre passée par l'écran
  * appelant (taux d'accord sur la confrontation, thème + taux de désaccord sur la
- * liste détaillée). Purement informative — aucune interaction.
+ * liste détaillée). Informative : seul le sigle du groupe se déplie (SigleGroupe).
  */
 function Cote({ d, align }: { d: DeputeResume; align: "left" | "right" }) {
   return (
@@ -15,7 +16,7 @@ function Cote({ d, align }: { d: DeputeResume; align: "left" | "right" }) {
       <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: C.surfaceAlt }} />
       <View style={{ flex: 1, minWidth: 0, alignItems: align === "right" ? "flex-end" : "flex-start" }}>
         <Text numberOfLines={1} style={[T.small, { fontFamily: F.bold, color: C.text }]}>{d.nom_complet}</Text>
-        <Text numberOfLines={1} style={[T.micro, { fontFamily: F.medium, color: C.textMuted }]}>{d.abrev ?? "—"}</Text>
+        <SigleGroupe abrev={d.abrev} numberOfLines={1} style={[T.micro, { fontFamily: F.medium, color: C.textMuted }]} />
       </View>
     </View>
   );

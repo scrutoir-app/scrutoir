@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { SigleGroupe } from "./SigleGroupe";
 import { View, Text, FlatList, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, shadowCard } from "../theme";
@@ -321,7 +322,7 @@ export function SearchResultsList({
               <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 44, height: 44, borderRadius: 12, backgroundColor: C.surfaceAlt }} />
               <View style={{ flex: 1 }}>
                 <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{d.nom_complet}</Text>
-                <Text style={[T.small, { color: C.textMuted, marginTop: 1 }]}>{d.abrev ?? "—"}</Text>
+                <SigleGroupe abrev={d.abrev} style={[T.small, { color: C.textMuted }]} conteneur={{ alignSelf: "flex-start", marginTop: 1 }} />
               </View>
               <Feather name="chevron-right" size={20} color={C.textFaint} />
             </Card>

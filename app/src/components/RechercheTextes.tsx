@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { SigleGroupe } from "./SigleGroupe";
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, S, ICON, CONTROL, tnum, shadowCard, inputText } from "../theme";
@@ -185,7 +186,7 @@ export function RechercheTextes({
               <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 40, height: 40, borderRadius: RADIUS.sm, backgroundColor: C.surfaceAlt }} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{d.nom_complet}</Text>
-                <Text style={[T.small, { color: C.textMuted }]} numberOfLines={1}>{d.abrev ?? "Sans groupe"}</Text>
+                <SigleGroupe abrev={d.abrev} texte={d.abrev ?? "Sans groupe"} style={[T.small, { color: C.textMuted }]} numberOfLines={1} conteneur={{ alignSelf: "flex-start" }} />
               </View>
               <Feather name="chevron-right" size={ICON.base} color={C.textFaint} />
             </TouchableOpacity>

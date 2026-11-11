@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, S, ICON, couleurGroupe, couleurPosition } from "../theme";
@@ -125,16 +126,14 @@ export function DeputeScreen({ uid, depuis, nav }: { uid: string; depuis?: "affi
           <View style={{ flex: 1, minWidth: 0 }}>
             <Text accessibilityRole="header" style={[T.title, { color: C.text }]}>{d.nom_complet}</Text>
             <View style={{ flexDirection: "row", alignItems: "center", gap: S.s8, marginTop: 6, flexWrap: "wrap", rowGap: 6 }}>
-              <TouchableOpacity
-                onPress={ouvrirGroupe}
-                activeOpacity={0.7}
-                accessibilityRole="button"
-                accessibilityLabel={`Ouvrir la fiche du groupe ${d.abrev ?? d.groupe ?? ""}`}
-                style={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 9, paddingVertical: 3 }}
+              {/* Toucher la pastille déplie le nom du groupe ; sa fiche passe par le lien de la bulle. */}
+              <SigleGroupe
+                abrev={d.abrev}
+                conteneur={{ flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: C.surfaceAlt, borderRadius: RADIUS.pill, paddingHorizontal: 9, paddingVertical: 3 }}
               >
                 <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurGroupe(d.couleur) }} />
                 <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{d.abrev ?? d.groupe ?? "—"}</Text>
-              </TouchableOpacity>
+              </SigleGroupe>
               {circo && <Text style={[T.small, { color: C.textMuted }]}>{circo}</Text>}
             </View>
           </View>

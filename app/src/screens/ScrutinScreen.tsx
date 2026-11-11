@@ -27,6 +27,7 @@ import { chargerTest, estSitue } from "../testProximite/storage";
 import type { GroupeVentilation, AmendGroupe, AmendInstitutionnel, PartiResume, DossierResume } from "../types";
 import type { Nav } from "../nav";
 import { ParcoursLoi } from "../components/ParcoursLoi";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { AccordSuivis } from "../components/AccordSuivis";
 
 // ⓘ Encart amendements. Version DESCRIPTIVE retenue par défaut (sans le mot « blocage ») ;
@@ -409,7 +410,8 @@ function GroupeRow({
         style={{ flexDirection: "row", alignItems: "center", gap: 10, flex: 1, minWidth: 0, minHeight: 52 }}
       >
         <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: couleurGroupe(g.couleur) }} />
-        <Text style={[T.callout, { fontFamily: F.bold, color: C.text, minWidth: 70 }]} numberOfLines={1}>{nom}</Text>
+        {/* Le sigle se déplie (nom complet) ; le reste de la ligne ouvre la fiche, comme avant. */}
+        <SigleGroupe abrev={g.abrev} texte={nom} style={[T.callout, { fontFamily: F.bold, color: C.text }]} numberOfLines={1} conteneur={{ minWidth: 70 }} />
         {etiquette && <Chip label={etiquette} bg={chip.bg} fg={chip.fg} ph={8} pv={2} />}
       </TouchableOpacity>
       {compte ? (
@@ -468,7 +470,11 @@ function AmendRow({
               </View>
             </View>
           )}
-          <Text style={[T.small, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{nom}</Text>
+          {row.kind === "groupe" ? (
+            <SigleGroupe abrev={(a as AmendGroupe).abrev} texte={nom} style={[T.small, { fontFamily: F.bold, color: C.text }]} numberOfLines={1} />
+          ) : (
+            <Text style={[T.small, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{nom}</Text>
+          )}
           {facteur != null && (
             <View style={{ flexDirection: "row", alignItems: "center", gap: 2, marginLeft: "auto", backgroundColor: C.surfaceSunken, borderRadius: RADIUS.pill, paddingHorizontal: 8, paddingVertical: 3 }}>
               {dir !== 0 && <Feather name={dir > 0 ? "arrow-up-right" : "arrow-down-right"} size={11} color={C.textMuted} />}
