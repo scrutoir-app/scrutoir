@@ -83,7 +83,8 @@ cd ../app && npm run web                            # app -> http://localhost:80
 - `app/public/sw.js` : SW vanilla. Stratégies : navigation **network-first** (repli `index.html` offline) ;
   bundle `/_expo/static/**` **cache-first** (hashé) ; `/data/scrutin/**` **cache-first** (immuable) ;
   autres `/data/**` (index, depute, parti, categories) **stale-while-revalidate** ; `/data/version.json`
-  **network-first** (détection de déploiement). `CACHE_VERSION` à bumper pour invalider. Écoute
+  **network-first** (détection de déploiement). `SHELL_VERSION` suffixée par `APP_VERSION` au build
+  (`scripts/sw-version.mjs`, appelé par `patch-pwa.mjs`) : chaque version publiée change `sw.js`. Écoute
   `postMessage('SKIP_WAITING')` (prêt pour un futur bandeau « mise à jour dispo »).
 - `app/scripts/patch-pwa.mjs` : post-export, **idempotent** (marqueur `SCRUTOIR_PWA`). Met `lang="fr"`,
   injecte manifest + `theme-color` + meta apple + description, l'enregistrement du SW (`/sw.js`, scope `/`),
@@ -155,7 +156,8 @@ cd ../app && npm run web                            # app -> http://localhost:80
   est toujours un stub). PWA iOS 16.4+ supporte le web push mais il faut un serveur d'envoi.
 - Mises à jour douces (v1.10.0) : le SW vérifie au lancement + à chaque réouverture ; une nouvelle version
   ATTEND (plus de skipWaiting/reload forcé) et l'app affiche un bandeau « Mise à jour disponible »
-  (`src/swUpdate.ts`). Caches SW séparés SHELL (bump/release) / DATA / MODEL.
+  (`src/swUpdate.ts`). Caches SW séparés SHELL (versionné automatiquement par `APP_VERSION` au build :
+  sans bump d'`APP_VERSION`, pas de nouveau SW, donc pas de bandeau) / DATA / MODEL.
 - **Refresh quotidien ACTIF** (GitHub Actions) : dépôt **public** `github.com/scrutoir-app/scrutoir`,
   workflow `refresh.yml` (cron 05:10 UTC + `workflow_dispatch`), secrets `CLOUDFLARE_API_TOKEN` (jeton custom
   Pages:Edit) + `CLOUDFLARE_ACCOUNT_ID` posés. 1ʳᵉ exécution manuelle vérifiée OK (4 min, déploie sur Pages).

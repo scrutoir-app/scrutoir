@@ -4,8 +4,15 @@ Versionnage [semver](https://semver.org/lang/fr/) : MAJEUR.MINEUR.CORRECTIF.
 La version est affichée en bas de l'écran **Infos** de l'app (à citer avec les retours utilisateurs).
 
 > Procédure de release : incrémenter `APP_VERSION` dans `app/src/config.ts`, ajouter une
-> entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
-> `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
+> entrée ici, puis déployer (`gh workflow run refresh.yml`). Le build pose `APP_VERSION` dans
+> `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
+> « Mise à jour disponible » aux visiteurs déjà venus.
+
+## 1.35.1 — 2026-11-12
+**Mises à jour : le bandeau « Mise à jour disponible » réapparaît à chaque nouvelle version.**
+- Le navigateur ne propose une nouvelle version que si le service worker (`sw.js`) change. Il n'avait pas changé depuis la 1.32.0 : les versions 1.33.0 à 1.35.0 sont parties sans bandeau, et une appli installée, reprise depuis l'arrière-plan, gardait l'ancienne version tant qu'on ne la fermait pas complètement.
+- Le build pose désormais le numéro de version dans `sw.js` (`app/scripts/sw-version.mjs`, appelé par `patch-pwa.mjs`). Chaque version publiée change le fichier et affiche donc le bandeau. Le refresh quotidien des données, qui ne change pas de version, n'en affiche pas.
+- À l'activation, l'ancien cache de la coquille est remplacé ; les données et le modèle de recherche déjà téléchargés sont gardés.
 
 ## 1.35.0 — 2026-11-12
 **Test de proximité et « Trouver ton député » : les cartes se balaient d'un même geste, plus vif et plus naturel.**

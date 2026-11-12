@@ -13,8 +13,11 @@
  *   - /data/version.json + /index.html: network-first (détection de nouveau déploiement).
  *
  * Versions de cache SÉPARÉES :
- *   - SHELL_VERSION : coquille (index, bundle, polices, icônes) — petite. À bumper à
- *     chaque déploiement pour purger proprement l'ancienne coquille.
+ *   - SHELL_VERSION : coquille (index, bundle, polices, icônes) — petite. Le build suffixe
+ *     cette base avec APP_VERSION dans dist/sw.js (« v38-1.35.1 », scripts/sw-version.mjs) :
+ *     chaque version publiée change sw.js, d'où le bandeau « Mise à jour disponible » et la
+ *     purge de l'ancienne coquille. Ne bumper la base à la main que pour purger sans
+ *     changer de version.
  *   - DATA_VERSION  : données JSON (~370 Mo) — à NE bumper QUE si la structure des
  *     fichiers change, sinon on re-télécharge tout inutilement chez l'utilisateur.
  */

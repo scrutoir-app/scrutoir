@@ -14,6 +14,8 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { LIGHT, DARK } from "../src/theme.ts";
 import { SAISON_STYLE, SAISON_SCRIPT, verifierPeriodes } from "./splash-saison.mjs";
+import { APP_VERSION } from "../src/config.ts";
+import { versionnerSw } from "./sw-version.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const distDir = join(__dirname, "..", "dist");
@@ -326,6 +328,18 @@ async function durcirCsp(html) {
   console.log(`[patch-pwa] CSP durcie : ${hashes.length} hash(es) de script inline injecté(s) dans dist/_headers.`);
 }
 
+/*
+ * dist/sw.js porte APP_VERSION (cf. sw-version.mjs) : chaque version publiée change le fichier,
+ * donc le navigateur propose la mise à jour. Hors marqueur : doit tourner à chaque build.
+ */
+async function versionnerSwDist() {
+  const swPath = join(distDir, "sw.js");
+  const avant = await readFile(swPath, "utf8");
+  const apres = versionnerSw(avant, APP_VERSION);
+  if (apres !== avant) await writeFile(swPath, apres, "utf8");
+  console.log(`[patch-pwa] sw.js : ${/const SHELL_VERSION = "([^"]+)"/.exec(apres)[1]}.`);
+}
+
 async function main() {
   try {
     await access(distHtml);
@@ -337,6 +351,7 @@ async function main() {
   // Correctif polices (indépendant du marqueur : doit tourner à chaque build).
   // Le sitemap.xml et les pages SEO sont générés ensuite par `prerender-seo.mjs`.
   await fixVendorFonts();
+  await versionnerSwDist();
 
   let html = await readFile(distHtml, "utf8");
 
