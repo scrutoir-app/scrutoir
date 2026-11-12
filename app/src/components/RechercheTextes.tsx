@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { SigleGroupe } from "./SigleGroupe";
 import { View, Text, TextInput, ScrollView, TouchableOpacity, Image, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, S, ICON, CONTROL, tnum, shadowCard, inputText } from "../theme";
@@ -14,6 +15,7 @@ import { embedderEstPret } from "../search/embedder";
 import { useSemantique } from "../hooks/useSemantique";
 import { rechercherTextes, phraseResultats, statutCarte, dateCourte } from "../textes";
 import { aujourdhuiParis, type IndexTextes, type TexteFil } from "../hebdo";
+import { vueRecherche } from "../rechercheScrutins";
 import { track } from "../analytics";
 import type { CategorieRef, DeputeResume, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
@@ -59,7 +61,9 @@ export function RechercheTextes({
     const id = setTimeout(() => setTerme(q.trim()), 250);
     return () => clearTimeout(id);
   }, [q]);
-  const vide = !q.trim();
+  // Une seule recherche visible (rechercheScrutins.ts) : sans saisie, le champ est dans le bloc
+  // central et rien n'est en haut ; avec, le même champ passe en haut.
+  const vide = vueRecherche("recherche", q).blocCentral;
 
   const exact = useMemo(() => (index && terme.length >= 2 ? rechercherTextes(terme, index) : null), [index, terme]);
   // Résultats asynchrones ÉTIQUETÉS par leur saisie : ceux d'une saisie précédente ne se mêlent
@@ -182,7 +186,7 @@ export function RechercheTextes({
               <Image source={{ uri: d.photo_url ?? undefined }} style={{ width: 40, height: 40, borderRadius: RADIUS.sm, backgroundColor: C.surfaceAlt }} />
               <View style={{ flex: 1, minWidth: 0 }}>
                 <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]} numberOfLines={1}>{d.nom_complet}</Text>
-                <Text style={[T.small, { color: C.textMuted }]} numberOfLines={1}>{d.abrev ?? "Sans groupe"}</Text>
+                <SigleGroupe abrev={d.abrev} texte={d.abrev ?? "Sans groupe"} style={[T.small, { color: C.textMuted }]} numberOfLines={1} conteneur={{ alignSelf: "flex-start" }} />
               </View>
               <Feather name="chevron-right" size={ICON.base} color={C.textFaint} />
             </TouchableOpacity>

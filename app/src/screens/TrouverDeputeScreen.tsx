@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Animated, PanResponder, Pressable, useWindowDimensions, Platform, Linking } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, inputText, RADIUS, S, ICON, CONTROL, shadowCard, couleurGroupe } from "../theme";
@@ -367,7 +368,9 @@ function CarteDeputeLocal({ depute, situe, nav }: { depute: DeputeResume; situe:
         <View style={{ flex: 1, minWidth: 0 }}>
           <Text style={[T.heading, { fontFamily: F.extra, color: C.text }]} numberOfLines={2}>{depute.nom_complet}</Text>
           <View style={{ flexDirection: "row", alignItems: "center", gap: S.s8, marginTop: 5, flexWrap: "wrap", rowGap: 5 }}>
-            <Chip label={depute.abrev ?? depute.groupe ?? "—"} bg={C.surfaceAlt} fg={C.text} ph={9} pv={3} textStyle={{ fontFamily: F.bold }} icon={<View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurGroupe(depute.couleur) }} />} />
+            <SigleGroupe abrev={depute.abrev}>
+              <Chip label={depute.abrev ?? depute.groupe ?? "—"} bg={C.surfaceAlt} fg={C.text} ph={9} pv={3} textStyle={{ fontFamily: F.bold }} icon={<View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurGroupe(depute.couleur) }} />} />
+            </SigleGroupe>
             {!!circo && <Text style={[T.small, { color: C.textMuted }]}>{circo}</Text>}
           </View>
         </View>
@@ -670,7 +673,9 @@ function CarteAffinite({ depute, dessous, opSuivi, opPasse, onDetail }: { depute
       <Text testID="affinite-nom" style={[T.title, { color: C.text, marginTop: S.s16, textAlign: "center" }]} numberOfLines={2}>{d.nom_complet}</Text>
       <View style={{ flexDirection: "row", alignItems: "center", gap: S.s8, marginTop: S.s6, flexWrap: "wrap", justifyContent: "center" }}>
         <View testID="affinite-groupe">
-          <Chip label={d.abrev ?? d.groupe ?? "—"} bg={C.surfaceAlt} fg={C.text} ph={9} pv={3} textStyle={{ fontFamily: F.bold }} icon={<View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurGroupe(d.couleur) }} />} />
+          <SigleGroupe abrev={d.abrev}>
+            <Chip label={d.abrev ?? d.groupe ?? "—"} bg={C.surfaceAlt} fg={C.text} ph={9} pv={3} textStyle={{ fontFamily: F.bold }} icon={<View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurGroupe(d.couleur) }} />} />
+          </SigleGroupe>
         </View>
         {!!d.departement && <Text testID="affinite-lieu" style={[T.small, { color: C.textMuted }]}>{d.departement}</Text>}
       </View>

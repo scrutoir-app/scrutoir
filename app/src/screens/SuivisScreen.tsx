@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, S, tnum, RADIUS, CONTROL, shadowCard, couleurGroupe, couleurPosition, positionLabel } from "../theme";
@@ -108,7 +109,7 @@ function PastilleSuivi({ s, position }: { s: Suivi; position: string }) {
       {s.estParti ? (
         <>
           <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: couleurGroupe(s.couleur) }} />
-          <Text style={[T.micro, { fontFamily: F.bold, color: C.text }]}>{s.abrev ?? s.nom}</Text>
+          <SigleGroupe abrev={s.abrev} texte={s.abrev ?? s.nom} style={[T.micro, { fontFamily: F.bold, color: C.text }]} />
         </>
       ) : (
         <Initiales nom={s.nom} couleur={s.couleur} size={22} fond={C.surface} />

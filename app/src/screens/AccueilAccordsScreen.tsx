@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Animated, Easing } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, MOTION, ICON, CONTROL } from "../theme";
@@ -385,7 +386,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
                     {spectre.map((g, i) => (
                       <View key={g.abrev}>
                         <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
-                          <Text style={[T.small, { fontFamily: F.semibold, color: C.accent, flexShrink: 1 }]} numberOfLines={1}>{g.abrev}</Text>
+                          <SigleGroupe abrev={g.abrev} style={[T.small, { fontFamily: F.semibold, color: C.accent, flexShrink: 1 }]} numberOfLines={1} />
                           <Text style={[T.callout, tnum, { fontFamily: F.extra, color: C.text }]}>{g.pct}{" "}%</Text>
                         </View>
                         <View style={{ marginTop: 4 }}>

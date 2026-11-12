@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
+import { SigleGroupe } from "./SigleGroupe";
 import { View, Text, TouchableOpacity, Animated, Easing } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, RADIUS, CONTROL, ICON, MOTION, tnum, couleurGroupe } from "../theme";
@@ -288,9 +289,7 @@ export function VentilationGroupes({ groupes }: { groupes: GroupeVentilation[] }
           style={{ flexDirection: "row", alignItems: "center", gap: 9, paddingVertical: 6 }}
         >
           <Pastille couleur={couleurGroupe(g.couleur)} />
-          <Text style={[T.small, { width: 74, fontFamily: F.bold, color: C.text }]} numberOfLines={1}>
-            {g.abrev ?? g.libelle}
-          </Text>
+          <SigleGroupe abrev={g.abrev} texte={g.abrev ?? g.libelle} style={[T.small, { fontFamily: F.bold, color: C.text }]} numberOfLines={1} conteneur={{ width: 74 }} />
           <View style={{ flex: 1 }}>
             <Barre pour={g.pour} contre={g.contre} abstention={g.abstention} hauteur={6} />
           </View>

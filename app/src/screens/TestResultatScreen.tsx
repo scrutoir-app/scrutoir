@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, ScrollView, ActivityIndicator, TouchableOpacity, Platform } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, couleurGroupe } from "../theme";
@@ -113,7 +114,7 @@ function LigneGroupe({ ligne, couleur, uid, nom, filet }: { ligne: LigneSpectre;
         >
           <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: fiable ? couleur : C.borderStrong }} />
           <View style={{ width: 86 }}>
-            <Text style={[T.body, { fontFamily: F.bold, lineHeight: 20, color: fiable ? C.text : C.textFaint }]} numberOfLines={1}>{ligne.abrev}</Text>
+            <SigleGroupe abrev={ligne.abrev} style={[T.body, { fontFamily: F.bold, lineHeight: 20, color: fiable ? C.text : C.textFaint }]} numberOfLines={1} conteneur={{ alignSelf: "flex-start" }} />
             <Text style={[T.micro, tnum, { color: C.textFaint }]}>{surNVotes(ligne.votes)}</Text>
           </View>
           {fiable ? (
