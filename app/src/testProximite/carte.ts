@@ -48,14 +48,25 @@ export function directionGlisse(dx: number, dy: number): Reponse | null {
   return dy < 0 ? "sans_avis" : null;
 }
 
+// Geste vif (vitesses du PanResponder, en px/ms) : sous le seuil, un coup de doigt rapide
+// valide aussi, pourvu que la carte ait un peu bougé.
+export const VITESSE_VALIDATION = 0.5;
+export const COURSE_MIN = 30;
+
 /**
- * Réponse au lâcher : la direction dominante, si le glissé a passé le seuil sur son axe.
- * Même seuil pour les trois directions (Sans avis demande le même effort que Pour / Contre).
+ * Réponse au lâcher. D'abord la distance : la direction dominante, si le glissé a passé le
+ * seuil sur son axe (même seuil pour les trois directions, Sans avis demande le même effort
+ * que Pour / Contre). Sinon la vitesse : un geste court mais rapide valide aussi,
+ * horizontal ou vers le haut, à condition d'aller dans le sens du glissé : une carte tirée à
+ * gauche puis ramenée vite vers le centre revient, elle ne vaut pas « Pour ». Vers le bas :
+ * jamais de réponse.
  */
-export function decisionGeste(dx: number, dy: number, seuil: number): Reponse | null {
+export function decisionGeste(dx: number, dy: number, seuil: number, vx = 0, vy = 0): Reponse | null {
   const dir = directionGlisse(dx, dy);
-  if (dir === "pour" || dir === "contre") return Math.abs(dx) > seuil ? dir : null;
-  if (dir === "sans_avis") return -dy > seuil ? dir : null;
+  if ((dir === "pour" || dir === "contre") && Math.abs(dx) > seuil) return dir;
+  if (dir === "sans_avis" && -dy > seuil) return dir;
+  if (Math.abs(vx) >= Math.abs(vy) && Math.abs(vx) > VITESSE_VALIDATION && Math.abs(dx) >= COURSE_MIN && vx * dx > 0) return vx > 0 ? "pour" : "contre";
+  if (-vy > VITESSE_VALIDATION && -dy >= COURSE_MIN) return "sans_avis";
   return null;
 }
 
