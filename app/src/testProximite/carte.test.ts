@@ -52,6 +52,25 @@ test("décision au lâcher : même seuil pour Pour, Contre et Sans avis", () => 
   assert.equal(decisionGeste(120, -60, seuil), "pour");
 });
 
+test("décision au lâcher : un geste court mais rapide valide aussi", () => {
+  const seuil = 90;
+  assert.equal(decisionGeste(70, 0, seuil, 0.9), "pour"); // court et rapide
+  assert.equal(decisionGeste(-70, 0, seuil, -0.9), "contre");
+  assert.equal(decisionGeste(70, 0, seuil, 0.2), null); // court et lent : la carte revient
+  assert.equal(decisionGeste(20, 0, seuil, 1.2), null); // course trop courte, même rapide
+  assert.equal(decisionGeste(0, -60, seuil, 0, -0.8), "sans_avis"); // vers le haut, rapide
+  assert.equal(decisionGeste(0, 120, seuil, 0, 1), null); // vers le bas : jamais
+  assert.equal(decisionGeste(120, 0, seuil), "pour"); // seuil franchi sans vitesse : toujours validé
+});
+
+test("geste rapide : il doit aller dans le sens du glissé", () => {
+  const seuil = 90;
+  assert.equal(decisionGeste(-50, 0, seuil, 0.9), null); // tirée à gauche, ramenée vite : revient
+  assert.equal(decisionGeste(50, 0, seuil, -0.9), null); // tirée à droite, ramenée vite : revient
+  assert.equal(decisionGeste(-50, 0, seuil, -0.9), "contre"); // même sens : validé
+  assert.equal(decisionGeste(0, 50, seuil, 0, -0.9), null); // vers le haut, carte encore en bas : revient
+});
+
 test("clavier : les trois réponses sans geste", () => {
   assert.equal(reponseDeTouche("ArrowLeft"), "contre");
   assert.equal(reponseDeTouche("ArrowRight"), "pour");

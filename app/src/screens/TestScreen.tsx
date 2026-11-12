@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { View, Text, ActivityIndicator, TouchableOpacity, Animated, PanResponder, ScrollView, Linking, Platform, useWindowDimensions } from "react-native";
+import { View, Text, ActivityIndicator, TouchableOpacity, Animated, ScrollView, Linking, Platform, useWindowDimensions } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard } from "../theme";
 import { getTestProximite, getPartis, getCategories } from "../api";
@@ -11,7 +11,8 @@ import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { chargerTest, fusionnerReponses } from "../testProximite/storage";
 import { questionsNeuves, N_AFFINER } from "../testProximite/config";
-import { libelleProgression, libelleScrutin, intituleOfficiel, directionGlisse, decisionGeste, reponseDeTouche } from "../testProximite/carte";
+import { libelleProgression, libelleScrutin, intituleOfficiel, reponseDeTouche } from "../testProximite/carte";
+import { useDeckSwipe, type Direction, type StyleRepos } from "../hooks/useDeckSwipe";
 import { track } from "../analytics";
 
 // TEST DE PROXIMITÉ « au swipe ». MÊME test que le question-par-question d'origine : mêmes
@@ -22,9 +23,14 @@ import { track } from "../analytics";
 // - Sans avis à égalité : geste ↑, même étiquette pendant le glissé, même poids de bouton ;
 // - progression neutre « Carte 1 sur 8 » (remplace « révélé dans N cartes ») ;
 // - sans geste : les 3 boutons, et le clavier sur le web (← Contre, ↑ Sans avis, → Pour).
-// Gestes : Animated + PanResponder du cœur RN (aucune dépendance).
+// Gestes : `useDeckSwipe`, commun au deck des députés par affinité (Animated + PanResponder du
+// cœur RN, aucune dépendance).
 
 const N_COMPLET = 12;
+const DIRECTIONS: readonly Direction[] = ["droite", "gauche", "haut"];
+const DIRECTION: Record<Reponse, Direction> = { pour: "droite", contre: "gauche", sans_avis: "haut" };
+const REPONSE: Record<Direction, Reponse> = { droite: "pour", gauche: "contre", haut: "sans_avis" };
+const DESSOUS: StyleRepos = { scale: 0.955, translateY: 12, opacity: 0.9 }; // carte du dessous au repos
 const N_THEME = 10;
 const PAD_CARTE = 18;
 const H_INDICES = 17; // ligne « ← Contre · ↑ Sans avis · Pour → » (T.small)
@@ -70,9 +76,6 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
   const [idx, setIdx] = useState(0);
   const [reponses, setReponses] = useState<Record<number, Reponse>>({});
   const [history, setHistory] = useState<number[]>([]);
-  // Direction du glissé en cours (ou de l'envol après un bouton) : pilote l'étiquette de la carte.
-  const [dir, setDir] = useState<Reponse | null>(null);
-  const dirRef = useRef<Reponse | null>(null);
   // Écran très bas : hauteur minimale demandée par la carte du dessus (l'écran défile alors).
   const [besoin, setBesoin] = useState(0);
   useEffect(() => { setBesoin(0); }, [idx]);
@@ -93,26 +96,16 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
   const total = questions.length;
   const libelleTheme = (id: string) => cats.find((c) => c.id === id)?.libelle ?? (catUI(id) as { court?: string }).court ?? id;
 
-  // Position de la carte du dessus (Animated) : les gestes l'écrivent, on la remet à 0 par carte.
-  const pan = useRef(new Animated.ValueXY()).current;
-  const busy = useRef(false); // verrou : ignore un 2e choix tant que la carte s'envole (anti double-réponse)
-  // Fin du dernier glissé : un glissé parti du lien source ne doit pas l'ouvrir au lâcher (le
-  // navigateur émet quand même un clic sur le lien).
-  const finGlisse = useRef(0);
-  const glisseRecent = () => Date.now() - finGlisse.current < 400;
   // Même seuil sur les deux axes : Sans avis (↑) demande le même effort que Pour / Contre.
   const seuil = Math.max(90, width * 0.24);
 
+  // Fin de l'envol (geste, bouton ou clavier) : on enregistre la réponse.
   const enregistrer = (r: Reponse) => {
     const q = questions[idx];
     if (!q) return;
     const suite = { ...reponses, [q.id]: r };
     setReponses(suite);
     setHistory((h) => [...h, q.id]);
-    pan.setValue({ x: 0, y: 0 });
-    dirRef.current = null;
-    setDir(null);
-    busy.current = false;
     if (idx + 1 >= total) {
       track("test_done", testKey);
       fusionnerReponses(suite); // MÊME stockage que le test question-par-question
@@ -122,66 +115,34 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
     }
   };
 
-  const envol = (r: Reponse) => {
-    if (reduce) return enregistrer(r);
-    const to = r === "pour" ? { x: width * 1.35, y: 0 } : r === "contre" ? { x: -width * 1.35, y: 0 } : { x: 0, y: -height };
-    Animated.timing(pan, { toValue: to, duration: 260, useNativeDriver: false }).start(() => enregistrer(r));
-  };
-  const choisir = (r: Reponse) => {
-    if (busy.current) return;
-    busy.current = true;
-    dirRef.current = r;
-    setDir(r);
-    envol(r);
-  };
+  // Geste commun aux deux paquets de cartes (cf. useDeckSwipe) : Pour → droite, Contre →
+  // gauche, Sans avis → haut.
+  const deck = useDeckSwipe({
+    cle: questions[idx]?.id,
+    directions: DIRECTIONS,
+    largeur: width,
+    hauteur: height,
+    seuil,
+    reduceMotion: reduce,
+    onDecision: (d) => enregistrer(REPONSE[d]),
+    rotationMax: 11,
+    dessous: DESSOUS,
+    seuilCapture: 8,
+  });
+  const choisir = (r: Reponse) => deck.choisir(DIRECTION[r]);
   const annuler = () => {
-    if (!history.length || busy.current) return;
+    if (!history.length || deck.busy.current) return;
     const id = history[history.length - 1];
+    const r = reponses[id];
     setHistory((h) => h.slice(0, -1));
     setReponses((p) => { const n = { ...p }; delete n[id]; return n; });
-    pan.setValue({ x: 0, y: 0 });
-    dirRef.current = null;
-    setDir(null);
     setIdx((i) => Math.max(0, i - 1));
+    // La carte revient du côté où elle est partie.
+    if (r) deck.revenir(DIRECTION[r]);
   };
 
-  // Le PanResponder et l'écouteur clavier sont créés une fois : ils appellent toujours la
-  // dernière version des fonctions via ces refs.
-  const choisirRef = useRef(choisir);
-  choisirRef.current = choisir;
-  const seuilRef = useRef(seuil);
-  seuilRef.current = seuil;
-  const majDir = (d: Reponse | null) => {
-    if (d === dirRef.current) return;
-    dirRef.current = d;
-    setDir(d);
-  };
-
-  const responder = useRef(
-    PanResponder.create({
-      // Capture au-delà de quelques pixels : un glissé qui part du lien source reste un geste,
-      // un simple appui sur le lien l'ouvre.
-      onMoveShouldSetPanResponderCapture: (_e, g) => !busy.current && (Math.abs(g.dx) > 8 || Math.abs(g.dy) > 8),
-      onPanResponderMove: (_e, g) => {
-        finGlisse.current = Date.now();
-        pan.setValue({ x: g.dx, y: g.dy });
-        majDir(directionGlisse(g.dx, g.dy));
-      },
-      onPanResponderRelease: (_e, g) => {
-        finGlisse.current = Date.now();
-        const r = decisionGeste(g.dx, g.dy, seuilRef.current);
-        if (r) { choisirRef.current(r); return; }
-        majDir(null);
-        Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, bounciness: 6 }).start();
-      },
-      onPanResponderTerminate: () => {
-        majDir(null);
-        Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, bounciness: 6 }).start();
-      },
-    })
-  ).current;
-
-  // Clavier (web) : ← Contre, ↑ Sans avis, → Pour.
+  // Clavier (web) : ← Contre, ↑ Sans avis, → Pour. `deck.choisir` est stable (créé une fois).
+  const choisirDeck = deck.choisir;
   useEffect(() => {
     if (Platform.OS !== "web" || typeof window === "undefined") return;
     const onKey = (e: KeyboardEvent) => {
@@ -191,7 +152,7 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
       const r = reponseDeTouche(e.key);
       if (!r) return;
       e.preventDefault();
-      choisirRef.current(r);
+      choisirDeck(DIRECTION[r]);
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
@@ -204,11 +165,12 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
   const q = questions[idx];
   const suivante = questions[idx + 1];
 
-  const rotate = pan.x.interpolate({ inputRange: [-width, 0, width], outputRange: ["-11deg", "0deg", "11deg"] });
+  // Direction du glissé en cours (ou de l'envol après un bouton) : pilote l'étiquette de la carte.
+  const dir = deck.direction ? REPONSE[deck.direction] : null;
   const opacites: Record<Reponse, Animated.AnimatedInterpolation<number>> = {
-    pour: pan.x.interpolate({ inputRange: [0, seuil], outputRange: [0, 1], extrapolate: "clamp" }),
-    contre: pan.x.interpolate({ inputRange: [-seuil, 0], outputRange: [1, 0], extrapolate: "clamp" }),
-    sans_avis: pan.y.interpolate({ inputRange: [-seuil, 0], outputRange: [1, 0], extrapolate: "clamp" }),
+    pour: deck.opacites.droite,
+    contre: deck.opacites.gauche,
+    sans_avis: deck.opacites.haut,
   };
 
   return (
@@ -231,18 +193,18 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
 
       {/* Deck : la carte suivante dessous, la carte courante dessus (seule à recevoir le geste). */}
       <View style={{ flex: 1, marginTop: 12, minHeight: besoin || undefined }}>
-        {suivante && <CarteQuestion key={suivante.id} question={suivante} dessus={false} libelleTheme={libelleTheme} />}
+        {suivante && <CarteQuestion key={suivante.id} question={suivante} dessus={false} libelleTheme={libelleTheme} styleDessous={deck.styleDessous} />}
         <CarteQuestion
           key={q.id}
           question={q}
           dessus
           libelleTheme={libelleTheme}
-          panHandlers={responder.panHandlers}
-          transform={[{ translateX: pan.x }, { translateY: pan.y }, { rotate }]}
+          panHandlers={deck.panHandlers}
+          transform={[{ translateX: deck.pan.x }, { translateY: deck.pan.y }, { rotate: deck.rotate }]}
           dir={dir}
           opacites={opacites}
           onBesoin={setBesoin}
-          glisseRecent={glisseRecent}
+          glisseRecent={deck.glisseRecent}
         />
       </View>
 
@@ -321,12 +283,15 @@ function CarteQuestion({
   opacites,
   onBesoin,
   glisseRecent,
+  styleDessous,
 }: {
   question: QuestionProximite;
   dessus: boolean;
   libelleTheme: (id: string) => string;
   panHandlers?: object;
   transform?: object[];
+  /** Carte du dessous : transform + opacité animés par le geste (cf. useDeckSwipe). */
+  styleDessous?: object;
   dir?: Reponse | null;
   opacites?: Record<Reponse, Animated.AnimatedInterpolation<number>>;
   onBesoin?: (hauteur: number) => void;
@@ -386,7 +351,7 @@ function CarteQuestion({
         },
         dessus
           ? ({ transform, userSelect: "none", touchAction: "none", cursor: "grab" } as any)
-          : { transform: [{ scale: 0.955 }, { translateY: 12 }], opacity: 0.9 },
+          : styleDessous,
       ]}
     >
       <View

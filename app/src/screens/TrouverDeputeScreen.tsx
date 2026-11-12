@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { SigleGroupe } from "../components/SigleGroupe";
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Animated, PanResponder, Pressable, useWindowDimensions, Platform, Linking } from "react-native";
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Animated, Pressable, useWindowDimensions, Platform, Linking } from "react-native";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, tnum, inputText, RADIUS, S, ICON, CONTROL, shadowCard, couleurGroupe } from "../theme";
 import { Card, Button, Chip } from "../components/ui";
@@ -23,6 +23,7 @@ import { isFollowed, toggleFollowSansUid, getFollows } from "../follows";
 import { useFollow } from "../hooks/useFollows";
 import { passer, annulerPasser, getPassed, viderPasses } from "../passedDeputes";
 import { useReduceMotion } from "../components/HeroScrutins";
+import { useDeckSwipe, type Direction, type StyleRepos } from "../hooks/useDeckSwipe";
 import {
   PHRASE_ENVOI, PHRASE_ENVOI_SAISIE, libelleCirco, phraseCircos, baseAffinite, pctAffinite, libelleVoteCompare,
 } from "../trouverDepute";
@@ -38,6 +39,10 @@ import {
  */
 
 type Mode = "cp" | "affinite";
+
+// Deck par affinité : horizontal seulement (droite = suivre, gauche = passer).
+const DIRECTIONS_DECK: readonly Direction[] = ["droite", "gauche"];
+const DESSOUS_DECK: StyleRepos = { scale: 0.955, translateY: 14, opacity: 0.55 }; // carte du dessous au repos
 
 const OB_KEY = "scrutoir.affinite.onboarding.seen";
 const obVu = (): boolean => {
@@ -470,9 +475,9 @@ function AffiniteNonSitue({ nav }: { nav: Nav }) {
   );
 }
 
-/** Deck au swipe des députés du lot du jour. Animated + PanResponder (aucune dépendance). */
+/** Deck au swipe des députés du lot du jour. Geste commun au test (`useDeckSwipe`, aucune dépendance). */
 function Deck({ classement, nav, onAide }: { classement: DeputeAffinite[]; nav: Nav; onAide: () => void }) {
-  const { width } = useWindowDimensions();
+  const { width, height } = useWindowDimensions();
   const reduce = useReduceMotion();
 
   // Un LOT QUOTIDIEN, tiré au hasard (cf. `selectionDuJour.ts`) : jamais les 577 d'un coup, et
@@ -506,10 +511,7 @@ function Deck({ classement, nav, onAide }: { classement: DeputeAffinite[]; nav: 
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const pan = useRef(new Animated.ValueXY()).current;
-  const busy = useRef(false);
   const seuil = Math.max(90, width * 0.24);
-  const horsChamp = width * 1.4;
 
   const flash = (m: string) => {
     setToast(m);
@@ -524,45 +526,37 @@ function Deck({ classement, nav, onAide }: { classement: DeputeAffinite[]; nav: 
     if (action === "suivi") { if (!isFollowed(d.resume.uid)) toggleFollowSansUid(d.resume.uid, "affinite"); flash(`Tu suis ${d.resume.nom_complet}`); }
     else passer(d.resume.uid);
     setHistory((h) => [...h, { uid: d.resume.uid, action }]);
-    pan.setValue({ x: 0, y: 0 });
-    busy.current = false;
     setIdx((i) => i + 1);
   };
 
-  const envol = (action: "suivi" | "passe", toX: number) => {
-    if (reduce) return enregistrer(action);
-    Animated.timing(pan, { toValue: { x: toX, y: -30 }, duration: 300, useNativeDriver: false }).start(() => enregistrer(action));
-  };
+  // Geste commun au test (cf. useDeckSwipe) : Suivre → droite, Passer → gauche.
+  const deck = useDeckSwipe({
+    cle: liste[idx]?.resume.uid,
+    directions: DIRECTIONS_DECK,
+    largeur: width,
+    hauteur: height,
+    seuil,
+    reduceMotion: reduce,
+    onDecision: (dir) => enregistrer(dir === "droite" ? "suivi" : "passe"),
+    rotationMax: 14,
+    dessous: DESSOUS_DECK,
+    seuilCapture: 4,
+  });
   const decider = (action: "suivi" | "passe") => {
-    if (busy.current || idx >= liste.length) return;
-    busy.current = true;
-    envol(action, action === "suivi" ? horsChamp : -horsChamp);
+    if (idx >= liste.length) return;
+    deck.choisir(action === "suivi" ? "droite" : "gauche");
   };
   const annuler = () => {
-    if (!history.length) return;
+    if (!history.length || deck.busy.current) return;
     const last = history[history.length - 1];
     if (last.action === "suivi") { if (isFollowed(last.uid)) toggleFollowSansUid(last.uid, "affinite"); } else annulerPasser(last.uid);
     setHistory((h) => h.slice(0, -1));
-    pan.setValue({ x: 0, y: 0 });
     setIdx((i) => Math.max(0, i - 1));
+    // La carte revient du côté où elle est partie.
+    deck.revenir(last.action === "suivi" ? "droite" : "gauche");
   };
 
-  const responder = useMemo(() =>
-    PanResponder.create({
-      onMoveShouldSetPanResponder: (_e, g) => Math.abs(g.dx) > 4 || Math.abs(g.dy) > 4,
-      onPanResponderMove: Animated.event([null, { dx: pan.x, dy: pan.y }], { useNativeDriver: false }),
-      onPanResponderRelease: (_e, g) => {
-        if (g.dx > seuil) decider("suivi");
-        else if (g.dx < -seuil) decider("passe");
-        else Animated.spring(pan, { toValue: { x: 0, y: 0 }, useNativeDriver: false, bounciness: 6 }).start();
-      },
-    }),
-  [idx, history, liste.length, reduce, seuil]);
-
   const fini = idx >= liste.length;
-  const rotate = pan.x.interpolate({ inputRange: [-width, 0, width], outputRange: ["-14deg", "0deg", "14deg"] });
-  const opSuivi = pan.x.interpolate({ inputRange: [0, seuil], outputRange: [0, 1], extrapolate: "clamp" });
-  const opPasse = pan.x.interpolate({ inputRange: [-seuil, 0], outputRange: [1, 0], extrapolate: "clamp" });
 
   return (
     <View style={{ flex: 1, paddingHorizontal: S.s16 }}>
@@ -596,13 +590,13 @@ function Deck({ classement, nav, onAide }: { classement: DeputeAffinite[]; nav: 
           </View>
         ) : (
           <>
-            {liste[idx + 1] && <CarteAffinite depute={liste[idx + 1]} dessous />}
+            {liste[idx + 1] && <CarteAffinite depute={liste[idx + 1]} dessous styleDessous={deck.styleDessous} />}
             <Animated.View
               key={liste[idx].resume.uid}
-              {...responder.panHandlers}
-              style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, transform: [{ translateX: pan.x }, { translateY: pan.y }, { rotate }] as any, ...(Platform.OS === "web" ? ({ cursor: "grab", touchAction: "none", userSelect: "none" } as any) : {}) }}
+              {...deck.panHandlers}
+              style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, transform: [{ translateX: deck.pan.x }, { translateY: deck.pan.y }, { rotate: deck.rotate }] as any, ...(Platform.OS === "web" ? ({ cursor: "grab", touchAction: "none", userSelect: "none" } as any) : {}) }}
             >
-              <CarteAffinite depute={liste[idx]} opSuivi={opSuivi} opPasse={opPasse} onDetail={() => setDetail(liste[idx])} />
+              <CarteAffinite depute={liste[idx]} opSuivi={deck.opacites.droite} opPasse={deck.opacites.gauche} onDetail={() => setDetail(liste[idx])} />
             </Animated.View>
           </>
         )}
@@ -647,14 +641,15 @@ function BoutonDeck({ icon, label, a11y, onPress }: { icon: "x" | "bell"; label:
 }
 
 /** Carte sobre du deck : photo, nom, groupe ; « N % comme toi » en avant, la base en petit ; détail derrière un lien. */
-function CarteAffinite({ depute, dessous, opSuivi, opPasse, onDetail }: { depute: DeputeAffinite; dessous?: boolean; opSuivi?: Animated.AnimatedInterpolation<string | number>; opPasse?: Animated.AnimatedInterpolation<string | number>; onDetail?: () => void }) {
+function CarteAffinite({ depute, dessous, styleDessous, opSuivi, opPasse, onDetail }: { depute: DeputeAffinite; dessous?: boolean; styleDessous?: object; opSuivi?: Animated.AnimatedInterpolation<string | number>; opPasse?: Animated.AnimatedInterpolation<string | number>; onDetail?: () => void }) {
   const d = depute.resume;
   const n = depute.score.comparable;
   const pct = pctAffinite(depute.score.pct, n);
   const base = baseAffinite(depute.accord, n);
 
+  // Carte du dessous : transform + opacité animés par le geste (cf. useDeckSwipe).
   return (
-    <View style={{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: C.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: C.border, paddingTop: S.s28, paddingHorizontal: 22, paddingBottom: S.s18, alignItems: "center", ...shadowCard, ...(dessous ? { transform: [{ scale: 0.955 }, { translateY: 14 }], opacity: 0.55 } : null) }}>
+    <Animated.View style={[{ position: "absolute", left: 0, right: 0, top: 0, bottom: 0, backgroundColor: C.surface, borderRadius: RADIUS.xl, borderWidth: 1, borderColor: C.border, paddingTop: S.s28, paddingHorizontal: 22, paddingBottom: S.s18, alignItems: "center", ...shadowCard }, dessous && styleDessous]}>
       {/* Tampons « Suivre » / « Passer » (opacité pilotée par le geste) */}
       {!dessous && (
         <>
@@ -701,7 +696,7 @@ function CarteAffinite({ depute, dessous, opSuivi, opPasse, onDetail }: { depute
           <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir vos votes et sa fiche</Text>
         </TouchableOpacity>
       )}
-    </View>
+    </Animated.View>
   );
 }
 

@@ -7,6 +7,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > entrée ici, puis déployer (`npm run build:web` + `wrangler pages deploy`). Bumper aussi
 > `SHELL_VERSION` dans `app/public/sw.js` si on veut forcer le rafraîchissement de la coquille.
 
+## 1.35.0 — 2026-11-12
+**Test de proximité et « Trouver ton député » : les cartes se balaient d'un même geste, plus vif et plus naturel.**
+- **Un coup de doigt rapide suffit.** Un geste court mais vif valide la réponse, même si la carte n'a pas atteint le seuil, à condition d'aller dans le sens du glissé. Un glissé court et lent, un doigt arrêté avant de lâcher, ou une carte ramenée vite vers le centre la font toujours revenir. Vers le bas, jamais de réponse.
+- **La carte garde son élan.** Elle part aussitôt, dans la direction et à la hauteur où tu l'as lâchée, au lieu de marquer un temps au lâcher.
+- **La carte du dessous suit ton doigt.** Elle avance à mesure que tu tires et se trouve déjà en place quand elle passe dessus. La suivante apparaît en fondu.
+- **Annuler** ramène la carte du côté où elle est partie (Pour et Suivre par la droite, Contre et Passer par la gauche, Sans avis par le haut), au lieu de la faire réapparaître d'un coup.
+- **Réduire les animations** : rien ne change, les cartes passent sans animation comme avant.
+- Les deux paquets partagent désormais le même geste (`app/src/hooks/useDeckSwipe.ts`). Dans « Trouver ton député », on ne peut plus annuler ni rattraper une carte pendant qu'elle s'envole.
+
 ## 1.33.0 — 2026-11-10
 **Accueil : le focus de la semaine est choisi automatiquement, selon une règle unique et publique.**
 - **Règle.** Parmi tous les scrutins publics de l'Assemblée de la semaine de « La semaine à l'Assemblée » (du vendredi au jeudi), on retient celui qui a réuni le plus de votants (pour + contre + abstention). En cas d'égalité, le plus récent l'emporte, puis le numéro le plus élevé. Aucun type de vote n'est exclu, et rien ne permet de forcer le choix. La règle est rappelée en bas du bloc.
