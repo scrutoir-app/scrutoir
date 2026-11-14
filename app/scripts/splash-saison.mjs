@@ -8,15 +8,14 @@
  *  - couleurs = tokens saison* de theme.ts. La lune et son halo partent avec le splash :
  *    seules des silhouettes neutres finissent leur vol au-dessus de l'accueil ;
  *  - le logo n'est jamais touché : le décor vit autour, dans un repère centré sur le logo ;
- *  - thème sombre de l'utilisateur (clé scrutoir.scheme de theme.ts) : splash ET décor passent
- *    en sombre, PENDANT l'intro seulement (hors période, le splash reste clair).
+ *  - le splash officiel est sombre pour tout le monde depuis la 1.37.1 (patch-pwa.mjs, classe
+ *    ss-sombre) : le décor l'est donc toujours aussi (sz-sombre), quel que soit le thème choisi.
  * Décors (un par id de saisons.mjs ; une seule teinte, rien de religieux) :
  *  - halloween (maquette validée le 2026-10-16) : lune, toile, chauves-souris ; splash tenu
  *    3,4 s (une touche le passe dès que l'appli est prête), surcouche retirée à 5,1 s ;
  *  - neige et minuit (maquette « maquette-ouverture-fetes », validée le 2026-10-16) : neige qui
  *    s'efface à l'approche du logo ; gerbes dorées au-dessus du logo. Splash tenu 3,4 s, tout
- *    part avec le splash. Splash SOMBRE POUR TOUS pendant ces intros (décision du 2026-10-16 :
- *    flocons et gerbes ne se voient pas sur fond clair) ; l'appli garde ensuite le thème choisi.
+ *    part avec le splash. L'appli garde ensuite le thème choisi.
  */
 import { LIGHT, DARK, MOTION } from "../src/theme.ts";
 import { PERIODES, saisonActive } from "./saisons.mjs";
@@ -212,8 +211,7 @@ ${VOLS.map(([w, duree, depart, aile], i) =>
  * Script de la surcouche, juste après celui du splash (qui lit window.__scrutoirSaison au
  * moment de partir). Hors période ou id inconnu : ne fait rien.
  * DECORS : balisage (m), fin du décor en ms depuis l'ouverture (fin : la surcouche reste au
- * moins jusque-là après le départ du splash ; 0 = elle part avec lui), init éventuelle, et
- * sombre:1 pour forcer le splash sombre quel que soit le thème choisi.
+ * moins jusque-là après le départ du splash ; 0 = elle part avec lui), init éventuelle.
  */
 export const SAISON_JS = `
       (function(){
@@ -223,19 +221,16 @@ export const SAISON_JS = `
         try{var q=new URLSearchParams(location.search).get("saison");id=q==="aucune"?null:(q||saisonActive(new Date(),PERIODES));}catch(e){}
         var DECORS={
           halloween:{m:${JSON.stringify(MARKUP_HALLOWEEN)},fin:5100,init:${INIT_HALLOWEEN}},
-          neige:{m:${JSON.stringify(MARKUP_NEIGE)},fin:0,init:${INIT_NEIGE},sombre:1},
-          minuit:{m:${JSON.stringify(MARKUP_MINUIT)},fin:0,sombre:1}
+          neige:{m:${JSON.stringify(MARKUP_NEIGE)},fin:0,init:${INIT_NEIGE}},
+          minuit:{m:${JSON.stringify(MARKUP_MINUIT)},fin:0}
         };
         var d=id&&Object.prototype.hasOwnProperty.call(DECORS,id)?DECORS[id]:null;
         if(!d)return;
         try{if(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches)return;}catch(e){} // coupure totale
-        var t0=Date.now(),parti=false,sombre=!!d.sombre; // sombre forcé par le décor, sinon thème de l'utilisateur
-        if(!sombre)try{var pref=localStorage.getItem("scrutoir.scheme");sombre=pref==="dark"||(pref==="auto"&&!!window.matchMedia&&matchMedia("(prefers-color-scheme: dark)").matches);}catch(e){}
-        var sp=document.getElementById("scrutoir-splash");
-        if(sombre&&sp)sp.classList.add("ss-sombre"); // splash sombre pendant l'intro seulement
+        var t0=Date.now(),parti=false;
         var el=document.createElement("div");
         el.id="scrutoir-saison";el.setAttribute("aria-hidden","true");
-        el.className="sz-"+id+(sombre?" sz-sombre":"");
+        el.className="sz-"+id+" sz-sombre"; // le splash est sombre pour tous : le décor aussi
         el.innerHTML=d.m;
         document.body.appendChild(el);
         if(d.init)d.init(el);

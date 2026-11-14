@@ -8,6 +8,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.37.1 — 2026-11-14
+**Ouverture sombre et citron pour tout le monde ; les nouvelles icônes arrivent enfin.**
+- **Ouverture officielle « La parole circule »** : sur fond sombre pour tout le monde (plus seulement pendant Neige et Minuit), avec le siège, le point du i et la parole en citron, et le gros rond blanc. L'appli garde ensuite le thème choisi. Animations réduites : logo fixe, même couleurs. Les intros saisonnières suivent : le décor d'Halloween passe en sombre pour tous (ses silhouettes encre auraient disparu sur le fond sombre). Le manifeste PWA prend le même fond (`#0F1318`), pour l'écran de lancement d'Android.
+- **Icônes d'app** : la 1.37.0 les avait remplacées sous les mêmes noms, que Cloudflare garde 7 jours en cache. Le CDN, puis le service worker, servaient donc encore les anciennes. Elles changent de nom (`/icons/*-citron.png`) dans le manifeste, le service worker, `index.html` et les pages SEO. Une icône déjà posée sur l'écran d'accueil d'un iPhone ne se met pas à jour toute seule : il faut la retirer puis la rajouter depuis Safari.
+- Règle notée dans `_headers` et `gen-marque-sombre.mjs` : une nouvelle icône doit changer de nom.
+
 ## 1.37.0 — 2026-11-14
 **Logo : contour citron sur fond sombre.** Sur fond sombre, le siège blanc de l'hémicycle (rang extérieur, flanc droit) et le point du i de « Scrutoir » prennent un contour citron `#C8FF2E`, comme sur Instagram. Seul le contour change : l'intérieur reste évidé, le gros rond et les autres sièges restent blancs. Sur fond clair, rien ne change (logo déposé, contour encre `#171A1F`).
 - **Appli en thème sombre.** `ScrutoirMark`, `ScrutoirWordmark` et `ScrutoirLogo` lisent le nouveau jeton `marqueContour` (encre en clair, citron en sombre). Nouvelle prop `ring` sur `ScrutoirMark` pour forcer le contour.

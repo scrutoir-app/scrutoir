@@ -174,7 +174,7 @@ ${noindex ? `<meta name="robots" content="noindex,follow">\n` : ""}<title>${esc(
 <meta property="og:image" content="${ogImage || SITE + "/og.png"}">
 <meta name="twitter:card" content="${ogImage && ogType === "profile" ? "summary" : "summary_large_image"}">
 <link rel="icon" href="/favicon.ico">
-<link rel="apple-touch-icon" href="/icons/apple-touch-icon.png">
+<link rel="apple-touch-icon" href="/icons/apple-touch-icon-citron.png">
 <style>${CSS}</style>
 <script type="application/ld+json">${jsonLd(ld)}</script>
 </head>

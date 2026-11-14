@@ -44,8 +44,8 @@ const OFFLINE_URL = "/index.html";
 const PRECACHE_URLS = [
   OFFLINE_URL,
   "/manifest.json",
-  "/icons/icon-192.png",
-  "/icons/icon-512.png",
+  "/icons/icon-192-citron.png",
+  "/icons/icon-512-citron.png",
 ];
 
 self.addEventListener("install", (event) => {

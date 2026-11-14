@@ -33,13 +33,12 @@ test("chaque période a un décor, et aucun jour n'appartient à deux périodes"
   }
 });
 
-test("Neige et Minuit forcent le splash sombre (illisibles sur fond clair), pas Halloween", () => {
+test("chaque décor est déclaré, et toujours en sombre comme le splash officiel (1.37.1)", () => {
   const debut = SAISON_JS.indexOf("var DECORS=") + "var DECORS=".length;
   const D = new Function(`return ${SAISON_JS.slice(debut, SAISON_JS.indexOf("\n        };", debut) + 10)}`)();
   assert.deepEqual(Object.keys(D).sort(), [...DECORS].sort());
-  assert.equal(D.neige.sombre, 1);
-  assert.equal(D.minuit.sombre, 1);
-  assert.equal(D.halloween.sombre, undefined);
+  assert.ok(SAISON_JS.includes('el.className="sz-"+id+" sz-sombre"'));
+  assert.ok(!SAISON_JS.includes("scrutoir.scheme"), "le décor ne dépend plus du thème de l'utilisateur");
 });
 
 test("le script de la surcouche généré au build est du JS valide", () => {
