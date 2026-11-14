@@ -35,9 +35,13 @@ export function marquerInterstitielVu(): void {
   }
 }
 
-/** Hook : true au 1er rendu si l'interstitiel doit s'afficher (lu une seule fois). */
-export function useInterstitielParcours(): boolean {
-  const [montrer] = useState(doitMontrerInterstitiel);
+/**
+ * Hook : true au 1er rendu si l'interstitiel doit s'afficher (lu une seule fois).
+ * `reporte` (arrivée par un lien direct de la rubrique Présidentielle) : pas montré cette fois,
+ * et PAS marqué vu, donc proposé au lancement suivant.
+ */
+export function useInterstitielParcours(reporte = false): boolean {
+  const [montrer] = useState(() => !reporte && doitMontrerInterstitiel());
   useEffect(() => {
     if (montrer) marquerInterstitielVu(); // vu = proposé : ne pas re-proposer
   }, [montrer]);

@@ -47,7 +47,7 @@ import { ChapitreScreen } from "./src/screens/presidentielle/ChapitreScreen";
 import { MesureScreen } from "./src/screens/presidentielle/MesureScreen";
 import { chargerIndexPresidentielle } from "./src/presidentielle/donnees";
 import { pileLienProfond } from "./src/presidentielle/routes";
-import { TYPES_LIEN } from "./src/presidentielle/logique";
+import { TYPES_LIEN, estLienRubrique } from "./src/presidentielle/logique";
 import { lireHashPartage } from "./src/testProximite/storage";
 import { getCategories } from "./src/api";
 import { InstallPrompt } from "./src/components/InstallPrompt";
@@ -207,13 +207,21 @@ function AppInner() {
   const enRechercheGlobale = stack.length === 1 && ongletAvecRecherche && gq.trim().length >= 2;
   useEffect(() => { setGq(""); }, [root]); // réinitialise la recherche en changeant d'onglet
 
+  // Arrivée par un lien direct de la rubrique Présidentielle (`?open=programme:…`, partagé depuis
+  // Instagram…) : le visiteur vient lire un programme. L'accueil « je » et le parcours d'une loi
+  // sont reportés au lancement suivant (ni montrés, ni marqués vus). Lu au 1er rendu, avant que
+  // l'effet des liens profonds ne retire `?open=` de l'adresse.
+  const [lienRubrique] = useState(
+    () => Platform.OS === "web" && typeof window !== "undefined" && estLienRubrique(window.location.search),
+  );
+
   // Interstitiel pédagogique « parcours d'une loi » : montré UNE fois par installation
   // (re-proposé si le contenu change), rejetable. Persistance locale (cf. parcoursLoiPrefs).
-  const [interstitiel, setInterstitiel] = useState(useInterstitielParcours());
+  const [interstitiel, setInterstitiel] = useState(useInterstitielParcours(lienRubrique));
 
   // Overlay d'onboarding « je » : visible au tout premier lancement (aucun suivi/test),
   // ou relancé depuis l'accueil. Piloté par un store local (cf. onboardingPrefs).
-  const onboardingVisible = useOnboardingVisible();
+  const onboardingVisible = useOnboardingVisible(lienRubrique);
 
   const nav: Nav = {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),

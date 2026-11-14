@@ -90,6 +90,20 @@ export type CibleLien =
 export const TYPES_LIEN = ["presidentielle", "programme", "chapitre", "mesure"] as const;
 
 /**
+ * L'adresse d'arrivée (`location.search`) est-elle un lien direct de la rubrique ? Le visiteur
+ * vient alors lire un programme : l'accueil « je » et le parcours d'une loi sont reportés.
+ */
+export function estLienRubrique(search: string | null | undefined): boolean {
+  let open: string | null = null;
+  try {
+    open = new URLSearchParams(search ?? "").get("open");
+  } catch {
+    return false;
+  }
+  return !!open && (TYPES_LIEN as readonly string[]).includes(open.split(":")[0]);
+}
+
+/**
  * `?open=…` → écran de la rubrique, ou null (rubrique hors service, programme inconnu, forme
  * invalide) : l'app reste alors sur l'accueil, sans message d'erreur.
  *  presidentielle · programme:lfi-2027 (ou alias) · chapitre:lfi-2027.p2c2 · mesure:lfi-2027.p3c1-046 / .D13

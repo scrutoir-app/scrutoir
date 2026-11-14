@@ -10,7 +10,7 @@ import { fileURLToPath } from "node:url";
 import type { IndexPresidentielle, ProgrammeResume, ScrutinConfronte } from "./types";
 import {
   cibleLienProfond, comptesDe, correspond, familleDe, finCommune, programmeDuGroupe, regrouper, repartir, resoudreProgramme,
-  rubriqueVisible, valeurOpen, ordonnerProgrammes, indexValide,
+  rubriqueVisible, valeurOpen, ordonnerProgrammes, indexValide, estLienRubrique,
 } from "./logique";
 import {
   annonceFiltre, comptesEnLettres, dateLongue, detailNeutre, intituleAffiche, ligneComptes, metaMesure, nombre, phraseGroupe, phraseSansEffet,
@@ -70,6 +70,14 @@ test("indexValide écarte les entrées mal formées", () => {
 });
 
 // --- Liens profonds -------------------------------------------------------------------------------
+
+test("arrivée par un lien de la rubrique : reconnue (accueil et parcours d'une loi reportés)", () => {
+  for (const s of ["?open=presidentielle", "?open=programme:abc-2027", "?open=chapitre:abc-2027.p2c2", "?open=mesure:abc-2027.D13", "?x=1&open=programme%3Aabc"])
+    assert.equal(estLienRubrique(s), true, s);
+  // Autres liens profonds (pages SEO) et lancements ordinaires : l'accueil reste proposé.
+  for (const s of ["", "?", "?open=", "?open=scrutin:VTANR5L17V1", "?open=depute:PA1", "?open=programmes", "?ouvrir=programme:x", null, undefined])
+    assert.equal(estLienRubrique(s), false, String(s));
+});
 
 test("liens profonds : formes acceptées, alias, identifiants inconnus", () => {
   assert.deepEqual(cibleLienProfond("presidentielle", PLEIN), { ecran: "presidentielle" });

@@ -44,10 +44,11 @@ function premierLancement(): boolean {
   return !test || !Object.keys(test.reponses).length;
 }
 
-function ensureInit(): void {
+/** `reporte` (1er appel seulement) : pas montré à ce lancement, PAS marqué vu (proposé au suivant). */
+function ensureInit(reporte = false): void {
   if (initialized) return;
   initialized = true;
-  visible = premierLancement();
+  visible = !reporte && premierLancement();
   if (visible) marquerVu(); // proposé = vu : ne pas re-proposer au prochain chargement
 }
 
@@ -70,9 +71,12 @@ export function fermerOnboarding(): void {
   notify();
 }
 
-/** Hook : l'overlay doit-il être visible ? (réactif aux relance/fermeture) */
-export function useOnboardingVisible(): boolean {
-  ensureInit();
+/**
+ * Hook : l'overlay doit-il être visible ? (réactif aux relance/fermeture)
+ * `reporte` : arrivée par un lien direct de la rubrique Présidentielle (lu au 1er appel).
+ */
+export function useOnboardingVisible(reporte = false): boolean {
+  ensureInit(reporte);
   const [, force] = useState(0);
   useEffect(() => {
     const l = () => force((n) => n + 1);

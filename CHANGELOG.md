@@ -8,6 +8,10 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.36.1 — 2026-11-14
+**Rubrique Présidentielle 2027 : un lien direct mène droit au programme.** Un nouveau visiteur qui arrive par un lien de la rubrique (`?open=presidentielle`, `programme:…`, `chapitre:…`, `mesure:…`, par exemple depuis Instagram) voit directement ce qu'il est venu lire : l'accueil « Et toi, tu votes comment ? » et « Le parcours d'une loi » sont reportés au lancement suivant (ni montrés, ni marqués vus). Les autres liens profonds et les lancements ordinaires ne changent pas. Rien de visible tant que la rubrique est hors service.
+- Script d'aperçu privé : branche Pages au nom aléatoire, gardé hors du dépôt ; build sans cache Metro.
+
 ## 1.36.0 — 2026-11-14
 **Rubrique Présidentielle 2027, en attente de mise en service.** Le code est en production, la rubrique reste invisible : aucun programme n'est encore « en service », et aucune donnée de verdict n'est publiée (ni sur data.scrutoir.fr, ni dans le dépôt).
 - **Ce que fera la rubrique.** Chaque mesure d'un programme présidentiel confrontée aux scrutins publics de l'Assemblée, face au groupe du même parti : cohérent (=), tension (≠) ou neutre (∅ : sans scrutin public, à juger, sans vote représentatif). Des nombres, jamais de pourcentage ; verdicts en encre neutre, couleurs de vote réservées aux votes du groupe ; intitulés officiels et textes des mesures recopiés mot pour mot ; une tension est présentée comme un écart à débattre, pas une contradiction.
