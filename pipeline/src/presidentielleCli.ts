@@ -2,9 +2,10 @@
  * Rubrique Présidentielle 2027 : aperçu privé, mise en service, retour arrière. Depuis le Mac,
  * JAMAIS en CI (refuse si CI est posé).
  *
- *   npm run presidentielle:apercu -- <id>      export forcé + build + déploiement sur la branche
- *                                              d'aperçu des deux projets Pages (URL *.pages.dev,
- *                                              noindex). Publiques pour qui les connaît.
+ *   npm run presidentielle:apercu -- <id>      export forcé + build + déploiement sur une branche
+ *                                              d'aperçu au nom aléatoire (gardé dans le dossier non
+ *                                              suivi du programme) des deux projets Pages (URL
+ *                                              *.pages.dev, noindex). Publiques pour qui les connaît.
  *   npm run presidentielle:activer -- <id>     prérequis (PREREQUIS.md + prerequis.json) → enService
  *                                              true → commit + push main → refresh.yml → vérif. prod.
  *   npm run presidentielle:desactiver -- <id>  enService false → commit + push → refresh.yml → vérif.
@@ -16,6 +17,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { execFileSync, spawnSync } from "node:child_process";
+import { randomBytes } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { CONFIG, DOSSIER_PROGRAMMES, construireProgramme, exporterPresidentielle, lireConfig, type ConfigProgramme } from "./exportPresidentielle";
 
@@ -23,7 +25,20 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const RACINE = path.resolve(__dirname, "../..");
 const APP = path.join(RACINE, "app");
 const PIPELINE = path.join(RACINE, "pipeline");
-const BRANCHE_APERCU = "apercu-presidentielle";
+// Branche d'aperçu : nom ALÉATOIRE, tiré au premier aperçu et gardé dans le dossier du programme
+// (non suivi par git). Le dépôt est public : un nom fixe écrit ici rendrait l'adresse de l'aperçu,
+// et donc les verdicts, devinables avant la mise en service.
+const FICHIER_BRANCHE = ".apercu-branche";
+function brancheApercu(p: ConfigProgramme): string {
+  const dossier = path.join(DOSSIER_PROGRAMMES, p.dossier);
+  const f = path.join(dossier, FICHIER_BRANCHE);
+  const lu = fs.existsSync(f) ? fs.readFileSync(f, "utf8").trim() : "";
+  if (/^apercu-[0-9a-f]{16}$/.test(lu)) return lu;
+  if (!fs.existsSync(dossier)) throw new Error(`${dossier} introuvable : rien à prévisualiser`);
+  const b = `apercu-${randomBytes(8).toString("hex")}`;
+  fs.writeFileSync(f, b + "\n");
+  return b;
+}
 const DEPOT = "scrutoir-app/scrutoir";
 const DATA_PROD = "https://data.scrutoir.fr";
 const APP_PROD = "https://scrutoir.fr";
@@ -66,15 +81,28 @@ async function apercu(id: string) {
   if (process.env.CI) throw new Error("presidentielle:apercu se lance depuis le Mac, jamais en CI.");
   const p = programme(id);
   const debut = Date.now();
-  const dataApercu = `https://${BRANCHE_APERCU}.scrutoir-data.pages.dev`;
-  const appApercu = `https://${BRANCHE_APERCU}.scrutoir.pages.dev`;
+  const branche = brancheApercu(p);
+  const dataApercu = `https://${branche}.scrutoir-data.pages.dev`;
+  const appApercu = `https://${branche}.scrutoir.pages.dev`;
   const noindex = "/*\n  X-Robots-Tag: noindex, nofollow, noarchive";
   try {
     // 1) Données : export avec le programme forcé en service (sur le disque seulement).
     if (fs.existsSync(path.join(APP, "public/data/version.json"))) exporterPresidentielle({ forcer: [p.id] });
     else lancer("npm", ["run", "export:static"], { cwd: PIPELINE, env: { PRESIDENTIELLE_FORCER: p.id } });
-    // 2) Build web lisant les données d'aperçu ; mesure d'audience coupée.
-    lancer("npm", ["run", "build:web"], { cwd: APP, env: { EXPO_PUBLIC_DATA_BASE: dataApercu, EXPO_PUBLIC_ANALYTICS_URL: "off" } });
+    // 2) Build web lisant les données d'aperçu ; mesure d'audience coupée. Les EXPO_PUBLIC_* sont
+    //    inlinées à la transformation : sans --clear, Metro ressert ses modules en cache et le
+    //    bundle garde les valeurs du build précédent (adresse des données, mesure d'audience).
+    const buildWeb: string = JSON.parse(fs.readFileSync(path.join(APP, "package.json"), "utf8")).scripts["build:web"];
+    if (!buildWeb.includes("expo export -p web")) throw new Error("script build:web inattendu (expo export -p web introuvable)");
+    lancer("sh", ["-c", buildWeb.replace("expo export -p web", "expo export -p web --clear")], {
+      cwd: APP,
+      env: { EXPO_PUBLIC_DATA_BASE: dataApercu, EXPO_PUBLIC_ANALYTICS_URL: "off", PATH: `${path.join(APP, "node_modules/.bin")}:${process.env.PATH ?? ""}` },
+    });
+    const bundles = fs.readdirSync(path.join(APP, "dist/_expo/static/js/web")).filter((f) => f.endsWith(".js"));
+    const contenu = bundles.map((f) => fs.readFileSync(path.join(APP, "dist/_expo/static/js/web", f), "utf8")).join("\n");
+    if (!contenu.includes(dataApercu)) throw new Error("le bundle d'aperçu ne lit pas les données d'aperçu (cache Metro ?)");
+    // L'adresse de prod reste en constante dans analytics.ts ; c'est l'appel qui doit recevoir « off ».
+    if (!/\(\s*"off"\s*,\s*"production"\s*\)/.test(contenu)) throw new Error("le bundle d'aperçu garde la mesure d'audience (EXPO_PUBLIC_ANALYTICS_URL non inlinée)");
     // 3) Aperçu non indexable ; la CSP doit autoriser l'origine des données d'aperçu.
     const h = path.join(APP, "dist/_headers");
     const csp = fs.readFileSync(h, "utf8");
@@ -86,8 +114,8 @@ async function apercu(id: string) {
     prefixerHeaders(path.join(APP, ".data-site/_headers"), noindex);
     // 4) Branche d'aperçu des deux projets Pages (la garde check-data-freshness ne s'applique pas).
     const env = { CLOUDFLARE_ACCOUNT_ID: COMPTE_CF };
-    lancer("npx", ["wrangler", "pages", "deploy", ".data-site", "--project-name=scrutoir-data", `--branch=${BRANCHE_APERCU}`, "--commit-dirty=true"], { cwd: APP, env });
-    lancer("npx", ["wrangler", "pages", "deploy", "dist", "--project-name=scrutoir", `--branch=${BRANCHE_APERCU}`, "--commit-dirty=true"], { cwd: APP, env });
+    lancer("npx", ["wrangler", "pages", "deploy", ".data-site", "--project-name=scrutoir-data", `--branch=${branche}`, "--commit-dirty=true"], { cwd: APP, env });
+    lancer("npx", ["wrangler", "pages", "deploy", "dist", "--project-name=scrutoir", `--branch=${branche}`, "--commit-dirty=true"], { cwd: APP, env });
     console.log(`\n✅ Aperçu privé de ${p.id} déployé en ${duree(Date.now() - debut)} :`);
     console.log(`   App     : ${appApercu}/?open=programme:${p.id}`);
     console.log(`   Données : ${dataApercu}/data/presidentielle/index.json`);
@@ -99,7 +127,9 @@ async function apercu(id: string) {
     exporterPresidentielle({ forcer: [], log: () => {} });
     fs.rmSync(path.join(APP, "dist"), { recursive: true, force: true });
     fs.rmSync(path.join(APP, ".data-site"), { recursive: true, force: true });
-    console.log("\nDisque remis en état dormant (data/presidentielle/index.json seul) ; dist/ et .data-site/ de l'aperçu supprimés.");
+    // Cache Metro vidé : un build local suivant ne doit pas reprendre l'adresse des données d'aperçu.
+    fs.rmSync(path.join(os.tmpdir(), "metro-cache"), { recursive: true, force: true });
+    console.log("\nDisque remis en état dormant (data/presidentielle/index.json seul) ; dist/, .data-site/ et cache Metro de l'aperçu supprimés.");
   }
 }
 
