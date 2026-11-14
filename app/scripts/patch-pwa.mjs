@@ -36,7 +36,10 @@ const MARKER = "SCRUTOIR_PWA";
  * la trajectoire du point (arc) ne s'exprime pas proprement en CSS. Temps de base (s) × TEMPO.
  * Géométrie lue dans src/components/brand/geometrie.ts (source unique), couleurs dans theme.ts.
  */
-const TEMPO = 1;
+// ×1,5 (choisi par Anthony le 14/11/2026 sur vidéos à ×1,3 / ×1,5 / ×1,75) : à ×1 (3,4 s) l'ouverture
+// passait trop vite. Étire toute l'animation, la tenue et la respiration de la tribune ; pas les
+// animations réduites (logo fixe, 1,6 s).
+const TEMPO = 1.5;
 const ms = (x) => Math.round(x * TEMPO);
 
 // ---------- Scène de l'ouverture (unités du viewBox 0 0 1000 1000) ----------
