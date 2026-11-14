@@ -7,12 +7,14 @@ import { LOGOTYPE } from "./geometrie";
  * Logotype Scrutoir (mot seul), tracé vectoriel Manrope ExtraBold.
  * Le point du i est redessiné en blanc contour encre, jumeau du siège
  * blanc du picto (voir ScrutoirMark). Indépendant du chargement de la police.
+ * Sur fond sombre, le contour du point passe en citron (C.marqueContour, 14/11/2026) ;
+ * en clair, rien ne change (logo déposé).
  */
 export function ScrutoirWordmark({
   height = 28,
   color = C.text,
   dotFill,
-  dotStroke = C.text,
+  dotStroke = getScheme() === "dark" ? C.marqueContour : C.text,
 }: {
   height?: number;
   color?: string;

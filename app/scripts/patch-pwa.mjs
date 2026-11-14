@@ -38,6 +38,7 @@ const HEAD_TAGS = `
     <link rel="canonical" href="https://scrutoir.fr/" />
     <meta name="theme-color" content="#3C4654" />
     <link rel="manifest" href="/manifest.json" />
+    <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
@@ -75,13 +76,14 @@ const HEAD_TAGS = `
       @keyframes ss-respire{from{opacity:1}to{opacity:.55}}
       /* Animations réduites : le logo, fixe, sans la parole */
       @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat,#scrutoir-splash .ss-focal,#scrutoir-splash .ss-word,#scrutoir-splash .ss-tagline{opacity:1;transform:none;animation:none}#scrutoir-splash .ss-parole{display:none}}
-      /* Variante sombre : posée par l'intro saisonnière seulement (splash-saison.mjs), pour un utilisateur en thème sombre */
+      /* Variante sombre : posée par l'intro saisonnière seulement (splash-saison.mjs) : Neige et Minuit pour tous,
+         Halloween pour un utilisateur en thème sombre. Siège, point du i et parole en citron (14/11/2026). */
       #scrutoir-splash.ss-sombre{background:${DARK.bg}}
       #scrutoir-splash.ss-sombre .ss-ink{fill:${DARK.text}}
-      #scrutoir-splash.ss-sombre .ss-hole{fill:${DARK.bg};stroke:${DARK.text}}
+      #scrutoir-splash.ss-sombre .ss-hole{fill:${DARK.bg};stroke:${DARK.marqueContour}}
       #scrutoir-splash.ss-sombre .ss-focal{fill:#FFFFFF}
       #scrutoir-splash.ss-sombre .ss-tagline{color:${DARK.textFaint}}
-      #scrutoir-splash.ss-sombre .ss-parole{fill:${DARK.text}}
+      #scrutoir-splash.ss-sombre .ss-parole{fill:${DARK.marqueContour}}
     </style>`;
 
 const SPLASH_BODY = `

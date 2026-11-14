@@ -8,6 +8,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.37.0 — 2026-11-14
+**Logo : contour citron sur fond sombre.** Sur fond sombre, le siège blanc de l'hémicycle (rang extérieur, flanc droit) et le point du i de « Scrutoir » prennent un contour citron `#C8FF2E`, comme sur Instagram. Seul le contour change : l'intérieur reste évidé, le gros rond et les autres sièges restent blancs. Sur fond clair, rien ne change (logo déposé, contour encre `#171A1F`).
+- **Appli en thème sombre.** `ScrutoirMark`, `ScrutoirWordmark` et `ScrutoirLogo` lisent le nouveau jeton `marqueContour` (encre en clair, citron en sombre). Nouvelle prop `ring` sur `ScrutoirMark` pour forcer le contour.
+- **Ouvertures.** Variante sombre du splash (Neige et Minuit pour tous, Halloween en thème sombre) : siège, point du i et parole en citron. L'ouverture officielle, claire, est inchangée.
+- **Icônes et favicon.** Même composition que la photo de profil Instagram : fond `#161A20`, points et gros rond blancs, gros rond au centre exact, siège à contour citron. iOS sans transparence ; Android adaptative (fond `#161A20`, l'hémicycle tient dans la zone de sécurité de 66 dp, monochrome pour les icônes à thème) ; PWA (any et maskable) et apple-touch. Le favicon (`public/favicon.ico`, 16, 32 et 48 px) agrandit l'hémicycle à 92 % pour rester lisible en petit ; `patch-pwa.mjs` pose la balise `<link rel="icon">` (Expo ne l'injecte plus quand le `.ico` est fourni).
+- **Exports de marque sombres** dans `brand/` (`*-sombre-citron` : picto, mot, logo horizontal et vertical, SVG et PNG @1x/@2x/@3x). Les exports clairs ne bougent pas. Tout est régénéré par `app/scripts/gen-marque-sombre.mjs`, depuis la géométrie de `geometrie.ts` ; `gen-icons.sh` l'appelle désormais.
+
 ## 1.36.1 — 2026-11-14
 **Rubrique Présidentielle 2027 : un lien direct mène droit au programme.** Un nouveau visiteur qui arrive par un lien de la rubrique (`?open=presidentielle`, `programme:…`, `chapitre:…`, `mesure:…`, par exemple depuis Instagram) voit directement ce qu'il est venu lire : l'accueil « Et toi, tu votes comment ? » et « Le parcours d'une loi » sont reportés au lancement suivant (ni montrés, ni marqués vus). Les autres liens profonds et les lancements ordinaires ne changent pas. Rien de visible tant que la rubrique est hors service.
 - Script d'aperçu privé : branche Pages au nom aléatoire, gardé hors du dépôt ; build sans cache Metro.

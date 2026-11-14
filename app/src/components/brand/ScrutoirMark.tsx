@@ -10,6 +10,8 @@ import { geometrieMarque } from "./geometrie";
  * Hémicycle vu du dessus, point focal central (tribune / pupille, racine scrut-).
  * Un siège du flanc droit (rang extérieur, index 2) est blanc contour encre,
  * jumeau du point du i du logotype. Désactivable via whiteSeat={false} en favicon.
+ * Sur fond sombre, le contour de ce siège passe en citron (C.marqueContour, 14/11/2026) ;
+ * en clair, rien ne change (logo déposé).
  */
 export function ScrutoirMark({
   size = 40,
@@ -18,6 +20,7 @@ export function ScrutoirMark({
   whiteSeat = true,
   whiteSeatRing = 0,
   whiteSeatIndex = 2,
+  ring,
 }: {
   size?: number;
   color?: string;
@@ -25,18 +28,21 @@ export function ScrutoirMark({
   whiteSeat?: boolean;
   whiteSeatRing?: number;
   whiteSeatIndex?: number;
+  /** Contour du siège blanc. Par défaut : citron en sombre, `color` en clair. */
+  ring?: string;
 }) {
   const { w, h, dots, dotR, strokeW, focal } = geometrieMarque(size, whiteSeat, whiteSeatRing, whiteSeatIndex);
   // En sombre, on VIDE l'intérieur du siège blanc (jumeau du point du i) et du rond focal :
-  // remplissage = couleur de fond → on voit le fond sombre à travers (contour conservé).
+  // remplissage = couleur de fond → on voit le fond sombre à travers (contour citron).
   const dark = getScheme() === "dark";
   const evide = dark ? C.bg : null;
+  const contour = ring ?? (dark ? C.marqueContour : color);
 
   return (
     <Svg width={w} height={h}>
       {dots.map((d, i) =>
         d.white ? (
-          <Circle key={i} cx={d.x} cy={d.y} r={dotR} fill={evide ?? "#FFFFFF"} stroke={color} strokeWidth={strokeW} />
+          <Circle key={i} cx={d.x} cy={d.y} r={dotR} fill={evide ?? "#FFFFFF"} stroke={contour} strokeWidth={strokeW} />
         ) : (
           <Circle key={i} cx={d.x} cy={d.y} r={dotR} fill={color} />
         )

@@ -2,7 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { ScrutoirMark } from "./ScrutoirMark";
 import { ScrutoirWordmark } from "./ScrutoirWordmark";
-import { C } from "../../theme";
+import { C, getScheme } from "../../theme";
 
 /**
  * NOUVELLE VERSION (juin 2026). Verrouillage complet picto + logotype.
@@ -25,6 +25,8 @@ export function ScrutoirLogo({
   // Ratio picto / mot. Le picto étant un hémicycle large, on reste proche de la
   // hauteur du mot en horizontal (lockup équilibré) plutôt qu'au double.
   const markSize = wordHeight * (vertical ? 3.0 : 1.45);
+  // Contour du siège blanc et du point du i : citron en sombre, couleur du logo en clair.
+  const contour = getScheme() === "dark" ? C.marqueContour : color;
   return (
     <View
       style={{
@@ -33,8 +35,8 @@ export function ScrutoirLogo({
         gap: wordHeight * (vertical ? 0.5 : 0.45),
       }}
     >
-      <ScrutoirMark size={markSize} color={color} accent={accent} whiteSeat={whiteSeat} />
-      <ScrutoirWordmark height={wordHeight} color={color} dotStroke={color} />
+      <ScrutoirMark size={markSize} color={color} accent={accent} whiteSeat={whiteSeat} ring={contour} />
+      <ScrutoirWordmark height={wordHeight} color={color} dotStroke={contour} />
     </View>
   );
 }

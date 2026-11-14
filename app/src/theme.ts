@@ -111,6 +111,11 @@ export const LIGHT = {
   horsChamp: "#C9CED6", // hors champ : gris pâle, toujours doublé de son nombre en texte
   // Guillochage de la carte d'accueil : encre à 9 %, seul motif de toute l'app.
   guilloche: "rgba(23,26,31,0.09)",
+  // Marque : contour du siège blanc du picto et du point du i (composants brand/ + splash).
+  // En clair = encre, à l'identique du logo déposé (INPI n°5272135) : ne pas changer.
+  // En sombre = citron (décision du 14/11/2026). Réservé à ces deux cercles du logo, et à la
+  // « parole » du splash quand il passe en sombre (intros saisonnières).
+  marqueContour: "#171A1F",
 };
 
 // Palette SOMBRE — même langage, couleurs de vote relevées pour rester lisibles.
@@ -191,6 +196,7 @@ export const DARK: typeof LIGHT = {
   verdictNeutreStroke: "#9AA2AE",
   horsChamp: "#4A5361",
   guilloche: "rgba(234,237,241,0.09)",
+  marqueContour: "#C8FF2E", // citron : contour du siège blanc et du point du i, sur fond sombre
 };
 
 // Familles de police Manrope (chargées dans App via useFonts)
