@@ -167,6 +167,11 @@ async function ecrire(rel, contenu) {
 // Anthony le 14/11/2026 sur rendu à taille réelle 16/32/48 px).
 const ECHELLE_FAVICON = 0.92;
 
+// Les icônes de public/icons ne sont pas hashées et Cloudflare les garde 7 jours (_headers) : à chaque
+// NOUVEAU dessin d'icône, changer ce suffixe ET les références (manifest.json, sw.js, patch-pwa.mjs,
+// prerender-seo.mjs), sinon le CDN et le service worker continuent de servir l'ancienne image.
+const SUFFIXE_ICONES = "-citron";
+
 async function main() {
   console.log(`[gen-marque-sombre] sortie : ${RACINE}`);
   const ro = rayonOccupe(ECHELLE_PROFIL);
@@ -202,11 +207,11 @@ async function main() {
   await ecrire("app/public/favicon.ico", ico(pngs));
 
   // 4. PWA : any + maskable (le fond plein déborde, l'hémicycle tient dans le cercle de 80 %).
-  await ecrire("app/public/icons/apple-touch-icon.png", await pngTaille(icone(180), 180));
+  await ecrire(`app/public/icons/apple-touch-icon${SUFFIXE_ICONES}.png`, await pngTaille(icone(180), 180));
   for (const t of [192, 512]) {
     const buf = await pngTaille(icone(t), t);
-    await ecrire(`app/public/icons/icon-${t}.png`, buf);
-    await ecrire(`app/public/icons/maskable-${t}.png`, buf);
+    await ecrire(`app/public/icons/icon-${t}${SUFFIXE_ICONES}.png`, buf);
+    await ecrire(`app/public/icons/maskable-${t}${SUFFIXE_ICONES}.png`, buf);
   }
 }
 

@@ -30,7 +30,8 @@
 /_expo/static/*
   Cache-Control: public, max-age=31536000, immutable
 
-# Icônes PWA (stables, mais pas hashées) : une semaine.
+# Icônes PWA (pas hashées) : une semaine, CDN compris. Une nouvelle icône doit donc changer de NOM
+# (suffixe dans scripts/gen-marque-sombre.mjs + manifest.json, sw.js, patch-pwa.mjs, prerender-seo.mjs).
 /icons/*
   Cache-Control: public, max-age=604800
 

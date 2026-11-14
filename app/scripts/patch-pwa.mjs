@@ -39,7 +39,7 @@ const HEAD_TAGS = `
     <meta name="theme-color" content="#3C4654" />
     <link rel="manifest" href="/manifest.json" />
     <link rel="icon" href="/favicon.ico" sizes="16x16 32x32 48x48" />
-    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon-citron.png" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
@@ -58,7 +58,7 @@ const HEAD_TAGS = `
     <meta name="twitter:title" content="Scrutoir. Tes députés votent comment ?" />
     <meta name="twitter:description" content="Comment votent les députés français, à partir des données officielles de l'Assemblée nationale. Neutre, gratuit, sans pub." />
     <meta name="twitter:image" content="https://scrutoir.fr/og.png" />
-    <!-- Splash : ouverture officielle « La parole circule » (logo, puis la parole passe d'un côté à l'autre) -->
+    <!-- Splash : ouverture officielle « La parole circule » (logo, puis la parole passe d'un côté à l'autre), sur fond sombre -->
     <style>
       #scrutoir-splash{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;background:#F2F4F7;transition:opacity .45s ease}
       #scrutoir-splash.ss-hide{opacity:0;pointer-events:none}
@@ -76,8 +76,9 @@ const HEAD_TAGS = `
       @keyframes ss-respire{from{opacity:1}to{opacity:.55}}
       /* Animations réduites : le logo, fixe, sans la parole */
       @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat,#scrutoir-splash .ss-focal,#scrutoir-splash .ss-word,#scrutoir-splash .ss-tagline{opacity:1;transform:none;animation:none}#scrutoir-splash .ss-parole{display:none}}
-      /* Variante sombre : posée par l'intro saisonnière seulement (splash-saison.mjs) : Neige et Minuit pour tous,
-         Halloween pour un utilisateur en thème sombre. Siège, point du i et parole en citron (14/11/2026). */
+      /* Variante sombre : posée D'OFFICE sur le splash (classe ss-sombre du balisage) pour tout le monde depuis la
+         1.37.1 (décision du 14/11/2026), intros saisonnières comprises. Siège, point du i et parole en citron. Les
+         règles claires ci-dessus restent la base : retirer la classe rend l'ouverture claire d'origine. */
       #scrutoir-splash.ss-sombre{background:${DARK.bg}}
       #scrutoir-splash.ss-sombre .ss-ink{fill:${DARK.text}}
       #scrutoir-splash.ss-sombre .ss-hole{fill:${DARK.bg};stroke:${DARK.marqueContour}}
@@ -88,7 +89,7 @@ const HEAD_TAGS = `
 
 const SPLASH_BODY = `
     <!-- ${MARKER}-splash -->
-    <div id="scrutoir-splash" role="presentation" aria-hidden="true">
+    <div id="scrutoir-splash" class="ss-sombre" role="presentation" aria-hidden="true">
       <div class="ss-inner">
         <svg viewBox="0 4 120 88" xmlns="http://www.w3.org/2000/svg" aria-label="Scrutoir"></svg>
         <div class="ss-brand">
@@ -201,18 +202,6 @@ async function verifierImportMapSync() {
       );
       process.exit(1);
     }
-  }
-}
-
-/** Échoue le build si la clé de préférence de thème lue par l'intro saisonnière a divergé de theme.ts. */
-async function verifierClePreferenceTheme() {
-  const src = await readFile(join(__dirname, "..", "src", "theme.ts"), "utf8");
-  if (!src.includes('const PREF_KEY = "scrutoir.scheme"')) {
-    console.error(
-      "[patch-pwa] CLÉ DE THÈME DÉSYNCHRONISÉE : l'intro saisonnière lit localStorage « scrutoir.scheme »,\n" +
-      "  absent de src/theme.ts (PREF_KEY). Mettre à jour SAISON_SCRIPT (splash-saison.mjs) et theme.ts ensemble."
-    );
-    process.exit(1);
   }
 }
 
@@ -368,7 +357,6 @@ async function main() {
 
   // Balises <head> avant </head> (+ styles de l'intro saisonnière + import map statique de la recherche sémantique)
   await verifierImportMapSync();
-  await verifierClePreferenceTheme();
   verifierPeriodes();
   html = html.replace("</head>", `${HEAD_TAGS}${SAISON_STYLE}${IMPORTMAP_TAG}\n  </head>`);
 
