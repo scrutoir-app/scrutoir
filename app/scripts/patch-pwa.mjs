@@ -13,6 +13,7 @@ import { readFile, writeFile, access, rename, readdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { LIGHT, DARK } from "../src/theme.ts";
+import { geometrieMarque, LOGOTYPE } from "../src/components/brand/geometrie.ts";
 import { SAISON_STYLE, SAISON_SCRIPT, verifierPeriodes } from "./splash-saison.mjs";
 import { APP_VERSION } from "../src/config.ts";
 import { versionnerSw } from "./sw-version.mjs";
@@ -23,14 +24,56 @@ const distHtml = join(distDir, "index.html");
 const MARKER = "SCRUTOIR_PWA";
 
 /*
- * Ouverture officielle « La parole circule » (maquette validée le 2026-10-16, vault
- * « maquette-ouverture-officielle », version L4). Le logo apparaît ; un petit point (la parole)
- * part de la tribune, va vers un siège d'un côté, puis vers un siège de l'autre côté, et revient.
- * Les deux sièges et le côté servi en premier sont tirés au hasard à chaque ouverture : aucun côté
- * n'est favorisé. Temps de la maquette (ms) × TEMPO : Anthony trouvait l'animation trop rapide au ×1.
+ * Ouverture officielle « Le point du i » (maquette validée le 2026-11-14, Cowork,
+ * instagram/brouillons/animation-logo/animation-logo.html). Remplace « La parole circule » (1.29.0).
+ * Le mot Scrutoir s'écrit de gauche à droite (contour puis remplissage). Le point du i se pose,
+ * bat une fois, efface le mot en partant de lui, puis saute jusqu'au siège blanc de l'hémicycle
+ * (rang extérieur, index 2) en grandissant à la taille d'un siège. Les autres sièges arrivent du
+ * sommet vers LES DEUX flancs en même temps (aucun côté avant l'autre), puis la tribune. Le
+ * gros rond (la tribune) est au CENTRE EXACT de l'écran, comme sur l'icône et la photo de profil,
+ * et n'en bouge plus ; le mot et « Appli citoyenne » apparaissent dessous (décision du 14/11/2026).
+ * Tout est dans une seule scène SVG (viewBox 1000 × 1000), animée en JS (requestAnimationFrame) :
+ * la trajectoire du point (arc) ne s'exprime pas proprement en CSS. Temps de base (s) × TEMPO.
+ * Géométrie lue dans src/components/brand/geometrie.ts (source unique), couleurs dans theme.ts.
  */
-const TEMPO = 2;
+const TEMPO = 1;
 const ms = (x) => Math.round(x * TEMPO);
+
+// ---------- Scène de l'ouverture (unités du viewBox 0 0 1000 1000) ----------
+const SC = (() => {
+  const M = geometrieMarque(640); // symbole : ~ 62 % de la largeur de la scène
+  const top = Math.min(...M.dots.map((d) => d.y)) - M.dotR;
+  const bottom = M.focal.y + M.focal.r;
+  const markH = bottom - top;
+  const mox = 500 - M.w / 2;
+  const moyCentre = 500 - M.focal.y; // le gros rond au centre exact de la scène, donc de l'écran
+  const s1 = 1.52, x1 = (1000 - LOGOTYPE.VB_W * s1) / 2, y1 = (1000 - LOGOTYPE.VB_H * s1) / 2; // le mot qui s'écrit
+  const s2 = 1.32, x2 = (1000 - LOGOTYPE.VB_W * s2) / 2; // le mot final, sous le symbole
+  const wordH = LOGOTYPE.VB_H * s2, gapA = 60, gapB = 45, tagH = 34;
+  const top0 = moyCentre + top; // le symbole ne bouge plus : le mot et le slogan se placent dessous
+  const y2 = top0 + markH + gapA;
+  const tagY = y2 + wordH + gapB + tagH;
+  const iBlanc = M.dots.findIndex((d) => d.white);
+  const blanc = M.dots[iBlanc];
+  const P = LOGOTYPE.point;
+  const anneau = M.w / 64; // contour épaissi, comme les icônes et la photo de profil (gen-marque-sombre.mjs)
+  const sieges = M.dots
+    .map((d, i) => {
+      if (d.white) return null;
+      const ang = Math.atan2(M.focal.y - d.y, d.x - M.w / 2);
+      const depuisSommet = Math.abs(ang - Math.PI / 2) / (Math.PI / 2); // 0 au sommet, 1 aux flancs
+      const interieur = i >= 10 ? 1 : 0; // rang intérieur (8 sièges), après le rang extérieur (10)
+      return [+d.x.toFixed(2), +d.y.toFixed(2), +(2.1 + depuisSommet * 0.3 + interieur * 0.05).toFixed(3)];
+    })
+    .filter(Boolean);
+  return {
+    M, mox, moyCentre, s1, x1, y1, s2, x2, y2, tagY, anneau, sieges,
+    depart: { x: x1 + P.cx * s1, y: y1 + P.cy * s1, r: P.r * s1, sw: P.strokeW * s1 },
+    arrivee: { x: mox + blanc.x, y: moyCentre + blanc.y },
+    traits: LOGOTYPE.d.split(/(?=M)/),
+  };
+})();
+const FIN = 3.4; // fin de l'ouverture, en secondes de base
 
 const HEAD_TAGS = `
     <!-- ${MARKER} -->
@@ -58,97 +101,123 @@ const HEAD_TAGS = `
     <meta name="twitter:title" content="Scrutoir. Tes députés votent comment ?" />
     <meta name="twitter:description" content="Comment votent les députés français, à partir des données officielles de l'Assemblée nationale. Neutre, gratuit, sans pub." />
     <meta name="twitter:image" content="https://scrutoir.fr/og.png" />
-    <!-- Splash : ouverture officielle « La parole circule » (logo, puis la parole passe d'un côté à l'autre), sur fond sombre -->
+    <!-- Splash : ouverture officielle « Le point du i » (le mot s'écrit, son point devient le siège), sur fond sombre -->
     <style>
-      #scrutoir-splash{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;background:#F2F4F7;transition:opacity .45s ease}
+      #scrutoir-splash{position:fixed;inset:0;z-index:2147483600;display:flex;align-items:center;justify-content:center;background:${LIGHT.bg};transition:opacity .45s ease}
       #scrutoir-splash.ss-hide{opacity:0;pointer-events:none}
-      #scrutoir-splash .ss-inner{display:flex;flex-direction:column;align-items:center;gap:20px;transform:translateY(-3%)}
-      #scrutoir-splash svg{width:132px;height:auto;display:block}
-      #scrutoir-splash .ss-seat{opacity:.16;transform-box:fill-box;transform-origin:center;animation:ss-arrive ${ms(220)}ms cubic-bezier(.2,0,0,1) var(--ts,0ms) forwards}
-      #scrutoir-splash .ss-focal{opacity:0;transform:scale(.85);transform-box:fill-box;transform-origin:center;animation:ss-arrive ${ms(300)}ms cubic-bezier(.2,0,0,1) forwards}
-      #scrutoir-splash .ss-word{width:172px;height:auto;display:block;opacity:0;transform:translateY(6px);animation:ss-arrive ${ms(450)}ms cubic-bezier(.2,0,0,1) ${ms(1000)}ms forwards}
-      #scrutoir-splash .ss-parole{fill:${LIGHT.text};opacity:0;animation:ss-parole ${ms(760)}ms cubic-bezier(.4,0,.2,1) ${ms(200)}ms forwards}
-      #scrutoir-splash.ss-attente .ss-focal{opacity:1;transform:none;animation:ss-respire ${ms(1200)}ms ease-in-out infinite alternate}
-      #scrutoir-splash .ss-brand{display:flex;flex-direction:column;align-items:center;gap:9px}
-      #scrutoir-splash .ss-tagline{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:12px;font-weight:600;letter-spacing:.16em;text-transform:uppercase;color:#6B727E;opacity:0;animation:ss-arrive ${ms(450)}ms cubic-bezier(.2,0,0,1) ${ms(1080)}ms forwards}
-      @keyframes ss-arrive{to{opacity:1;transform:none}}
-      @keyframes ss-parole{0%{opacity:0;transform:translate(0,0)}8%{opacity:1}33%,40%{transform:translate(var(--ax),var(--ay))}66%,73%{transform:translate(var(--bx),var(--by))}96%{opacity:1}100%{opacity:0;transform:translate(0,0)}}
+      #scrutoir-splash .ss-scene{width:min(260px,68vw);height:auto;display:block;overflow:visible}
+      #scrutoir-splash .ss-ink{fill:${LIGHT.text}}
+      #scrutoir-splash .ss-trace{fill:none;stroke:${LIGHT.text};stroke-width:42;stroke-linejoin:round}
+      #scrutoir-splash .ss-hole{fill:#FFFFFF;stroke:${LIGHT.marqueContour}}
+      #scrutoir-splash .ss-focal{fill:#3C4654}
+      #scrutoir-splash .ss-tagline{fill:${LIGHT.textFaint};font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:46px;font-weight:600;letter-spacing:7.4px}
+      #scrutoir-splash.ss-attente #ss-focal{animation:ss-respire ${ms(1200)}ms ease-in-out infinite alternate}
       @keyframes ss-respire{from{opacity:1}to{opacity:.55}}
-      /* Animations réduites : le logo, fixe, sans la parole */
-      @media (prefers-reduced-motion:reduce){#scrutoir-splash .ss-seat,#scrutoir-splash .ss-focal,#scrutoir-splash .ss-word,#scrutoir-splash .ss-tagline{opacity:1;transform:none;animation:none}#scrutoir-splash .ss-parole{display:none}}
       /* Variante sombre : posée D'OFFICE sur le splash (classe ss-sombre du balisage) pour tout le monde depuis la
-         1.37.1 (décision du 14/11/2026), intros saisonnières comprises. Siège, point du i et parole en citron. Les
-         règles claires ci-dessus restent la base : retirer la classe rend l'ouverture claire d'origine. */
+         1.37.1 (décision du 14/11/2026), intros saisonnières comprises. Siège et point du i en citron. Les règles
+         claires ci-dessus restent la base : retirer la classe rend l'ouverture claire (contour encre, logo déposé). */
       #scrutoir-splash.ss-sombre{background:${DARK.bg}}
       #scrutoir-splash.ss-sombre .ss-ink{fill:${DARK.text}}
+      #scrutoir-splash.ss-sombre .ss-trace{stroke:${DARK.text}}
       #scrutoir-splash.ss-sombre .ss-hole{fill:${DARK.bg};stroke:${DARK.marqueContour}}
       #scrutoir-splash.ss-sombre .ss-focal{fill:#FFFFFF}
-      #scrutoir-splash.ss-sombre .ss-tagline{color:${DARK.textFaint}}
-      #scrutoir-splash.ss-sombre .ss-parole{fill:${DARK.marqueContour}}
+      #scrutoir-splash.ss-sombre .ss-tagline{fill:${DARK.textFaint}}
     </style>`;
 
 const SPLASH_BODY = `
     <!-- ${MARKER}-splash -->
     <div id="scrutoir-splash" class="ss-sombre" role="presentation" aria-hidden="true">
-      <div class="ss-inner">
-        <svg viewBox="0 4 120 88" xmlns="http://www.w3.org/2000/svg" aria-label="Scrutoir"></svg>
-        <div class="ss-brand">
-          <svg class="ss-word" viewBox="0 0 500.22 160.80" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-            <g transform="translate(0 120) scale(0.06 -0.06)">
-              <path class="ss-ink" fill="#171A1F" d="M684 -30Q524 -30 395.5 26.5Q267 83 184.5 188.5Q102 294 80 440L364 482Q394 358 488.0 291.0Q582 224 702 224Q769 224 832.0 245.0Q895 266 935.5 307.0Q976 348 976 408Q976 430 969.5 450.5Q963 471 948.0 489.0Q933 507 905.5 523.0Q878 539 836 552L462 662Q420 674 364.5 696.0Q309 718 257.0 759.0Q205 800 170.5 867.5Q136 935 136 1038Q136 1183 209.0 1279.0Q282 1375 404.0 1422.0Q526 1469 674 1468Q823 1466 940.0 1417.0Q1057 1368 1136.0 1274.5Q1215 1181 1250 1046L956 996Q940 1066 897.0 1114.0Q854 1162 794.5 1187.0Q735 1212 670 1214Q606 1216 549.5 1196.5Q493 1177 457.5 1140.0Q422 1103 422 1052Q422 1005 451.0 975.5Q480 946 524.0 928.0Q568 910 614 898L864 830Q920 815 988.0 790.5Q1056 766 1118.5 722.5Q1181 679 1221.5 608.0Q1262 537 1262 428Q1262 312 1213.5 225.5Q1165 139 1083.0 82.5Q1001 26 897.5 -2.0Q794 -30 684 -30ZM1983 -30Q1815 -30 1695.0 45.0Q1575 120 1511.0 249.0Q1447 378 1447 540Q1447 704 1513.5 833.0Q1580 962 1701.0 1036.0Q1822 1110 1987 1110Q2178 1110 2307.5 1013.5Q2437 917 2473 750L2201 678Q2177 762 2117.5 809.0Q2058 856 1983 856Q1897 856 1842.0 814.5Q1787 773 1761.0 701.5Q1735 630 1735 540Q1735 399 1797.5 311.5Q1860 224 1983 224Q2075 224 2123.0 266.0Q2171 308 2195 386L2473 328Q2427 156 2299.0 63.0Q2171 -30 1983 -30ZM2698 0V1080H2938V816L2912 850Q2933 906 2968.0 952.0Q3003 998 3054 1028Q3093 1052 3139.0 1065.5Q3185 1079 3234.0 1082.5Q3283 1086 3332 1080V826Q3287 840 3227.5 835.5Q3168 831 3120 808Q3072 786 3039.0 749.5Q3006 713 2989.0 663.5Q2972 614 2972 552V0ZM3949 -32Q3822 -32 3742.0 11.0Q3662 54 3617.5 120.0Q3573 186 3554.0 257.5Q3535 329 3531.0 388.0Q3527 447 3527 474V1080H3803V570Q3803 533 3807.0 475.5Q3811 418 3832.0 360.0Q3853 302 3900.5 263.0Q3948 224 4035 224Q4070 224 4110.0 235.0Q4150 246 4185.0 277.5Q4220 309 4242.5 370.5Q4265 432 4265 532L4421 458Q4421 330 4369.0 218.0Q4317 106 4212.5 37.0Q4108 -32 3949 -32ZM4299 0V358H4265V1080H4539V0ZM5492 0Q5380 -21 5272.5 -18.5Q5165 -16 5080.5 19.5Q4996 55 4952 134Q4912 208 4910.0 284.5Q4908 361 4908 458V1380H5180V474Q5180 411 5181.5 360.5Q5183 310 5202 280Q5238 223 5317.0 218.0Q5396 213 5492 226ZM4724 870V1080H5492V870ZM6243 -30Q6080 -30 5957.0 43.0Q5834 116 5765.5 244.5Q5697 373 5697 540Q5697 709 5767.0 837.5Q5837 966 5960.0 1038.0Q6083 1110 6243 1110Q6406 1110 6529.5 1037.0Q6653 964 6722.0 835.5Q6791 707 6791 540Q6791 372 6721.5 243.5Q6652 115 6528.5 42.5Q6405 -30 6243 -30ZM6243 224Q6374 224 6438.5 312.5Q6503 401 6503 540Q6503 684 6437.5 770.0Q6372 856 6243 856Q6154 856 6097.0 816.0Q6040 776 6012.5 705.0Q5985 634 5985 540Q5985 395 6050.5 309.5Q6116 224 6243 224ZM7056 0V1080H7328V0ZM7653 0V1080H7893V816L7867 850Q7888 906 7923.0 952.0Q7958 998 8009 1028Q8048 1052 8094.0 1065.5Q8140 1079 8189.0 1082.5Q8238 1086 8287 1080V826Q8242 840 8182.5 835.5Q8123 831 8075 808Q8027 786 7994.0 749.5Q7961 713 7944.0 663.5Q7927 614 7927 552V0Z"/>
-            </g>
-            <circle class="ss-hole" cx="431.52" cy="31.80" r="10.20" fill="#FFFFFF" stroke="#171A1F" stroke-width="4.50"/>
-          </svg>
-          <div class="ss-tagline">Appli citoyenne</div>
-        </div>
-      </div>
+      <svg class="ss-scene" viewBox="0 0 1000 1000" xmlns="http://www.w3.org/2000/svg" aria-label="Scrutoir, appli citoyenne">
+        <defs>
+          <radialGradient id="ss-plume"><stop offset="0" stop-color="#000"/><stop offset=".82" stop-color="#000"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+          <mask id="ss-efface" maskUnits="userSpaceOnUse" x="-500" y="-500" width="2000" height="2000">
+            <rect x="-500" y="-500" width="2000" height="2000" fill="#fff"/>
+            <circle id="ss-gomme" cx="${SC.depart.x.toFixed(2)}" cy="${SC.depart.y.toFixed(2)}" r="0" fill="url(#ss-plume)"/>
+          </mask>
+          <clipPath id="ss-revele" clipPathUnits="userSpaceOnUse"><rect id="ss-rideau" x="${(SC.x1 - 20).toFixed(1)}" y="0" width="0" height="1000"/></clipPath>
+        </defs>
+        <g id="ss-mot" mask="url(#ss-efface)">
+          <g clip-path="url(#ss-revele)">
+            <g transform="translate(${SC.x1.toFixed(2)} ${SC.y1.toFixed(2)}) scale(${SC.s1})"><g transform="translate(0 ${LOGOTYPE.ty}) scale(${LOGOTYPE.s} -${LOGOTYPE.s})">
+              <path class="ss-ink" d="${LOGOTYPE.d}"/>
+            </g></g>
+          </g>
+          <g transform="translate(${SC.x1.toFixed(2)} ${SC.y1.toFixed(2)}) scale(${SC.s1})"><g transform="translate(0 ${LOGOTYPE.ty}) scale(${LOGOTYPE.s} -${LOGOTYPE.s})">
+            ${SC.traits.map((d) => `<path class="ss-trace" d="${d}"/>`).join("")}
+          </g></g>
+        </g>
+        <g id="ss-symbole" transform="translate(${SC.mox.toFixed(2)} ${SC.moyCentre.toFixed(2)})">
+          ${SC.sieges.map(([x, y]) => `<circle class="ss-ink ss-siege" cx="${x}" cy="${y}" r="0"/>`).join("")}
+          <circle id="ss-focal" class="ss-focal" cx="${SC.M.focal.x.toFixed(2)}" cy="${SC.M.focal.y.toFixed(2)}" r="0"/>
+        </g>
+        <circle id="ss-point" class="ss-hole" cx="${SC.depart.x.toFixed(2)}" cy="${SC.depart.y.toFixed(2)}" r="0"/>
+        <g id="ss-marque" opacity="0">
+          <g id="ss-mot2" transform="translate(${SC.x2.toFixed(2)} ${SC.y2.toFixed(2)}) scale(${SC.s2})">
+            <g transform="translate(0 ${LOGOTYPE.ty}) scale(${LOGOTYPE.s} -${LOGOTYPE.s})"><path class="ss-ink" d="${LOGOTYPE.d}"/></g>
+            <circle id="ss-point2" class="ss-hole" cx="${LOGOTYPE.point.cx}" cy="${LOGOTYPE.point.cy}" r="0" stroke-width="${LOGOTYPE.point.strokeW}"/>
+          </g>
+          <text id="ss-slogan" class="ss-tagline" x="500" y="${SC.tagY.toFixed(1)}" text-anchor="middle" opacity="0">APPLI CITOYENNE</text>
+        </g>
+      </svg>
     </div>
     <script>
       (function(){
-        var NS="http://www.w3.org/2000/svg",K=${TEMPO};
+        var K=${TEMPO},FIN=${FIN};
         var reduit=false;try{reduit=!!window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){}
-        var svg=document.querySelector("#scrutoir-splash svg");
-        if(svg){
-          var w=120,h=w*0.72,cx=w/2,cy=h*0.84,rings=[w*0.44,w*0.31],dotR=w*0.046,strokeW=Math.max(1,w*0.0085);
-          var seats=[];
-          rings.forEach(function(R,ri){
-            var n=9-ri*2;
-            for(var i=0;i<=n;i++){var t=Math.PI*(i/n);seats.push({x:cx+R*Math.cos(t),y:cy-R*Math.sin(t),t:t,ring:ri,white:(ri===0&&i===2)});}
-          });
-          seats.sort(function(a,b){return a.t-b.t;});
-          seats.forEach(function(s){
-            var c=document.createElementNS(NS,"circle");
-            c.setAttribute("cx",s.x.toFixed(2));c.setAttribute("cy",s.y.toFixed(2));
-            c.setAttribute("r",dotR.toFixed(2));
-            if(s.white){ // siège blanc contour encre (jumeau du point du « i »)
-              c.setAttribute("fill","#FFFFFF");c.setAttribute("stroke","#171A1F");c.setAttribute("stroke-width",strokeW.toFixed(2));
-              c.setAttribute("class","ss-seat ss-hole");
-            }else{
-              c.setAttribute("fill","#171A1F");
-              c.setAttribute("class","ss-seat ss-ink");
-            }
-            s.el=c;svg.appendChild(c);
-          });
-          // La parole circule : un siège d'un côté, puis un siège de l'autre, tirés au hasard (côté de départ compris).
-          var gauche=seats.filter(function(s){return s.t>Math.PI/2+0.2;}),droite=seats.filter(function(s){return s.t<Math.PI/2-0.2;});
-          var g=gauche[Math.floor(Math.random()*gauche.length)],d=droite[Math.floor(Math.random()*droite.length)];
-          var A=Math.random()<0.5?g:d,B=A===g?d:g;
-          seats.forEach(function(s){
-            var cr=Math.abs(s.t-Math.PI/2)/(Math.PI/2); // 0 au sommet, 1 aux extrémités : les autres sièges s'allument du centre vers les flancs
-            s.el.style.setProperty("--ts",Math.round((s===A?440:s===B?690:980+cr*160+(1-s.ring)*60)*K)+"ms");
-          });
-          var f=document.createElementNS(NS,"circle"); // point focal (tribune/pupille)
-          f.setAttribute("cx",cx);f.setAttribute("cy",cy.toFixed(2));f.setAttribute("r",(w*0.1).toFixed(2));
-          f.setAttribute("fill","#3C4654");f.setAttribute("class","ss-focal");
-          svg.appendChild(f);
-          var pa=document.createElementNS(NS,"circle"); // la parole (au-dessus de la tribune)
-          pa.setAttribute("cx",cx);pa.setAttribute("cy",cy.toFixed(2));pa.setAttribute("r","2.2");pa.setAttribute("class","ss-parole");
-          pa.style.setProperty("--ax",(A.x-cx).toFixed(1)+"px");pa.style.setProperty("--ay",(A.y-cy).toFixed(1)+"px");
-          pa.style.setProperty("--bx",(B.x-cx).toFixed(1)+"px");pa.style.setProperty("--by",(B.y-cy).toFixed(1)+"px");
-          svg.appendChild(pa);
+        var racine=document.getElementById("scrutoir-splash");
+        if(racine){
+          var $=function(id){return document.getElementById(id);};
+          var SIEGES=${JSON.stringify(SC.sieges)},R=${SC.M.dotR.toFixed(3)},AN=${SC.anneau.toFixed(3)};
+          var D=${JSON.stringify({ x: +SC.depart.x.toFixed(2), y: +SC.depart.y.toFixed(2), r: +SC.depart.r.toFixed(3), sw: +SC.depart.sw.toFixed(3) })};
+          var A=${JSON.stringify({ x: +SC.arrivee.x.toFixed(2), y: +SC.arrivee.y.toFixed(2) })};
+          var FR=${SC.M.focal.r.toFixed(3)};
+          var X2=${SC.x2.toFixed(2)},Y2=${SC.y2.toFixed(2)},S2=${SC.s2},TY=${SC.tagY.toFixed(1)},PR2=${LOGOTYPE.point.r};
+          var traits=[].slice.call(racine.querySelectorAll(".ss-trace")).map(function(p){var L=p.getTotalLength();p.style.strokeDasharray=L;return{el:p,L:L,x:p.getBBox().x};});
+          var XMAX=Math.max.apply(null,traits.map(function(k){return k.x;}))||1;
+          var sieges=[].slice.call(racine.querySelectorAll(".ss-siege"));
+          var rideau=$("ss-rideau"),gomme=$("ss-gomme"),point=$("ss-point"),focal=$("ss-focal"),marque=$("ss-marque"),mot2=$("ss-mot2"),point2=$("ss-point2"),slogan=$("ss-slogan");
+          var cl=function(v){return v<0?0:v>1?1:v;},seg=function(t,a,b){return cl((t-a)/(b-a));};
+          var eOut=function(p){return 1-Math.pow(1-p,3);},eIn=function(p){return p*p*p;};
+          var eIO=function(p){return p<.5?4*p*p*p:1-Math.pow(-2*p+2,3)/2;};
+          var rebond=function(p){var c=1.70158;return 1+(c+1)*Math.pow(p-1,3)+c*Math.pow(p-1,2);};
+          var mix=function(a,b,p){return a+(b-a)*p;};
+          function rendu(t){
+            // 1. le mot s'écrit de gauche à droite : contour, puis remplissage
+            traits.forEach(function(k){var a=0.05+0.5*(k.x/XMAX);k.el.style.strokeDashoffset=k.L*(1-eOut(seg(t,a,a+0.38)));k.el.style.strokeOpacity=1-seg(t,1.0,1.2);});
+            rideau.setAttribute("width",(800*eIO(seg(t,0.25,1.05))).toFixed(1));
+            // 2. le point du i se pose et bat une fois ; 3. il efface le mot en partant de lui
+            var pose=rebond(seg(t,1.05,1.3)),bat=Math.sin(Math.PI*seg(t,1.35,1.55))*0.2;
+            gomme.setAttribute("r",(900*eIn(seg(t,1.45,1.95))).toFixed(1));
+            // 4. il saute jusqu'au siège blanc et grandit
+            var m=eIO(seg(t,1.65,2.15)),monte=-175*Math.sin(Math.PI*m),tasse=Math.sin(Math.PI*seg(t,2.15,2.3))*0.12;
+            point.setAttribute("cx",mix(D.x,A.x,m).toFixed(2));
+            point.setAttribute("cy",(mix(D.y,A.y,m)+monte).toFixed(2));
+            point.setAttribute("r",Math.max(0,mix(D.r,R,m)*pose*(1+bat+tasse)).toFixed(2));
+            point.setAttribute("stroke-width",(mix(D.sw,AN,m)*Math.min(1,pose)).toFixed(2));
+            // 5. les autres sièges, du sommet vers les deux flancs en même temps ; 6. la tribune
+            for(var i=0;i<sieges.length;i++){var t0=SIEGES[i][2];sieges[i].setAttribute("r",Math.max(0,R*rebond(seg(t,t0,t0+0.28))).toFixed(2));}
+            focal.setAttribute("r",Math.max(0,FR*rebond(seg(t,2.45,2.75))).toFixed(2));
+            // 7. le gros rond reste au centre ; le mot puis « Appli citoyenne » apparaissent dessous
+            var w=eOut(seg(t,2.85,3.2));marque.setAttribute("opacity",w.toFixed(3));
+            mot2.setAttribute("transform","translate("+X2+" "+(Y2+14*(1-w)).toFixed(1)+") scale("+S2+")");
+            point2.setAttribute("r",Math.max(0,PR2*rebond(seg(t,3.1,3.3))).toFixed(2));
+            var tg=eOut(seg(t,3.0,3.35));slogan.setAttribute("opacity",tg.toFixed(3));slogan.setAttribute("y",(TY+10*(1-tg)).toFixed(1));
+          }
+          if(reduit){rendu(FIN);} // animations réduites : le logo final, fixe
+          else{
+            var debut=null;
+            var boucle=function(now){
+              if(!document.getElementById("scrutoir-splash"))return; // l'ouverture est partie : on s'arrête
+              if(debut===null)debut=now;
+              var t=(now-debut)/1000/K;
+              rendu(Math.min(t,FIN));
+              if(t<FIN)requestAnimationFrame(boucle);
+            };
+            rendu(0);requestAnimationFrame(boucle);
+          }
         }
         // Tenue : la fin de l'ouverture (+ un temps de repos) ; animations réduites : le plancher historique de 1,6 s.
-        var t0=Date.now(),TENUE=reduit?1600:${ms(1400 + 250)},hidden=false,parti=false,minuteur;
+        var t0=Date.now(),TENUE=reduit?1600:${ms(FIN * 1000 + 250)},hidden=false,parti=false,minuteur;
         // Intro saisonnière (splash-saison.mjs, script suivant) : lue au moment de partir via window.__scrutoirSaison.
         function reallyHide(){
           if(parti)return;parti=true;clearTimeout(minuteur);
@@ -164,7 +233,7 @@ const SPLASH_BODY = `
           if(el&&!reduit){el.style.cursor="pointer";el.addEventListener("click",reallyHide);} // jamais bloquant : une touche passe l'ouverture dès que l'appli est prête
           minuteur=setTimeout(reallyHide,Math.max(0,Math.max(TENUE,S?S.tenue:0)-(Date.now()-t0)));
         }
-        setTimeout(function(){ // l'appli tarde au-delà de l'ouverture : seul le point focal respire
+        setTimeout(function(){ // l'appli tarde au-delà de l'ouverture : seule la tribune respire
           var el=document.getElementById("scrutoir-splash");if(!hidden&&el)el.classList.add("ss-attente");
         },TENUE);
         window.__scrutoirReady=hide;

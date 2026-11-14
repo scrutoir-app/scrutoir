@@ -8,6 +8,19 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.38.0 — 2026-11-14
+**Nouvelle ouverture « Le point du i ».** Elle remplace « La parole circule » (1.29.0) et suit l'animation validée le 14/11 :
+1. le mot Scrutoir s'écrit de gauche à droite, contour puis remplissage ;
+2. le point du i se pose, avec son contour citron, et bat une fois ;
+3. il efface le mot en partant de lui ;
+4. il saute jusqu'au siège blanc de l'hémicycle (rang extérieur, flanc droit) et grandit à la taille d'un siège ;
+5. les autres sièges arrivent du sommet vers les deux flancs en même temps, aucun côté avant l'autre, puis la tribune ;
+6. « Scrutoir » et « Appli citoyenne » apparaissent dessous. Le gros rond reste au centre exact de l'écran, comme sur l'icône et la photo de profil.
+
+- Durée 3,4 s, tenue 3,65 s ; une touche passe l'ouverture dès que l'appli est prête ; si l'appli tarde, seule la tribune respire. Animations réduites : le logo final, fixe.
+- Fond sombre pour tous (depuis la 1.37.1) : siège et point du i à contour citron, gros rond blanc ; contour du siège épaissi comme sur les icônes. Sans la classe sombre, version claire à contour encre (logo déposé).
+- Une seule scène SVG animée en JS (la trajectoire en arc du point ne s'écrit pas proprement en CSS), géométrie lue dans `geometrie.ts`, couleurs dans `theme.ts`. Les intros saisonnières (Halloween, Neige, Minuit) se posent autour, sans changement.
+
 ## 1.37.1 — 2026-11-14
 **Ouverture sombre et citron pour tout le monde ; les nouvelles icônes arrivent enfin.**
 - **Ouverture officielle « La parole circule »** : sur fond sombre pour tout le monde (plus seulement pendant Neige et Minuit), avec le siège, le point du i et la parole en citron, et le gros rond blanc. L'appli garde ensuite le thème choisi. Animations réduites : logo fixe, même couleurs. Les intros saisonnières suivent : le décor d'Halloween passe en sombre pour tous (ses silhouettes encre auraient disparu sur le fond sombre). Le manifeste PWA prend le même fond (`#0F1318`), pour l'écran de lancement d'Android.
