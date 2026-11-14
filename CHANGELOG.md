@@ -8,6 +8,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.38.1 — 2026-11-14
+**Ouverture « Le point du i » plus longue : 5,1 s au lieu de 3,4 s.** Toute l'animation est étirée d'un coup (×1,5), le rythme entre les étapes ne change pas ; l'écran d'ouverture reste affiché 5,5 s en tout. Une touche le passe toujours dès que l'appli est prête. Animations réduites inchangées (logo fixe, 1,6 s).
+
 ## 1.38.0 — 2026-11-14
 **Nouvelle ouverture « Le point du i ».** Elle remplace « La parole circule » (1.29.0) et suit l'animation validée le 14/11 :
 1. le mot Scrutoir s'écrit de gauche à droite, contour puis remplissage ;
