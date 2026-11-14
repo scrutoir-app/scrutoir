@@ -14,7 +14,8 @@
  *  - halloween (maquette validée le 2026-10-16) : lune, toile, chauves-souris ; splash tenu
  *    3,4 s (une touche le passe dès que l'appli est prête), surcouche retirée à 5,1 s ;
  *  - neige et minuit (maquette « maquette-ouverture-fetes », validée le 2026-10-16) : neige qui
- *    s'efface à l'approche du logo ; gerbes dorées au-dessus du logo. Splash tenu 3,4 s, tout
+ *    s'efface à l'approche du logo (masque centré sur le bloc du logo final, 15 px sous le centre de
+ *    l'écran depuis l'ouverture « Le point du i », 1.38.0) ; gerbes dorées au-dessus du logo. Splash tenu 3,4 s, tout
  *    part avec le splash. L'appli garde ensuite le thème choisi.
  */
 import { LIGHT, DARK, MOTION } from "../src/theme.ts";
@@ -190,7 +191,7 @@ ${VOLS.map(([w, duree, depart, aile], i) =>
       @keyframes sz-bat{from{transform:scaleY(1)}to{transform:scaleY(-.35)}}
       #scrutoir-saison .sz-couche{position:absolute;inset:0}
       #scrutoir-saison.sz-depart .sz-couche{opacity:0;transition:opacity 600ms ${EASE_IN}}
-      #scrutoir-saison .sz-neige{position:absolute;inset:0;opacity:0;-webkit-mask-image:radial-gradient(ellipse 150px 165px at 50% calc(50% - 6px),transparent 62%,#000 100%);mask-image:radial-gradient(ellipse 150px 165px at 50% calc(50% - 6px),transparent 62%,#000 100%);animation:sz-apparait 900ms ${EASE_OUT} 100ms forwards}
+      #scrutoir-saison .sz-neige{position:absolute;inset:0;opacity:0;-webkit-mask-image:radial-gradient(ellipse 150px 165px at 50% calc(50% + 15px),transparent 62%,#000 100%);mask-image:radial-gradient(ellipse 150px 165px at 50% calc(50% + 15px),transparent 62%,#000 100%);animation:sz-apparait 900ms ${EASE_OUT} 100ms forwards}
       #scrutoir-saison .sz-flocon{position:absolute;top:-20px;animation:sz-tombe var(--d) linear var(--dl) infinite}
       #scrutoir-saison .sz-flocon i{display:block;width:var(--s);height:var(--s);border-radius:50%;background:var(--sz-neige);opacity:var(--o);box-shadow:0 0 0 .75px var(--sz-fil);animation:sz-derive var(--dd) ease-in-out infinite alternate}
       #scrutoir-saison .sz-cristal i{background:none;border-radius:0;box-shadow:none}
