@@ -140,6 +140,15 @@ Règles produit, à respecter dans toute évolution du deck de swipe :
   mécanique de gamification. TODO : statut des indicateurs de progression (ex. « 3/10 »), absent
   des sources.
 
+## Animations saisonnières
+
+- L'animation vit dans une surcouche unique qui ne capte pas les touches.
+- Jamais d'animation saisonnière sur l'écran de swipe.
+- Jamais de couleur saisonnière dans le spectre ni à proximité des couleurs des groupes. Les
+  couleurs viennent des tokens du thème, aucune couleur en dur.
+- Coupure totale quand le réglage système de réduction des animations est actif.
+- TODO : le choix entre fêtes nommées et thèmes de saison reste ouvert.
+
 ## Hors sources, à arbitrer
 
 - TODO : intégrer ou non `app/src/components/ui/README.md` (primitives `Card` / `Chip` /
