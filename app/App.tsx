@@ -41,6 +41,13 @@ import { TestParThemeScreen } from "./src/screens/TestParThemeScreen";
 import { DossierScrutinsScreen } from "./src/screens/DossierScrutinsScreen";
 import { AccueilAccordsScreen } from "./src/screens/AccueilAccordsScreen";
 import { AccordsIndexScreen } from "./src/screens/AccordsIndexScreen";
+import { HubScreen } from "./src/screens/presidentielle/HubScreen";
+import { ProgrammeScreen } from "./src/screens/presidentielle/ProgrammeScreen";
+import { ChapitreScreen } from "./src/screens/presidentielle/ChapitreScreen";
+import { MesureScreen } from "./src/screens/presidentielle/MesureScreen";
+import { chargerIndexPresidentielle } from "./src/presidentielle/donnees";
+import { pileLienProfond } from "./src/presidentielle/routes";
+import { TYPES_LIEN } from "./src/presidentielle/logique";
 import { lireHashPartage } from "./src/testProximite/storage";
 import { getCategories } from "./src/api";
 import { InstallPrompt } from "./src/components/InstallPrompt";
@@ -118,6 +125,12 @@ function AppInner() {
     }
   }, []);
 
+  // Rubrique Présidentielle 2027 : l'index des programmes en service est lu au lancement, avec
+  // les autres données. Vide, absent ou en erreur : la rubrique est absente partout.
+  useEffect(() => {
+    chargerIndexPresidentielle();
+  }, []);
+
   // Deep-link `/?open=type:uid` (CTA des ~9 800 pages SEO, cf. prerender-seo.mjs) :
   // ouvre directement l'écran de l'entité au lieu de larguer le visiteur sur l'accueil.
   // Le paramètre est retiré de l'URL (replaceState) pour ne pas rejouer au refresh.
@@ -125,6 +138,16 @@ function AppInner() {
     if (Platform.OS !== "web" || typeof window === "undefined") return;
     const open = new URLSearchParams(window.location.search).get("open");
     if (!open) return;
+    // Rubrique Présidentielle 2027 (`presidentielle`, `programme:…`, `chapitre:…`, `mesure:…`) :
+    // hors service ou identifiant inconnu → l'accueil, sans message d'erreur.
+    if ((TYPES_LIEN as readonly string[]).includes(open.split(":")[0])) {
+      window.history.replaceState(null, "", window.location.pathname);
+      chargerIndexPresidentielle().then((index) => {
+        const pile = pileLienProfond(open, index);
+        if (pile) setStack(pile);
+      });
+      return;
+    }
     const [type, id] = open.split(":");
     if (!id) return;
     window.history.replaceState(null, "", window.location.pathname);
@@ -202,8 +225,26 @@ function AppInner() {
 
   // Analytics anonyme : un événement par écran/entité consulté (les duels sont tracés
   // dans ConfrontationScreen). Ne casse jamais l'app (track() est protégé).
+  // Rubrique Présidentielle : une ouverture par écran (le changement de filtre, qui réécrit la
+  // route par nav.replace, n'est pas une nouvelle ouverture).
+  const derniereOuverture = useRef("");
   useEffect(() => {
     const c = current;
+    if (c.name === "presidentielle" || c.name === "programme" || c.name === "chapitre" || c.name === "mesure") {
+      const cle =
+        c.name === "presidentielle" ? "presidentielle"
+        : c.name === "programme" ? `programme:${c.programme}`
+        : c.name === "chapitre" ? `chapitre:${c.programme}.${c.chapitre}`
+        : `mesure:${c.programme}.${c.mesure}`;
+      if (cle === derniereOuverture.current) return;
+      derniereOuverture.current = cle;
+      if (c.name === "presidentielle") track("presidentielle_open");
+      else if (c.name === "programme") track("programme_open", c.programme);
+      else if (c.name === "chapitre") track("chapitre_open", c.programme, c.chapitre);
+      else track("mesure_open", c.programme, c.mesure);
+      return;
+    }
+    derniereOuverture.current = "";
     if (c.name === "depute") track("depute", c.depuis ? "" : c.uid, c.depuis);
     else if (c.name === "scrutin") track("scrutin", c.uid);
     else if (c.name === "parti") (c.sansUid ? track("parti", "", "test") : track("parti", c.uid));
@@ -252,6 +293,10 @@ function AppInner() {
     testParTheme: "Par thème",
     dossierScrutins: "Texte",
     accords: "Tes accords",
+    presidentielle: "Présidentielle 2027",
+    programme: "Programme 2027",
+    chapitre: "Programme 2027",
+    mesure: "Programme 2027",
   };
   const showHeader = stack.length > 1;
 
@@ -382,6 +427,14 @@ function AppInner() {
           {current.name === "testParTheme" && <TestParThemeScreen nav={nav} />}
           {current.name === "dossierScrutins" && <DossierScrutinsScreen dossierRef={current.ref} titre={current.titre} nav={nav} />}
           {current.name === "accords" && <AccordsIndexScreen nav={nav} />}
+          {current.name === "presidentielle" && <HubScreen nav={nav} />}
+          {current.name === "programme" && (
+            <ProgrammeScreen programme={current.programme} perimetre={current.perimetre} filtre={current.filtre} sous={current.sous} nav={nav} />
+          )}
+          {current.name === "chapitre" && (
+            <ChapitreScreen programme={current.programme} chapitre={current.chapitre} filtre={current.filtre} sous={current.sous} nav={nav} />
+          )}
+          {current.name === "mesure" && <MesureScreen key={`${current.programme}.${current.mesure}`} programme={current.programme} mesure={current.mesure} nav={nav} />}
             </>
           )}
         </View>

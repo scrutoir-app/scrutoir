@@ -101,6 +101,8 @@ export function CommeToiCarte({ pct, base }: { pct: number | null; base: string 
 
 /** Barre d'onglets profil (l'actif souligné). L'en-tête au-dessus ne change pas. */
 export function ProfilTabs<T extends string>({ tabs, active, onChange }: { tabs: { key: T; label: string }[]; active: T; onChange: (t: T) => void }) {
+  // Quatre onglets (fiche parti avec « Programme 2027 ») : libellés en 13 px pour tenir sur une ligne.
+  const serre = tabs.length > 3;
   return (
     <View accessibilityRole="tablist" style={{ flexDirection: "row", backgroundColor: C.bg, borderBottomWidth: 1, borderBottomColor: C.border }}>
       {tabs.map(({ key, label }) => {
@@ -112,9 +114,9 @@ export function ProfilTabs<T extends string>({ tabs, active, onChange }: { tabs:
             accessibilityRole="tab"
             accessibilityState={{ selected: actif }}
             accessibilityLabel={`Onglet ${label}`}
-            style={{ flex: 1, alignItems: "center", justifyContent: "center", minHeight: 44 }}
+            style={serre ? { flexGrow: 1, flexBasis: "auto", paddingHorizontal: 6, alignItems: "center", justifyContent: "center", minHeight: 44 } : { flex: 1, alignItems: "center", justifyContent: "center", minHeight: 44 }}
           >
-            <Text style={[T.callout, { fontFamily: actif ? F.bold : F.semibold, color: actif ? C.text : C.textFaint }]}>{label}</Text>
+            <Text numberOfLines={serre ? 1 : undefined} style={[serre ? T.small : T.callout, { fontFamily: actif ? F.bold : F.semibold, color: actif ? C.text : C.textFaint }]}>{label}</Text>
             <View style={{ position: "absolute", bottom: -1, left: 0, right: 0, height: 2, backgroundColor: actif ? C.text : "transparent" }} />
           </TouchableOpacity>
         );

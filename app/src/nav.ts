@@ -1,6 +1,7 @@
 import type { ConfrontationScrutin, DeputeResume, AngleShuffle } from "./types";
 import type { Reponse } from "./testProximite/score";
 import type { Commune } from "./api";
+import type { Filtre, Perimetre, SousNeutre } from "./presidentielle/types";
 
 export type Route =
   | { name: "search" }
@@ -80,7 +81,14 @@ export type Route =
   | { name: "testResultat"; reponses?: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number>; partage?: boolean }
   | { name: "testParTheme" }
   | { name: "dossierScrutins"; ref: string; titre?: string }
-  | { name: "accords" };
+  | { name: "accords" }
+  // Rubrique Présidentielle 2027 (présente seulement si un programme est en service). Le périmètre
+  // et les filtres vivent dans la route (nav.replace) : au retour, l'écran remonté les retrouve.
+  | { name: "presidentielle" }
+  | { name: "programme"; programme: string; perimetre?: Perimetre; filtre?: Filtre; sous?: SousNeutre }
+  | { name: "chapitre"; programme: string; chapitre: string; filtre?: Filtre; sous?: SousNeutre }
+  // mesure = id d'une mesure du programme (« p3c1-046 ») ou code d'une ligne du chiffrage (« D13 »).
+  | { name: "mesure"; programme: string; mesure: string };
 
 export interface Nav {
   push: (route: Route) => void;

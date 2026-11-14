@@ -100,6 +100,17 @@ export const LIGHT = {
   // claires ne servent que si on revient un jour sur ce choix.
   saisonNeige: "#FFFFFF",
   saisonOr: "#D4952F",
+
+  // Rubrique Présidentielle 2027 : verdicts en ENCRE NEUTRE (jamais les couleurs de vote, jamais
+  // une couleur de parti). = cohérent encre pleine · ≠ tension gris moyen · ∅ neutre cercle vide.
+  verdictCoherent: "#171A1F",
+  onVerdictCoherent: "#FFFFFF", // glyphe « = » posé sur la pastille pleine
+  verdictTension: "#7D8591", // ≥ 3:1 sur surface et sur fond
+  onVerdictTension: "#171A1F", // glyphe « ≠ » (≥ 4,5:1 sur verdictTension)
+  verdictNeutreStroke: "#5B626E", // contour du neutre (et son glyphe « ∅ »)
+  horsChamp: "#C9CED6", // hors champ : gris pâle, toujours doublé de son nombre en texte
+  // Guillochage de la carte d'accueil : encre à 9 %, seul motif de toute l'app.
+  guilloche: "rgba(23,26,31,0.09)",
 };
 
 // Palette SOMBRE — même langage, couleurs de vote relevées pour rester lisibles.
@@ -172,6 +183,14 @@ export const DARK: typeof LIGHT = {
   saisonSilhouette: "#535C69",
   saisonNeige: "#E9EEF5",
   saisonOr: "#F7D488",
+
+  verdictCoherent: "#EAEDF1",
+  onVerdictCoherent: "#12161C",
+  verdictTension: "#7D8591",
+  onVerdictTension: "#12161C",
+  verdictNeutreStroke: "#9AA2AE",
+  horsChamp: "#4A5361",
+  guilloche: "rgba(234,237,241,0.09)",
 };
 
 // Familles de police Manrope (chargées dans App via useFonts)

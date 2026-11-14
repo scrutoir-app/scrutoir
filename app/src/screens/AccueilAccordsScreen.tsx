@@ -3,6 +3,9 @@ import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Animated, Easing } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, MOTION, ICON, CONTROL } from "../theme";
+import { useIndexPresidentielle } from "../presidentielle/donnees";
+import { rubriqueVisible } from "../presidentielle/logique";
+import { CartePresidentielle } from "../components/presidentielle/CartePresidentielle";
 import { ScrutoirMark } from "../components/brand/ScrutoirMark";
 import { HebdoCarte } from "../components/HebdoCarte";
 import { FocusActu } from "../components/FocusActu";
@@ -109,6 +112,7 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   const refSuivis = useCibleTour("suivis");
 
   const [partis, setPartis] = useState<PartiResume[]>([]);
+  const indexPresidentielle = useIndexPresidentielle(); // rubrique Présidentielle 2027 (null = en lecture)
   const [cats, setCats] = useState<CategorieRef[]>([]);
   const [questions, setQuestions] = useState<QuestionProximite[]>([]);
   const [votes, setVotes] = useState<VoteSuivi[] | null>(null);
@@ -442,6 +446,14 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
                 )}
               </Animated.View>
             </View>
+          )}
+
+          {/* PRÉSIDENTIELLE 2027 : carte d'entrée, ABSENTE tant qu'aucun programme n'est en service
+              (index vide, absent ou en erreur). Aucun parti, aucun drapeau. */}
+          {rubriqueVisible(indexPresidentielle) && (
+            <Animated.View style={[{ paddingHorizontal: 16, marginTop: 12 }, rise(2)]}>
+              <CartePresidentielle onPress={() => nav.push({ name: "presidentielle" })} />
+            </Animated.View>
           )}
 
           {/* Trouver ton député : ligne calme, sous le bloc sombre (ou le duo). */}

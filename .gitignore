@@ -22,3 +22,9 @@ analytics/.dev.vars
 
 # Cache et fichiers temporaires de wrangler (worker analytics)
 analytics/.wrangler/
+
+# Rubrique Présidentielle 2027 : données d'analyse des programmes (verdicts), publiques seulement à la
+# mise en service (npm run presidentielle:activer, qui les ajoute avec git add -f). La configuration
+# programmes/presidentielle.json, elle, est versionnée.
+pipeline/programmes/*/
+!pipeline/programmes/presidentielle.json

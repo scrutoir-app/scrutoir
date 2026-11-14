@@ -4,6 +4,8 @@
 // scrutin (lien scrutoir.fr + titre + résultat). Le verdict « comme toi » N'entre JAMAIS
 // dans le partage — il reste local et privé.
 
+import { valeurOpen, type CibleLien } from "./presidentielle/logique";
+
 export type ResultatPartage = "shared" | "copied" | "manual";
 
 export async function partagerLien(url: string, texte: string, titre = "Scrutoir"): Promise<ResultatPartage> {
@@ -28,4 +30,12 @@ export function urlScrutin(uid: string): string {
   const origin =
     typeof window !== "undefined" && window.location ? window.location.origin : "https://scrutoir.fr";
   return `${origin}/?open=scrutin:${uid}`;
+}
+
+/** Lien public d'un écran de la rubrique Présidentielle 2027 (`?open=presidentielle`,
+ *  `programme:<id>`, `chapitre:<id>.<chapitre>`, `mesure:<id>.<mesure ou code du chiffrage>`). */
+export function urlRubrique(c: CibleLien): string {
+  const origin =
+    typeof window !== "undefined" && window.location ? window.location.origin : "https://scrutoir.fr";
+  return `${origin}/?open=${valeurOpen(c)}`;
 }

@@ -2,6 +2,9 @@ import React, { useEffect, useMemo, useState } from "react";
 import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, S, ICON, couleurPosition } from "../theme";
+import { useIndexPresidentielle } from "../presidentielle/donnees";
+import { programmeDuGroupe } from "../presidentielle/logique";
+import { OngletProgramme2027 } from "./presidentielle/OngletProgramme2027";
 import { Card, Button } from "../components/ui";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { BarreDivergente } from "../components/BarreDivergente";
@@ -34,7 +37,7 @@ import type { Nav } from "../nav";
  */
 
 const NB_VOTES_CLES = 8; // derniers votes sur des textes entiers (affichés + base de la « fracture »)
-type Onglet = "accord" | "votes" | "groupe";
+type Onglet = "accord" | "votes" | "groupe" | "programme";
 
 // Scrutin clé + ventilation de CE groupe (position majoritaire + décompte interne).
 type VoteCle = { s: ScrutinResume; g: GroupeVentilation };
@@ -66,6 +69,9 @@ export function PartiScreen({ uid, sansUid = false, nav }: { uid: string; sansUi
   const [situe] = useState(estSitue);
   const [onglet, setOnglet] = useState<Onglet>(situe ? "accord" : "votes");
   const je = useJe();
+  // Sous-onglet « Programme 2027 » : seulement si le programme du parti est EN SERVICE.
+  const indexPresidentielle = useIndexPresidentielle();
+  const programme2027 = programmeDuGroupe(indexPresidentielle, uid);
 
   // Votes clés (en-tête : fracture ; onglets Votes et Le groupe) ; membres (Le groupe, lazy).
   const [votesCles, setVotesCles] = useState<VoteCle[] | null>(null);
@@ -195,9 +201,12 @@ export function PartiScreen({ uid, sansUid = false, nav }: { uid: string; sansUi
 
       {/* ===== BARRE D'ONGLETS (index sticky = 1) ===== */}
       <ProfilTabs<Onglet>
-        tabs={situe
-          ? [{ key: "accord", label: "Accord" }, { key: "votes", label: "Votes" }, { key: "groupe", label: "Le groupe" }]
-          : [{ key: "votes", label: "Votes" }, { key: "accord", label: "Accord" }, { key: "groupe", label: "Le groupe" }]}
+        tabs={[
+          ...(situe
+            ? [{ key: "accord" as const, label: "Accord" }, { key: "votes" as const, label: "Votes" }, { key: "groupe" as const, label: "Le groupe" }]
+            : [{ key: "votes" as const, label: "Votes" }, { key: "accord" as const, label: "Accord" }, { key: "groupe" as const, label: "Le groupe" }]),
+          ...(programme2027 ? [{ key: "programme" as const, label: "Programme 2027" }] : []),
+        ]}
         active={onglet}
         onChange={setOnglet}
       />
@@ -207,6 +216,7 @@ export function PartiScreen({ uid, sansUid = false, nav }: { uid: string; sansUi
         {onglet === "accord" && <OngletAccord abrev={p.abrev} je={je} cats={cats} situe={situe} onSituer={seSituer} />}
         {onglet === "votes" && <OngletVotes votes={votesCles} effectif={p.nb_deputes} nav={nav} />}
         {onglet === "groupe" && <OngletGroupe profil={profil} pire={pire} membres={membres} nav={nav} />}
+        {onglet === "programme" && programme2027 && <OngletProgramme2027 resume={programme2027} nav={nav} />}
       </View>
     </ScrollView>
   );

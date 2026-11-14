@@ -1,0 +1,32 @@
+{
+  "_doc": "Rubrique Présidentielle 2027. Un programme n'est publié (data.scrutoir.fr + app) que s'il est « enService ». Mise en service : npm run presidentielle:activer -- <id> ; retour arrière : npm run presidentielle:desactiver -- <id>. Les données d'analyse vivent dans programmes/<dossier>/ (non suivies par git tant que le programme n'est pas en service).",
+  "programmes": [
+    {
+      "id": "lfi-2027",
+      "dossier": "lfi-2027",
+      "enService": false,
+      "alias": ["lfi"],
+      "parti": "La France insoumise",
+      "groupe": {
+        "uid": "PO845413",
+        "abrev": "LFI-NFP",
+        "libelle": "La France insoumise - Nouveau Front Populaire"
+      },
+      "publieLe": "2026-11-06",
+      "livre": {
+        "titre": "L'Avenir en commun 2027",
+        "url": "https://melenchon2027.fr/programme/livre/"
+      },
+      "chiffrage": {
+        "titre": "Comment nous allons remettre de l'ordre dans les comptes publics",
+        "url": "https://melenchon2027.fr/wp-content/uploads/2026/10/Comment-nous-allons-remettre-de-l-ordre-dans-les-comptes-publics.pdf",
+        "date": "octobre 2026"
+      },
+      "base": {
+        "scrutins": 9895,
+        "du": "2024-10-08",
+        "au": "2026-11-12"
+      }
+    }
+  ]
+}

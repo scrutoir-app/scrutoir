@@ -6,6 +6,7 @@ import { ORGANE_SANS_GROUPE } from "./organesGroupes.js";
 import { ORDRE_HEMICYCLE } from "../../app/src/components/hemicycleGeo";
 import { aujourdhuiParis, dansLaFenetre, fenetre, vendrediParu } from "../../app/src/hebdo";
 import { focusDeLaSemaine, focusPublie, type ScrutinCandidat } from "../../app/src/focusSemaine";
+import { exporterPresidentielle } from "./exportPresidentielle.js";
 import {
   profilDepute,
   detailScrutin,
@@ -412,6 +413,17 @@ for (const { uid } of allScrutinUids) {
     }));
   }
   write("confrontation_shuffle.json", shuffle);
+}
+
+// 6 ter) Rubrique Présidentielle 2027 : index.json toujours écrit ; un programme n'est publié que
+//        s'il est « enService » (programmes/presidentielle.json). PRESIDENTIELLE_FORCER=<id> force
+//        un programme pour un aperçu privé (scripts/presidentielle.mjs, jamais en CI).
+try {
+  const forcer = (process.env.PRESIDENTIELLE_FORCER ?? "").split(",").map((x) => x.trim()).filter(Boolean);
+  exporterPresidentielle({ sortie: OUT, forcer });
+} catch (e) {
+  console.error(`❌ ${(e as Error).message}\n   Export ANNULÉ (rubrique Présidentielle).`);
+  process.exit(1);
 }
 
 // 7) version.json : cache-busting / détection de nouveau déploiement (lu par le SW

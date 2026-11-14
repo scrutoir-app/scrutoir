@@ -38,6 +38,9 @@ function j<T>(rel: string): Promise<T> {
   return p as Promise<T>;
 }
 
+/** Lecture d'un fichier data/<rel>.json, avec le même cache (sans échec figé) que le reste. */
+export const lireDonnee = <T,>(rel: string): Promise<T> => j<T>(rel);
+
 // --- Index (chargés une fois, mis en cache) ---------------------------------
 // `categorie` = catégorie principale (picto, confrontation) ; `cats` = toutes les
 // catégories du scrutin (appartenance à un thème : un scrutin peut en avoir plusieurs).
