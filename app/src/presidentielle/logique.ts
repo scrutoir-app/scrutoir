@@ -5,6 +5,18 @@ import type {
   ScrutinConfronte, SousNeutre, Statut,
 } from "./types";
 
+export const INDEX_VIDE: IndexPresidentielle = { generatedAt: "", programmes: [] };
+
+/** Garde de forme : un fichier altéré ou d'un autre format vaut « aucun programme ». */
+export function indexValide(x: unknown): IndexPresidentielle {
+  const o = x as IndexPresidentielle | null;
+  if (!o || typeof o !== "object" || !Array.isArray(o.programmes)) return INDEX_VIDE;
+  const programmes = o.programmes.filter(
+    (p) => p && typeof p.id === "string" && /^[a-z0-9-]+$/.test(p.id) && typeof p.publieLe === "string" && Array.isArray(p.alias),
+  );
+  return { generatedAt: typeof o.generatedAt === "string" ? o.generatedAt : "", programmes };
+}
+
 export const COMPTES_VIDES: Comptes = { c: 0, t: 0, s: 0, j: 0, r: 0 };
 
 /** Famille publique d'un statut ; null pour le hors champ (jamais compté dans les verdicts). */

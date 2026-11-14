@@ -4,18 +4,9 @@
 import { useEffect, useState } from "react";
 import { lireDonnee } from "../api";
 import type { ChapitreDetail, ChiffrageDetail, IndexPresidentielle, Programme } from "./types";
+import { INDEX_VIDE as VIDE, indexValide } from "./logique";
 
-const VIDE: IndexPresidentielle = { generatedAt: "", programmes: [] };
-
-/** Garde de forme : un fichier altéré ou d'un autre format vaut « aucun programme ». */
-export function indexValide(x: unknown): IndexPresidentielle {
-  const o = x as IndexPresidentielle | null;
-  if (!o || typeof o !== "object" || !Array.isArray(o.programmes)) return VIDE;
-  const programmes = o.programmes.filter(
-    (p) => p && typeof p.id === "string" && /^[a-z0-9-]+$/.test(p.id) && typeof p.publieLe === "string" && Array.isArray(p.alias),
-  );
-  return { generatedAt: typeof o.generatedAt === "string" ? o.generatedAt : "", programmes };
-}
+export { indexValide };
 
 let etat: IndexPresidentielle | null = null; // null = pas encore lu
 let enCours: Promise<IndexPresidentielle> | null = null;

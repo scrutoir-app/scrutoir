@@ -1,5 +1,7 @@
 // Rubrique Présidentielle 2027 : logique pure, libellés, liens profonds, absence de pourcentage.
 // Lancé par `npm test` (pipeline). Aucune donnée de verdict réelle ici (dépôt public) : fixtures.
+// ⚠️ N'importer ni react ni react-native (directement ou non) : refresh.yml lance ces tests sans
+// installer les dépendances de l'app.
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -8,14 +10,13 @@ import { fileURLToPath } from "node:url";
 import type { IndexPresidentielle, ProgrammeResume, ScrutinConfronte } from "./types";
 import {
   cibleLienProfond, comptesDe, correspond, familleDe, finCommune, programmeDuGroupe, regrouper, repartir, resoudreProgramme,
-  rubriqueVisible, valeurOpen, ordonnerProgrammes,
+  rubriqueVisible, valeurOpen, ordonnerProgrammes, indexValide,
 } from "./logique";
 import {
   annonceFiltre, comptesEnLettres, dateLongue, detailNeutre, intituleAffiche, ligneComptes, metaMesure, nombre, phraseGroupe, phraseSansEffet,
   phraseVerdict, sortsDuLot, titreLot,
 } from "./libelles";
 import { pileDeCible, pileLienProfond } from "./routes";
-import { indexValide } from "./donnees";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
