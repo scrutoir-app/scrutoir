@@ -34,6 +34,7 @@ import { TrouverDeputeScreen } from "./src/screens/TrouverDeputeScreen";
 import { ParametresScreen } from "./src/screens/ParametresScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
+import { MethodeTestScreen } from "./src/screens/MethodeTestScreen";
 import { TestIntroScreen } from "./src/screens/TestIntroScreen";
 import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
@@ -296,6 +297,7 @@ function AppInner() {
     mentions: "Mentions légales",
     parametres: "Paramètres",
     testIntro: "Test de proximité",
+    methodeTest: "Test de proximité",
     test: "Test de proximité",
     testResultat: "Ta proximité",
     testParTheme: "Par thème",
@@ -422,6 +424,7 @@ function AppInner() {
           )}
           {current.name === "apropos" && <AProposScreen nav={nav} />}
           {current.name === "mentions" && <MentionsScreen />}
+          {current.name === "methodeTest" && <MethodeTestScreen />}
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} periode={current.periode} hasard={current.hasard} angle={current.angle} nav={nav} />}
           {current.name === "confrontationListe" && (
             <ConfrontationListeScreen kind={current.kind} themeLibelle={current.themeLibelle} sousTitre={current.sousTitre} scrutins={current.scrutins} depA={current.depA} depB={current.depB} communs={current.communs} nav={nav} />

@@ -8,6 +8,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.38.2 — 2026-11-15
+**Test de proximité : 33 questions, 3 par thème, et le texte de méthode.**
+- **33 questions** (au lieu de 40), trois par thème sur les onze thèmes. 27 restent, 6 arrivent, 13 quittent le test. Toutes reposent sur un scrutin public voté par au moins 120 députés ; 6 portent sur un amendement ou un article plutôt que sur un texte entier.
+- **Texte de méthode** « Comment on choisit les questions du test » : dans l'onglet Infos (famille « Le test de proximité ») et derrière le lien « Comment ces questions sont choisies » sous « Commencer », à l'intro du test. Une seule source (`content/infos.ts`). Un contrôle des données vérifie que la promesse reste vraie (11 thèmes × 3 questions, au moins 120 votants).
+- **Réponses aux questions retirées** : gardées sur l'appareil (« Tes accords » s'en sert), mais elles ne comptent ni dans le spectre, ni dans « Sur tes N votes », ni dans la progression, ni dans « Affiner » (c'était déjà le cas). Corrigé : quelqu'un dont toutes les réponses portaient sur des questions retirées restait « situé » sur l'accueil (spectre vide) et l'écran résultat chargeait sans fin. L'accueil repasse en « Commence à te situer », et l'écran résultat le dit et propose de reprendre le test.
+
 ## 1.38.1 — 2026-11-14
 **Ouverture « Le point du i » plus longue : 5,1 s au lieu de 3,4 s.** Toute l'animation est étirée d'un coup (×1,5), le rythme entre les étapes ne change pas ; l'écran d'ouverture reste affiché 5,5 s en tout. Une touche le passe toujours dès que l'appli est prête. Animations réduites inchangées (logo fixe, 1,6 s).
 

@@ -36,3 +36,18 @@ test("le spectre compte chacun des 11 groupes, UDR compris", () => {
   const udr = fiables.find((l) => l.abrev === "UDR")!;
   assert.ok(udr.votes >= questions.length - 5, `UDR comparée sur ${udr.votes} votes seulement`);
 });
+
+// Le texte de méthode (content/infos.ts, METHODE_QUESTIONS) l'affirme dans l'onglet Infos et à
+// l'intro du test : « voté par au moins 120 députés » et « onze thèmes, trois questions chacun ».
+// Si la sélection change, ce test échoue : mettre à jour le texte en même temps que les données.
+test("le texte de méthode dit vrai : 11 thèmes × 3 questions, au moins 120 votants, ids uniques", () => {
+  const parTheme: Record<string, number> = {};
+  for (const q of questions) parTheme[q.theme] = (parTheme[q.theme] ?? 0) + 1;
+  assert.equal(Object.keys(parTheme).length, 11, `thèmes : ${Object.keys(parTheme).join(", ")}`);
+  for (const [theme, n] of Object.entries(parTheme)) assert.equal(n, 3, `${theme} : ${n} questions`);
+  assert.equal(new Set(questions.map((q) => q.id)).size, questions.length, "id en double");
+  for (const q of questions) {
+    const t = q.totaux!;
+    assert.ok(t.pour + t.contre + t.abstention >= 120, `question ${q.id} : ${t.pour + t.contre + t.abstention} votants`);
+  }
+});

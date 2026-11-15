@@ -75,6 +75,8 @@ export type Route =
   | { name: "parametres" }
   // Test de proximité : intro (animation + choix du mode), déroulé, résultat.
   | { name: "testIntro"; theme?: string; themeLibelle?: string }
+  // « Comment on choisit les questions du test » (même texte que l'onglet Infos).
+  | { name: "methodeTest" }
   | { name: "test"; mode: "theme" | "complet" | "affiner"; theme?: string; themeLibelle?: string }
   // reponses/poids absents = résultat de L'UTILISATEUR (lu depuis le stockage local).
   // partage=true (+ reponses/poids) = résultat d'un LIEN partagé : lecture seule, rien n'est persisté.

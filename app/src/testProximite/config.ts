@@ -9,6 +9,21 @@ export const SEUIL_AFFINER = 5;
 // Nb de questions servies par session « Affiner ».
 export const N_AFFINER = 8;
 
+// Une question RETIRÉE du test garde sa réponse dans le stockage local (« Tes accords » s'en
+// sert, et la réponse revient si la question est remise). Mais elle ne compte plus : tout ce qui
+// mesure le test part des questions ACTUELLES (`all` = /data/test-proximite.json), jamais des
+// clés du stockage.
+
+/** Questions ACTUELLES du test auxquelles l'utilisateur a répondu (« sans avis » compris). */
+export function questionsJouees(all: QuestionProximite[], reponses: Record<number, unknown>): QuestionProximite[] {
+  return all.filter((q) => reponses[q.id] != null);
+}
+
+/** Nb de réponses pour ou contre aux questions ACTUELLES (base « Sur tes N votes », état « situé »). */
+export function nbVotesActuels(all: QuestionProximite[], reponses: Record<number, unknown>): number {
+  return all.reduce((n, q) => n + (reponses[q.id] === "pour" || reponses[q.id] === "contre" ? 1 : 0), 0);
+}
+
 /** Compte des questions NON répondues par thème (pour les liens « +N à te positionner »). */
 export function neuvesParTheme(all: QuestionProximite[], reponses: Record<number, unknown>): Record<string, number> {
   const c: Record<string, number> = {};

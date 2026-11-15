@@ -12,7 +12,7 @@ import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
 import { calculerProximite } from "../testProximite/score";
 import { lignesSpectre, surNVotes, phraseBase, phraseMarge, type LigneSpectre } from "../testProximite/spectre";
-import { nbNeuves, SEUIL_AFFINER } from "../testProximite/config";
+import { nbNeuves, nbVotesActuels, questionsJouees, SEUIL_AFFINER } from "../testProximite/config";
 import { useFollow, useFollows } from "../hooks/useFollows";
 import { tourAccueilAFaire } from "../accueilTourPrefs";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
@@ -150,6 +150,30 @@ async function partager(url: string, texte: string): Promise<"shared" | "copied"
   return "manual";
 }
 
+/**
+ * Aucune réponse sur les questions ACTUELLES du test (elles portaient toutes sur des questions
+ * retirées depuis) : on le dit, et on propose de répondre aux questions du test actuel.
+ */
+function ResultatVide({ partage, nav }: { partage: boolean; nav: Nav }) {
+  return (
+    <View style={{ flex: 1, justifyContent: "center", paddingHorizontal: 24 }}>
+      <Text accessibilityRole="header" style={[T.heading, { fontFamily: F.bold, color: C.text, textAlign: "center" }]}>
+        Pas encore de résultat
+      </Text>
+      <Text style={[T.small, { color: C.textMuted, textAlign: "center", marginTop: 8 }]}>
+        {partage
+          ? "Ce lien porte sur des questions qui ne sont plus dans le test."
+          : "Tes réponses portent sur des questions qui ne sont plus dans le test. Réponds aux questions actuelles pour voir ta proximité."}
+      </Text>
+      <Button
+        label={partage ? "Faire le test" : "Reprendre le test"}
+        onPress={() => nav.push(partage ? { name: "testIntro" } : { name: "test", mode: "affiner" })}
+        style={{ marginTop: 18, alignSelf: "center" }}
+      />
+    </View>
+  );
+}
+
 export function TestResultatScreen({
   reponses: reponsesProp,
   poids: poidsProp,
@@ -186,7 +210,7 @@ export function TestResultatScreen({
   }, []);
 
   // Questions réellement répondues + thèmes joués (dérivés → vaut pour un lien partagé aussi).
-  const jouees = useMemo(() => (all ? all.filter((q) => reponses[q.id] != null) : []), [all, reponses]);
+  const jouees = useMemo(() => (all ? questionsJouees(all, reponses) : []), [all, reponses]);
   const themes = useMemo(() => [...new Set(jouees.map((q) => q.theme))].sort(), [jouees]);
 
   // Complète les poids des thèmes pas encore réglés (défaut « Normal » = 1) SANS jamais
@@ -237,7 +261,7 @@ export function TestResultatScreen({
   const aSuivi = useFollows().length > 0;
   const tourAFaire = useMemo(() => tourAccueilAFaire(), []);
   // Base de tout le résultat : les scrutins (encore au catalogue) où tu as tranché, pour ou contre.
-  const nbTranches = jouees.filter((q) => reponses[q.id] === "pour" || reponses[q.id] === "contre").length;
+  const nbTranches = all ? nbVotesActuels(all, reponses) : 0;
 
   // Partage en story (web) : une IMAGE du spectre complet, toutes les lignes avec leur base,
   // sans aucune réponse. Couleur de groupe = hex officiel (rendu clair de couleurGroupe).
@@ -257,6 +281,9 @@ export function TestResultatScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [lignes, partis, partage, nbTranches]);
 
+  // Questions chargées, mais aucune réponse sur le test actuel : les réponses gardées portent
+  // toutes sur des questions retirées du test. Pas de résultat à montrer (sinon : chargement sans fin).
+  if (all && partis.length && !jouees.length) return <ResultatVide partage={!!partage} nav={nav} />;
   if (!resultat || !lignes) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
   const couleur = (abrev: string) => couleurGroupe(partis.find((p) => p.abrev === abrev)?.couleur ?? null);

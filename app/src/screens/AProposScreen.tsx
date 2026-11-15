@@ -5,6 +5,7 @@ import { C, F, T, RADIUS, S, ICON, CONTROL } from "../theme";
 import { APP_VERSION, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "../config";
 import { Card } from "../components/ui";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
+import { MethodeQuestions } from "../components/MethodeQuestions";
 import { INFOS_TITRE, EN_BREF, FAMILLES_INFOS, type FamilleInfos, type BlocInfos } from "../content/infos";
 import type { Nav } from "../nav";
 
@@ -60,6 +61,14 @@ function SchemaBarre() {
 }
 
 function Bloc({ bloc, premier }: { bloc: BlocInfos; premier: boolean }) {
+  // Le texte de méthode du test a ses trois règles : rendu partagé avec l'intro du test.
+  if (bloc.methode) {
+    return (
+      <View style={{ marginTop: premier ? 0 : S.s16 }}>
+        <MethodeQuestions variante="bloc" />
+      </View>
+    );
+  }
   const titre = <Text accessibilityRole="header" {...niveau(3)} style={[T.small, { fontFamily: F.bold, color: C.text }]}>{insecables(bloc.titre)}</Text>;
   const texte = (
     <Text style={[T.small, { lineHeight: LIGNE, color: bloc.schemaBarre ? C.text : C.textMuted, marginTop: bloc.schemaBarre ? S.s8 : S.s4 }]}>

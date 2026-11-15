@@ -2,7 +2,7 @@
   {
     "id": 1319,
     "theme": "agriculture",
-    "these": "Prolonger le relèvement de 10 % du seuil de revente à perte (SRP+10) et l'encadrement des promotions sur les produits alimentaires (dispositifs Egalim).",
+    "these": "Prolonger la marge minimale de 10 % des supermarchés sur l'alimentaire et l'encadrement des promotions.",
     "titre": "l’ensemble de la proposition de loi visant à renforcer la stabilité économique et la compétitivité du secteur agroalimentaire (texte de la commission mixte paritaire).",
     "date": "2025-04-09",
     "famille_clivage": "RN_isolé",
@@ -178,98 +178,9 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3273"
   },
   {
-    "id": 7303,
-    "theme": "agriculture",
-    "these": "Interdire les engrais phosphatés contenant plus de 40 mg de cadmium par kg de phosphate dès 2027, puis plus de 20 mg dès 2030.",
-    "titre": "l'ensemble de la proposition de loi visant à protéger l'alimentation des Français et des Françaises des contaminations au cadmium (première lecture).",
-    "date": "2026-06-03",
-    "famille_clivage": "droite_RN_vs_gauche",
-    "positions": {
-      "LFI-NFP": "pour",
-      "GDR": "pour",
-      "ECOS": "pour",
-      "SOC": "pour",
-      "LIOT": "pour",
-      "DEM": "pour",
-      "EPR": "pour",
-      "HOR": "pour",
-      "DR": "partagé",
-      "UDR": "contre",
-      "RN": "contre"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 11,
-        "contre": 0,
-        "abstention": 1
-      },
-      "DR": {
-        "pour": 0,
-        "contre": 1,
-        "abstention": 1
-      },
-      "ECOS": {
-        "pour": 32,
-        "contre": 0,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 20,
-        "contre": 0,
-        "abstention": 1
-      },
-      "GDR": {
-        "pour": 4,
-        "contre": 0,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 8,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 44,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LIOT": {
-        "pour": 3,
-        "contre": 0,
-        "abstention": 0
-      },
-      "NI": {
-        "pour": 1,
-        "contre": 0,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 0,
-        "contre": 19,
-        "abstention": 1
-      },
-      "SOC": {
-        "pour": 21,
-        "contre": 0,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 0,
-        "contre": 2,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 144,
-      "contre": 22,
-      "abstention": 4
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7303"
-  },
-  {
     "id": 8427,
     "theme": "agriculture",
-    "these": "Adopter la loi d'urgence agricole : dérogations temporaires aux néonicotinoïdes (acétamipride pour la noisette, flupyradifurone pour la betterave, la pomme et la cerise), stockage d'eau facilité, normes allégées.",
+    "these": "Réautoriser temporairement certains pesticides interdits (néonicotinoïdes) et alléger les normes agricoles.",
     "titre": "l'ensemble du projet de loi d'urgence pour la protection et la souveraineté agricoles (texte de la commission mixte paritaire).",
     "date": "2026-07-20",
     "famille_clivage": "gauche_vs_reste",
@@ -358,7 +269,7 @@
   {
     "id": 852,
     "theme": "ecologie",
-    "these": "Interdire les PFAS (« polluants éternels ») dans les cosmétiques, les farts et les vêtements dès 2026, puis dans tous les textiles en 2030, et soumettre leurs rejets industriels à une redevance.",
+    "these": "Interdire les polluants éternels dans les cosmétiques et les vêtements, puis dans tous les textiles.",
     "titre": "l'ensemble de la proposition de loi visant à protéger la population des risques liés aux substances perfluoroalkylées et polyfluoroalkylées (deuxième lecture).",
     "date": "2025-02-20",
     "famille_clivage": "RN_isolé",
@@ -440,98 +351,98 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/852"
   },
   {
-    "id": 2653,
+    "id": 2498,
     "theme": "ecologie",
-    "these": "Adopter la loi de programmation sur l'énergie dans sa version instaurant un moratoire sur les nouvelles éoliennes et le solaire.",
-    "titre": "l'ensemble de la proposition de loi portant programmation nationale pour l'énergie et le climat pour les années 2025 à 2035 (première lecture).",
-    "date": "2025-06-24",
-    "famille_clivage": "RN_isolé",
+    "these": "Porter le nucléaire à 70 % de l'électricité en 2030, puis 80 % en 2050.",
+    "titre": "le sous-amendement n° 770 de M. Nury à l'amendement n° 503 de M. Armand et aux amendements identiques suivants à l'article 3 (supprimé) de la proposition de loi portant programmation nationale énergie et climat pour les années 2025 à 2035 (première lecture).",
+    "date": "2025-06-18",
+    "famille_clivage": "droite_isolée",
     "positions": {
+      "DR": "pour",
+      "HOR": "contre",
+      "DEM": "contre",
       "LFI-NFP": "contre",
+      "UDR": "abstention",
       "GDR": "contre",
+      "LIOT": "contre",
       "ECOS": "contre",
       "SOC": "contre",
-      "LIOT": "contre",
-      "DEM": "contre",
       "EPR": "contre",
-      "HOR": "contre",
-      "DR": "abstention",
-      "UDR": "pour",
-      "RN": "pour"
+      "RN": "abstention"
     },
     "decomptes": {
       "DEM": {
-        "pour": 0,
-        "contre": 36,
+        "pour": 1,
+        "contre": 10,
         "abstention": 0
       },
       "DR": {
-        "pour": 2,
-        "contre": 0,
-        "abstention": 46
+        "pour": 12,
+        "contre": 2,
+        "abstention": 0
       },
       "ECOS": {
         "pour": 0,
-        "contre": 37,
+        "contre": 20,
         "abstention": 0
       },
       "EPR": {
         "pour": 0,
-        "contre": 89,
-        "abstention": 1
+        "contre": 31,
+        "abstention": 0
       },
       "GDR": {
         "pour": 0,
-        "contre": 13,
+        "contre": 2,
         "abstention": 0
       },
       "HOR": {
-        "pour": 0,
-        "contre": 35,
+        "pour": 2,
+        "contre": 5,
         "abstention": 0
       },
       "LFI-NFP": {
-        "pour": 0,
-        "contre": 71,
+        "pour": 1,
+        "contre": 39,
         "abstention": 0
       },
       "LIOT": {
         "pour": 0,
-        "contre": 22,
+        "contre": 4,
         "abstention": 0
       },
       "NI": {
-        "pour": 3,
-        "contre": 6,
-        "abstention": 0
+        "pour": 0,
+        "contre": 3,
+        "abstention": 1
       },
       "RN": {
-        "pour": 121,
-        "contre": 0,
-        "abstention": 0
+        "pour": 0,
+        "contre": 1,
+        "abstention": 83
       },
       "SOC": {
         "pour": 0,
-        "contre": 68,
+        "contre": 29,
         "abstention": 0
       },
       "UDR": {
-        "pour": 16,
+        "pour": 0,
         "contre": 0,
-        "abstention": 0
+        "abstention": 6
       }
     },
     "totaux": {
-      "pour": 142,
-      "contre": 377,
-      "abstention": 47
+      "pour": 16,
+      "contre": 146,
+      "abstention": 90
     },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2653"
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2498"
   },
   {
     "id": 3848,
     "theme": "ecologie",
-    "these": "Mettre fin à l'exonération de taxe sur le kérosène des jets privés et des vols d'affaires.",
+    "these": "Taxer le kérosène des jets privés et des vols d'affaires.",
     "titre": "l'amendement n° 3174 de M. Arnaud Bonnet à l'article 15 du projet de loi de finances pour 2026 (première lecture).",
     "date": "2025-11-17",
     "famille_clivage": "transpartisan",
@@ -618,87 +529,9 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3848"
   },
   {
-    "id": 881,
-    "theme": "economie",
-    "these": "Instaurer un impôt plancher de 2 % sur le patrimoine des ultra-riches.",
-    "titre": "l'ensemble de la proposition de loi instaurant un impôt plancher de 2 % sur le patrimoine des ultra riches (première lecture).",
-    "date": "2025-02-20",
-    "famille_clivage": "gauche_vs_centre_droite",
-    "positions": {
-      "LFI-NFP": "pour",
-      "GDR": "pour",
-      "ECOS": "pour",
-      "SOC": "pour",
-      "DEM": "contre",
-      "EPR": "contre",
-      "HOR": "contre",
-      "DR": "contre",
-      "UDR": "contre",
-      "RN": "abstention"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 0,
-        "contre": 9,
-        "abstention": 0
-      },
-      "DR": {
-        "pour": 0,
-        "contre": 3,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 38,
-        "contre": 0,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 0,
-        "contre": 15,
-        "abstention": 0
-      },
-      "GDR": {
-        "pour": 5,
-        "contre": 0,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 0,
-        "contre": 8,
-        "abstention": 3
-      },
-      "LFI-NFP": {
-        "pour": 37,
-        "contre": 0,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 0,
-        "contre": 0,
-        "abstention": 28
-      },
-      "SOC": {
-        "pour": 36,
-        "contre": 0,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 0,
-        "contre": 4,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 116,
-      "contre": 39,
-      "abstention": 31
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/881"
-  },
-  {
     "id": 3187,
     "theme": "economie",
-    "these": "Imposer les bénéfices des entreprises, multinationales comprises, à proportion de la part de leur chiffre d'affaires mondial réalisée en France, au taux de 25 %.",
+    "these": "Taxer les bénéfices des multinationales selon le chiffre d'affaires qu'elles réalisent en France.",
     "titre": "l'amendement n° 1938 de M. Coquerel après l'article 12 (examen prioritaire) du projet de loi de finances pour 2026 (première lecture).",
     "date": "2025-10-28",
     "famille_clivage": "transpartisan",
@@ -787,7 +620,7 @@
   {
     "id": 3306,
     "theme": "economie",
-    "these": "Rétablir l'impôt de solidarité sur la fortune (ISF) tel qu'il existait jusqu'en 2017, à la place de l'impôt sur la fortune immobilière.",
+    "these": "Rétablir l'impôt sur la fortune tel qu'il existait avant 2017.",
     "titre": "l'amendement n° 2475 de M. Philippe Brun après l'article 3 (examen prioritaire) du projet de loi de finances pour 2026 (première lecture).",
     "date": "2025-10-31",
     "famille_clivage": "gauche_vs_reste",
@@ -876,7 +709,7 @@
   {
     "id": 4041,
     "theme": "economie",
-    "these": "Ramener de 20 % à 5,5 % la TVA sur les abonnements d'électricité (puissance jusqu'à 36 kVA : particuliers et petits professionnels).",
+    "these": "Baisser la TVA sur les abonnements d'électricité, de 20 % à 5,5 %.",
     "titre": "l'amendement n° 599 de M. Maurel après l'article 25 du projet de loi de finances pour 2026 (première lecture).",
     "date": "2025-11-20",
     "famille_clivage": "transpartisan",
@@ -963,187 +796,9 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/4041"
   },
   {
-    "id": 6319,
-    "theme": "economie",
-    "these": "Durcir la lutte contre la fraude en ciblant surtout la fraude aux prestations sociales, avec la possibilité de suspendre les allocations chômage en cas de soupçon.",
-    "titre": "l'ensemble du projet de loi relatif à la lutte contre les fraudes sociales et fiscales (texte de la commission mixte paritaire).",
-    "date": "2026-05-05",
-    "famille_clivage": "gauche_vs_reste",
-    "positions": {
-      "LFI-NFP": "contre",
-      "GDR": "contre",
-      "ECOS": "contre",
-      "SOC": "contre",
-      "LIOT": "partagé",
-      "DEM": "pour",
-      "EPR": "pour",
-      "HOR": "pour",
-      "DR": "pour",
-      "UDR": "pour",
-      "RN": "pour"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 34,
-        "contre": 0,
-        "abstention": 0
-      },
-      "DR": {
-        "pour": 47,
-        "contre": 0,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 0,
-        "contre": 34,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 78,
-        "contre": 0,
-        "abstention": 0
-      },
-      "GDR": {
-        "pour": 0,
-        "contre": 16,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 34,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 0,
-        "contre": 60,
-        "abstention": 0
-      },
-      "LIOT": {
-        "pour": 11,
-        "contre": 7,
-        "abstention": 4
-      },
-      "NI": {
-        "pour": 6,
-        "contre": 2,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 109,
-        "contre": 0,
-        "abstention": 0
-      },
-      "SOC": {
-        "pour": 0,
-        "contre": 63,
-        "abstention": 1
-      },
-      "UDR": {
-        "pour": 16,
-        "contre": 0,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 335,
-      "contre": 182,
-      "abstention": 5
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6319"
-  },
-  {
-    "id": 7380,
-    "theme": "economie",
-    "these": "Nationaliser ArcelorMittal pour préserver l'emploi et la souveraineté industrielle.",
-    "titre": "l'ensemble de la proposition de loi visant à la nationalisation d'ArcelorMittal France afin de préserver la souveraineté industrielle de la France (deuxième lecture).",
-    "date": "2026-06-11",
-    "famille_clivage": "gauche_vs_centre_droite",
-    "positions": {
-      "LFI-NFP": "pour",
-      "GDR": "pour",
-      "ECOS": "pour",
-      "SOC": "pour",
-      "LIOT": "contre",
-      "DEM": "contre",
-      "EPR": "contre",
-      "HOR": "contre",
-      "DR": "contre",
-      "UDR": "contre",
-      "RN": "abstention"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 0,
-        "contre": 5,
-        "abstention": 0
-      },
-      "DR": {
-        "pour": 0,
-        "contre": 2,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 20,
-        "contre": 0,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 0,
-        "contre": 30,
-        "abstention": 0
-      },
-      "GDR": {
-        "pour": 16,
-        "contre": 0,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 0,
-        "contre": 7,
-        "abstention": 2
-      },
-      "LFI-NFP": {
-        "pour": 45,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LIOT": {
-        "pour": 0,
-        "contre": 1,
-        "abstention": 0
-      },
-      "NI": {
-        "pour": 1,
-        "contre": 0,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 0,
-        "contre": 0,
-        "abstention": 45
-      },
-      "SOC": {
-        "pour": 24,
-        "contre": 0,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 0,
-        "contre": 4,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 106,
-      "contre": 49,
-      "abstention": 47
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7380"
-  },
-  {
     "id": 840,
     "theme": "education",
-    "these": "Prolonger les dispositifs d'égalité des chances pour l'accès aux grandes écoles.",
+    "these": "Prolonger les dispositifs d'égalité des chances pour entrer dans les grandes écoles.",
     "titre": "l'ensemble de la proposition de loi visant à proroger le dispositif d'expérimentation favorisant l'égalité des chances pour l'accès à certaines écoles de service public (première lecture).",
     "date": "2025-02-18",
     "famille_clivage": "RN_isolé",
@@ -1225,9 +880,98 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/840"
   },
   {
+    "id": 1550,
+    "theme": "education",
+    "these": "Mieux suivre les élèves handicapés à l'école et créer des pôles d'appui à la scolarité.",
+    "titre": "l'ensemble de la proposition de loi visant à renforcer le parcours inclusif des enfants à besoins éducatifs particuliers (première lecture).",
+    "date": "2025-05-05",
+    "famille_clivage": "autre",
+    "positions": {
+      "LFI-NFP": "contre",
+      "GDR": "abstention",
+      "ECOS": "abstention",
+      "SOC": "abstention",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDR": "pour",
+      "RN": "pour"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 5,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 9
+      },
+      "EPR": {
+        "pour": 38,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 2
+      },
+      "HOR": {
+        "pour": 7,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 29,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 1,
+        "contre": 0,
+        "abstention": 1
+      },
+      "RN": {
+        "pour": 25,
+        "contre": 0,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 0,
+        "contre": 0,
+        "abstention": 12
+      },
+      "UDR": {
+        "pour": 5,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
+    "totaux": {
+      "pour": 86,
+      "contre": 29,
+      "abstention": 24
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1550"
+  },
+  {
     "id": 2880,
     "theme": "education",
-    "these": "Renforcer la lutte contre l'antisémitisme dans l'enseignement supérieur (sensibilisation obligatoire, signalement, sanctions disciplinaires).",
+    "these": "Renforcer la lutte contre l'antisémitisme à l'université : formation, signalement, sanctions.",
     "titre": "l'ensemble de la proposition de loi relative à la lutte contre l'antisémitisme dans l'enseignement supérieur (texte de la commission mixte paritaire).",
     "date": "2025-07-02",
     "famille_clivage": "gauche_vs_reste",
@@ -1314,70 +1058,70 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2880"
   },
   {
-    "id": 1303,
+    "id": 3182,
     "theme": "institutions",
-    "these": "Étendre le scrutin de liste à toutes les communes, y compris les plus petites.",
-    "titre": "l'ensemble de la proposition de loi visant à harmoniser le mode de scrutin aux élections municipales afin de garantir la vitalité démocratique, la cohésion municipale et la parité (deuxième lecture).",
-    "date": "2025-04-07",
-    "famille_clivage": "droite_RN_vs_gauche",
+    "these": "Reporter les élections provinciales en Nouvelle-Calédonie pour laisser aboutir les négociations.",
+    "titre": "l'ensemble de la proposition de loi organique visant à reporter le renouvellement général des membres du congrès et des assemblées de province de la Nouvelle-Calédonie afin de permettre la poursuite de la discussion en vue d'un accord consensuel sur l'avenir institutionnel de la Nouvelle-Calédonie (texte de la commission mixte paritaire).",
+    "date": "2025-10-28",
+    "famille_clivage": "transpartisan",
     "positions": {
-      "LFI-NFP": "pour",
-      "GDR": "pour",
-      "ECOS": "pour",
+      "LFI-NFP": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
       "SOC": "pour",
-      "LIOT": "partagé",
+      "LIOT": "pour",
       "DEM": "pour",
       "EPR": "pour",
-      "HOR": "abstention",
-      "DR": "contre",
-      "UDR": "contre",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDR": "pour",
       "RN": "contre"
     },
     "decomptes": {
       "DEM": {
-        "pour": 20,
+        "pour": 34,
         "contre": 1,
-        "abstention": 2
+        "abstention": 0
       },
       "DR": {
-        "pour": 2,
-        "contre": 41,
+        "pour": 43,
+        "contre": 0,
         "abstention": 0
       },
       "ECOS": {
-        "pour": 20,
-        "contre": 0,
+        "pour": 1,
+        "contre": 35,
         "abstention": 0
       },
       "EPR": {
-        "pour": 57,
-        "contre": 2,
-        "abstention": 1
+        "pour": 81,
+        "contre": 0,
+        "abstention": 0
       },
       "GDR": {
-        "pour": 6,
-        "contre": 0,
-        "abstention": 1
+        "pour": 0,
+        "contre": 17,
+        "abstention": 0
       },
       "HOR": {
-        "pour": 1,
+        "pour": 33,
         "contre": 0,
-        "abstention": 18
+        "abstention": 0
       },
       "LFI-NFP": {
-        "pour": 57,
-        "contre": 0,
+        "pour": 0,
+        "contre": 66,
         "abstention": 0
       },
       "LIOT": {
-        "pour": 3,
-        "contre": 8,
-        "abstention": 3
+        "pour": 13,
+        "contre": 6,
+        "abstention": 2
       },
       "NI": {
-        "pour": 3,
-        "contre": 5,
-        "abstention": 0
+        "pour": 6,
+        "contre": 3,
+        "abstention": 1
       },
       "RN": {
         "pour": 0,
@@ -1385,199 +1129,27 @@
         "abstention": 0
       },
       "SOC": {
-        "pour": 37,
-        "contre": 0,
-        "abstention": 0
+        "pour": 55,
+        "contre": 4,
+        "abstention": 6
       },
       "UDR": {
-        "pour": 0,
-        "contre": 9,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 206,
-      "contre": 181,
-      "abstention": 25
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1303"
-  },
-  {
-    "id": 1308,
-    "theme": "institutions",
-    "these": "Restreindre le droit du sol à Mayotte : exiger qu'à la naissance de l'enfant ses deux parents (ou son seul parent légal) résident régulièrement en France depuis plus d'un an.",
-    "titre": "l'ensemble de la proposition de loi visant à renforcer les conditions d'accès à la nationalité française à Mayotte (texte de la commission mixte paritaire).",
-    "date": "2025-04-08",
-    "famille_clivage": "gauche_vs_reste",
-    "positions": {
-      "LFI-NFP": "contre",
-      "GDR": "contre",
-      "ECOS": "contre",
-      "SOC": "contre",
-      "LIOT": "pour",
-      "DEM": "pour",
-      "EPR": "pour",
-      "HOR": "pour",
-      "DR": "pour",
-      "UDR": "pour",
-      "RN": "pour"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 30,
-        "contre": 1,
-        "abstention": 3
-      },
-      "DR": {
-        "pour": 47,
-        "contre": 0,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 0,
-        "contre": 32,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 71,
-        "contre": 0,
-        "abstention": 4
-      },
-      "GDR": {
-        "pour": 0,
-        "contre": 13,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 34,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 0,
-        "contre": 65,
-        "abstention": 0
-      },
-      "LIOT": {
         "pour": 13,
         "contre": 0,
         "abstention": 0
-      },
-      "NI": {
-        "pour": 8,
-        "contre": 2,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 121,
-        "contre": 0,
-        "abstention": 0
-      },
-      "SOC": {
-        "pour": 0,
-        "contre": 61,
-        "abstention": 4
-      },
-      "UDR": {
-        "pour": 15,
-        "contre": 0,
-        "abstention": 0
       }
     },
     "totaux": {
-      "pour": 339,
-      "contre": 174,
-      "abstention": 11
+      "pour": 279,
+      "contre": 247,
+      "abstention": 9
     },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1308"
-  },
-  {
-    "id": 4754,
-    "theme": "institutions",
-    "these": "Renouveler automatiquement les titres de séjour de longue durée (carte pluriannuelle, carte de résident) : sans réponse de l'administration sous quatre mois, le renouvellement est acquis.",
-    "titre": "l'ensemble de la proposition de loi visant à garantir un renouvellement automatique des titres de séjour de longue durée (première lecture).",
-    "date": "2025-12-11",
-    "famille_clivage": "gauche_vs_reste",
-    "positions": {
-      "LFI-NFP": "pour",
-      "GDR": "pour",
-      "ECOS": "pour",
-      "SOC": "pour",
-      "DEM": "partagé",
-      "EPR": "contre",
-      "HOR": "contre",
-      "DR": "contre",
-      "UDR": "contre",
-      "RN": "contre"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 0,
-        "contre": 2,
-        "abstention": 2
-      },
-      "DR": {
-        "pour": 0,
-        "contre": 2,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 14,
-        "contre": 0,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 0,
-        "contre": 9,
-        "abstention": 0
-      },
-      "GDR": {
-        "pour": 5,
-        "contre": 0,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 0,
-        "contre": 1,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 29,
-        "contre": 0,
-        "abstention": 0
-      },
-      "NI": {
-        "pour": 1,
-        "contre": 0,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 0,
-        "contre": 20,
-        "abstention": 0
-      },
-      "SOC": {
-        "pour": 49,
-        "contre": 0,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 0,
-        "contre": 3,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 98,
-      "contre": 37,
-      "abstention": 2
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/4754"
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3182"
   },
   {
     "id": 6045,
     "theme": "institutions",
-    "these": "Fusionner départements et régions en collectivités uniques pour simplifier le millefeuille territorial.",
+    "these": "Fusionner départements et régions en une seule collectivité.",
     "titre": "l'ensemble de la proposition de loi visant à simplifier le millefeuille territorial par la collectivité unique (première lecture).",
     "date": "2026-04-08",
     "famille_clivage": "gauche_vs_reste",
@@ -1666,7 +1238,7 @@
   {
     "id": 7454,
     "theme": "institutions",
-    "these": "Inscrire dans la Constitution un statut d'autonomie pour la Corse au sein de la République.",
+    "these": "Inscrire dans la Constitution l'autonomie de la Corse au sein de la République.",
     "titre": "l'ensemble du projet de loi constitutionnelle pour une Corse autonome au sein de la République (première lecture).",
     "date": "2026-06-23",
     "famille_clivage": "droite_RN_vs_gauche",
@@ -1753,98 +1325,187 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7454"
   },
   {
-    "id": 3182,
+    "id": 981,
     "theme": "international-defense",
-    "these": "Reporter les élections provinciales de Nouvelle-Calédonie pour laisser aboutir les négociations sur son avenir institutionnel (accord de juillet 2025).",
-    "titre": "l'ensemble de la proposition de loi organique visant à reporter le renouvellement général des membres du congrès et des assemblées de province de la Nouvelle-Calédonie afin de permettre la poursuite de la discussion en vue d'un accord consensuel sur l'avenir institutionnel de la Nouvelle-Calédonie (texte de la commission mixte paritaire).",
-    "date": "2025-10-28",
-    "famille_clivage": "transpartisan",
+    "these": "Saisir les avoirs russes gelés en Europe pour financer l'aide militaire à l'Ukraine.",
+    "titre": "l'amendement n° 5 de Mme Le Grip à l'article unique de la proposition de résolution européenne appelant au renforcement du soutien à l'Ukraine.",
+    "date": "2025-03-12",
+    "famille_clivage": "RN_isolé",
     "positions": {
-      "LFI-NFP": "contre",
-      "GDR": "contre",
-      "ECOS": "contre",
-      "SOC": "pour",
-      "LIOT": "pour",
-      "DEM": "pour",
       "EPR": "pour",
+      "ECOS": "pour",
+      "SOC": "pour",
       "HOR": "pour",
+      "DEM": "pour",
       "DR": "pour",
-      "UDR": "pour",
+      "LIOT": "pour",
+      "GDR": "partagé",
+      "UDR": "contre",
+      "LFI-NFP": "contre",
       "RN": "contre"
     },
     "decomptes": {
       "DEM": {
-        "pour": 34,
+        "pour": 18,
         "contre": 1,
-        "abstention": 0
+        "abstention": 3
       },
       "DR": {
-        "pour": 43,
+        "pour": 12,
         "contre": 0,
-        "abstention": 0
+        "abstention": 1
       },
       "ECOS": {
-        "pour": 1,
-        "contre": 35,
+        "pour": 22,
+        "contre": 0,
         "abstention": 0
       },
       "EPR": {
-        "pour": 81,
+        "pour": 45,
         "contre": 0,
-        "abstention": 0
+        "abstention": 1
       },
       "GDR": {
-        "pour": 0,
-        "contre": 17,
-        "abstention": 0
+        "pour": 1,
+        "contre": 3,
+        "abstention": 2
       },
       "HOR": {
-        "pour": 33,
+        "pour": 20,
         "contre": 0,
         "abstention": 0
       },
       "LFI-NFP": {
         "pour": 0,
-        "contre": 66,
+        "contre": 24,
         "abstention": 0
       },
       "LIOT": {
-        "pour": 13,
-        "contre": 6,
-        "abstention": 2
+        "pour": 7,
+        "contre": 0,
+        "abstention": 0
       },
       "NI": {
-        "pour": 6,
-        "contre": 3,
-        "abstention": 1
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
       },
       "RN": {
         "pour": 0,
-        "contre": 115,
+        "contre": 69,
         "abstention": 0
       },
       "SOC": {
-        "pour": 55,
-        "contre": 4,
-        "abstention": 6
+        "pour": 23,
+        "contre": 0,
+        "abstention": 0
       },
       "UDR": {
-        "pour": 13,
-        "contre": 0,
+        "pour": 0,
+        "contre": 6,
         "abstention": 0
       }
     },
     "totaux": {
-      "pour": 279,
-      "contre": 247,
-      "abstention": 9
+      "pour": 150,
+      "contre": 103,
+      "abstention": 7
     },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3182"
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/981"
+  },
+  {
+    "id": 985,
+    "theme": "international-defense",
+    "these": "Augmenter les dépenses militaires en Europe, financées par des emprunts communs.",
+    "titre": "l'amendement n° 40 de M. Anglade à l'article unique de la proposition de résolution européenne appelant au renforcement du soutien à l'Ukraine.",
+    "date": "2025-03-12",
+    "famille_clivage": "centre_isolé",
+    "positions": {
+      "EPR": "pour",
+      "DEM": "pour",
+      "HOR": "pour",
+      "DR": "partagé",
+      "SOC": "contre",
+      "LIOT": "contre",
+      "UDR": "contre",
+      "GDR": "contre",
+      "ECOS": "contre",
+      "LFI-NFP": "contre",
+      "RN": "contre"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 22,
+        "contre": 0,
+        "abstention": 0
+      },
+      "DR": {
+        "pour": 3,
+        "contre": 5,
+        "abstention": 6
+      },
+      "ECOS": {
+        "pour": 0,
+        "contre": 23,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 45,
+        "contre": 0,
+        "abstention": 1
+      },
+      "GDR": {
+        "pour": 0,
+        "contre": 9,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 21,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 0,
+        "contre": 27,
+        "abstention": 1
+      },
+      "LIOT": {
+        "pour": 1,
+        "contre": 10,
+        "abstention": 0
+      },
+      "NI": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 75,
+        "abstention": 0
+      },
+      "SOC": {
+        "pour": 4,
+        "contre": 26,
+        "abstention": 0
+      },
+      "UDR": {
+        "pour": 0,
+        "contre": 6,
+        "abstention": 0
+      }
+    },
+    "totaux": {
+      "pour": 99,
+      "contre": 181,
+      "abstention": 8
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/985"
   },
   {
     "id": 3260,
     "theme": "international-defense",
-    "these": "Dénoncer l'accord franco-algérien du 27 décembre 1968, qui fixe un régime particulier de circulation, de séjour et d'emploi des Algériens en France.",
+    "these": "Dénoncer l'accord de 1968 qui fixe des règles de séjour propres aux Algériens.",
     "titre": "la proposition de résolution visant à dénoncer les accords franco-algériens du 27 décembre 1968 (article 34-1 de la Constitution).",
     "date": "2025-10-30",
     "famille_clivage": "droite_RN_vs_gauche",
@@ -1931,187 +1592,9 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3260"
   },
   {
-    "id": 7905,
-    "theme": "international-defense",
-    "these": "Actualiser la programmation militaire : 36 milliards d'euros de crédits supplémentaires sur 2026-2030 (budget des armées porté à 75,7 milliards en 2030) et création d'un service national volontaire.",
-    "titre": "l'ensemble du projet de loi actualisant la programmation militaire pour les années 2024 à 2030 et portant diverses dispositions intéressant la défense (texte de la commission mixte paritaire).",
-    "date": "2026-07-01",
-    "famille_clivage": "gauche_vs_reste",
-    "positions": {
-      "LFI-NFP": "contre",
-      "GDR": "contre",
-      "ECOS": "contre",
-      "SOC": "pour",
-      "LIOT": "pour",
-      "DEM": "pour",
-      "EPR": "pour",
-      "HOR": "pour",
-      "DR": "pour",
-      "UDR": "pour",
-      "RN": "pour"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 26,
-        "contre": 0,
-        "abstention": 0
-      },
-      "DR": {
-        "pour": 43,
-        "contre": 0,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 1,
-        "contre": 36,
-        "abstention": 1
-      },
-      "EPR": {
-        "pour": 85,
-        "contre": 0,
-        "abstention": 0
-      },
-      "GDR": {
-        "pour": 0,
-        "contre": 14,
-        "abstention": 1
-      },
-      "HOR": {
-        "pour": 36,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 0,
-        "contre": 62,
-        "abstention": 0
-      },
-      "LIOT": {
-        "pour": 20,
-        "contre": 0,
-        "abstention": 0
-      },
-      "NI": {
-        "pour": 7,
-        "contre": 0,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 97,
-        "contre": 0,
-        "abstention": 0
-      },
-      "SOC": {
-        "pour": 46,
-        "contre": 1,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 14,
-        "contre": 0,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 375,
-      "contre": 113,
-      "abstention": 2
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7905"
-  },
-  {
-    "id": 8611,
-    "theme": "international-defense",
-    "these": "Réviser les règles de Schengen pour contrôler aux frontières intérieures les ressortissants de pays non européens, en plus de la frontière extérieure de l'Union.",
-    "titre": "la proposition de résolution visant à refonder l'espace Schengen en instaurant une double frontière nationale et européenne (article 34-1 de la Constitution).",
-    "date": "2026-10-08",
-    "famille_clivage": "droite_RN_vs_gauche",
-    "positions": {
-      "LFI-NFP": "contre",
-      "GDR": "contre",
-      "ECOS": "contre",
-      "SOC": "contre",
-      "LIOT": "contre",
-      "DEM": "contre",
-      "EPR": "contre",
-      "HOR": "contre",
-      "DR": "pour",
-      "UDR": "pour",
-      "RN": "pour"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 0,
-        "contre": 11,
-        "abstention": 0
-      },
-      "DR": {
-        "pour": 9,
-        "contre": 0,
-        "abstention": 5
-      },
-      "ECOS": {
-        "pour": 0,
-        "contre": 27,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 0,
-        "contre": 41,
-        "abstention": 0
-      },
-      "GDR": {
-        "pour": 0,
-        "contre": 10,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 0,
-        "contre": 5,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 0,
-        "contre": 57,
-        "abstention": 0
-      },
-      "LIOT": {
-        "pour": 0,
-        "contre": 10,
-        "abstention": 0
-      },
-      "NI": {
-        "pour": 0,
-        "contre": 1,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 118,
-        "contre": 0,
-        "abstention": 0
-      },
-      "SOC": {
-        "pour": 0,
-        "contre": 37,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 17,
-        "contre": 0,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 144,
-      "contre": 199,
-      "abstention": 5
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8611"
-  },
-  {
     "id": 289,
     "theme": "logement",
-    "these": "Encadrer davantage les locations touristiques de courte durée (type Airbnb) : quotas et plafond de 90 jours au choix des communes, avantage fiscal réduit, diagnostic énergétique obligatoire.",
+    "these": "Permettre aux communes de limiter les locations touristiques type Airbnb et réduire leur avantage fiscal.",
     "titre": "l'ensemble de la proposition de loi visant à renforcer les outils de régulation des meublés de tourisme à l'échelle locale (texte de la commission mixte paritaire).",
     "date": "2024-11-07",
     "famille_clivage": "RN_isolé",
@@ -2200,7 +1683,7 @@
   {
     "id": 4745,
     "theme": "logement",
-    "these": "Pérenniser l'encadrement des loyers et l'étendre aux communes en zone tendue qui le souhaitent, plafonner le complément de loyer à 20 % et doubler les amendes des bailleurs en infraction.",
+    "these": "Pérenniser l'encadrement des loyers et l'étendre aux villes en zone tendue qui le demandent.",
     "titre": "l'ensemble de la proposition de loi pour retrouver la confiance et l'équilibre dans les rapports locatifs (première lecture).",
     "date": "2025-12-11",
     "famille_clivage": "gauche_vs_reste",
@@ -2289,7 +1772,7 @@
   {
     "id": 7408,
     "theme": "logement",
-    "these": "Réserver davantage de logements aux travailleurs des services publics (police, soignants, enseignants).",
+    "these": "Réserver davantage de logements aux policiers, soignants, enseignants et autres agents publics.",
     "titre": "l'ensemble de la proposition de loi visant à améliorer l'accès au logement des travailleurs des services publics (texte de la commission mixte paritaire).",
     "date": "2026-06-17",
     "famille_clivage": "gauche_vs_reste",
@@ -2378,7 +1861,7 @@
   {
     "id": 261,
     "theme": "sante",
-    "these": "Plafonner à 30 % du prix d'une consultation chez le généraliste la part qui reste à la charge du patient après le remboursement de l'Assurance maladie.",
+    "these": "Plafonner à 30 % la part non remboursée d'une consultation chez le généraliste.",
     "titre": "l'amendement n° 230 de M. Guedj après l'article 18 du projet de loi de financement de la sécurité sociale pour 2025 (première lecture).",
     "date": "2024-11-05",
     "famille_clivage": "transpartisan",
@@ -2465,98 +1948,98 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/261"
   },
   {
-    "id": 1214,
+    "id": 3605,
     "theme": "sante",
-    "these": "Soumettre l'installation des médecins à l'autorisation de l'agence régionale de santé : accordée de droit là où l'offre de soins est insuffisante, ailleurs seulement si un médecin de la même spécialité part.",
-    "titre": "l'amendement n° 55 de M. Garot et l'amendement identique suivant de rétablissement de l'article premier (supprimé) de la proposition de loi visant à lutter contre les déserts médicaux, d'initiative transpartisane (première lecture).",
-    "date": "2025-04-02",
-    "famille_clivage": "RN_isolé",
+    "these": "Supprimer la gratuité de la complémentaire santé solidaire pour les foyers les plus modestes.",
+    "titre": "l'amendement n° 885 de M. Wauquiez après l'article 18 du projet de loi de financement de la sécurité sociale pour 2026 (première lecture).",
+    "date": "2025-11-08",
+    "famille_clivage": "droite_isolée",
     "positions": {
-      "LFI-NFP": "pour",
-      "GDR": "pour",
-      "ECOS": "pour",
-      "SOC": "pour",
-      "LIOT": "pour",
-      "DEM": "pour",
+      "DR": "pour",
+      "LIOT": "partagé",
       "EPR": "contre",
-      "HOR": "pour",
-      "DR": "partagé",
-      "UDR": "partagé",
+      "UDR": "contre",
+      "GDR": "contre",
+      "HOR": "contre",
+      "DEM": "contre",
+      "ECOS": "contre",
+      "SOC": "contre",
+      "LFI-NFP": "contre",
       "RN": "contre"
     },
     "decomptes": {
       "DEM": {
-        "pour": 7,
-        "contre": 1,
-        "abstention": 2
+        "pour": 0,
+        "contre": 10,
+        "abstention": 0
       },
       "DR": {
-        "pour": 8,
-        "contre": 6,
+        "pour": 9,
+        "contre": 0,
         "abstention": 0
       },
       "ECOS": {
-        "pour": 19,
-        "contre": 0,
+        "pour": 0,
+        "contre": 14,
         "abstention": 0
       },
       "EPR": {
-        "pour": 4,
-        "contre": 18,
-        "abstention": 1
+        "pour": 1,
+        "contre": 27,
+        "abstention": 0
       },
       "GDR": {
-        "pour": 10,
-        "contre": 0,
+        "pour": 0,
+        "contre": 5,
         "abstention": 0
       },
       "HOR": {
-        "pour": 8,
+        "pour": 0,
         "contre": 5,
         "abstention": 0
       },
       "LFI-NFP": {
-        "pour": 40,
-        "contre": 0,
+        "pour": 0,
+        "contre": 41,
         "abstention": 0
       },
       "LIOT": {
-        "pour": 6,
-        "contre": 1,
+        "pour": 2,
+        "contre": 2,
         "abstention": 0
       },
       "NI": {
-        "pour": 1,
-        "contre": 1,
+        "pour": 0,
+        "contre": 2,
         "abstention": 0
       },
       "RN": {
         "pour": 0,
-        "contre": 50,
+        "contre": 65,
         "abstention": 0
       },
       "SOC": {
-        "pour": 50,
-        "contre": 1,
+        "pour": 0,
+        "contre": 30,
         "abstention": 0
       },
       "UDR": {
-        "pour": 2,
-        "contre": 2,
+        "pour": 0,
+        "contre": 6,
         "abstention": 0
       }
     },
     "totaux": {
-      "pour": 155,
-      "contre": 85,
-      "abstention": 3
+      "pour": 12,
+      "contre": 207,
+      "abstention": 0
     },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1214"
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3605"
   },
   {
     "id": 8280,
     "theme": "sante",
-    "these": "Légaliser l'aide à mourir sous conditions (fin de vie).",
+    "these": "Légaliser l'aide à mourir sous conditions.",
     "titre": "l'ensemble de la proposition de loi relative au droit à l'aide à mourir (lecture définitive).",
     "date": "2026-07-15",
     "famille_clivage": "droite_RN_vs_gauche",
@@ -2645,7 +2128,7 @@
   {
     "id": 1624,
     "theme": "securite-justice",
-    "these": "Durcir la réponse pénale envers les mineurs délinquants et responsabiliser leurs parents.",
+    "these": "Durcir les sanctions contre les mineurs délinquants et responsabiliser leurs parents.",
     "titre": "l'ensemble de la proposition de loi visant à renforcer l'autorité de la justice à l'égard des mineurs délinquants et de leurs parents (texte de la commission mixte paritaire).",
     "date": "2025-05-13",
     "famille_clivage": "gauche_vs_reste",
@@ -2732,98 +2215,9 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1624"
   },
   {
-    "id": 2958,
-    "theme": "securite-justice",
-    "these": "Maintenir en rétention de sûreté des personnes condamnées jugées encore dangereuses après leur peine.",
-    "titre": "l'ensemble de la proposition de loi visant à faciliter le maintien en rétention des personnes condamnées pour des faits d’une particulière gravité et présentant de forts risques de récidive (première lecture).",
-    "date": "2025-07-08",
-    "famille_clivage": "gauche_vs_reste",
-    "positions": {
-      "LFI-NFP": "contre",
-      "GDR": "contre",
-      "ECOS": "contre",
-      "SOC": "contre",
-      "LIOT": "pour",
-      "DEM": "pour",
-      "EPR": "pour",
-      "HOR": "pour",
-      "DR": "pour",
-      "UDR": "pour",
-      "RN": "pour"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 25,
-        "contre": 0,
-        "abstention": 1
-      },
-      "DR": {
-        "pour": 48,
-        "contre": 0,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 0,
-        "contre": 33,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 60,
-        "contre": 1,
-        "abstention": 0
-      },
-      "GDR": {
-        "pour": 0,
-        "contre": 12,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 25,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 0,
-        "contre": 58,
-        "abstention": 0
-      },
-      "LIOT": {
-        "pour": 19,
-        "contre": 1,
-        "abstention": 0
-      },
-      "NI": {
-        "pour": 6,
-        "contre": 3,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 107,
-        "contre": 0,
-        "abstention": 0
-      },
-      "SOC": {
-        "pour": 0,
-        "contre": 60,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 13,
-        "contre": 0,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 303,
-      "contre": 168,
-      "abstention": 1
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2958"
-  },
-  {
     "id": 3061,
     "theme": "securite-justice",
-    "these": "Inscrire l'absence de consentement dans la définition pénale du viol.",
+    "these": "Définir le viol par l'absence de consentement dans le Code pénal.",
     "titre": "l'ensemble de la proposition de loi modifiant la définition pénale du viol et des agressions sexuelles (texte de la commission mixte paritaire).",
     "date": "2025-10-23",
     "famille_clivage": "RN_isolé",
@@ -2912,7 +2306,7 @@
   {
     "id": 7987,
     "theme": "securite-justice",
-    "these": "Reconnaître une présomption de légitime défense pour les policiers et gendarmes qui font usage de leur arme dans l'exercice de leurs fonctions.",
+    "these": "Présumer la légitime défense des policiers et gendarmes qui font usage de leur arme.",
     "titre": "l'ensemble de la proposition de loi visant à reconnaître une présomption de légitime défense pour les forces de l'ordre, dans l'exercice de leurs fonctions (première lecture).",
     "date": "2026-07-07",
     "famille_clivage": "gauche_vs_reste",
@@ -2997,95 +2391,6 @@
       "abstention": 5
     },
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7987"
-  },
-  {
-    "id": 8042,
-    "theme": "securite-justice",
-    "these": "Réformer la justice criminelle : instaurer un « plaider-coupable » pour les crimes reconnus et élargir les cours criminelles (magistrats et citoyens assesseurs).",
-    "titre": "l'ensemble du projet de loi sur la justice criminelle et le respect des victimes (texte de la commission mixte paritaire).",
-    "date": "2026-07-08",
-    "famille_clivage": "gauche_vs_reste",
-    "positions": {
-      "LFI-NFP": "contre",
-      "GDR": "contre",
-      "ECOS": "contre",
-      "SOC": "contre",
-      "LIOT": "pour",
-      "DEM": "pour",
-      "EPR": "pour",
-      "HOR": "pour",
-      "DR": "pour",
-      "UDR": "pour",
-      "RN": "pour"
-    },
-    "decomptes": {
-      "DEM": {
-        "pour": 31,
-        "contre": 0,
-        "abstention": 0
-      },
-      "DR": {
-        "pour": 27,
-        "contre": 0,
-        "abstention": 0
-      },
-      "ECOS": {
-        "pour": 0,
-        "contre": 35,
-        "abstention": 0
-      },
-      "EPR": {
-        "pour": 85,
-        "contre": 0,
-        "abstention": 1
-      },
-      "GDR": {
-        "pour": 0,
-        "contre": 12,
-        "abstention": 0
-      },
-      "HOR": {
-        "pour": 34,
-        "contre": 0,
-        "abstention": 0
-      },
-      "LFI-NFP": {
-        "pour": 0,
-        "contre": 68,
-        "abstention": 0
-      },
-      "LIOT": {
-        "pour": 14,
-        "contre": 0,
-        "abstention": 0
-      },
-      "NI": {
-        "pour": 2,
-        "contre": 0,
-        "abstention": 0
-      },
-      "RN": {
-        "pour": 80,
-        "contre": 0,
-        "abstention": 0
-      },
-      "SOC": {
-        "pour": 0,
-        "contre": 41,
-        "abstention": 0
-      },
-      "UDR": {
-        "pour": 10,
-        "contre": 0,
-        "abstention": 0
-      }
-    },
-    "totaux": {
-      "pour": 283,
-      "contre": 156,
-      "abstention": 1
-    },
-    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8042"
   },
   {
     "id": 2272,
@@ -3179,7 +2484,7 @@
   {
     "id": 4723,
     "theme": "solidarites",
-    "these": "Maintenir l'accueil d'urgence et la scolarisation des jeunes non reconnus mineurs isolés pendant leur recours devant le juge, et interdire les examens osseux, dentaires ou pubertaires pour estimer leur âge.",
+    "these": "Protéger les jeunes non reconnus mineurs pendant leur recours et interdire les tests osseux.",
     "titre": "l'ensemble de la proposition de loi visant à protéger les mineurs isolés et à lutter contre le sans-abrisme (première lecture).",
     "date": "2025-12-11",
     "famille_clivage": "gauche_vs_reste",
@@ -3266,9 +2571,93 @@
     "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/4723"
   },
   {
+    "id": 6572,
+    "theme": "solidarites",
+    "these": "Financer la recherche contre les cancers de l'enfant par une taxe sur les laboratoires.",
+    "titre": "l'ensemble de la proposition de loi visant à mettre en place un programme de soutien à l'innovation thérapeutique contre les cancers, les maladies rares et les maladies orphelines de l'enfant (première lecture).",
+    "date": "2026-05-13",
+    "famille_clivage": "RN_isolé",
+    "positions": {
+      "LFI-NFP": "pour",
+      "GDR": "pour",
+      "ECOS": "pour",
+      "SOC": "pour",
+      "LIOT": "pour",
+      "DEM": "pour",
+      "EPR": "pour",
+      "HOR": "pour",
+      "DR": "pour",
+      "UDR": "pour",
+      "RN": "contre"
+    },
+    "decomptes": {
+      "DEM": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 1
+      },
+      "DR": {
+        "pour": 13,
+        "contre": 0,
+        "abstention": 0
+      },
+      "ECOS": {
+        "pour": 5,
+        "contre": 0,
+        "abstention": 0
+      },
+      "EPR": {
+        "pour": 15,
+        "contre": 0,
+        "abstention": 0
+      },
+      "GDR": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "HOR": {
+        "pour": 9,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LFI-NFP": {
+        "pour": 17,
+        "contre": 0,
+        "abstention": 0
+      },
+      "LIOT": {
+        "pour": 3,
+        "contre": 0,
+        "abstention": 0
+      },
+      "RN": {
+        "pour": 0,
+        "contre": 22,
+        "abstention": 2
+      },
+      "SOC": {
+        "pour": 28,
+        "contre": 0,
+        "abstention": 0
+      },
+      "UDR": {
+        "pour": 2,
+        "contre": 0,
+        "abstention": 0
+      }
+    },
+    "totaux": {
+      "pour": 98,
+      "contre": 22,
+      "abstention": 3
+    },
+    "source_url": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6572"
+  },
+  {
     "id": 2257,
     "theme": "travail",
-    "these": "Abroger le report de l'âge légal de départ de 62 à 64 ans et le passage à 43 annuités de cotisation dès 2027, décidés par la réforme des retraites de 2023.",
+    "these": "Abroger la réforme des retraites de 2023 et revenir à un départ à 62 ans.",
     "titre": "la proposition de résolution visant à abroger la loi n° 2023-270 du 14 avril 2023 de financement rectificative de la sécurité sociale pour 2023 dite réforme des retraites.",
     "date": "2025-06-05",
     "famille_clivage": "transpartisan",
@@ -3357,7 +2746,7 @@
   {
     "id": 7260,
     "theme": "travail",
-    "these": "Appliquer la nouvelle convention d'assurance chômage, qui durcit les règles d'indemnisation.",
+    "these": "Appliquer la nouvelle convention d'assurance chômage, qui durcit l'indemnisation.",
     "titre": "l'ensemble du projet de loi portant transposition de l'avenant n° 3 du 25 février 2026 au protocole d'accord du 10 novembre 2023 relatif à l'assurance chômage (deuxième lecture).",
     "date": "2026-06-02",
     "famille_clivage": "gauche_vs_reste",
@@ -3446,7 +2835,7 @@
   {
     "id": 8704,
     "theme": "travail",
-    "these": "Créer un congé sans perte de salaire pour les victimes de violences sexuelles ou sexistes (salariés et agents publics), le temps de leurs démarches judiciaires, médicales ou sociales.",
+    "these": "Créer un congé sans perte de salaire pour les victimes de violences sexuelles ou sexistes.",
     "titre": "l'amendement n° 5 de Mme Thiébault-Martinez de rétablissement de l'article 46 (supprimé) de la proposition de loi apportant une réponse intégrale au phénomène des violences sexuelles et sexistes contre les femmes et les enfants (seconde délibération) (première lecture).",
     "date": "2026-10-13",
     "famille_clivage": "RN_isolé",

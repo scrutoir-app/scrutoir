@@ -18,6 +18,8 @@ export interface BlocInfos {
   texte: string;
   /** Le bloc porte le mini-schéma de la barre de vote. */
   schemaBarre?: boolean;
+  /** Le bloc est le texte de méthode du test (`METHODE_QUESTIONS`), rendu avec ses trois règles. */
+  methode?: boolean;
 }
 
 export interface FamilleInfos {
@@ -28,6 +30,47 @@ export interface FamilleInfos {
 }
 
 export const INFOS_TITRE = "À propos et limites";
+
+/** Une règle du texte de méthode : son nom (en gras), puis le texte après les deux-points. */
+export interface RegleMethode {
+  nom: string;
+  texte: string;
+}
+
+/**
+ * Texte de méthode du test de proximité, mot pour mot (validé le 15/11/2026). Affiché dans
+ * l'onglet Infos (famille « Le test de proximité ») et derrière le lien « Comment ces questions
+ * sont choisies » de l'intro du test : une seule source pour les deux.
+ * ⚠️ « onze thèmes, trois questions chacun » doit rester vrai : le contrôle des données
+ * (testProximite/donneesTest.test.ts) échoue sinon.
+ */
+export const METHODE_QUESTIONS: { titre: string; intro: string; regles: RegleMethode[]; limite: RegleMethode } = {
+  titre: "Comment on choisit les questions du test",
+  intro:
+    "Chaque question repose sur un vrai scrutin public de l'Assemblée, voté par au moins 120 députés. Trois règles.",
+  regles: [
+    {
+      nom: "Compréhensible",
+      texte:
+        "une phrase de 15 mots au plus, sans jargon. L'intitulé officiel du scrutin reste affiché dessous, mot pour mot.",
+    },
+    {
+      nom: "Discriminant",
+      texte:
+        "chaque question sépare les groupes, et la ligne de partage change d'une question à l'autre. Selon le " +
+        "vote, la gauche, le centre, la droite ou le RN se retrouve seul de son côté, ou deux blocs s'opposent " +
+        "à deux autres.",
+    },
+    { nom: "Équilibré", texte: "onze thèmes, trois questions chacun." },
+  ],
+  limite: {
+    nom: "Ce que ces règles ne changent pas",
+    texte:
+      "le test varie les lignes de partage autant que les votes le permettent. Certaines reviennent plus " +
+      "souvent que d'autres à l'Assemblée, et le test n'en invente pas quand le vote n'existe pas. Pour tout " +
+      "le monde, chaque réponse est comparée de la même façon au vote de chaque groupe.",
+  },
+};
 
 export const EN_BREF: PointBref[] = [
   {
@@ -146,8 +189,9 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
   {
     id: "test",
     titre: "Le test de proximité",
-    sousTitre: "Comment le spectre est calculé, où restent tes réponses",
+    sousTitre: "Le choix des questions, le calcul du spectre, tes réponses",
     blocs: [
+      { titre: METHODE_QUESTIONS.titre, texte: METHODE_QUESTIONS.intro, methode: true },
       {
         titre: "Le test de proximité",
         texte:

@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { getTestProximite, getPartis, getVotesBruts } from "../api";
 import { chargerTest } from "./storage";
+import { questionsJouees, nbVotesActuels } from "./config";
 import {
   calculerProximite,
   scoreVotant,
@@ -52,7 +53,7 @@ export function chargerJe(): Promise<ContexteJe | null> {
   if (cacheP && cacheTs === ts) return cacheP;
   cacheTs = ts;
   cacheP = Promise.all([getTestProximite(), getPartis()]).then(([toutes, partis]) => {
-    const jouees = toutes.filter((q) => etat.reponses[q.id] != null);
+    const jouees = questionsJouees(toutes, etat.reponses);
     const groupes = partis.filter((p) => p.abrev).map((p) => ({ abrev: p.abrev! }));
     const poids = etat.poids ?? {};
     const resultat = calculerProximite(jouees, etat.reponses, poids, groupes);
@@ -61,7 +62,7 @@ export function chargerJe(): Promise<ContexteJe | null> {
       for (const [abrev, sc] of Object.entries(parGroupe))
         comparableParGroupe[abrev] = (comparableParGroupe[abrev] ?? 0) + sc.comparable;
     // Réponses aux questions ACTUELLES seulement (une question retirée du test garde sa réponse).
-    const nbVotes = jouees.filter((q) => etat.reponses[q.id] === "pour" || etat.reponses[q.id] === "contre").length;
+    const nbVotes = nbVotesActuels(toutes, etat.reponses);
     return { reponses: etat.reponses, poids, questions: jouees, resultat, comparableParGroupe, nbVotes };
   });
   return cacheP;

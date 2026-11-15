@@ -89,6 +89,14 @@ export function TestIntroScreen({ theme, themeLibelle, nav }: { theme?: string; 
         fullWidth
         style={{ marginTop: 22 }}
       />
+      {/* La méthode, mot pour mot (même texte que l'onglet Infos). */}
+      <Button
+        label="Comment ces questions sont choisies"
+        onPress={() => nav.push({ name: "methodeTest" })}
+        variant="text"
+        size="sm"
+        style={{ marginTop: 10, alignSelf: "center" }}
+      />
     </ScrollView>
   );
 }
