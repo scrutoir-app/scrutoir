@@ -8,6 +8,9 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.38.3 — 2026-11-15
+**Infos : le bloc sur le calcul du spectre ne contredit plus la méthode.** L'ancien bloc « Le test de proximité » disait que les questions portaient toutes sur un texte entier, sans amendement ; ce n'est plus vrai (6 des 33 questions portent sur un amendement ou un article). Le choix des questions est expliqué par le texte de méthode juste au-dessus : ce bloc devient « Comment le spectre est calculé » et ne parle plus que du calcul, en précisant que la position d'un groupe est celle de la majorité de ses membres qui ont voté.
+
 ## 1.38.2 — 2026-11-15
 **Test de proximité : 33 questions, 3 par thème, et le texte de méthode.**
 - **33 questions** (au lieu de 40), trois par thème sur les onze thèmes. 27 restent, 6 arrivent, 13 quittent le test. Toutes reposent sur un scrutin public voté par au moins 120 députés ; 6 portent sur un amendement ou un article plutôt que sur un texte entier.

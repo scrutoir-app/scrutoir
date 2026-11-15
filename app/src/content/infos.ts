@@ -193,14 +193,15 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
     blocs: [
       { titre: METHODE_QUESTIONS.titre, texte: METHODE_QUESTIONS.intro, methode: true },
       {
-        titre: "Le test de proximité",
+        // Version B validée le 15/11/2026 : le choix des questions est dans le bloc de méthode
+        // juste au-dessus ; ce bloc ne parle plus que du calcul.
+        titre: "Comment le spectre est calculé",
         texte:
-          "Le test te confronte à de vrais scrutins, choisis parce qu'ils portent sur un texte entier " +
-          "et qu'ils ont divisé l'Assemblée (pas les votes quasi-unanimes ni les amendements de détail). " +
-          "Pour chaque vote, on regarde si ta réponse rejoint la position de chaque groupe : on ne " +
-          "compte que les votes où toi ET le groupe avez tranché « pour » ou « contre » (abstention et " +
-          "« sans avis » sont exclus). Le résultat est un spectre — ta proximité avec tous les groupes, " +
-          "thème par thème — et jamais un parti unique : on ne se résume pas à une étiquette.",
+          "Pour chaque question, on regarde si ta réponse rejoint la position de chaque groupe, c'est-à-dire " +
+          "celle de la majorité de ses membres qui ont voté. On ne compte que les votes où toi ET le groupe " +
+          "avez tranché « pour » ou « contre » (abstention et « sans avis » sont exclus). Le résultat est un " +
+          "spectre — ta proximité avec tous les groupes, thème par thème — et jamais un parti unique : on ne " +
+          "se résume pas à une étiquette.",
       },
       {
         titre: "Tes réponses restent chez toi",
