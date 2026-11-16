@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import { View, Text, Animated, Easing, Platform, TouchableOpacity, type StyleProp, type ViewStyle } from "react-native";
-import { C, F, T, S, CONTROL } from "../theme";
+import { View, Text, Animated, Easing, Platform, type StyleProp, type ViewStyle } from "react-native";
+import { C, F, T, S } from "../theme";
 import { getScrutin, getTestProximite } from "../api";
 import { useEtatTest } from "../testProximite/useReponses";
 import { origineDe, type Origine } from "../testProximite/storage";
@@ -118,16 +118,22 @@ function LigneVote({ uid, numero, reponse, origine }: { uid: string; numero: num
   if (!texte) return null;
   return (
     <Animated.View style={{ marginTop: S.s6, opacity: v, transform: [{ translateY: v.interpolate({ inputRange: [0, 1], outputRange: [4, 0] }) }] }}>
-      <Text style={[T.small, { color: C.textMuted, lineHeight: 18 }]} accessibilityLiveRegion="polite">{texte}</Text>
-      {pourquoi && (
-        <TouchableOpacity
-          onPress={() => tiroir.nav?.push({ name: "apropos", ancre: ANCRE_VOTES_HORS_TEST })}
-          accessibilityRole="link"
-          style={{ alignSelf: "flex-start", minHeight: CONTROL.md, justifyContent: "center" }}
-        >
-          <Text style={[T.small, { fontFamily: F.bold, color: C.accent, textDecorationLine: "underline" }]}>Pourquoi ce scrutin ne compte pas</Text>
-        </TouchableOpacity>
-      )}
+      <Text style={[T.small, { color: C.textMuted, lineHeight: 18 }]} accessibilityLiveRegion="polite">
+        {texte}
+        {pourquoi && (
+          <>
+            {" "}
+            {/* Lien dans la phrase (pas une rangée de plus : la carte du Fil reste dans sa hauteur). */}
+            <Text
+              onPress={() => tiroir.nav?.push({ name: "apropos", ancre: ANCRE_VOTES_HORS_TEST })}
+              accessibilityRole="link"
+              style={{ fontFamily: F.bold, color: C.accent, textDecorationLine: "underline" }}
+            >
+              Pourquoi ce scrutin ne compte pas
+            </Text>
+          </>
+        )}
+      </Text>
     </Animated.View>
   );
 }
