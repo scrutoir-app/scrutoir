@@ -151,7 +151,11 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   // comme dans le calcul du spectre et sur l'écran de résultat. Une question retirée du test garde
   // sa réponse (utile à « Tes accords »), mais ne doit plus gonfler la base « Sur tes N votes ».
   // null tant que les questions ne sont pas chargées (on ne connaît pas encore les retirées).
-  const nbVotesSpectre = useMemo(() => (questions.length ? nbVotesActuels(questions, reponses) : null), [questions, reponses]);
+  // Avec le « je » chargé : test + scrutins tranchés hors test qui comptent (même base que le spectre).
+  const nbVotesSpectre = useMemo(
+    () => (je ? je.nbVotes : questions.length ? nbVotesActuels(questions, reponses) : null),
+    [je, questions, reponses]
+  );
   // Situé d'emblée sur les réponses gardées (pas de bascule « Commence » → « Continue » au
   // chargement), puis sur les seules questions actuelles : qui n'a répondu qu'à des questions
   // retirées repart de « Commence à te situer ».

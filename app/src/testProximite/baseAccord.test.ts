@@ -11,15 +11,15 @@ test("base avec un député : seuls les scrutins tranchés des deux côtés comp
   const rep: Record<number, Reponse> = { 1: "pour", 2: "contre", 3: "pour", 4: "sans_avis", 5: "pour" };
   const votes = { [uid(1)]: "pour", [uid(2)]: "pour", [uid(3)]: "abstention", [uid(4)]: "pour", [uid(5)]: "pour" };
   // 1 comme, 2 inverse, 3 abstention (non comparable), 4 sans avis (non comparable), 5 comme.
-  assert.deepEqual(baseAccordVotant(qs, rep, votes), { comparable: 3, accord: 2, inverse: 1 });
-  assert.deepEqual(baseAccordVotant(qs, {}, votes), { comparable: 0, accord: 0, inverse: 0 });
+  assert.deepEqual(baseAccordVotant(qs, rep, votes), { comparable: 3, accord: 2, inverse: 1, test: 3, perso: 0 });
+  assert.deepEqual(baseAccordVotant(qs, {}, votes), { comparable: 0, accord: 0, inverse: 0, test: 0, perso: 0 });
 });
 
 test("base avec un groupe : relue dans le résultat du moteur", () => {
   const qs = [q(1, "eco", { A: "pour" }), q(2, "eco", { A: "pour" }), q(3, "sante", { A: "contre" }), q(4, "sante", { A: "abstention" })];
   const res = calculerProximite(qs, { 1: "pour", 2: "contre", 3: "contre", 4: "pour" }, {}, [{ abrev: "A" }]);
-  assert.deepEqual(baseAccordGroupe(res, "A"), { comparable: 3, accord: 2, inverse: 1 });
-  assert.deepEqual(baseAccordGroupe(res, "B"), { comparable: 0, accord: 0, inverse: 0 });
+  assert.deepEqual(baseAccordGroupe(res, "A"), { comparable: 3, accord: 2, inverse: 1, test: 3, perso: 0 });
+  assert.deepEqual(baseAccordGroupe(res, "B"), { comparable: 0, accord: 0, inverse: 0, test: 0, perso: 0 });
 });
 
 test("accord par thème : fiables d'abord (% décroissant), puis sous le seuil (base décroissante)", () => {

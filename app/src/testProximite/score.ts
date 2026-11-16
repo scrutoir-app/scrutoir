@@ -18,6 +18,12 @@ export interface QuestionProximite {
   decomptes?: Record<string, { pour: number; contre: number; abstention: number }>;
   totaux?: { pour: number; contre: number; abstention: number };
   source_url?: string;
+  /**
+   * Origine de la question : « test » (absent = test, les questions publiées du test) ou « perso »
+   * (un scrutin tranché par l'utilisateur hors du test, cf. questionsPerso.ts). Dans un thème,
+   * les questions « perso » ne pèsent jamais plus que celles du test (cf. calculerProximite).
+   */
+  origine?: "test" | "perso";
 }
 
 export interface GroupeProximite {
@@ -28,6 +34,11 @@ export interface GroupeProximite {
 export interface ScoreGroupe {
   pct: number | null; // accord / comparable, ou null si rien de comparable. (% à l'affichage)
   comparable: number;
+  /** Votes comparés venus du test et des scrutins tranchés hors test (comparable = la somme). */
+  comparableTest?: number;
+  comparablePerso?: number;
+  /** Votes comparés où le groupe a voté comme toi (toutes origines). */
+  accord?: number;
 }
 
 export interface ResultatGlobal {
@@ -50,6 +61,11 @@ const tranche = (p: string | undefined): p is "pour" | "contre" =>
  * - comparable pour un groupe g sur une question : réponse ∈ {pour,contre} ET
  *   positions[g] ∈ {pour,contre} (abstention / partagé / absent ⇒ non comparable).
  * - accord si positions[g] == réponse.
+ * - Votes HORS TEST (questions d'origine « perso ») : ils rejoignent leur thème, mais dans un
+ *   thème ils ne pèsent jamais plus que les questions du test. Pour un groupe dans un thème :
+ *   test seul ou perso seul → ratio habituel ; les deux → (sTest + w × sPerso) / (1 + w) avec
+ *   w = min(1, comparablePerso / comparableTest). Un thème sans question du test répondue :
+ *   les votes hors test y comptent seuls.
  * Les % ne sont PAS arrondis ici (ratios 0..1) — arrondi à l'affichage seulement.
  */
 export function calculerProximite(
@@ -60,22 +76,24 @@ export function calculerProximite(
 ): ResultatProximite {
   const abrevs = groupes.map((g) => g.abrev).filter(Boolean);
 
-  // Accumulateurs comparable/accord par thème puis par groupe.
-  const acc: Record<string, Record<string, { comparable: number; accord: number }>> = {};
+  // Accumulateurs comparable/accord par thème, par groupe et par origine.
+  type Acc = { comparable: number; accord: number };
+  const acc: Record<string, Record<string, { test: Acc; perso: Acc }>> = {};
   const themes = new Set<string>();
 
   for (const q of questions) {
     themes.add(q.theme);
     const rep = reponses[q.id];
     if (!tranche(rep)) continue; // sans_avis / non répondu → ignorée
+    const origine = q.origine === "perso" ? "perso" : "test";
 
     for (const abrev of abrevs) {
       const pos = q.positions?.[abrev];
       if (!tranche(pos)) continue; // non comparable pour ce groupe
       const parGroupe = (acc[q.theme] ||= {});
-      const g = (parGroupe[abrev] ||= { comparable: 0, accord: 0 });
-      g.comparable++;
-      if (pos === rep) g.accord++;
+      const g = (parGroupe[abrev] ||= { test: { comparable: 0, accord: 0 }, perso: { comparable: 0, accord: 0 } });
+      g[origine].comparable++;
+      if (pos === rep) g[origine].accord++;
     }
   }
 
@@ -85,8 +103,21 @@ export function calculerProximite(
     parTheme[theme] = {};
     for (const abrev of abrevs) {
       const g = acc[theme]?.[abrev];
-      const comparable = g?.comparable ?? 0;
-      parTheme[theme][abrev] = { pct: comparable > 0 ? g!.accord / comparable : null, comparable };
+      const t = g?.test ?? { comparable: 0, accord: 0 };
+      const p = g?.perso ?? { comparable: 0, accord: 0 };
+      let pct: number | null = null;
+      if (t.comparable > 0 && p.comparable > 0) {
+        const w = Math.min(1, p.comparable / t.comparable); // plafond : jamais plus que le test
+        pct = (t.accord / t.comparable + w * (p.accord / p.comparable)) / (1 + w);
+      } else if (t.comparable > 0) pct = t.accord / t.comparable;
+      else if (p.comparable > 0) pct = p.accord / p.comparable;
+      parTheme[theme][abrev] = {
+        pct,
+        comparable: t.comparable + p.comparable,
+        comparableTest: t.comparable,
+        comparablePerso: p.comparable,
+        accord: t.accord + p.accord,
+      };
     }
   }
 

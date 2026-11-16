@@ -16,17 +16,21 @@ import type { GroupeVentilation } from "../types";
 
 // ctx minimal : seul `resultat.global` (proximité par groupe) est lu par verdictDeduit.
 function ctxAvec(pct: Record<string, number>): ContexteJe {
+  const resultat = {
+    parTheme: {},
+    global: Object.entries(pct).map(([abrev, p]) => ({ abrev, pct: p, themes: 1 })),
+  };
   return {
     reponses: {},
     poids: {},
     questions: [],
-    resultat: {
-      parTheme: {},
-      global: Object.entries(pct).map(([abrev, p]) => ({ abrev, pct: p, themes: 1 })),
-    },
+    questionsTest: [],
+    resultat,
+    resultatTestSeul: resultat,
     comparableParGroupe: {},
     nbVotes: 0,
-  } as ContexteJe;
+    compteurs: { test: 0, perso: 0, horsCalcul: 0, sansAvis: 0 },
+  };
 }
 
 const g = (abrev: string, pour: number, contre: number, abstention = 0, absent = 0): GroupeVentilation => ({
@@ -69,6 +73,23 @@ test("verdictDeduit : penche du côté des groupes les plus proches", () => {
   assert.deepEqual(verdictDeduit(ctxAvec({ A: 0.9, B: 0.1 }), groupes, "adopte"), { niveau: "deduit", sens: "align", penche: "pour" });
   // Rejeté (contre gagne) mais l'utilisateur penche pour → à l'opposé.
   assert.deepEqual(verdictDeduit(ctxAvec({ A: 0.9, B: 0.1 }), groupes, "rejete"), { niveau: "deduit", sens: "oppose", penche: "pour" });
+});
+
+test("verdictDeduit : la taille des groupes ne tire plus vers le camp le plus nombreux (proximité⁴)", () => {
+  // Très proche d'un petit groupe « pour » (0,9), moyennement d'un grand groupe « contre » (0,6).
+  const groupes: GroupePos[] = [
+    { abrev: "A", taille: 10, position: "pour" },
+    { abrev: "B", taille: 200, position: "contre" },
+  ];
+  // Avant : 0,9 × 10 = 9 contre 0,6 × 200 = 120 → on prêtait « contre ». Désormais 0,9⁴ ≈ 0,66
+  // contre 0,6⁴ ≈ 0,13 → « pour », le camp du groupe le plus proche.
+  assert.equal(verdictDeduit(ctxAvec({ A: 0.9, B: 0.6 }), groupes, "adopte").penche, "pour");
+  // Deux groupes proches de la même façon : la taille ne départage pas, c'est Partagé.
+  const egaux: GroupePos[] = [
+    { abrev: "A", taille: 10, position: "pour" },
+    { abrev: "B", taille: 200, position: "contre" },
+  ];
+  assert.equal(verdictDeduit(ctxAvec({ A: 0.7, B: 0.7 }), egaux, "adopte").sens, "partage");
 });
 
 test("verdictDeduit : Partagé si quasi-égalité, ou rien de comparable / pas de ctx", () => {

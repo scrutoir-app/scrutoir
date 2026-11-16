@@ -15,7 +15,8 @@ import { lignesSpectre, surNVotes, phraseBase, phraseMarge, type LigneSpectre } 
 import { nbNeuves, nbVotesActuels, questionsJouees, SEUIL_AFFINER } from "../testProximite/config";
 import { useFollow, useFollows } from "../hooks/useFollows";
 import { tourAccueilAFaire } from "../accueilTourPrefs";
-import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage } from "../testProximite/storage";
+import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage, type Origine } from "../testProximite/storage";
+import { chargerPerso } from "../testProximite/chargerPerso";
 import { imageStorySpectre, partagerImage } from "../share/storyImage";
 
 const NIVEAUX = [
@@ -177,12 +178,15 @@ function ResultatVide({ partage, nav }: { partage: boolean; nav: Nav }) {
 export function TestResultatScreen({
   reponses: reponsesProp,
   poids: poidsProp,
+  origines: originesProp,
   partage = false,
   nav,
 }: {
   reponses?: Record<number, Reponse>;
   themesJoues?: string[];
   poids?: Record<string, number>;
+  /** Lien partagé : n° tranchés depuis un scrutin (hors test), dont on recharge les positions. */
+  origines?: Record<number, Origine>;
   partage?: boolean;
   nav: Nav;
 }) {
@@ -200,17 +204,26 @@ export function TestResultatScreen({
   // Source des réponses : lien PARTAGÉ → la prop (lecture seule) ; sinon → MES réponses
   // accumulées dans le stockage local. Figées au montage (le résultat ne se réécrit pas seul).
   const reponses = useMemo(() => (partage ? reponsesProp ?? {} : chargerTest()?.reponses ?? {}), [partage, reponsesProp]);
+  const origines = useMemo(() => (partage ? originesProp : chargerTest()?.origines), [partage, originesProp]);
+  // Scrutins tranchés hors test qui comptent (positions rechargées pour un lien partagé, sans
+  // jamais les garder sur l'appareil). null = en cours.
+  const [perso, setPerso] = useState<QuestionProximite[] | null>(null);
   // Poids : partagé → ceux du lien ; sinon → MES poids persistés (jamais remis à zéro ici).
   const [poids, setPoids] = useState<Record<string, number>>(() => (partage ? { ...(poidsProp ?? {}) } : { ...chargerPoids() }));
 
   useEffect(() => {
     Promise.all([getTestProximite(), getPartis(), getCategories()]).then(([qs, ps, cs]) => {
       setAll(qs); setPartis(ps); setCats(cs);
+      chargerPerso(reponses, origines, new Set(qs.map((q) => q.id)), !partage)
+        .then((r) => setPerso(r.comptees))
+        .catch(() => setPerso([]));
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Questions réellement répondues + thèmes joués (dérivés → vaut pour un lien partagé aussi).
-  const jouees = useMemo(() => (all ? questionsJouees(all, reponses) : []), [all, reponses]);
+  // Questions réellement répondues (test + scrutins tranchés hors test comptés) + thèmes joués
+  // (dérivés → vaut pour un lien partagé aussi).
+  const jouees = useMemo(() => (all ? [...questionsJouees(all, reponses), ...(perso ?? [])] : []), [all, reponses, perso]);
   const themes = useMemo(() => [...new Set(jouees.map((q) => q.theme))].sort(), [jouees]);
 
   // Complète les poids des thèmes pas encore réglés (défaut « Normal » = 1) SANS jamais
@@ -250,8 +263,8 @@ export function TestResultatScreen({
 
   const groupes = useMemo(() => partis.filter((p) => p.abrev).map((p) => ({ abrev: p.abrev! })), [partis]);
   const resultat = useMemo(
-    () => (jouees.length && groupes.length ? calculerProximite(jouees, reponses, poids, groupes) : null),
-    [jouees, reponses, poids, groupes]
+    () => (jouees.length && groupes.length && perso !== null ? calculerProximite(jouees, reponses, poids, groupes) : null),
+    [jouees, reponses, poids, groupes, perso]
   );
   // Spectre : ≥ SEUIL_FIABILITE votes comparés → % ; en dessous → ligne grise en bas, sans %.
   const lignes = useMemo(() => (resultat ? lignesSpectre(resultat, groupes.map((g) => g.abrev)) : null), [resultat, groupes]);
@@ -261,7 +274,7 @@ export function TestResultatScreen({
   const aSuivi = useFollows().length > 0;
   const tourAFaire = useMemo(() => tourAccueilAFaire(), []);
   // Base de tout le résultat : les scrutins (encore au catalogue) où tu as tranché, pour ou contre.
-  const nbTranches = all ? nbVotesActuels(all, reponses) : 0;
+  const nbTranches = all ? nbVotesActuels(all, reponses) + (perso ?? []).filter((q) => reponses[q.id] === "pour" || reponses[q.id] === "contre").length : 0;
 
   // Partage en story (web) : une IMAGE du spectre complet, toutes les lignes avec leur base,
   // sans aucune réponse. Couleur de groupe = hex officiel (rendu clair de couleurGroupe).
@@ -283,7 +296,7 @@ export function TestResultatScreen({
 
   // Questions chargées, mais aucune réponse sur le test actuel : les réponses gardées portent
   // toutes sur des questions retirées du test. Pas de résultat à montrer (sinon : chargement sans fin).
-  if (all && partis.length && !jouees.length) return <ResultatVide partage={!!partage} nav={nav} />;
+  if (all && partis.length && perso !== null && !jouees.length) return <ResultatVide partage={!!partage} nav={nav} />;
   if (!resultat || !lignes) return <View style={{ flex: 1, justifyContent: "center" }}><ActivityIndicator color={C.textMuted} /></View>;
 
   const couleur = (abrev: string) => couleurGroupe(partis.find((p) => p.abrev === abrev)?.couleur ?? null);
@@ -304,7 +317,7 @@ export function TestResultatScreen({
 
   // Partage : uniquement sur ce geste explicite (rien ne part avant).
   const onShare = async () => {
-    const r = await partager(urlPartage(reponses, poids), resumePartage());
+    const r = await partager(urlPartage(reponses, poids, origines), resumePartage());
     setPartageMsg(r === "copied" ? "Lien copié !" : r === "shared" ? null : "Copie indisponible");
     if (r) setTimeout(() => setPartageMsg(null), 2500);
   };
