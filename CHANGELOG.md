@@ -8,6 +8,13 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.41.0 — 2026-11-16
+**Corriger un vote déduit, lot 3 : la légende du verdict passe à trois pages.**
+- Page 1 « Ce que tu as tranché » : « Au test ou depuis un scrutin, on compare ta vraie réponse au résultat. » Pastilles Comme ton vote, Pas comme ton vote, et désormais Sans avis ; note « Un « sans avis » ne reçoit plus aucune déduction. »
+- Page 2 « Ce qu'on déduit de ton profil » : texte inchangé ; note « C'est une estimation, pas un vote que tu as posé. Elle se trompe parfois, et c'est à toi de la corriger. »
+- Page 3, nouvelle, « Pas d'accord ? Corrige-la. » : comment corriger une déduction, sauf budgets et motions ; note « Tu effaces une réponse quand tu veux. » Petite animation en boucle (5,2 s) : la pastille « Comme toi » en pointillés est touchée, la rangée Contre / Sans avis / Pour monte, Pour se surligne, la pastille devient « Pas comme ton vote » pleine. Animations réduites : l'état final, figé.
+- Trois points de progression ; Retour / Suivant / J'ai compris. Les pastilles de la légende sont centrées.
+
 ## 1.40.0 — 2026-11-16
 **Corriger un vote déduit, lot 2 : les votes tranchés hors du test entrent dans le calcul, plafonnés.**
 - Une réponse posée depuis un scrutin (tiroir de vote) rejoint son thème (celui du dossier, sinon du scrutin) et affine la proximité avec les groupes et les députés. La position de chaque groupe est sa position majoritaire, comme sur l'hémicycle.
