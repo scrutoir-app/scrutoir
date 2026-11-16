@@ -1,6 +1,8 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { statutPerso, estQuasiUnanime, estTexteBudget, type ScrutinStatut } from "./questionsPerso";
+import { statutPerso, estQuasiUnanime, estTexteBudget, questionPerso, repartirPerso, type ScrutinStatut, type EntreePerso } from "./questionsPerso";
+import { calculerProximite } from "./score";
+import { encoderPartage, decoderPartage } from "./storage";
 
 // Groupes d'un vote ordinaire : la gauche pour, la droite contre (les groupes se départagent).
 const CLIVANT: ScrutinStatut["groupes"] = [
@@ -60,4 +62,63 @@ test("vote quasi unanime : exclu (aucun groupe pour face à un groupe contre)", 
   assert.deepEqual(statutPerso({ titre: "l'ensemble de la proposition de loi relative à …", groupes: UNANIME }), {
     exclu: "unanime", nature: null, raison: "ce vote ne les départage pas.",
   });
+});
+
+// --- Questions hors test : construction, répartition, partage --------------------------
+const DETAIL = {
+  numero: 5000,
+  titre: "l'ensemble de la proposition de loi visant à …",
+  date: "2026-11-12",
+  categorie: "securite-justice",
+  groupes: [
+    { abrev: "LFI-NFP", pour: 70, contre: 0, abstention: 0 },
+    { abrev: "EPR", pour: 40, contre: 40, abstention: 0 }, // égalité en tête : pas de position
+    { abrev: "RN", pour: 0, contre: 120, abstention: 3 },
+    { abrev: "LIOT", pour: 1, contre: 0, abstention: 9 },
+    { abrev: "NI", pour: 3, contre: 0, abstention: 0 },
+  ],
+};
+
+test("question hors test : position majoritaire de chaque groupe, thème du dossier d'abord", () => {
+  const e = questionPerso(DETAIL, "immigration");
+  assert.equal(e.statut, "compte");
+  assert.equal(e.q.origine, "perso");
+  assert.equal(e.q.id, 5000);
+  assert.equal(e.q.theme, "immigration");
+  assert.deepEqual(e.q.positions, { "LFI-NFP": "pour", RN: "contre", LIOT: "abstention" }); // EPR à égalité, NI hors hémicycle
+  assert.deepEqual(e.q.decomptes?.NI, { pour: 3, contre: 0, abstention: 0 });
+  assert.equal(questionPerso(DETAIL, null).q.theme, "securite-justice"); // sans dossier : catégorie du scrutin
+});
+
+const cache: Record<string, EntreePerso> = {
+  "5000": questionPerso(DETAIL, null),
+  "9895": questionPerso({ ...DETAIL, numero: 9895, titre: "l'ensemble du projet de loi de finances de fin de gestion pour 2026" }, null),
+};
+
+test("répartition : budget hors calcul, sans avis à part, réponse du test à une question retirée ignorée", () => {
+  const reponses = { 5000: "pour", 9895: "contre", 881: "pour", 6000: "sans_avis", 7000: "pour", 289: "pour" } as const;
+  const origines = { 5000: "scrutin", 9895: "scrutin", 6000: "scrutin", 7000: "scrutin", 289: "scrutin" } as const;
+  // 881 : réponse du test (sans origine) à une question RETIRÉE du test → jamais reprise.
+  // 289 : tranché depuis un scrutin mais c'est une question ACTUELLE du test → compte au test.
+  const r = repartirPerso(reponses, origines, new Set([289]), cache);
+  assert.deepEqual(r.comptees.map((q) => q.id), [5000]);
+  assert.equal(r.horsCalcul, 1);
+  assert.equal(r.sansAvis, 1);
+  assert.deepEqual(r.manquants, [7000]);
+});
+
+test("partage : un lien avec des votes hors test redonne le même résultat", () => {
+  const reponses = { 1: "pour", 5000: "contre", 9895: "pour" } as const;
+  const origines = { 5000: "scrutin", 9895: "scrutin" } as const;
+  const test1 = { id: 1, theme: "securite-justice", positions: { "LFI-NFP": "pour", RN: "contre" } } as const;
+  const groupes = [{ abrev: "LFI-NFP" }, { abrev: "RN" }];
+  const calcul = (rep: Record<number, "pour" | "contre" | "sans_avis">, ori: Record<number, "test" | "scrutin"> | undefined) => {
+    const perso = repartirPerso(rep, ori, new Set([1]), cache);
+    return calculerProximite([test1, ...perso.comptees], rep, {}, groupes);
+  };
+  const lien = decoderPartage(encoderPartage(reponses, {}, origines))!;
+  assert.deepEqual(lien.origines, { 5000: "scrutin", 9895: "scrutin" });
+  assert.deepEqual(calcul(lien.reponses, lien.origines), calcul(reponses, origines));
+  // Un lien d'avant (sans origines) reste lisible : tout y vaut réponse au test.
+  assert.equal(decoderPartage(encoderPartage({ 1: "pour" }))!.origines, undefined);
 });

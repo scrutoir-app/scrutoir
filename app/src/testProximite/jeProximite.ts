@@ -9,6 +9,7 @@ import { getTestProximite, getPartis, getVotesBruts } from "../api";
 import { chargerTest } from "./storage";
 import { useVersionTest } from "./useReponses";
 import { questionsJouees, nbVotesActuels } from "./config";
+import { chargerPerso } from "./chargerPerso";
 import {
   calculerProximite,
   scoreVotant,
@@ -29,10 +30,24 @@ export type { ProximiteScore };
 export interface ContexteJe {
   reponses: Record<number, Reponse>;
   poids: Record<string, number>;
-  questions: QuestionProximite[]; // uniquement les questions répondues
+  /** Questions répondues qui entrent dans le calcul : celles du test + les scrutins tranchés hors test comptés. */
+  questions: QuestionProximite[];
+  /** Les seules questions du test répondues (la référence commune). */
+  questionsTest: QuestionProximite[];
   resultat: ResultatProximite;
+  /** Proximité sur le test seul : les votes hors test n'y entrent pas. */
+  resultatTestSeul: ResultatProximite;
   comparableParGroupe: Record<string, number>;
-  nbVotes: number; // nb de réponses pour/contre (les « sans avis » ne comptent pas)
+  nbVotes: number; // nb de réponses pour/contre comptées (test + hors test ; « sans avis » exclus)
+  /** D'où viennent tes votes : test, tranchés depuis un scrutin, hors calcul, sans avis. */
+  compteurs: CompteursVotes;
+}
+
+export interface CompteursVotes {
+  test: number;
+  perso: number;
+  horsCalcul: number;
+  sansAvis: number;
 }
 
 // --- Chargement du contexte (mémoïsé par horodatage du test) ----------------------
@@ -53,18 +68,30 @@ export function chargerJe(): Promise<ContexteJe | null> {
   const ts = etat.ts ?? 0;
   if (cacheP && cacheTs === ts) return cacheP;
   cacheTs = ts;
-  cacheP = Promise.all([getTestProximite(), getPartis()]).then(([toutes, partis]) => {
-    const jouees = questionsJouees(toutes, etat.reponses);
+  cacheP = Promise.all([getTestProximite(), getPartis()]).then(async ([toutes, partis]) => {
+    // Questions du test : les ACTUELLES seulement (une question retirée garde sa réponse, hors calcul).
+    const questionsTest = questionsJouees(toutes, etat.reponses);
+    // Scrutins tranchés hors test (origine « scrutin ») : ceux qui départagent sur une mesure lisible.
+    const idsTest = new Set(toutes.map((q) => q.id));
+    const perso = await chargerPerso(etat.reponses, etat.origines, idsTest).catch(() => null);
+    const jouees = [...questionsTest, ...(perso?.comptees ?? [])];
     const groupes = partis.filter((p) => p.abrev).map((p) => ({ abrev: p.abrev! }));
     const poids = etat.poids ?? {};
     const resultat = calculerProximite(jouees, etat.reponses, poids, groupes);
+    const resultatTestSeul = perso?.comptees.length ? calculerProximite(questionsTest, etat.reponses, poids, groupes) : resultat;
     const comparableParGroupe: Record<string, number> = {};
     for (const parGroupe of Object.values(resultat.parTheme))
       for (const [abrev, sc] of Object.entries(parGroupe))
         comparableParGroupe[abrev] = (comparableParGroupe[abrev] ?? 0) + sc.comparable;
-    // Réponses aux questions ACTUELLES seulement (une question retirée du test garde sa réponse).
-    const nbVotes = nbVotesActuels(toutes, etat.reponses);
-    return { reponses: etat.reponses, poids, questions: jouees, resultat, comparableParGroupe, nbVotes };
+    const tranche = (r: unknown) => r === "pour" || r === "contre";
+    const compteurs: CompteursVotes = {
+      test: nbVotesActuels(toutes, etat.reponses),
+      perso: (perso?.comptees ?? []).filter((q) => tranche(etat.reponses[q.id])).length,
+      horsCalcul: perso?.horsCalcul ?? 0,
+      sansAvis: questionsTest.filter((q) => etat.reponses[q.id] === "sans_avis").length + (perso?.sansAvis ?? 0),
+    };
+    const nbVotes = compteurs.test + compteurs.perso;
+    return { reponses: etat.reponses, poids, questions: jouees, questionsTest, resultat, resultatTestSeul, comparableParGroupe, nbVotes, compteurs };
   });
   return cacheP;
 }

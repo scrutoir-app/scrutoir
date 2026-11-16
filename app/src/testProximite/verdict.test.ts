@@ -16,17 +16,21 @@ import type { GroupeVentilation } from "../types";
 
 // ctx minimal : seul `resultat.global` (proximité par groupe) est lu par verdictDeduit.
 function ctxAvec(pct: Record<string, number>): ContexteJe {
+  const resultat = {
+    parTheme: {},
+    global: Object.entries(pct).map(([abrev, p]) => ({ abrev, pct: p, themes: 1 })),
+  };
   return {
     reponses: {},
     poids: {},
     questions: [],
-    resultat: {
-      parTheme: {},
-      global: Object.entries(pct).map(([abrev, p]) => ({ abrev, pct: p, themes: 1 })),
-    },
+    questionsTest: [],
+    resultat,
+    resultatTestSeul: resultat,
     comparableParGroupe: {},
     nbVotes: 0,
-  } as ContexteJe;
+    compteurs: { test: 0, perso: 0, horsCalcul: 0, sansAvis: 0 },
+  };
 }
 
 const g = (abrev: string, pour: number, contre: number, abstention = 0, absent = 0): GroupeVentilation => ({

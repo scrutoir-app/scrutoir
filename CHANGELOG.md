@@ -8,6 +8,15 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.40.0 — 2026-11-16
+**Corriger un vote déduit, lot 2 : les votes tranchés hors du test entrent dans le calcul, plafonnés.**
+- Une réponse posée depuis un scrutin (tiroir de vote) rejoint son thème (celui du dossier, sinon du scrutin) et affine la proximité avec les groupes et les députés. La position de chaque groupe est sa position majoritaire, comme sur l'hémicycle.
+- **Plafond** : dans un thème, les votes hors test ne pèsent jamais plus que les questions du test — `pct = (sTest + w × sPerso) / (1 + w)`, `w = min(1, comparés hors test / comparés au test)`. Un thème absent du test (ex. immigration) : les votes hors test y comptent seuls. Global inchangé (moyenne des thèmes pondérée par tes poids).
+- **Hors calcul** (réponse gardée, pastille « voté », Tes accords) : budgets (ensemble ou partie d'une loi de finances, PLFSS, règlement / approbation des comptes), motions de censure et de procédure, déclarations du Gouvernement, votes quasi unanimes. Les amendements et articles d'un budget comptent. Une réponse du test à une question retirée ne revient jamais.
+- **Fiches parti et député, Partis, Trouver ton député** : base « Sur N votes comparés : X au test, Y tranchés depuis un scrutin. » (formulation habituelle quand tout vient du test) ; encart « Sur le test seul : M %. Le test est le même pour tout le monde, c'est ta référence. » ; détail repliable « D'où viennent tes votes » avec « Comment ils pèsent » et le lien « Comment tes votes comptent ».
+- **Partage** : le lien encode aussi les scrutins tranchés hors test ; à l'ouverture, leurs positions sont rechargées (jamais gardées sur l'appareil du destinataire). Un ancien lien reste lisible.
+- Cache local `scrutoir.questions-perso` (positions des scrutins tranchés), effacé avec la réponse et avec « Effacer tes réponses ». « Affiner » et la file à trancher restent sur les seules questions du test.
+
 ## 1.39.0 — 2026-11-16
 **Corriger un vote « comme toi » déduit, sur place (lot 1 : pastille, tiroir, quatrième état).**
 - **Tiroir de vote** : sur n'importe quel scrutin (fiche, cartes du Fil et de la Liste, page d'un texte, et désormais le Focus de la semaine), la pastille porte un crayon et ouvre un tiroir en bas d'écran, sans changer d'écran. Déduit : « Ce qu'on a déduit », le camp prêté marqué « déduit » en pointillés. Voté : « Ton vote sur ce scrutin », avec « Effacer ma réponse, revenir à la déduction ». Rangée Contre / Sans avis / Pour : le même bouton qu'au test (`BoutonChoix`, extrait en composant partagé). Choisir enregistre et ferme ; aucun écart de proximité n'est affiché.

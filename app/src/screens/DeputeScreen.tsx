@@ -11,10 +11,11 @@ import {
 } from "../components/profil";
 import { CategoryVoteCard } from "../components/CategoryVoteCard";
 import { getProfil, getPartis, getCategories, getGrandsScrutins, getDissidences, getDeputeVotes, getDeputeMandat } from "../api";
-import { useJe, useProximiteDepute } from "../testProximite/jeProximite";
+import { useJe, useProximiteDepute, scoreVotant } from "../testProximite/jeProximite";
+import { OrigineVotes } from "../components/OrigineVotes";
 import { estSitue } from "../testProximite/storage";
 import {
-  baseAccordVotant, resultatVotant, accordsParTheme, pctPondereDiffere, verdictVote, CLE_VOTANT,
+  baseAccordVotant, resultatVotant, accordsParTheme, pctPondereDiffere, verdictVote, CLE_VOTANT, phraseBaseOrigine,
 } from "../testProximite/baseAccord";
 import { useFollow } from "../hooks/useFollows";
 import { partagerLien } from "../share";
@@ -107,7 +108,11 @@ export function DeputeScreen({ uid, depuis, nav }: { uid: string; depuis?: "affi
   let baseTexte: string | null = null;
   if (situe && je && votes) {
     const b = baseAccordVotant(je.questions, je.reponses, bruts);
-    baseTexte = b.comparable
+    // Votes tranchés hors test : « Sur N votes comparés : X au test, Y tranchés depuis un scrutin. »
+    const origine = phraseBaseOrigine(b);
+    baseTexte = origine
+      ? origine
+      : b.comparable
       ? `Sur ${b.comparable > 1 ? `les ${b.comparable} scrutins` : "le scrutin"} que tu as tranché${b.comparable > 1 ? "s" : ""} et où ce député a voté : ${b.accord} comme toi, ${b.inverse} à l'inverse.` +
         (scoreGlobal && pctPondereDiffere(scoreGlobal.pct, b) ? " Le pourcentage fait la moyenne de tes thèmes, chacun selon l'importance que tu lui donnes." : "")
       : "Ce député n'a voté sur aucun des scrutins que tu as tranchés pour l'instant.";
@@ -148,6 +153,13 @@ export function DeputeScreen({ uid, depuis, nav }: { uid: string; depuis?: "affi
         {situe && (
           <View style={{ marginTop: S.s14 }}>
             <CommeToiCarte pct={scoreGlobal?.pct ?? null} base={baseTexte} />
+            {je && votes && (
+              <OrigineVotes
+                compteurs={je.compteurs}
+                testSeul={je.compteurs.perso ? scoreVotant(je.questionsTest, je.reponses, je.poids, bruts)?.pct ?? null : null}
+                nav={nav}
+              />
+            )}
           </View>
         )}
 

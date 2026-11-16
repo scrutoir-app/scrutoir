@@ -16,7 +16,7 @@ import type { DeputeResume } from "../types";
 import type { Nav } from "../nav";
 import { useJe, useProximiteDepute } from "../testProximite/jeProximite";
 import { estSitue } from "../testProximite/storage";
-import { baseAccordVotant, pctPondereDiffere } from "../testProximite/baseAccord";
+import { baseAccordVotant, pctPondereDiffere, phraseBaseOrigine } from "../testProximite/baseAccord";
 import { useClassementAffinite, type DeputeAffinite } from "../testProximite/classementDeputes";
 import { lotDuJour, resteAVoir, reinitialiserSelection, tailleLotDuJour } from "../testProximite/selectionDuJour";
 import { isFollowed, toggleFollowSansUid, getFollows } from "../follows";
@@ -410,7 +410,10 @@ function CarteDeputeLocal({ depute, situe, nav }: { depute: DeputeResume; situe:
                   </View>
                 )}
                 <Text style={[T.micro, tnum, { color: C.textFaint, marginTop: pct != null ? 3 : 0 }]}>
-                  {baseAffinite(base.accord, base.comparable)}{pct == null ? " : trop peu pour un pourcentage" : ""}
+                  {/* Votes tranchés hors test : la base dit d'où ils viennent. */}
+                  {phraseBaseOrigine(base)
+                    ? `${phraseBaseOrigine(base)}${pct == null ? " Trop peu pour un pourcentage." : ""}`
+                    : `${baseAffinite(base.accord, base.comparable)}${pct == null ? " : trop peu pour un pourcentage" : ""}`}
                 </Text>
               </>
             )}

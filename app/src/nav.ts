@@ -81,7 +81,7 @@ export type Route =
   | { name: "test"; mode: "theme" | "complet" | "affiner"; theme?: string; themeLibelle?: string }
   // reponses/poids absents = résultat de L'UTILISATEUR (lu depuis le stockage local).
   // partage=true (+ reponses/poids) = résultat d'un LIEN partagé : lecture seule, rien n'est persisté.
-  | { name: "testResultat"; reponses?: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number>; partage?: boolean }
+  | { name: "testResultat"; reponses?: Record<number, Reponse>; themesJoues?: string[]; poids?: Record<string, number>; partage?: boolean; origines?: Record<number, "test" | "scrutin"> }
   | { name: "testParTheme" }
   | { name: "dossierScrutins"; ref: string; titre?: string }
   | { name: "accords" }

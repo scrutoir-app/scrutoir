@@ -15,6 +15,9 @@ export interface BaseAccord {
   comparable: number;
   accord: number;
   inverse: number;
+  /** D'où viennent les votes comparés : questions du test, scrutins tranchés hors test. */
+  test?: number;
+  perso?: number;
 }
 
 /** Base avec un VOTANT (député) : ses votes individuels { scrutin_uid: position }. */
@@ -25,27 +28,48 @@ export function baseAccordVotant(
 ): BaseAccord {
   let comparable = 0;
   let accord = 0;
+  let perso = 0;
   for (const q of questions) {
     const r = reponses[q.id];
     const v = votes[scrutinUidDeId(q.id)];
     if (!tranche(r) || !tranche(v)) continue;
     comparable++;
+    if (q.origine === "perso") perso++;
     if (r === v) accord++;
   }
-  return { comparable, accord, inverse: comparable - accord };
+  return { comparable, accord, inverse: comparable - accord, test: comparable - perso, perso };
 }
 
 /** Base avec un GROUPE, relue dans le résultat du moteur (comparables et accords par thème). */
 export function baseAccordGroupe(res: ResultatProximite, abrev: string): BaseAccord {
   let comparable = 0;
   let accord = 0;
+  let perso = 0;
   for (const parGroupe of Object.values(res.parTheme)) {
     const sc = parGroupe[abrev];
     if (!sc || !sc.comparable || sc.pct == null) continue;
     comparable += sc.comparable;
-    accord += Math.round(sc.pct * sc.comparable);
+    perso += sc.comparablePerso ?? 0;
+    accord += sc.accord ?? Math.round(sc.pct * sc.comparable);
   }
-  return { comparable, accord, inverse: comparable - accord };
+  return { comparable, accord, inverse: comparable - accord, test: comparable - perso, perso };
+}
+
+/**
+ * Base d'un % comme toi qui compte des votes tranchés HORS du test : « Sur {N} votes comparés :
+ * {X} au test, {Y} tranchés depuis un scrutin. » `null` quand tout vient du test (l'écran garde
+ * sa formulation habituelle).
+ */
+export function phraseBaseOrigine(base: Pick<BaseAccord, "comparable" | "test" | "perso">): string | null {
+  const y = base.perso ?? 0;
+  if (y <= 0) return null;
+  const x = base.test ?? base.comparable - y;
+  return `Sur ${base.comparable} votes comparés : ${x} au test, ${y} tranché${y > 1 ? "s" : ""} depuis un scrutin.`;
+}
+
+/** Encart « test seul » (le test est la référence commune). */
+export function phraseTestSeul(pct: number): string {
+  return `Sur le test seul : ${Math.round(pct * 100)} %. Le test est le même pour tout le monde, c'est ta référence.`;
 }
 
 /** Clé du « groupe virtuel » qui porte les votes d'un député dans le moteur. */

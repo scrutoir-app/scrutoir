@@ -2,6 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import {
   chargerTest, effacerTest, fusionnerReponses, poserReponse, retirerReponse, sauverPoids, origineDe, abonnerTest, versionTest,
+  ecrireCachePerso, lireCachePerso,
 } from "./storage";
 
 // localStorage en mémoire (Node n'en a pas), posé avant tout appel (storage.ts le lit à
@@ -68,4 +69,16 @@ test("abonnement : chaque écriture prévient les écrans (version incrémentée
   poserReponse(43, "pour");
   assert.equal(appels, 2);
   assert.equal(versionTest(), v0 + 3);
+});
+
+test("le cache des questions hors test s'efface avec la réponse, et avec tout le test", () => {
+  effacerTest();
+  poserReponse(700, "pour");
+  ecrireCachePerso(700, { q: { id: 700 } });
+  ecrireCachePerso(701, { q: { id: 701 } });
+  retirerReponse(700);
+  assert.deepEqual(Object.keys(lireCachePerso()), ["701"]);
+  effacerTest();
+  assert.deepEqual(lireCachePerso(), {});
+  assert.equal(store.get("scrutoir.questions-perso"), undefined);
 });

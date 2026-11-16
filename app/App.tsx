@@ -123,7 +123,7 @@ function AppInner() {
   useEffect(() => {
     const partage = lireHashPartage();
     if (partage && Object.keys(partage.reponses).length) {
-      setStack([{ name: "search" }, { name: "testResultat", reponses: partage.reponses, poids: partage.poids, partage: true }]);
+      setStack([{ name: "search" }, { name: "testResultat", reponses: partage.reponses, poids: partage.poids, origines: partage.origines, partage: true }]);
     }
   }, []);
 
@@ -438,7 +438,7 @@ function AppInner() {
           {current.name === "suivis" && <SuivisScreen source={current.source} nav={nav} />}
           {current.name === "testIntro" && <TestIntroScreen theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
           {current.name === "test" && <TestScreen mode={current.mode} theme={current.theme} themeLibelle={current.themeLibelle} nav={nav} />}
-          {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} poids={current.poids} partage={current.partage} themesJoues={current.themesJoues} nav={nav} />}
+          {current.name === "testResultat" && <TestResultatScreen reponses={current.reponses} poids={current.poids} origines={current.origines} partage={current.partage} themesJoues={current.themesJoues} nav={nav} />}
           {current.name === "testParTheme" && <TestParThemeScreen nav={nav} />}
           {current.name === "dossierScrutins" && <DossierScrutinsScreen dossierRef={current.ref} titre={current.titre} nav={nav} />}
           {current.name === "accords" && <AccordsIndexScreen nav={nav} />}

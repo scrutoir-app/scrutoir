@@ -120,3 +120,50 @@ test("scoreVotant : pondération par thème identique au moteur des groupes", ()
   const s = scoreVotant(questions, reponses, { economie: 3, sante: 1 }, votes);
   assert.deepEqual(s, { pct: 0.75, comparable: 2 });
 });
+
+// --- Votes HORS TEST (questions « perso ») : plafond par thème -------------------------
+const G2: GroupeProximite[] = [{ abrev: "A" }];
+const qTest = (id: number, pos: "pour" | "contre"): QuestionProximite => ({ id, theme: "eco", positions: { A: pos } });
+const qPerso = (id: number, pos: "pour" | "contre", theme = "eco"): QuestionProximite => ({ id, theme, positions: { A: pos }, origine: "perso" });
+
+test("plafond : 10 votes hors test dans un thème à 3 questions, le test garde la moitié du poids", () => {
+  const questions = [qTest(1, "pour"), qTest(2, "pour"), qTest(3, "pour"), ...Array.from({ length: 10 }, (_, i) => qPerso(100 + i, "contre"))];
+  const reponses: Record<number, "pour" | "contre"> = { 1: "pour", 2: "pour", 3: "pour" };
+  for (let i = 0; i < 10; i++) reponses[100 + i] = "pour"; // en désaccord avec A sur les 10 votes hors test
+  const r = calculerProximite(questions, reponses, {}, G2);
+  // test : 3/3 d'accord (1) ; hors test : 0/10 (0) ; w = min(1, 10/3) = 1 → (1 + 0) / 2.
+  assert.equal(r.parTheme.eco.A.pct, 0.5);
+  assert.equal(r.parTheme.eco.A.comparable, 13);
+  assert.equal(r.parTheme.eco.A.comparableTest, 3);
+  assert.equal(r.parTheme.eco.A.comparablePerso, 10);
+  assert.equal(r.parTheme.eco.A.accord, 3);
+  // Sans plafond, le ratio brut serait 3/13 : les votes hors test domineraient le thème.
+  assert.ok(r.parTheme.eco.A.pct! > 3 / 13);
+});
+
+test("plafond : peu de votes hors test pèsent au prorata (w = comparablePerso / comparableTest)", () => {
+  const questions = [qTest(1, "pour"), qTest(2, "pour"), qTest(3, "pour"), qTest(4, "pour"), qPerso(100, "contre")];
+  const reponses: Record<number, "pour"> = { 1: "pour", 2: "pour", 3: "pour", 4: "pour", 100: "pour" };
+  const r = calculerProximite(questions, reponses, {}, G2);
+  // w = 1/4 → (1 + 0.25 × 0) / 1.25 = 0.8
+  assert.ok(Math.abs(r.parTheme.eco.A.pct! - 0.8) < 1e-9);
+});
+
+test("thème sans question du test répondue : les votes hors test y comptent seuls", () => {
+  const r = calculerProximite([qTest(1, "pour"), qPerso(200, "contre", "immigration")], { 1: "pour", 200: "contre" }, {}, G2);
+  assert.equal(r.parTheme.immigration.A.pct, 1);
+  assert.equal(r.parTheme.immigration.A.comparableTest, 0);
+  // Global : moyenne des thèmes (eco 1, immigration 1).
+  assert.equal(r.global[0].pct, 1);
+});
+
+test("effacer un vote hors test restaure le résultat ; le test seul ne bouge pas", () => {
+  const test3 = [qTest(1, "pour"), qTest(2, "contre"), qTest(3, "pour")];
+  const rep: Record<number, "pour" | "contre"> = { 1: "pour", 2: "pour", 3: "pour" };
+  const testSeul = calculerProximite(test3, rep, {}, G2);
+  const avec = calculerProximite([...test3, qPerso(300, "contre")], { ...rep, 300: "pour" }, {}, G2);
+  assert.notEqual(avec.parTheme.eco.A.pct, testSeul.parTheme.eco.A.pct);
+  // Réponse effacée : la question hors test n'est plus jouée, le résultat redevient celui du test.
+  const efface = calculerProximite(test3, rep, {}, G2);
+  assert.deepEqual(efface, testSeul);
+});

@@ -66,10 +66,49 @@ export function chargerTest(): EtatTest | null {
 
 export function effacerTest(): void {
   memoire = null;
+  memoirePerso = {};
   try {
-    if (typeof localStorage !== "undefined") localStorage.removeItem(KEY);
+    if (typeof localStorage !== "undefined") {
+      localStorage.removeItem(KEY);
+      localStorage.removeItem(KEY_PERSO);
+    }
   } catch { /* ignore */ }
   notifier();
+}
+
+// --- Questions HORS TEST en cache (positions des groupes d'un scrutin tranché ailleurs) ---
+// Rempli au moment de la réponse (le détail du scrutin est déjà chargé), relu par le « je ».
+// Il dit quels scrutins l'utilisateur a tranchés : effacé avec ses réponses (effacerTest,
+// retirerReponse), jamais envoyé. Valeurs opaques ici (typées dans questionsPerso.ts).
+const KEY_PERSO = "scrutoir.questions-perso";
+let memoirePerso: Record<string, unknown> = {};
+
+/** Cache des questions hors test, par n° de scrutin. */
+export function lireCachePerso(): Record<string, unknown> {
+  try {
+    const raw = typeof localStorage !== "undefined" ? localStorage.getItem(KEY_PERSO) : null;
+    if (raw) return JSON.parse(raw) as Record<string, unknown>;
+  } catch { /* illisible */ }
+  return memoirePerso;
+}
+
+/** Garde la question hors test d'un scrutin (sans notifier : la réponse elle-même l'a fait). */
+export function ecrireCachePerso(numero: number, valeur: unknown): void {
+  const c = { ...lireCachePerso(), [numero]: valeur };
+  memoirePerso = c;
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(KEY_PERSO, JSON.stringify(c));
+  } catch { /* quota / mode privé : on garde la mémoire */ }
+}
+
+function oublierCachePerso(numero: number): void {
+  const c = { ...lireCachePerso() };
+  if (!(numero in c)) return;
+  delete c[numero];
+  memoirePerso = c;
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(KEY_PERSO, JSON.stringify(c));
+  } catch { /* ignore */ }
 }
 
 // --- Trois états persistés INDÉPENDAMMENT (cf. correction « poids ») ----------------
@@ -115,6 +154,7 @@ export function retirerReponse(numero: number): void {
   delete reponses[numero];
   const origines = { ...(cur.origines ?? {}) };
   delete origines[numero];
+  oublierCachePerso(numero);
   sauverTest({ reponses, poids: cur.poids ?? {}, origines });
 }
 
@@ -144,18 +184,24 @@ function unb64url(s: string): string {
   return typeof atob !== "undefined" ? atob(t) : t;
 }
 
-/** Encode les réponses (et les poids non neutres) en chaîne compacte URL-safe. */
-export function encoderPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>): string {
+/**
+ * Encode les réponses (et les poids non neutres) en chaîne compacte URL-safe. Les n° tranchés
+ * depuis un scrutin (origine « scrutin ») sont listés à part (`o`) : à l'ouverture, le lien
+ * recharge leurs positions pour redonner le même résultat.
+ */
+export function encoderPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>, origines?: Record<number, Origine>): string {
   const r: Record<string, number> = {};
   for (const [id, rep] of Object.entries(reponses)) r[id] = CODE[rep];
-  const payload: { r: Record<string, number>; w?: Record<string, number> } = { r };
+  const payload: { r: Record<string, number>; w?: Record<string, number>; o?: number[] } = { r };
   if (poids && Object.values(poids).some((w) => w !== 1)) payload.w = poids;
+  const o = Object.entries(origines ?? {}).filter(([id, v]) => v === "scrutin" && r[id] != null).map(([id]) => Number(id));
+  if (o.length) payload.o = o;
   return b64url(JSON.stringify(payload));
 }
 
-export function decoderPartage(s: string): { reponses: Record<number, Reponse>; poids?: Record<string, number> } | null {
+export function decoderPartage(s: string): { reponses: Record<number, Reponse>; poids?: Record<string, number>; origines?: Record<number, Origine> } | null {
   try {
-    const p = JSON.parse(unb64url(s)) as { r?: Record<string, number>; w?: Record<string, number> };
+    const p = JSON.parse(unb64url(s)) as { r?: Record<string, number>; w?: Record<string, number>; o?: unknown };
     const reponses: Record<number, Reponse> = {};
     for (const [id, c] of Object.entries(p.r ?? {})) {
       const n = Number(id);
@@ -170,15 +216,20 @@ export function decoderPartage(s: string): { reponses: Record<number, Reponse>; 
       for (const [k, w] of Object.entries(p.w))
         if (typeof w === "number" && isFinite(w) && w >= 0 && w <= 3) poids[k] = w;
     }
-    return { reponses, poids };
+    // Origines : seulement des n° entiers présents dans les réponses.
+    let origines: Record<number, Origine> | undefined;
+    if (Array.isArray(p.o)) {
+      for (const id of p.o) if (Number.isInteger(id) && reponses[id as number] != null) (origines ??= {})[id as number] = "scrutin";
+    }
+    return { reponses, poids, origines };
   } catch {
     return null;
   }
 }
 
 /** URL de partage (web) : recalculée à l'ouverture, sans rien envoyer au serveur. */
-export function urlPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>): string {
-  const enc = encoderPartage(reponses, poids);
+export function urlPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>, origines?: Record<number, Origine>): string {
+  const enc = encoderPartage(reponses, poids, origines);
   if (typeof window !== "undefined" && window.location) {
     return `${window.location.origin}${window.location.pathname}#test=${enc}`;
   }
@@ -186,7 +237,7 @@ export function urlPartage(reponses: Record<number, Reponse>, poids?: Record<str
 }
 
 /** Lit un éventuel résultat partagé dans le hash de l'URL (web). */
-export function lireHashPartage(): { reponses: Record<number, Reponse>; poids?: Record<string, number> } | null {
+export function lireHashPartage(): { reponses: Record<number, Reponse>; poids?: Record<string, number>; origines?: Record<number, Origine> } | null {
   if (typeof window === "undefined" || !window.location?.hash) return null;
   const m = window.location.hash.match(/test=([^&]+)/);
   return m ? decoderPartage(m[1]) : null;
