@@ -8,6 +8,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.41.1 — 2026-11-16
+**Corriger un vote déduit, lot 4 : la règle des votes hors du test est écrite dans Infos.**
+- Nouveau bloc « Comment tes votes hors du test comptent » (famille « Le test de proximité », entre « Comment le spectre est calculé » et « Tes réponses restent chez toi ») : trois règles, Ton choix, Plafonné, Lisible, et un pied « Ta proximité sur le test seul reste visible à tout moment, et chaque réponse s'efface d'un geste. » Même forme que le texte de méthode des questions (`METHODE_VOTES_HORS_TEST`, rendu partagé `MethodeTexte`). Les liens « Pourquoi ce scrutin ne compte pas » et « Comment tes votes comptent » y mènent.
+- Textes devenus faux, reformulés : sous-titre de la famille (« … tes votes hors du test, tes réponses ») ; point clé « Tes réponses, au test comme sur les scrutins, restent sur ton appareil. » ; « Comment le spectre est calculé » se termine par le renvoi au bloc suivant ; « Tes réponses, au test de proximité comme sur les scrutins que tu tranches, sont une opinion politique ». Le texte de méthode des questions ne change pas.
+- Onboarding affinité relu : aucune phrase ne dit que seul le test compte, rien à changer.
+
 ## 1.41.0 — 2026-11-16
 **Corriger un vote déduit, lot 3 : la légende du verdict passe à trois pages.**
 - Page 1 « Ce que tu as tranché » : « Au test ou depuis un scrutin, on compare ta vraie réponse au résultat. » Pastilles Comme ton vote, Pas comme ton vote, et désormais Sans avis ; note « Un « sans avis » ne reçoit plus aucune déduction. »

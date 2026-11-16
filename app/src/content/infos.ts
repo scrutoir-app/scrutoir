@@ -18,8 +18,11 @@ export interface BlocInfos {
   texte: string;
   /** Le bloc porte le mini-schéma de la barre de vote. */
   schemaBarre?: boolean;
-  /** Le bloc est le texte de méthode du test (`METHODE_QUESTIONS`), rendu avec ses trois règles. */
-  methode?: boolean;
+  /**
+   * Le bloc est un texte de méthode, rendu avec ses trois règles : `questions` = le choix des
+   * questions du test (`METHODE_QUESTIONS`), `votes` = les votes hors du test (`METHODE_VOTES_HORS_TEST`).
+   */
+  methode?: "questions" | "votes";
   /** Ancre : un lien de l'appli ouvre l'onglet Infos sur ce bloc (famille dépliée, bloc à l'écran). */
   ancre?: string;
 }
@@ -42,6 +45,15 @@ export interface RegleMethode {
   texte: string;
 }
 
+/** Un texte de méthode : titre, introduction, règles, puis une règle-limite ou un pied de texte. */
+export interface Methode {
+  titre: string;
+  intro: string;
+  regles: RegleMethode[];
+  limite?: RegleMethode;
+  pied?: string;
+}
+
 /**
  * Texte de méthode du test de proximité, mot pour mot (validé le 15/11/2026). Affiché dans
  * l'onglet Infos (famille « Le test de proximité ») et derrière le lien « Comment ces questions
@@ -49,7 +61,7 @@ export interface RegleMethode {
  * ⚠️ « onze thèmes, trois questions chacun » doit rester vrai : le contrôle des données
  * (testProximite/donneesTest.test.ts) échoue sinon.
  */
-export const METHODE_QUESTIONS: { titre: string; intro: string; regles: RegleMethode[]; limite: RegleMethode } = {
+export const METHODE_QUESTIONS: Methode = {
   titre: "Comment on choisit les questions du test",
   intro:
     "Chaque question repose sur un vrai scrutin public de l'Assemblée, voté par au moins 120 députés. Trois règles.",
@@ -77,6 +89,40 @@ export const METHODE_QUESTIONS: { titre: string; intro: string; regles: RegleMet
   },
 };
 
+/**
+ * Texte de méthode des votes HORS DU TEST (scrutins tranchés depuis le tiroir de vote), mot pour
+ * mot (maquette « Corriger un vote déduit », validée le 16/11/2026). Onglet Infos, famille « Le
+ * test de proximité » ; le lien « Pourquoi ce scrutin ne compte pas » y mène (ancre).
+ */
+export const METHODE_VOTES_HORS_TEST: Methode = {
+  titre: "Comment tes votes hors du test comptent",
+  intro:
+    "Le test est le même pour tout le monde, construit pour que chaque thème et chaque ligne de partage de " +
+    "l'Assemblée y figurent. Quand tu tranches un scrutin en dehors du test, ta réponse s'ajoute à ta proximité. " +
+    "Trois règles.",
+  regles: [
+    {
+      nom: "Ton choix",
+      texte:
+        "tu décides des scrutins que tu ajoutes. Ta proximité se rapproche de ce qui compte pour toi, et " +
+        "s'éloigne d'autant de l'équilibre du test.",
+    },
+    {
+      nom: "Plafonné",
+      texte:
+        "dans un thème, tes votes hors test ne pèsent jamais plus que les questions du test. L'équilibre du " +
+        "test reste la base.",
+    },
+    {
+      nom: "Lisible",
+      texte:
+        "les budgets et les motions mêlent trop de sujets pour dire de quel côté tu te tiens. Ta réponse " +
+        "s'affiche, elle reste hors du calcul, comme dans le test.",
+    },
+  ],
+  pied: "Ta proximité sur le test seul reste visible à tout moment, et chaque réponse s'efface d'un geste.",
+};
+
 export const EN_BREF: PointBref[] = [
   {
     icone: "check-square",
@@ -88,7 +134,7 @@ export const EN_BREF: PointBref[] = [
   },
   {
     icone: "lock",
-    texte: "Tes réponses au test restent sur ton appareil. Rien n'est envoyé.",
+    texte: "Tes réponses, au test comme sur les scrutins, restent sur ton appareil. Rien n'est envoyé.",
   },
 ];
 
@@ -194,25 +240,31 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
   {
     id: "test",
     titre: "Le test de proximité",
-    sousTitre: "Le choix des questions, le calcul du spectre, tes réponses",
+    sousTitre: "Le choix des questions, le calcul du spectre, tes votes hors du test, tes réponses",
     blocs: [
-      { titre: METHODE_QUESTIONS.titre, texte: METHODE_QUESTIONS.intro, methode: true },
+      { titre: METHODE_QUESTIONS.titre, texte: METHODE_QUESTIONS.intro, methode: "questions" },
       {
         // Version B validée le 15/11/2026 : le choix des questions est dans le bloc de méthode
         // juste au-dessus ; ce bloc ne parle plus que du calcul.
         titre: "Comment le spectre est calculé",
-        ancre: ANCRE_VOTES_HORS_TEST,
         texte:
           "Pour chaque question, on regarde si ta réponse rejoint la position de chaque groupe, c'est-à-dire " +
           "celle de la majorité de ses membres qui ont voté. On ne compte que les votes où toi ET le groupe " +
           "avez tranché « pour » ou « contre » (abstention et « sans avis » sont exclus). Le résultat est un " +
           "spectre — ta proximité avec tous les groupes, thème par thème — et jamais un parti unique : on ne " +
-          "se résume pas à une étiquette.",
+          "se résume pas à une étiquette. Les scrutins que tu tranches en dehors du test s'y ajoutent, selon les " +
+          "trois règles du bloc suivant.",
+      },
+      {
+        titre: METHODE_VOTES_HORS_TEST.titre,
+        texte: METHODE_VOTES_HORS_TEST.intro,
+        methode: "votes",
+        ancre: ANCRE_VOTES_HORS_TEST,
       },
       {
         titre: "Tes réponses restent chez toi",
         texte:
-          "Tes réponses au test de proximité sont une opinion politique — une donnée sensible. Elles ne " +
+          "Tes réponses, au test de proximité comme sur les scrutins que tu tranches, sont une opinion politique — une donnée sensible. Elles ne " +
           "sont ni envoyées ni stockées sur un serveur : tout le calcul se fait sur ton appareil. Ton " +
           "dernier résultat est gardé en local (sur ce navigateur) pour que tu puisses le revoir, et un " +
           "lien de partage encode tes réponses dans l'adresse elle-même — il recalcule tout à l'ouverture, " +

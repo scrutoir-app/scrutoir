@@ -5,7 +5,7 @@ import { C, F, T, RADIUS, S, ICON, CONTROL } from "../theme";
 import { APP_VERSION, INSTAGRAM_HANDLE, INSTAGRAM_URL } from "../config";
 import { Card } from "../components/ui";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
-import { MethodeQuestions } from "../components/MethodeQuestions";
+import { MethodeQuestions, MethodeVotesHorsTest } from "../components/MethodeQuestions";
 import { INFOS_TITRE, EN_BREF, FAMILLES_INFOS, type FamilleInfos, type BlocInfos } from "../content/infos";
 import type { Nav } from "../nav";
 
@@ -62,11 +62,11 @@ function SchemaBarre() {
 
 function Bloc({ bloc, premier, onAncre }: { bloc: BlocInfos; premier: boolean; onAncre?: (y: number) => void }) {
   const repere = onAncre ? { onLayout: (e: LayoutChangeEvent) => onAncre(e.nativeEvent.layout.y) } : null;
-  // Le texte de méthode du test a ses trois règles : rendu partagé avec l'intro du test.
+  // Les textes de méthode ont leurs trois règles : rendu partagé (intro du test, liens de la fiche).
   if (bloc.methode) {
     return (
       <View {...repere} style={{ marginTop: premier ? 0 : S.s16 }}>
-        <MethodeQuestions variante="bloc" />
+        {bloc.methode === "votes" ? <MethodeVotesHorsTest variante="bloc" /> : <MethodeQuestions variante="bloc" />}
       </View>
     );
   }
