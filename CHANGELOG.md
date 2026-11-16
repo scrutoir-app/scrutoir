@@ -8,6 +8,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.42.0 — 2026-11-16
+**Corriger un vote déduit, lot 5 : une déduction « comme toi » plus juste.**
+- La pastille déduite (pointillés) prête un camp à l'utilisateur à partir de sa proximité avec chaque groupe. Chaque groupe pèse désormais sa **proximité à la puissance 4**, sans sa taille. Seuil de « Partagé » inchangé (écart < 8 %).
+- Pourquoi : multiplier par la taille des groupes tirait la déduction vers le camp qui gagne. Simulation sur les 33 questions (profil « vote exactement comme le groupe X », question mise de côté, 339 cas) : déductions justes 80 % → 93 %, fausses 11 % → 3 %, « Partagé » 9 % → 5 % ; « Comme toi » affiché sur 65 % des scrutins pour 66 % réels (76 % avant).
+- Nouveau contrôle `deduction.test.ts` qui rejoue cette simulation sur les données publiées (au moins 90 % justes, au plus 5 % fausses).
+
 ## 1.41.1 — 2026-11-16
 **Corriger un vote déduit, lot 4 : la règle des votes hors du test est écrite dans Infos.**
 - Nouveau bloc « Comment tes votes hors du test comptent » (famille « Le test de proximité », entre « Comment le spectre est calculé » et « Tes réponses restent chez toi ») : trois règles, Ton choix, Plafonné, Lisible, et un pied « Ta proximité sur le test seul reste visible à tout moment, et chaque réponse s'efface d'un geste. » Même forme que le texte de méthode des questions (`METHODE_VOTES_HORS_TEST`, rendu partagé `MethodeTexte`). Les liens « Pourquoi ce scrutin ne compte pas » et « Comment tes votes comptent » y mènent.
