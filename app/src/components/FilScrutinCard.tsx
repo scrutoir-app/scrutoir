@@ -135,7 +135,9 @@ export function FilScrutinCard({
           >
             {detail && heroH > 0 ? <HemicyclePositions groupes={geo} positions={positions} size={heroSize} /> : null}
           </Pressable>
-          <View style={{ paddingLeft: S.s16, paddingRight: S.s12, paddingBottom: S.s16, flexDirection: "row", alignItems: "flex-end", gap: S.s12 }}>
+          {/* Première carte : marge du bas élargie pour l'indication « Balaie vers le haut » (la ligne
+              sous la pastille, après une réponse, ne la chevauche pas). */}
+          <View style={{ paddingLeft: S.s16, paddingRight: S.s12, paddingBottom: isFirst ? S.s24 : S.s16, flexDirection: "row", alignItems: "flex-end", gap: S.s12 }}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[T.micro, { fontFamily: F.extra, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: S.s8 }]}>{catLabel}</Text>
               <Pressable onPress={onDetail} accessibilityRole="button" accessibilityLabel={`Détail : ${titre}`}>
