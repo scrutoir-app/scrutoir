@@ -9,6 +9,7 @@ import { poserReponse, retirerReponse } from "../testProximite/storage";
 import { groupesPos, verdictDeduit } from "../testProximite/verdict";
 import { statutPerso, type StatutPerso } from "../testProximite/questionsPerso";
 import { encartTiroir, statutEncart, texteTiroir, titreTiroir } from "../testProximite/texteVote";
+import { memoriserQuestionPerso } from "../testProximite/chargerPerso";
 import type { Reponse } from "../testProximite/score";
 import type { DetailScrutin } from "../types";
 import type { Nav } from "../nav";
@@ -138,6 +139,8 @@ function Tiroir({ uid, onClose, onRepondu, onLegende }: { uid: string | null; on
 
   const choisir = (r: Reponse) => {
     if (numero == null) return;
+    // Hors test : la question (positions des groupes, thème) est gardée pour le calcul.
+    if (!dansTest) memoriserQuestionPerso(affiche).catch(() => {});
     poserReponse(numero, r, { questionTest: dansTest });
     onRepondu(numero);
     onClose();

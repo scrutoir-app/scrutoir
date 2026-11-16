@@ -28,7 +28,7 @@ export interface Verdict {
   penche?: "pour" | "contre" | null;
 }
 
-/** Position (majorité) d'un groupe sur un scrutin + son poids (taille), pour la déduction. */
+/** Position (majorité) d'un groupe sur un scrutin + sa taille (hémicycle ; la déduction ne s'en sert plus). */
 export interface GroupePos {
   abrev: string | null;
   taille: number;
@@ -44,7 +44,7 @@ export function campGagnant(sortCode: string | null | undefined): "pour" | "cont
   return null;
 }
 
-/** Taille d'un groupe (effectif exprimé + absents) — sert de poids dans la déduction. */
+/** Taille d'un groupe (effectif exprimé + absents) — taille des sièges dans l'hémicycle. */
 export function tailleGroupe(g: Pick<GroupeVentilation, "pour" | "contre" | "abstention" | "absent">): number {
   return (g.pour || 0) + (g.contre || 0) + (g.abstention || 0) + (g.absent || 0);
 }
@@ -72,8 +72,13 @@ export function verdictVote(reponse: Reponse | undefined, sortCode: string | nul
 /**
  * Niveau DÉDUIT : prédit le camp de l'utilisateur à partir de sa proximité PAR GROUPE
  * (ctx.resultat.global, produit par calculerProximite) puis compare au résultat. Le penchant
- * = le camp des groupes dont l'utilisateur est le plus proche (poids = proximité × taille,
- * côté = position majoritaire du groupe). Quasi-égalité (< 8 %) ou rien de comparable → Partagé.
+ * = le camp des groupes dont l'utilisateur est le plus proche : chaque groupe pèse sa proximité
+ * à la puissance 4 (les groupes les plus proches dominent), côté = sa position majoritaire.
+ * Quasi-égalité (< 8 %) ou rien de comparable → Partagé.
+ * La TAILLE des groupes n'entre plus en compte (lot 5, validé le 16/11/2026) : multipliée par la
+ * taille, la déduction penchait vers le camp qui gagne (« Comme toi » sur 76 % des scrutins pour
+ * 66 % réels). Simulation sur les 33 questions, profil « vote comme le groupe X », question mise
+ * de côté : 80 % → 93 % de déductions justes, 11 % → 3 % de fausses (cf. deduction.test.ts).
  */
 export function verdictDeduit(
   ctx: ContexteJe | null,
@@ -90,7 +95,7 @@ export function verdictDeduit(
     if (!g.abrev) continue;
     const p = pct[g.abrev];
     if (p == null) continue; // pas de comparable pour ce groupe → ignoré
-    const w = p * Math.max(1, g.taille); // proximité × taille
+    const w = p ** 4; // proximité puissance 4, sans la taille du groupe
     if (g.position === "pour") pour += w;
     else if (g.position === "contre") contre += w;
   }

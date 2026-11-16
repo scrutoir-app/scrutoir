@@ -16,6 +16,8 @@
 import { natureScrutin, type Nature } from "../hebdo";
 import { positionMajoritaire, type Compte } from "../decompte";
 import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
+import type { QuestionProximite, PositionGroupe, Reponse } from "./score";
+import type { Origine } from "./storage";
 
 /** Pourquoi un scrutin reste hors du calcul. */
 export type MotifExclusion = "budget" | "censure" | "procedure" | "declaration" | "unanime";
@@ -75,4 +77,89 @@ export function statutPerso(s: ScrutinStatut): StatutPerso {
     return { exclu: "budget", nature: "un budget", raison: RAISON_BUDGET };
   if (estQuasiUnanime(s.groupes)) return { exclu: "unanime", nature: null, raison: RAISON_UNANIME };
   return "compte";
+}
+
+// --- Questions hors test : construction, cache, répartition -----------------------------
+
+
+/** Ce que le cache garde d'un scrutin tranché hors test : sa question et son statut. */
+export interface EntreePerso {
+  q: QuestionProximite;
+  statut: "compte" | MotifExclusion;
+}
+
+/** Détail publié d'un scrutin (scrutin/<uid>.json), réduit à ce qu'il faut pour la question. */
+export interface DetailPourQuestion extends ScrutinStatut {
+  numero: number;
+  date?: string | null;
+  categorie?: string | null;
+  totaux?: Compte;
+  groupes: ({ abrev: string | null } & Compte)[];
+}
+
+/**
+ * Question « perso » d'un scrutin tranché hors test : position de chaque groupe de l'hémicycle
+ * = sa position majoritaire (la même règle que l'hémicycle), décomptes repris, thème = catégorie
+ * du dossier, sinon du scrutin.
+ */
+export function questionPerso(d: DetailPourQuestion, themeDossier: string | null | undefined): EntreePerso {
+  const positions: Record<string, PositionGroupe> = {};
+  const decomptes: Record<string, Compte> = {};
+  for (const g of d.groupes) {
+    if (!g.abrev) continue;
+    decomptes[g.abrev] = { pour: g.pour, contre: g.contre, abstention: g.abstention };
+    if (!ORDRE_HEMICYCLE.includes(g.abrev)) continue;
+    const p = positionMajoritaire(g);
+    if (p) positions[g.abrev] = p;
+  }
+  const st = statutPerso(d);
+  return {
+    q: {
+      id: d.numero,
+      theme: themeDossier || d.categorie || "autre",
+      titre: d.titre,
+      date: d.date ?? null,
+      positions,
+      decomptes,
+      ...(d.totaux ? { totaux: d.totaux } : null),
+      origine: "perso",
+    },
+    statut: st === "compte" ? "compte" : st.exclu,
+  };
+}
+
+/** Répartition des réponses hors test, à partir du cache. */
+export interface RepartitionPerso {
+  /** Questions hors test qui entrent dans le calcul. */
+  comptees: QuestionProximite[];
+  /** Réponses pour / contre posées hors test sur un budget, une motion ou un vote quasi unanime. */
+  horsCalcul: number;
+  /** Réponses « sans avis » posées hors test. */
+  sansAvis: number;
+  /** N° tranchés hors test absents du cache (à reconstruire depuis le détail du scrutin). */
+  manquants: number[];
+}
+
+/**
+ * Réponses posées DEPUIS UN SCRUTIN (origine « scrutin ») hors des questions actuelles du test.
+ * Une réponse d'origine « test » à une question RETIRÉE n'est jamais reprise ici.
+ */
+export function repartirPerso(
+  reponses: Record<number, Reponse>,
+  origines: Record<number, Origine> | undefined,
+  idsTest: ReadonlySet<number>,
+  cache: Record<string, EntreePerso | undefined>,
+): RepartitionPerso {
+  const out: RepartitionPerso = { comptees: [], horsCalcul: 0, sansAvis: 0, manquants: [] };
+  for (const [cle, origine] of Object.entries(origines ?? {})) {
+    const n = Number(cle);
+    const r = reponses[n];
+    if (origine !== "scrutin" || r == null || idsTest.has(n)) continue;
+    if (r === "sans_avis") { out.sansAvis++; continue; }
+    const e = cache[cle];
+    if (!e) { out.manquants.push(n); continue; }
+    if (e.statut === "compte") out.comptees.push(e.q);
+    else out.horsCalcul++;
+  }
+  return out;
 }

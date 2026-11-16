@@ -8,6 +8,34 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.42.0 — 2026-11-16
+**Corriger un vote déduit, lot 5 : une déduction « comme toi » plus juste.**
+- La pastille déduite (pointillés) prête un camp à l'utilisateur à partir de sa proximité avec chaque groupe. Chaque groupe pèse désormais sa **proximité à la puissance 4**, sans sa taille. Seuil de « Partagé » inchangé (écart < 8 %).
+- Pourquoi : multiplier par la taille des groupes tirait la déduction vers le camp qui gagne. Simulation sur les 33 questions (profil « vote exactement comme le groupe X », question mise de côté, 339 cas) : déductions justes 80 % → 93 %, fausses 11 % → 3 %, « Partagé » 9 % → 5 % ; « Comme toi » affiché sur 65 % des scrutins pour 66 % réels (76 % avant).
+- Nouveau contrôle `deduction.test.ts` qui rejoue cette simulation sur les données publiées (au moins 90 % justes, au plus 5 % fausses).
+
+## 1.41.1 — 2026-11-16
+**Corriger un vote déduit, lot 4 : la règle des votes hors du test est écrite dans Infos.**
+- Nouveau bloc « Comment tes votes hors du test comptent » (famille « Le test de proximité », entre « Comment le spectre est calculé » et « Tes réponses restent chez toi ») : trois règles, Ton choix, Plafonné, Lisible, et un pied « Ta proximité sur le test seul reste visible à tout moment, et chaque réponse s'efface d'un geste. » Même forme que le texte de méthode des questions (`METHODE_VOTES_HORS_TEST`, rendu partagé `MethodeTexte`). Les liens « Pourquoi ce scrutin ne compte pas » et « Comment tes votes comptent » y mènent.
+- Textes devenus faux, reformulés : sous-titre de la famille (« … tes votes hors du test, tes réponses ») ; point clé « Tes réponses, au test comme sur les scrutins, restent sur ton appareil. » ; « Comment le spectre est calculé » se termine par le renvoi au bloc suivant ; « Tes réponses, au test de proximité comme sur les scrutins que tu tranches, sont une opinion politique ». Le texte de méthode des questions ne change pas.
+- Onboarding affinité relu : aucune phrase ne dit que seul le test compte, rien à changer.
+
+## 1.41.0 — 2026-11-16
+**Corriger un vote déduit, lot 3 : la légende du verdict passe à trois pages.**
+- Page 1 « Ce que tu as tranché » : « Au test ou depuis un scrutin, on compare ta vraie réponse au résultat. » Pastilles Comme ton vote, Pas comme ton vote, et désormais Sans avis ; note « Un « sans avis » ne reçoit plus aucune déduction. »
+- Page 2 « Ce qu'on déduit de ton profil » : texte inchangé ; note « C'est une estimation, pas un vote que tu as posé. Elle se trompe parfois, et c'est à toi de la corriger. »
+- Page 3, nouvelle, « Pas d'accord ? Corrige-la. » : comment corriger une déduction, sauf budgets et motions ; note « Tu effaces une réponse quand tu veux. » Petite animation en boucle (5,2 s) : la pastille « Comme toi » en pointillés est touchée, la rangée Contre / Sans avis / Pour monte, Pour se surligne, la pastille devient « Pas comme ton vote » pleine. Animations réduites : l'état final, figé.
+- Trois points de progression ; Retour / Suivant / J'ai compris. Les pastilles de la légende sont centrées.
+
+## 1.40.0 — 2026-11-16
+**Corriger un vote déduit, lot 2 : les votes tranchés hors du test entrent dans le calcul, plafonnés.**
+- Une réponse posée depuis un scrutin (tiroir de vote) rejoint son thème (celui du dossier, sinon du scrutin) et affine la proximité avec les groupes et les députés. La position de chaque groupe est sa position majoritaire, comme sur l'hémicycle.
+- **Plafond** : dans un thème, les votes hors test ne pèsent jamais plus que les questions du test — `pct = (sTest + w × sPerso) / (1 + w)`, `w = min(1, comparés hors test / comparés au test)`. Un thème absent du test (ex. immigration) : les votes hors test y comptent seuls. Global inchangé (moyenne des thèmes pondérée par tes poids).
+- **Hors calcul** (réponse gardée, pastille « voté », Tes accords) : budgets (ensemble ou partie d'une loi de finances, PLFSS, règlement / approbation des comptes), motions de censure et de procédure, déclarations du Gouvernement, votes quasi unanimes. Les amendements et articles d'un budget comptent. Une réponse du test à une question retirée ne revient jamais.
+- **Fiches parti et député, Partis, Trouver ton député** : base « Sur N votes comparés : X au test, Y tranchés depuis un scrutin. » (formulation habituelle quand tout vient du test) ; encart « Sur le test seul : M %. Le test est le même pour tout le monde, c'est ta référence. » ; détail repliable « D'où viennent tes votes » avec « Comment ils pèsent » et le lien « Comment tes votes comptent ».
+- **Partage** : le lien encode aussi les scrutins tranchés hors test ; à l'ouverture, leurs positions sont rechargées (jamais gardées sur l'appareil du destinataire). Un ancien lien reste lisible.
+- Cache local `scrutoir.questions-perso` (positions des scrutins tranchés), effacé avec la réponse et avec « Effacer tes réponses ». « Affiner » et la file à trancher restent sur les seules questions du test.
+
 ## 1.39.0 — 2026-11-16
 **Corriger un vote « comme toi » déduit, sur place (lot 1 : pastille, tiroir, quatrième état).**
 - **Tiroir de vote** : sur n'importe quel scrutin (fiche, cartes du Fil et de la Liste, page d'un texte, et désormais le Focus de la semaine), la pastille porte un crayon et ouvre un tiroir en bas d'écran, sans changer d'écran. Déduit : « Ce qu'on a déduit », le camp prêté marqué « déduit » en pointillés. Voté : « Ton vote sur ce scrutin », avec « Effacer ma réponse, revenir à la déduction ». Rangée Contre / Sans avis / Pour : le même bouton qu'au test (`BoutonChoix`, extrait en composant partagé). Choisir enregistre et ferme ; aucun écart de proximité n'est affiché.

@@ -16,7 +16,8 @@ import { catUI } from "../categoryUI";
 import { getParti, getPartis, getCategories, getGrandsScrutins, getScrutin, getDeputesParti } from "../api";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
 import { estSitue } from "../testProximite/storage";
-import { accordsParTheme, baseAccordGroupe } from "../testProximite/baseAccord";
+import { accordsParTheme, baseAccordGroupe, phraseBaseOrigine } from "../testProximite/baseAccord";
+import { OrigineVotes } from "../components/OrigineVotes";
 import { decompteGroupe } from "../decompte";
 import { useFollow } from "../hooks/useFollows";
 import { positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
@@ -131,8 +132,13 @@ export function PartiScreen({ uid, sansUid = false, nav }: { uid: string; sansUi
   // Base du % comme toi (situé) : sur combien de scrutins tranchés le groupe a pris position.
   let baseTexte: string | null = null;
   if (situe && je) {
-    const n = abrev ? baseAccordGroupe(je.resultat, abrev).comparable : 0;
-    baseTexte = n
+    const b = abrev ? baseAccordGroupe(je.resultat, abrev) : { comparable: 0, accord: 0, inverse: 0 };
+    const n = b.comparable;
+    // Votes tranchés hors test : « Sur N votes comparés : X au test, Y tranchés depuis un scrutin. »
+    const origine = phraseBaseOrigine(b);
+    baseTexte = origine
+      ? origine
+      : n
       ? `Sur ${n > 1 ? `les ${n} scrutins` : "le scrutin"} que tu as tranché${n > 1 ? "s" : ""} et où le groupe a pris position.`
       : "Le groupe n'a pris position sur aucun des scrutins que tu as tranchés pour l'instant.";
   }
@@ -157,6 +163,13 @@ export function PartiScreen({ uid, sansUid = false, nav }: { uid: string; sansUi
         {situe && (
           <View style={{ marginTop: S.s14 }}>
             <CommeToiCarte pct={score?.pct ?? null} base={baseTexte} />
+            {je && (
+              <OrigineVotes
+                compteurs={je.compteurs}
+                testSeul={abrev ? je.resultatTestSeul.global.find((g) => g.abrev === abrev)?.pct ?? null : null}
+                nav={nav}
+              />
+            )}
           </View>
         )}
 

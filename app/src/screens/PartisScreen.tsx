@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { OrigineVotes } from "../components/OrigineVotes";
 import { View, Text, ScrollView, TouchableOpacity, Pressable, ActivityIndicator, LayoutChangeEvent } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, S, ICON, CONTROL, couleurGroupe } from "../theme";
@@ -116,6 +117,8 @@ export function PartisScreen({ nav }: { nav: Nav }) {
           La part des votes où le groupe a voté comme toi, sur les scrutins que tu as tranchés. Sous {SEUIL_FIABILITE} votes comparés, pas de pourcentage.
         </Text>
       )}
+      {/* Votes tranchés hors du test : d'où viennent-ils, comment pèsent-ils (replié). */}
+      {je && je !== "erreur" && <OrigineVotes compteurs={je.compteurs} nav={nav} />}
       {enCalcul ? (
         <ActivityIndicator color={C.textMuted} style={{ marginTop: S.s24 }} />
       ) : (
