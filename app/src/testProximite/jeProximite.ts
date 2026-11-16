@@ -7,6 +7,7 @@
 import { useEffect, useState } from "react";
 import { getTestProximite, getPartis, getVotesBruts } from "../api";
 import { chargerTest } from "./storage";
+import { useVersionTest } from "./useReponses";
 import { questionsJouees, nbVotesActuels } from "./config";
 import {
   calculerProximite,
@@ -82,13 +83,15 @@ export function scoreGroupeJe(ctx: ContexteJe | null, abrev: string | null | und
 /** Contexte du « je » (null tant qu'il charge OU si aucun test fait). */
 export function useJe(): ContexteJe | null {
   const [ctx, setCtx] = useState<ContexteJe | null>(null);
+  // Une réponse posée ou effacée (tiroir de vote) change l'horodatage : le « je » se recalcule.
+  const version = useVersionTest();
   useEffect(() => {
     let vivant = true;
     chargerJe().then((c) => vivant && setCtx(c));
     return () => {
       vivant = false;
     };
-  }, []);
+  }, [version]);
   return ctx;
 }
 

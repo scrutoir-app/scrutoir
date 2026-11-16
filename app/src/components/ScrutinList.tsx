@@ -5,11 +5,9 @@ import { C, F, T, RADIUS, S, ICON, shadowCard } from "../theme";
 import { useThemeMode } from "../themeMode";
 import { useJe } from "../testProximite/jeProximite";
 import { chargerTest } from "../testProximite/storage";
-import type { Reponse } from "../testProximite/score";
 import { FilScrutinCard } from "./FilScrutinCard";
 import { ListeScrutinCard } from "./ListeScrutinCard";
 import { OnboardingFil } from "./OnboardingFil";
-import { LegendeVerdict } from "./LegendeVerdict";
 import { ScrutinShareSheet } from "./ScrutinShareSheet";
 import type { ScrutinResume } from "../types";
 
@@ -87,9 +85,7 @@ export function ScrutinList<T extends ScrutinResume>({
   const [vue, setVue] = useState<Vue>(vueInitiale);
   const ctx = useJe();
   const [situe] = useState(estSitue);
-  const reponses: Record<number, Reponse> = chargerTest()?.reponses ?? {};
 
-  const [legende, setLegende] = useState(false);
   const [onboarding, setOnboarding] = useState(false);
   const [share, setShare] = useState<ScrutinResume | null>(null);
 
@@ -109,8 +105,8 @@ export function ScrutinList<T extends ScrutinResume>({
   const fil = vue === "fil";
   const data = scrutins ?? [];
 
-  // Verdict verrouillé si non situé : la pastille ouvre l'invite à se situer ; sinon la légende.
-  const ouvrirVerdict = () => (situe ? setLegende(true) : setOnboarding(true));
+  // Pastille verrouillée (pas situé) : invite à se situer. Situé : la carte ouvre le tiroir de vote.
+  const ouvrirVerdict = () => setOnboarding(true);
 
   return (
     <View style={{ flex: 1 }}>
@@ -171,7 +167,6 @@ export function ScrutinList<T extends ScrutinResume>({
                   width={filW}
                   ctx={ctx}
                   situe={situe}
-                  reponse={item.numero != null ? reponses[item.numero] : undefined}
                   isFirst={index === 0}
                   adaptive
                   annotation={renderAnnotation?.(item)}
@@ -192,7 +187,6 @@ export function ScrutinList<T extends ScrutinResume>({
                   scrutin={s}
                   ctx={ctx}
                   situe={situe}
-                  reponse={s.numero != null ? reponses[s.numero] : undefined}
                   annotation={renderAnnotation?.(s)}
                   onDetail={() => onDetail(s.uid)}
                   onVerdict={ouvrirVerdict}
@@ -203,13 +197,13 @@ export function ScrutinList<T extends ScrutinResume>({
         )}
       </View>
 
-      {/* Overlays partagés : invite à se situer (verdict verrouillé), légende, partage. */}
+      {/* Overlays partagés : invite à se situer (verdict verrouillé), partage. Le tiroir de vote
+          et la légende vivent à la racine (TiroirVote). */}
       <OnboardingFil
         visible={onboarding}
         onStart={() => { setOnboarding(false); onSituer?.(); }}
         onClose={() => setOnboarding(false)}
       />
-      <LegendeVerdict visible={legende} onClose={() => setLegende(false)} />
       {share && <ScrutinShareSheet scrutin={share} onClose={() => setShare(null)} />}
     </View>
   );

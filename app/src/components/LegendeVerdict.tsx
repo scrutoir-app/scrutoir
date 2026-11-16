@@ -10,11 +10,11 @@ import { VerdictPastille } from "./VerdictPastille";
  * que tu as VOTÉS (pastille pleine). Page 2 : les scrutins DÉDUITS (pointillés) + note
  * d'honnêteté. Points de progression + Suivant / Retour / J'ai compris.
  */
-export function LegendeVerdict({ visible, onClose }: { visible: boolean; onClose: () => void }) {
-  const [page, setPage] = useState(0);
+export function LegendeVerdict({ visible, onClose, pageInitiale = 0 }: { visible: boolean; onClose: () => void; pageInitiale?: number }) {
+  const [page, setPage] = useState(pageInitiale);
   useEffect(() => {
-    if (visible) setPage(0);
-  }, [visible]);
+    if (visible) setPage(pageInitiale);
+  }, [visible, pageInitiale]);
 
   const P1 = (
     <>

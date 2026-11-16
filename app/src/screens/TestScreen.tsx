@@ -6,6 +6,7 @@ import { getTestProximite, getPartis, getCategories } from "../api";
 import { catUI } from "../categoryUI";
 import { lienAN, scrutinSourceUrl } from "../config";
 import { useReduceMotion } from "../components/HeroScrutins";
+import { BoutonChoix } from "../components/BoutonChoix";
 import type { CategorieRef } from "../types";
 import type { Nav } from "../nav";
 import type { QuestionProximite, Reponse } from "../testProximite/score";
@@ -404,17 +405,3 @@ function CarteQuestion({
   );
 }
 
-function BoutonChoix({ icon, label, couleur, onPress }: { icon: any; label: string; couleur: string; onPress: () => void }) {
-  return (
-    <TouchableOpacity
-      activeOpacity={0.8}
-      onPress={onPress}
-      accessibilityRole="button"
-      accessibilityLabel={label}
-      style={{ flex: 1, minHeight: 60, alignItems: "center", justifyContent: "center", gap: 4, backgroundColor: C.surface, borderRadius: RADIUS.md, borderWidth: 1.5, borderColor: C.borderStrong }}
-    >
-      <Feather name={icon} size={22} color={couleur} />
-      <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>{label}</Text>
-    </TouchableOpacity>
-  );
-}

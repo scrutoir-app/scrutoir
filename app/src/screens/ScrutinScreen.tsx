@@ -13,8 +13,8 @@ import { track } from "../analytics";
 import { HemicyclePicto } from "../components/HemicyclePicto";
 import { HemicyclePositions } from "../components/HemicyclePositions";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
-import { VerdictPastille } from "../components/VerdictPastille";
-import { LegendeVerdict } from "../components/LegendeVerdict";
+import { PastilleVote } from "../components/PastilleVote";
+import { useTiroirVote } from "../components/TiroirVote";
 import { ProfilTabs } from "../components/profil";
 import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
 import { catUI } from "../categoryUI";
@@ -22,8 +22,8 @@ import { ceQuiEstVote } from "../typeScrutin";
 import { decompteClair, positionMajoritaire } from "../decompte";
 import { useJe, scoreGroupeJe } from "../testProximite/jeProximite";
 import type { ContexteJe } from "../testProximite/jeProximite";
-import { verdictScrutin, groupesPos, tailleGroupe } from "../testProximite/verdict";
-import { chargerTest, estSitue } from "../testProximite/storage";
+import { groupesPos, tailleGroupe } from "../testProximite/verdict";
+import { estSitue } from "../testProximite/storage";
 import type { GroupeVentilation, AmendGroupe, AmendInstitutionnel, PartiResume, DossierResume } from "../types";
 import type { Nav } from "../nav";
 import { ParcoursLoi } from "../components/ParcoursLoi";
@@ -113,13 +113,12 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const dossiers = charge?.[2] ?? [];
   const [briefOuvert, setBriefOuvert] = useState(false);
   const [parcours, setParcours] = useState(false);
-  const [legende, setLegende] = useState(false);
+  const tiroir = useTiroirVote(); // pastille « comme toi » : tiroir de vote, ou légende si verrouillée
   const [onglet, setOnglet] = useState<"groupe" | "amend">("groupe");
   const [triNombre, setTriNombre] = useState(false); // tri amendements : false = par groupe, true = par nombre
   const [heroW, setHeroW] = useState(0); // largeur du héros (taille de l'hémicycle)
   const je = useJe(); // résultat du test de proximité (pour ordonner les groupes au plus proche)
   const [situe] = useState(estSitue);
-  const reponses = chargerTest()?.reponses ?? {};
 
   useEffect(() => {
     setBriefOuvert(false);
@@ -177,12 +176,6 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
   const aExpose = !!amObjet && !!(amObjet.expose || amObjet.dispositif);
   const sourceUrl = scrutinSourceUrl(s.numero);
   const ouvrirSource = () => { track("source", String(s.numero ?? "")); Linking.openURL(sourceUrl!); };
-  const verdict = verdictScrutin({
-    ctx: je, situe,
-    reponse: s.numero != null ? reponses[s.numero] : undefined,
-    groupes: groupesPos(data.groupes),
-    sortCode: s.sort_code,
-  });
   const heroHemi = Math.min((heroW || 320) * 0.8, 300);
   const ouvrirTexte = s.dossier_ref
     ? () => nav.push({ name: "dossierScrutins", ref: s.dossier_ref!, titre: s.dossier_titre || vote.texte || "Ce texte" })
@@ -288,10 +281,20 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
             </View>
           )}
 
-          {/* Verdict personnel « comme toi » — pastille verrouillée si non situé, tap → légende. */}
-          <View style={{ flexDirection: "row", marginTop: S.s12 }}>
-            <VerdictPastille verdict={verdict} onPress={() => setLegende(true)} invite />
-          </View>
+          {/* Verdict personnel « comme toi » — tap : tiroir de vote (corriger sur place), ou
+              légende si non situé. Ligne d'explication dessous (déduit, réponse notée, sans avis). */}
+          <PastilleVote
+            uid={uid}
+            numero={s.numero}
+            sortCode={s.sort_code}
+            groupes={groupesPos(data.groupes)}
+            ctx={je}
+            situe={situe}
+            onVerrouille={() => tiroir.ouvrirLegende(0)}
+            ligne="page"
+            invite
+            style={{ marginTop: S.s12 }}
+          />
         </View>
       </Card>
 
@@ -370,7 +373,6 @@ export function ScrutinScreen({ uid, nav }: { uid: string; nav: Nav }) {
       )}
 
       <ParcoursLoi visible={parcours} onClose={() => setParcours(false)} source="scrutin" />
-      <LegendeVerdict visible={legende} onClose={() => setLegende(false)} />
     </ScrollView>
   );
 }

@@ -4,12 +4,10 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, RADIUS, S, ICON, formatDate } from "../theme";
 import { Card, Chip } from "./ui";
 import { VoteBarDivergenteCentree } from "./VoteBarDivergenteCentree";
-import { VerdictPastille } from "./VerdictPastille";
+import { PastilleVote } from "./PastilleVote";
 import { useScrutinGroupes } from "../scrutinGroupes";
-import { verdictScrutin } from "../testProximite/verdict";
 import { catUI } from "../categoryUI";
 import type { ContexteJe } from "../testProximite/jeProximite";
-import type { Reponse } from "../testProximite/score";
 import type { ScrutinResume } from "../types";
 
 /**
@@ -22,7 +20,6 @@ export function ListeScrutinCard({
   scrutin,
   ctx,
   situe,
-  reponse,
   annotation,
   onDetail,
   onVerdict,
@@ -30,7 +27,6 @@ export function ListeScrutinCard({
   scrutin: ScrutinResume;
   ctx: ContexteJe | null;
   situe: boolean;
-  reponse: Reponse | undefined;
   annotation?: React.ReactNode; // slot par-item propre à l'écran (ex. consigne du groupe / écart)
   onDetail: () => void;
   onVerdict: () => void;
@@ -43,7 +39,6 @@ export function ListeScrutinCard({
   const ui = catUI(categorieId ?? "");
   const catLabel = ui.court ?? categorieId ?? "";
   const titre = scrutin.dossier_titre || scrutin.titre || r?.dossier_titre || r?.titre || "Scrutin";
-  const verdict = verdictScrutin({ ctx, situe, reponse, groupes: detail?.pos ?? [], sortCode: scrutin.sort_code ?? r?.sort_code ?? null });
 
   return (
     <Card padding={S.s14} bordered style={{ marginBottom: 11 }}>
@@ -76,10 +71,18 @@ export function ListeScrutinCard({
         )}
       </Pressable>
 
-      {/* Verdict : zone tactile propre → ouvre la légende, jamais la fiche */}
-      <View style={{ marginTop: 11, alignSelf: "flex-start" }}>
-        <VerdictPastille verdict={verdict} onPress={onVerdict} />
-      </View>
+      {/* Verdict : zone tactile propre → ouvre le tiroir de vote (ou l'onboarding si verrouillé),
+          jamais la fiche */}
+      <PastilleVote
+        uid={scrutin.uid}
+        numero={scrutin.numero ?? r?.numero ?? null}
+        sortCode={scrutin.sort_code ?? r?.sort_code ?? null}
+        groupes={detail?.pos ?? []}
+        ctx={ctx}
+        situe={situe}
+        onVerrouille={onVerdict}
+        style={{ marginTop: 11 }}
+      />
       {annotation != null && <View style={{ marginTop: 10 }}>{annotation}</View>}
     </Card>
   );

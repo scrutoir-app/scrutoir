@@ -8,6 +8,7 @@ import {
   verdictVote,
   verdictDeduit,
   verdictScrutin,
+  verdictLabel,
   type GroupePos,
 } from "./verdict";
 import type { ContexteJe } from "./jeProximite";
@@ -65,9 +66,9 @@ test("verdictDeduit : penche du côté des groupes les plus proches", () => {
     { abrev: "B", taille: 100, position: "contre" },
   ];
   // Adopté (pour gagne) → l'utilisateur penche pour → dans son sens.
-  assert.deepEqual(verdictDeduit(ctxAvec({ A: 0.9, B: 0.1 }), groupes, "adopte"), { niveau: "deduit", sens: "align" });
+  assert.deepEqual(verdictDeduit(ctxAvec({ A: 0.9, B: 0.1 }), groupes, "adopte"), { niveau: "deduit", sens: "align", penche: "pour" });
   // Rejeté (contre gagne) mais l'utilisateur penche pour → à l'opposé.
-  assert.deepEqual(verdictDeduit(ctxAvec({ A: 0.9, B: 0.1 }), groupes, "rejete"), { niveau: "deduit", sens: "oppose" });
+  assert.deepEqual(verdictDeduit(ctxAvec({ A: 0.9, B: 0.1 }), groupes, "rejete"), { niveau: "deduit", sens: "oppose", penche: "pour" });
 });
 
 test("verdictDeduit : Partagé si quasi-égalité, ou rien de comparable / pas de ctx", () => {
@@ -78,6 +79,8 @@ test("verdictDeduit : Partagé si quasi-égalité, ou rien de comparable / pas d
   assert.equal(verdictDeduit(ctxAvec({ A: 0.5, B: 0.5 }), groupes, "adopte").sens, "partage");
   assert.equal(verdictDeduit(ctxAvec({ C: 0.9 }), groupes, "adopte").sens, "partage"); // aucun comparable
   assert.equal(verdictDeduit(null, groupes, "adopte").sens, "partage");
+  // Partagé : aucun camp prêté (le tiroir dit « Ton profil ne permet pas de trancher ce vote »).
+  assert.equal(verdictDeduit(ctxAvec({ A: 0.5, B: 0.5 }), groupes, "adopte").penche, null);
 });
 
 test("verdictScrutin : verrouillé si pas situé ; voté prioritaire sur déduit", () => {
@@ -89,6 +92,18 @@ test("verdictScrutin : verrouillé si pas situé ; voté prioritaire sur déduit
   );
   // Situé + a voté → niveau voté (pas déduit).
   assert.equal(verdictScrutin({ ctx, situe: true, reponse: "contre", groupes, sortCode: "adopte" }).niveau, "vote");
-  // Situé + sans_avis → bascule en déduit.
-  assert.equal(verdictScrutin({ ctx, situe: true, reponse: "sans_avis", groupes, sortCode: "adopte" }).niveau, "deduit");
+});
+
+test("verdictScrutin : « sans avis » est un état à part, jamais une déduction", () => {
+  const groupes: GroupePos[] = [{ abrev: "A", taille: 100, position: "pour" }];
+  const ctx = ctxAvec({ A: 0.9 });
+  // Avant : un « sans avis » retombait sur la déduction (on prêtait un avis refusé).
+  assert.deepEqual(verdictScrutin({ ctx, situe: true, reponse: "sans_avis", groupes, sortCode: "adopte" }), { niveau: "sans_avis", sens: null });
+  assert.equal(verdictLabel({ niveau: "sans_avis", sens: null }), "Sans avis");
+  // Effacer la réponse (plus de réponse) : retour à la déduction, avec le camp prêté.
+  const efface = verdictScrutin({ ctx, situe: true, reponse: undefined, groupes, sortCode: "adopte" });
+  assert.deepEqual(efface, { niveau: "deduit", sens: "align", penche: "pour" });
+  assert.equal(verdictLabel(efface), "Comme toi");
+  // Pas situé : verrouillé, même avec une réponse « sans avis ».
+  assert.equal(verdictScrutin({ ctx, situe: false, reponse: "sans_avis", groupes, sortCode: "adopte" }).niveau, "verrouille");
 });
