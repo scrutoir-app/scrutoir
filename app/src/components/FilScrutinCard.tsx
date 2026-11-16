@@ -4,13 +4,12 @@ import { Feather } from "@expo/vector-icons";
 import { C, F, T, RADIUS, S, ICON, tnum, couleurPosition } from "../theme";
 import { HemicyclePositions } from "./HemicyclePositions";
 import { ScrutinMotif } from "./ScrutinMotif";
-import { VerdictPastille } from "./VerdictPastille";
+import { PastilleVote } from "./PastilleVote";
 import { useScrutinGroupes } from "../scrutinGroupes";
 import { useKept } from "../hooks/useKept";
-import { verdictScrutin, positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
+import { positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
 import { catUI } from "../categoryUI";
 import type { ContexteJe } from "../testProximite/jeProximite";
-import type { Reponse } from "../testProximite/score";
 import type { ScrutinResume, GroupeVentilation } from "../types";
 
 const fmt = (n: number | null | undefined) => (n == null ? "?" : String(n).replace(/\B(?=(\d{3})+(?!\d))/g, " "));
@@ -62,7 +61,6 @@ export function FilScrutinCard({
   topInset = 0,
   ctx,
   situe,
-  reponse,
   isFirst,
   annotation,
   adaptive,
@@ -76,14 +74,13 @@ export function FilScrutinCard({
   topInset?: number; // hauteur de la barre glassy en surimpression (les slides passent dessous)
   ctx: ContexteJe | null;
   situe: boolean;
-  reponse: Reponse | undefined;
   isFirst: boolean;
   annotation?: React.ReactNode; // slot par-item propre à l'écran (ex. consigne du groupe / écart)
   adaptive?: boolean; // compacte l'hémicycle/titre quand la carte est courte (en-tête haut). L'onglet
   // Scrutins ne le passe PAS → son rendu reste inchangé ; seul ScrutinList l'active.
   onDetail: () => void;
   onShare: () => void;
-  onVerdict: () => void; // ouvre légende (situé) ou onboarding (verrouillé)
+  onVerdict: () => void; // pastille verrouillée (pas situé) : onboarding. Situé : tiroir de vote.
 }) {
   const detail = useScrutinGroupes(scrutin.uid);
   const [kept, toggleKept] = useKept(scrutin.uid);
@@ -105,7 +102,6 @@ export function FilScrutinCard({
   const geo = useMemo(() => (detail?.groupes ?? []).map((g) => ({ abrev: g.abrev, nb_deputes: tailleGroupe(g) })), [detail]);
   const c = useMemo(() => (detail ? camps(detail.groupes) : { pour: [], contre: [] }), [detail]);
 
-  const verdict = verdictScrutin({ ctx, situe, reponse, groupes: detail?.pos ?? [], sortCode });
   const titre = scrutin.dossier_titre || scrutin.titre || r?.dossier_titre || r?.titre || "Scrutin";
   const catLabel = catUI(categorieId ?? "").court ?? categorieId ?? "";
   const availH = Math.max(1, height - topInset); // hauteur visible sous la barre glassy
@@ -139,7 +135,9 @@ export function FilScrutinCard({
           >
             {detail && heroH > 0 ? <HemicyclePositions groupes={geo} positions={positions} size={heroSize} /> : null}
           </Pressable>
-          <View style={{ paddingLeft: S.s16, paddingRight: S.s12, paddingBottom: S.s16, flexDirection: "row", alignItems: "flex-end", gap: S.s12 }}>
+          {/* Première carte : marge du bas élargie pour l'indication « Balaie vers le haut » (la ligne
+              sous la pastille, après une réponse, ne la chevauche pas). */}
+          <View style={{ paddingLeft: S.s16, paddingRight: S.s12, paddingBottom: isFirst ? S.s24 : S.s16, flexDirection: "row", alignItems: "flex-end", gap: S.s12 }}>
             <View style={{ flex: 1, minWidth: 0 }}>
               <Text style={[T.micro, { fontFamily: F.extra, color: C.textMuted, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: S.s8 }]}>{catLabel}</Text>
               <Pressable onPress={onDetail} accessibilityRole="button" accessibilityLabel={`Détail : ${titre}`}>
@@ -149,7 +147,7 @@ export function FilScrutinCard({
                 <CampChip label="Pour" position="pour" groupes={c.pour} />
                 <CampChip label="Contre" position="contre" groupes={c.contre} />
               </View>
-              <VerdictPastille verdict={verdict} onPress={onVerdict} style={{ marginTop: S.s8 }} />
+              <PastilleVote uid={scrutin.uid} numero={scrutin.numero ?? r?.numero ?? null} sortCode={sortCode} groupes={detail?.pos ?? []} ctx={ctx} situe={situe} onVerrouille={onVerdict} style={{ marginTop: S.s8 }} />
               {annotation != null && <View style={{ marginTop: S.s6 }}>{annotation}</View>}
             </View>
             <View style={{ gap: S.s18, alignItems: "center" }}>
@@ -210,7 +208,7 @@ export function FilScrutinCard({
             <CampChip label="Pour" position="pour" groupes={c.pour} />
             <CampChip label="Contre" position="contre" groupes={c.contre} />
           </View>
-          <VerdictPastille verdict={verdict} onPress={onVerdict} style={{ marginTop: S.s12 }} />
+          <PastilleVote uid={scrutin.uid} numero={scrutin.numero ?? r?.numero ?? null} sortCode={sortCode} groupes={detail?.pos ?? []} ctx={ctx} situe={situe} onVerrouille={onVerdict} style={{ marginTop: S.s12 }} />
           {annotation != null && <View style={{ marginTop: S.s10 }}>{annotation}</View>}
         </View>
         <View style={{ gap: S.s18, alignItems: "center" }}>

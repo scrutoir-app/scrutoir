@@ -54,7 +54,8 @@ export type Route =
       groupe?: string;
       groupeLibelle?: string;
     }
-  | { name: "apropos" }
+  // ancre : ouvre l'onglet Infos sur un bloc précis (ex. « votes-hors-test », depuis la fiche d'un scrutin).
+  | { name: "apropos"; ancre?: string }
   | { name: "confrontation"; a?: string; b?: string; periode?: "all" | "12m" | "6m"; hasard?: boolean; angle?: AngleShuffle }
   | {
       name: "confrontationListe";

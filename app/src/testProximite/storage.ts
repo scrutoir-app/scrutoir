@@ -6,20 +6,54 @@ import type { Reponse } from "./score";
 
 const KEY = "scrutoir.test-proximite";
 
+/**
+ * D'où vient une réponse : du TEST (questions du test, deck, « Affiner ») ou d'un SCRUTIN
+ * tranché ailleurs dans l'appli (tiroir de la pastille « comme toi »). Réponse sans origine
+ * = « test » (rétrocompatible : avant les votes hors test, tout venait du test). L'origine
+ * empêche une réponse à une question RETIRÉE du test de revenir dans le calcul comme vote
+ * hors test.
+ */
+export type Origine = "test" | "scrutin";
+
 export interface EtatTest {
   reponses: Record<number, Reponse>;
   poids: Record<string, number>;
   ts?: number;
+  /** Seules les réponses d'origine « scrutin » y figurent ; absente = « test ». */
+  origines?: Record<number, Origine>;
 }
 
 let memoire: EtatTest | null = null;
 
+// --- Abonnement : les écrans se mettent à jour quand une réponse change (tiroir de vote) ---
+// Pas de React ici (module testé hors app) : un compteur de version + des écouteurs, lus par
+// `useVersionTest` (useReponses.ts) via useSyncExternalStore.
+let version = 0;
+const ecouteurs = new Set<() => void>();
+/** Numéro de version de l'état du test : change à chaque écriture. */
+export function versionTest(): number {
+  return version;
+}
+/** S'abonne aux changements de l'état du test ; renvoie la fonction de désabonnement. */
+export function abonnerTest(fn: () => void): () => void {
+  ecouteurs.add(fn);
+  return () => {
+    ecouteurs.delete(fn);
+  };
+}
+function notifier(): void {
+  version++;
+  for (const fn of [...ecouteurs]) fn();
+}
+
 export function sauverTest(etat: EtatTest): void {
   const v: EtatTest = { ...etat, ts: etat.ts ?? Date.now() };
+  if (v.origines && !Object.keys(v.origines).length) delete v.origines;
   memoire = v;
   try {
     if (typeof localStorage !== "undefined") localStorage.setItem(KEY, JSON.stringify(v));
   } catch { /* quota / mode privé : on garde la mémoire */ }
+  notifier();
 }
 
 export function chargerTest(): EtatTest | null {
@@ -35,6 +69,7 @@ export function effacerTest(): void {
   try {
     if (typeof localStorage !== "undefined") localStorage.removeItem(KEY);
   } catch { /* ignore */ }
+  notifier();
 }
 
 // --- Trois états persistés INDÉPENDAMMENT (cf. correction « poids ») ----------------
@@ -42,10 +77,45 @@ export function effacerTest(): void {
 // choix utilisateur persisté, JAMAIS remis à zéro par un passage du test (seul un reset
 // explicite via effacerTest() les efface). La proximité est dérivée (recalculée ailleurs).
 
-/** Fusionne de nouvelles réponses dans l'état stocké, en gardant les poids tels quels. */
+/**
+ * Fusionne de nouvelles réponses AU TEST (test, deck, « Affiner ») dans l'état stocké, en
+ * gardant les poids tels quels. Ces réponses sont d'origine « test » : une origine « scrutin »
+ * antérieure sur le même numéro est retirée.
+ */
 export function fusionnerReponses(nouvelles: Record<number, Reponse>): void {
   const cur = chargerTest();
-  sauverTest({ reponses: { ...(cur?.reponses ?? {}), ...nouvelles }, poids: cur?.poids ?? {} });
+  const origines = { ...(cur?.origines ?? {}) };
+  for (const id of Object.keys(nouvelles)) delete origines[Number(id)];
+  sauverTest({ reponses: { ...(cur?.reponses ?? {}), ...nouvelles }, poids: cur?.poids ?? {}, origines });
+}
+
+/** Origine d'une réponse stockée (absente = « test »). */
+export function origineDe(etat: Pick<EtatTest, "origines"> | null | undefined, numero: number): Origine {
+  return etat?.origines?.[numero] ?? "test";
+}
+
+/**
+ * Réponse posée DEPUIS UN SCRUTIN (tiroir de la pastille « comme toi »). Origine « scrutin »,
+ * sauf si le numéro est une question ACTUELLE du test (`questionTest`) : la réponse vaut alors
+ * réponse au test. Met à jour l'horodatage (le « je » se recalcule).
+ */
+export function poserReponse(numero: number, reponse: Reponse, opts: { questionTest?: boolean } = {}): void {
+  const cur = chargerTest();
+  const origines = { ...(cur?.origines ?? {}) };
+  if (opts.questionTest) delete origines[numero];
+  else origines[numero] = "scrutin";
+  sauverTest({ reponses: { ...(cur?.reponses ?? {}), [numero]: reponse }, poids: cur?.poids ?? {}, origines });
+}
+
+/** Efface la réponse à un scrutin (et son origine) : la pastille revient à la déduction. */
+export function retirerReponse(numero: number): void {
+  const cur = chargerTest();
+  if (!cur || cur.reponses[numero] == null) return;
+  const reponses = { ...cur.reponses };
+  delete reponses[numero];
+  const origines = { ...(cur.origines ?? {}) };
+  delete origines[numero];
+  sauverTest({ reponses, poids: cur.poids ?? {}, origines });
 }
 
 /** Poids de thèmes persistés (vide si jamais réglés). */
@@ -56,7 +126,7 @@ export function chargerPoids(): Record<string, number> {
 /** Enregistre les poids sans toucher aux réponses (choix utilisateur, persisté seul). */
 export function sauverPoids(poids: Record<string, number>): void {
   const cur = chargerTest();
-  sauverTest({ reponses: cur?.reponses ?? {}, poids });
+  sauverTest({ reponses: cur?.reponses ?? {}, poids, origines: cur?.origines });
 }
 
 // --- Partage : encodage compact des réponses (+ poids) dans un hash d'URL ----------

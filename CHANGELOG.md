@@ -8,6 +8,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.39.0 — 2026-11-16
+**Corriger un vote « comme toi » déduit, sur place (lot 1 : pastille, tiroir, quatrième état).**
+- **Tiroir de vote** : sur n'importe quel scrutin (fiche, cartes du Fil et de la Liste, page d'un texte, et désormais le Focus de la semaine), la pastille porte un crayon et ouvre un tiroir en bas d'écran, sans changer d'écran. Déduit : « Ce qu'on a déduit », le camp prêté marqué « déduit » en pointillés. Voté : « Ton vote sur ce scrutin », avec « Effacer ma réponse, revenir à la déduction ». Rangée Contre / Sans avis / Pour : le même bouton qu'au test (`BoutonChoix`, extrait en composant partagé). Choisir enregistre et ferme ; aucun écart de proximité n'est affiché.
+- **Encart** du tiroir : compté, ou hors calcul (budget, motion de censure ou de procédure, déclaration du Gouvernement, vote quasi unanime), avec le lien « Comment on déduit ».
+- **Ligne sous la pastille** : sur la fiche, toujours (déduit, réponse notée comptée ou non, sans avis) ; sur une carte, après une réponse posée dans la session. Hors calcul : lien « Pourquoi ce scrutin ne compte pas » vers Infos (famille du test dépliée, défilée jusqu'au bloc).
+- **Corrigé : un « sans avis » recevait une déduction.** Quatrième état « Sans avis » (pastille pleine neutre, tiret) : plus aucune déduction sur ce scrutin.
+- **Stockage** : chaque réponse garde son origine (test ou scrutin ; sans origine = test). Une réponse du test à une question retirée ne pourra pas revenir comme vote hors test. Les écrans se mettent à jour à chaque réponse posée ou effacée.
+- Animations : tiroir 340 ms, voile 240 ms, fondu croisé pointillé → plein 220 ms, pression 0,97 ; tout coupé si animations réduites. Nouveau token `abstentionBg` (clair et sombre).
+- ⚠️ À déployer avec le lot 2 : sans lui, une réponse « comptée » posée depuis un scrutin n'entre pas encore dans le calcul.
+
 ## 1.38.3 — 2026-11-15
 **Infos : le bloc sur le calcul du spectre ne contredit plus la méthode.** L'ancien bloc « Le test de proximité » disait que les questions portaient toutes sur un texte entier, sans amendement ; ce n'est plus vrai (6 des 33 questions portent sur un amendement ou un article). Le choix des questions est expliqué par le texte de méthode juste au-dessus : ce bloc devient « Comment le spectre est calculé » et ne parle plus que du calcul, en précisant que la position d'un groupe est celle de la majorité de ses membres qui ont voté.
 

@@ -20,7 +20,12 @@ export interface BlocInfos {
   schemaBarre?: boolean;
   /** Le bloc est le texte de méthode du test (`METHODE_QUESTIONS`), rendu avec ses trois règles. */
   methode?: boolean;
+  /** Ancre : un lien de l'appli ouvre l'onglet Infos sur ce bloc (famille dépliée, bloc à l'écran). */
+  ancre?: string;
 }
+
+/** Ancre du bloc expliquant les votes hors du test (lien « Pourquoi ce scrutin ne compte pas »). */
+export const ANCRE_VOTES_HORS_TEST = "votes-hors-test";
 
 export interface FamilleInfos {
   id: string;
@@ -196,6 +201,7 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
         // Version B validée le 15/11/2026 : le choix des questions est dans le bloc de méthode
         // juste au-dessus ; ce bloc ne parle plus que du calcul.
         titre: "Comment le spectre est calculé",
+        ancre: ANCRE_VOTES_HORS_TEST,
         texte:
           "Pour chaque question, on regarde si ta réponse rejoint la position de chaque groupe, c'est-à-dire " +
           "celle de la majorité de ses membres qui ont voté. On ne compte que les votes où toi ET le groupe " +

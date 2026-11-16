@@ -35,6 +35,7 @@ import { ParametresScreen } from "./src/screens/ParametresScreen";
 import { SuivisScreen } from "./src/screens/SuivisScreen";
 import { MentionsScreen } from "./src/screens/MentionsScreen";
 import { MethodeTestScreen } from "./src/screens/MethodeTestScreen";
+import { TiroirVoteProvider } from "./src/components/TiroirVote";
 import { TestIntroScreen } from "./src/screens/TestIntroScreen";
 import { TestScreen } from "./src/screens/TestScreen";
 import { TestResultatScreen } from "./src/screens/TestResultatScreen";
@@ -327,6 +328,9 @@ function AppInner() {
           ...(Platform.OS === "web" ? { borderLeftWidth: 0.5, borderRightWidth: 0.5, borderColor: C.border } : {}),
         }}
       >
+        {/* Tiroir de vote (corriger un « comme toi » sur place) et légende du verdict : montés une
+            fois ici, au-dessus de tout le contenu du conteneur de 480 px. */}
+        <TiroirVoteProvider nav={nav}>
         {showHeader && (
           <View
             style={{
@@ -422,7 +426,7 @@ function AppInner() {
           {current.name === "votants" && (
             <VotantsScreen scrutinUid={current.scrutinUid} titre={current.titre} position={current.position} groupe={current.groupe} groupeLibelle={current.groupeLibelle} nav={nav} />
           )}
-          {current.name === "apropos" && <AProposScreen nav={nav} />}
+          {current.name === "apropos" && <AProposScreen nav={nav} ancre={current.ancre} />}
           {current.name === "mentions" && <MentionsScreen />}
           {current.name === "methodeTest" && <MethodeTestScreen />}
           {current.name === "confrontation" && <ConfrontationScreen a={current.a} b={current.b} periode={current.periode} hasard={current.hasard} angle={current.angle} nav={nav} />}
@@ -523,6 +527,7 @@ function AppInner() {
             note={getTourNote()}
           />
         )}
+        </TiroirVoteProvider>
       </View>
       {/* Bulle du sigle d'un groupe touché (nom complet), au-dessus de tout l'écran : hors du
           conteneur de 480 px, en coordonnées de fenêtre (measureInWindow). */}

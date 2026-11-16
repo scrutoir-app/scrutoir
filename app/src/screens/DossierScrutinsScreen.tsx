@@ -8,13 +8,12 @@ import { useData } from "../hooks/useData";
 import { ErreurChargement } from "../components/ErreurChargement";
 import { HemicyclePositions } from "../components/HemicyclePositions";
 import { VoteBarDivergenteCentree } from "../components/VoteBarDivergenteCentree";
-import { VerdictPastille } from "../components/VerdictPastille";
-import { LegendeVerdict } from "../components/LegendeVerdict";
+import { PastilleVote } from "../components/PastilleVote";
 import { TuileTheme, teinteTexte, couleursIssue, Filet } from "../components/texteUI";
 import { useScrutinGroupes } from "../scrutinGroupes";
 import { useJe } from "../testProximite/jeProximite";
-import { chargerTest, estSitue } from "../testProximite/storage";
-import { verdictScrutin, groupesPos, tailleGroupe } from "../testProximite/verdict";
+import { estSitue } from "../testProximite/storage";
+import { groupesPos, tailleGroupe } from "../testProximite/verdict";
 import { dossierSourceUrl } from "../config";
 import { aujourdhuiParis, issueDe, raisonsCompte, type ScrutinSrc } from "../hebdo";
 import {
@@ -49,8 +48,6 @@ export function DossierScrutinsScreen({ dossierRef, titre, nav }: { dossierRef: 
   const detail = useScrutinGroupes(ref?.uid ?? null);
   const je = useJe();
   const [situe] = useState(estSitue);
-  const reponses = chargerTest()?.reponses ?? {};
-  const [legende, setLegende] = useState(false);
   const [tousComptent, setTousComptent] = useState(false);
   const [largeur, setLargeur] = useState(0);
 
@@ -88,9 +85,6 @@ export function DossierScrutinsScreen({ dossierRef, titre, nav }: { dossierRef: 
   const lectureRef = ref?.lecture ?? null;
   const tt = teinteTexte(texte.theme);
   const hemi = Math.min((largeur || 320) * 0.78, 280);
-  const verdict = ref?.final
-    ? verdictScrutin({ ctx: je, situe, reponse: ref.numero != null ? reponses[ref.numero] : undefined, groupes: detail?.pos ?? [], sortCode: ref.sort_code })
-    : null;
   const comptentVisibles = tousComptent ? v.comptent : v.comptent.slice(0, COMPTENT_VISIBLES);
   const enCours = !ref?.final && statut.sort === null && statut.label.startsWith("En cours");
 
@@ -132,33 +126,50 @@ export function DossierScrutinsScreen({ dossierRef, titre, nav }: { dossierRef: 
                 <HemicyclePositions groupes={geo} positions={positions} size={hemi} />
               </View>
               <VoteBarDivergenteCentree pour={ref.pour} contre={ref.contre} abstention={ref.abstention} height={8} decompte />
-              <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: S.s12, marginTop: S.s14 }}>
-                {verdict && (
-                  situe ? (
-                    <VerdictPastille verdict={verdict} onPress={() => setLegende(true)} />
-                  ) : (
-                    // Pas encore situé : « Comme toi ? » verrouillé, qui mène au test.
-                    <TouchableOpacity
-                      onPress={() => nav.push({ name: "testIntro" })}
-                      activeOpacity={0.8}
-                      accessibilityRole="button"
-                      accessibilityLabel="Comme toi ? Situe-toi pour le savoir"
-                      style={{ flexDirection: "row", alignItems: "center", gap: S.s6, minHeight: CONTROL.md, paddingHorizontal: S.s14, borderRadius: RADIUS.pill, backgroundColor: C.surfaceAlt }}
-                    >
-                      <Feather name="lock" size={ICON.sm} color={C.textMuted} />
-                      <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>Comme toi ?</Text>
-                    </TouchableOpacity>
-                  )
-                )}
-                <TouchableOpacity
-                  onPress={() => ouvrir(ref.uid)}
-                  accessibilityRole="link"
-                  accessibilityLabel="Voir le détail par groupe de ce vote"
-                  style={{ minHeight: CONTROL.md, justifyContent: "center" }}
-                >
-                  <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir le détail par groupe</Text>
-                </TouchableOpacity>
-              </View>
+              {/* Pastille « comme toi » du vote final (tiroir de vote sur place) + détail par groupe.
+                  Situé : la ligne d'explication passe sous la rangée, après une réponse. */}
+              {(() => {
+                const detailGroupes = (
+                  <TouchableOpacity
+                    onPress={() => ouvrir(ref.uid)}
+                    accessibilityRole="link"
+                    accessibilityLabel="Voir le détail par groupe de ce vote"
+                    style={{ minHeight: CONTROL.md, justifyContent: "center" }}
+                  >
+                    <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir le détail par groupe</Text>
+                  </TouchableOpacity>
+                );
+                return ref.final && situe ? (
+                  <PastilleVote
+                    uid={ref.uid}
+                    numero={ref.numero ?? null}
+                    sortCode={ref.sort_code}
+                    groupes={detail?.pos ?? []}
+                    ctx={je}
+                    situe={situe}
+                    onVerrouille={() => nav.push({ name: "testIntro" })}
+                    aCote={detailGroupes}
+                    style={{ marginTop: S.s14 }}
+                  />
+                ) : (
+                  <View style={{ flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: S.s12, marginTop: S.s14 }}>
+                    {ref.final && (
+                      // Pas encore situé : « Comme toi ? » verrouillé, qui mène au test.
+                      <TouchableOpacity
+                        onPress={() => nav.push({ name: "testIntro" })}
+                        activeOpacity={0.8}
+                        accessibilityRole="button"
+                        accessibilityLabel="Comme toi ? Situe-toi pour le savoir"
+                        style={{ flexDirection: "row", alignItems: "center", gap: S.s6, minHeight: CONTROL.md, paddingHorizontal: S.s14, borderRadius: RADIUS.pill, backgroundColor: C.surfaceAlt }}
+                      >
+                        <Feather name="lock" size={ICON.sm} color={C.textMuted} />
+                        <Text style={[T.small, { fontFamily: F.bold, color: C.text }]}>Comme toi ?</Text>
+                      </TouchableOpacity>
+                    )}
+                    {detailGroupes}
+                  </View>
+                );
+              })()}
             </>
           ) : (
             <>
@@ -240,7 +251,6 @@ export function DossierScrutinsScreen({ dossierRef, titre, nav }: { dossierRef: 
         </TouchableOpacity>
       )}
 
-      <LegendeVerdict visible={legende} onClose={() => setLegende(false)} />
     </ScrollView>
   );
 }

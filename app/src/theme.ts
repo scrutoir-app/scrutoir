@@ -56,6 +56,8 @@ export const LIGHT = {
   pour: "#4F9D83",
   contre: "#CC715E",
   abstention: "#D6A24B",
+  // Encart « hors calcul » du tiroir de vote (budget, motion, vote quasi unanime) : abstention, en clair.
+  abstentionBg: "#FBF1DF",
   absent: "#C7CBD2",
 
   // Loyauté (réutilise la sémantique, en plus doux)
@@ -153,6 +155,7 @@ export const DARK: typeof LIGHT = {
   pour: "#57A98D",
   contre: "#D17F6B",
   abstention: "#DCAA55",
+  abstentionBg: "#322A19",
   absent: "#565E69",
 
   loyalHaut: "#57A98D",

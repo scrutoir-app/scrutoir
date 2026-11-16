@@ -15,12 +15,17 @@ export { positionMajoritaire };
 
 /** Sens du verdict, formulé CÔTÉ UTILISATEUR (jamais côté parti). */
 export type Sens = "align" | "oppose" | "partage"; // dans ton sens / à l'opposé / partagé
-/** Niveau de certitude : voté (tu l'as tranché) · déduit (calculé de ton profil) · verrouillé (pas situé). */
-export type Niveau = "vote" | "deduit" | "verrouille";
+/**
+ * Niveau de certitude : voté (tu l'as tranché pour ou contre) · sans avis (tu as dit « sans
+ * avis » : plus aucune déduction) · déduit (calculé de ton profil) · verrouillé (pas situé).
+ */
+export type Niveau = "vote" | "sans_avis" | "deduit" | "verrouille";
 
 export interface Verdict {
   niveau: Niveau;
-  sens: Sens | null; // null uniquement quand verrouillé
+  sens: Sens | null; // null quand verrouillé ou sans avis
+  /** Déduit : le camp qu'on te prête (null si Partagé). L'écran ne recalcule rien. */
+  penche?: "pour" | "contre" | null;
 }
 
 /** Position (majorité) d'un groupe sur un scrutin + son poids (taille), pour la déduction. */
@@ -76,7 +81,7 @@ export function verdictDeduit(
   sortCode: string | null | undefined
 ): Verdict {
   const gagnant = campGagnant(sortCode);
-  if (!ctx || !gagnant) return { niveau: "deduit", sens: "partage" };
+  if (!ctx || !gagnant) return { niveau: "deduit", sens: "partage", penche: null };
   const pct: Record<string, number> = {};
   for (const g of ctx.resultat.global) pct[g.abrev] = g.pct;
 
@@ -90,13 +95,16 @@ export function verdictDeduit(
     else if (g.position === "contre") contre += w;
   }
   const somme = pour + contre;
-  if (somme <= 0) return { niveau: "deduit", sens: "partage" };
-  if (Math.abs(pour - contre) / somme < 0.08) return { niveau: "deduit", sens: "partage" };
+  if (somme <= 0) return { niveau: "deduit", sens: "partage", penche: null };
+  if (Math.abs(pour - contre) / somme < 0.08) return { niveau: "deduit", sens: "partage", penche: null };
   const penche: "pour" | "contre" = pour > contre ? "pour" : "contre";
-  return { niveau: "deduit", sens: penche === gagnant ? "align" : "oppose" };
+  return { niveau: "deduit", sens: penche === gagnant ? "align" : "oppose", penche };
 }
 
-/** Verdict complet d'un scrutin : verrouillé si pas situé, sinon voté (prioritaire) ou déduit. */
+/**
+ * Verdict complet d'un scrutin : verrouillé si pas situé, sinon voté (prioritaire), sans avis
+ * (tu as dit « sans avis » : jamais de déduction à la place) ou déduit.
+ */
 export function verdictScrutin(opts: {
   ctx: ContexteJe | null;
   situe: boolean;
@@ -105,6 +113,7 @@ export function verdictScrutin(opts: {
   sortCode: string | null | undefined;
 }): Verdict {
   if (!opts.situe) return { niveau: "verrouille", sens: null };
+  if (opts.reponse === "sans_avis") return { niveau: "sans_avis", sens: null };
   const vote = verdictVote(opts.reponse, opts.sortCode);
   if (vote) return vote;
   return verdictDeduit(opts.ctx, opts.groupes, opts.sortCode);
@@ -114,6 +123,7 @@ export function verdictScrutin(opts: {
 /** Libellé court de pastille selon niveau + sens. */
 export function verdictLabel(v: Verdict): string {
   if (v.niveau === "verrouille") return "Comme toi ?";
+  if (v.niveau === "sans_avis") return "Sans avis";
   if (v.sens === "partage") return "Partagé";
   if (v.niveau === "vote") return v.sens === "align" ? "Comme ton vote" : "Pas comme ton vote";
   return v.sens === "align" ? "Comme toi" : "Pas comme toi";
@@ -122,6 +132,7 @@ export function verdictLabel(v: Verdict): string {
 /** Phrase complète (fiche détail). */
 export function verdictPhrase(v: Verdict): string {
   if (v.niveau === "verrouille") return "Situe-toi pour voir si ce vote te ressemble";
+  if (v.niveau === "sans_avis") return "Ta réponse : sans avis";
   if (v.sens === "partage") return "Ton profil est partagé sur ce vote";
   if (v.sens === "align") return "l'Assemblée a voté dans ton sens";
   return "l'Assemblée a voté à l'opposé de ton point de vue";

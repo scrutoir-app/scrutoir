@@ -9,6 +9,10 @@ import { useFocusSemaine } from "../hooks/useHebdo";
 import { useCibleTour } from "../tourTargets";
 import { issueDe, libelleDate, libelleFenetre, objetDuScrutin, titreDepuisScrutin } from "../hebdo";
 import { Barre, Carte, CeQueDitLeTexte, Chiffre, DejaVoteAN, Libelle, Parcours, VentilationGroupes } from "./FocusSenat";
+import { PastilleVote } from "./PastilleVote";
+import { useJe } from "../testProximite/jeProximite";
+import { estSitue } from "../testProximite/storage";
+import { groupesPos } from "../testProximite/verdict";
 import type { DetailScrutin } from "../types";
 import type { Nav } from "../nav";
 
@@ -34,6 +38,9 @@ export function FocusSemaineBloc({ nav }: { nav: Nav }) {
   // Détail du scrutin (ventilation par groupe) : undefined = en cours, null = indisponible.
   const [detail, setDetail] = useState<DetailScrutin | null | undefined>(undefined);
   const [lie, setLie] = useState<DetailScrutin | null>(null);
+  // Pastille « comme toi » du scrutin focus (tiroir de vote sur place, comme partout).
+  const je = useJe();
+  const [situe] = useState(estSitue);
 
   useEffect(() => {
     if (!uid) return;
@@ -109,15 +116,28 @@ export function FocusSemaineBloc({ nav }: { nav: Nav }) {
         ) : (
           <Text style={[T.small, { color: C.textMuted, marginTop: 8 }]}>Détail par groupe indisponible pour le moment.</Text>
         )}
-        <TouchableOpacity
-          activeOpacity={0.6}
-          onPress={ouvrir}
-          accessibilityRole="button"
-          accessibilityLabel={`Voir le scrutin : ${objetDuScrutin(s)}, ${titre}`}
-          style={{ alignSelf: "flex-start", minHeight: CONTROL.md, justifyContent: "center" }}
-        >
-          <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir le scrutin</Text>
-        </TouchableOpacity>
+        {/* Pastille « comme toi » (touchée : tiroir de vote, jamais la page) puis « Voir le scrutin ». */}
+        <PastilleVote
+          uid={s.uid}
+          numero={s.numero ?? null}
+          sortCode={s.sort_code}
+          groupes={detail ? groupesPos(detail.groupes) : []}
+          ctx={je}
+          situe={situe}
+          onVerrouille={() => nav.push({ name: "testIntro" })}
+          style={{ marginTop: 4 }}
+          aCote={
+            <TouchableOpacity
+              activeOpacity={0.6}
+              onPress={ouvrir}
+              accessibilityRole="button"
+              accessibilityLabel={`Voir le scrutin : ${objetDuScrutin(s)}, ${titre}`}
+              style={{ marginLeft: "auto", minHeight: CONTROL.md, justifyContent: "center" }}
+            >
+              <Text style={[T.small, { fontFamily: F.bold, color: C.accent }]}>Voir le scrutin</Text>
+            </TouchableOpacity>
+          }
+        />
       </Carte>
 
       {edito?.scrutinANLie && lie && (
