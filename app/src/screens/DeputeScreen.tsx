@@ -18,7 +18,7 @@ import {
   baseAccordVotant, resultatVotant, accordsParTheme, pctPondereDiffere, verdictVote, CLE_VOTANT, phraseBaseOrigine,
 } from "../testProximite/baseAccord";
 import { useFollow } from "../hooks/useFollows";
-import { partagerLien } from "../share";
+import { partagerLien, urlDepute } from "../share";
 import type { ProfilDepute, PartiResume, CategorieRef, Dissidence, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 
@@ -195,8 +195,7 @@ export function DeputeScreen({ uid, depuis, nav }: { uid: string; depuis?: "affi
             style={{ flex: 1 }}
             iconLeft={<Feather name="share" size={ICON.sm} color={C.accent} />}
             onPress={() => {
-              const origin = typeof window !== "undefined" && window.location ? window.location.origin : "https://scrutoir.fr";
-              partagerLien(`${origin}/?open=depute:${uid}`, `${d.nom_complet} à l'Assemblée : ses votes réels. Et toi ?`);
+              partagerLien("depute", urlDepute(uid), `${d.nom_complet} à l'Assemblée : ses votes réels. Et toi ?`);
             }}
           />
         </View>

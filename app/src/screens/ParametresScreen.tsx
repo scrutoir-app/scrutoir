@@ -5,7 +5,7 @@ import { C, F, T, RADIUS, CONTROL, shadowCard } from "../theme";
 import { Card } from "../components/ui";
 import { APP_VERSION } from "../config";
 import { useThemeMode } from "../themeMode";
-import { usePartyLogos } from "../prefs";
+import { useMesureAudience, usePartyLogos } from "../prefs";
 import { useFollows } from "../hooks/useFollows";
 import {
   lireDonneesLocales,
@@ -19,8 +19,9 @@ import type { SchemePref } from "../theme";
 import type { Nav } from "../nav";
 
 // PARAMÈTRES (maquette validée le 15/10/2026) : « Affichage » (apparence + avatars, une
-// carte) puis « Sur cet appareil » (chaque donnée locale, son compteur, son action) et le
-// pied (À propos et limites + version). Seul accès : la roue dentée du masthead de l'accueil.
+// carte) puis « Sur cet appareil » (chaque donnée locale, son compteur, son action), « Vie
+// privée » (la mesure d'audience, désactivable) et le pied (À propos et limites + version).
+// Seul accès : la roue dentée du masthead de l'accueil.
 // Tout effacement est local, demande une confirmation et n'envoie rien (cf. donneesLocales).
 
 const pluriel = (n: number, un: string, plusieurs: string) => `${n} ${n > 1 ? plusieurs : un}`;
@@ -150,6 +151,52 @@ function Ligne({ titre, detail, action, enConfirmation, premiere }: { titre: str
       </View>
       {enConfirmation}
     </View>
+  );
+}
+
+/** Interrupteur (rôle ARIA switch), aux couleurs de l'action : piste accent quand actif. */
+function Interrupteur({ value, onChange, label }: { value: boolean; onChange: (v: boolean) => void; label: string }) {
+  return (
+    <TouchableOpacity
+      onPress={() => onChange(!value)}
+      accessibilityRole="switch"
+      accessibilityLabel={label}
+      // RN Web ne traduit pas accessibilityState.checked : prop ARIA directe.
+      aria-checked={value}
+      hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+      style={{
+        width: 50, height: 30, borderRadius: RADIUS.pill, padding: 3,
+        justifyContent: "center", alignItems: value ? "flex-end" : "flex-start",
+        backgroundColor: value ? C.accent : C.surfaceAlt,
+        borderWidth: value ? 0 : 1, borderColor: C.borderStrong,
+      }}
+    >
+      <View style={{ width: 24, height: 24, borderRadius: 12, backgroundColor: value ? C.onAccent : C.textFaint }} />
+    </TouchableOpacity>
+  );
+}
+
+/**
+ * « Vie privée » : la mesure d'audience anonyme, désactivable par tout le monde (droit
+ * d'opposition). Coupée, `track()` n'envoie plus rien depuis cet appareil (cf. analytics.ts).
+ */
+function ViePrivee() {
+  const [active, regler] = useMesureAudience();
+  return (
+    <>
+      <View style={{ marginTop: 22, marginBottom: 8, marginHorizontal: 2, flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 10 }}>
+        <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>Vie privée</Text>
+        <Text style={[T.micro, { color: C.textFaint }]}>Sans cookie ni identifiant</Text>
+      </View>
+      <Card radius={RADIUS.lg} padding={0} style={{ paddingVertical: 4 }}>
+        <Ligne
+          premiere
+          titre="Mesure d'audience anonyme"
+          detail={active ? "Activée sur cet appareil" : "Désactivée sur cet appareil"}
+          action={<Interrupteur value={active} onChange={regler} label="Mesure d'audience anonyme" />}
+        />
+      </Card>
+    </>
   );
 }
 
@@ -290,6 +337,8 @@ export function ParametresScreen({ nav }: { nav: Nav }) {
       <Affichage />
 
       <SurCetAppareil nav={nav} />
+
+      <ViePrivee />
 
       <View style={{ marginTop: 14, paddingTop: 12, borderTopWidth: 1, borderTopColor: C.border, flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
         <TouchableOpacity

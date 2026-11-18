@@ -27,8 +27,9 @@ export function ScrutinShareSheet({
   const texte = `${titre} — ${resultat} à l'Assemblée (${scrutin.pour ?? "?"}–${scrutin.contre ?? "?"}). Via Scrutoir.`;
 
   const partager = async () => {
-    const r = await partagerLien(urlScrutin(scrutin.uid), texte, "Scrutoir — scrutin");
-    setMsg(r === "copied" ? "Lien copié !" : r === "shared" ? null : "Copie indisponible");
+    const r = await partagerLien("scrutin", urlScrutin(scrutin.uid), texte, "Scrutoir — scrutin");
+    // Feuille fermée (« cancelled ») ou partagé : aucun message.
+    setMsg(r === "copied" ? "Lien copié !" : r === "manual" ? "Copie indisponible" : null);
   };
 
   return (

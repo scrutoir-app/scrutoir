@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { abonnerMesure, mesureActive, reglerMesure } from "./analytics";
 
 /**
  * Préférences d'affichage locales (sur l'appareil, comme les suivis). Même mécanique
@@ -45,4 +46,14 @@ export function usePartyLogos(): [boolean, (on: boolean) => void] {
     return () => { listeners.delete(l); };
   }, []);
   return [read(), setPartyLogos];
+}
+
+/**
+ * Réglage « Mesure d'audience anonyme » (Paramètres) : [active, régler]. Le réglage lui-même vit
+ * dans analytics.ts (clé `scrutoir.mesure`), que `track()` lit avant tout envoi.
+ */
+export function useMesureAudience(): [boolean, (active: boolean) => void] {
+  const [, force] = useState(0);
+  useEffect(() => abonnerMesure(() => force((n) => n + 1)), []);
+  return [mesureActive(), reglerMesure];
 }

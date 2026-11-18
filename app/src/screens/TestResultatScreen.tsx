@@ -18,6 +18,7 @@ import { tourAccueilAFaire } from "../accueilTourPrefs";
 import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage, type Origine } from "../testProximite/storage";
 import { chargerPerso } from "../testProximite/chargerPerso";
 import { imageStorySpectre, partagerImage } from "../share/storyImage";
+import { partagerLien } from "../share";
 
 const NIVEAUX = [
   { label: "Peu", v: 0.5 },
@@ -136,19 +137,6 @@ function LigneGroupe({ ligne, couleur, uid, nom, filet }: { ligne: LigneSpectre;
       </View>
     </>
   );
-}
-
-// Partage 100 % client (geste explicite de l'utilisateur). Le message vu côté destinataire
-// est « Voici mon résultat … et toi ? » : le « et toi ? » est le ressort qui invite à faire
-// le test. Style neutre, aucune couleur de parti, aucune donnée d'usage dans le lien (l'URL
-// n'encode que les réponses/poids, recalculés à l'ouverture — cf. urlPartage/encoderPartage).
-async function partager(url: string, texte: string): Promise<"shared" | "copied" | "manual"> {
-  try {
-    const nav: any = typeof navigator !== "undefined" ? navigator : null;
-    if (nav?.share) { await nav.share({ title: "Test de proximité — Scrutoir", text: texte, url }); return "shared"; }
-    if (nav?.clipboard?.writeText) { await nav.clipboard.writeText(`${texte}\n${url}`); return "copied"; }
-  } catch { /* annulé / indisponible */ }
-  return "manual";
 }
 
 /**
@@ -315,11 +303,16 @@ export function TestResultatScreen({
       : `Voici mon résultat au test de proximité Scrutoir. Et toi ?`;
   };
 
-  // Partage : uniquement sur ce geste explicite (rien ne part avant).
+  // Partage 100 % client, uniquement sur ce geste explicite (rien ne part avant). Le message vu
+  // côté destinataire est « Voici mon résultat … et toi ? » : le « et toi ? » est le ressort qui
+  // invite à faire le test. Aucune donnée d'usage dans le lien (l'URL n'encode que les
+  // réponses/poids, recalculés à l'ouverture — cf. urlPartage/encoderPartage) ; la mesure ne
+  // compte que « lien du résultat partagé » et son issue, jamais le résultat (cf. share.ts).
   const onShare = async () => {
-    const r = await partager(urlPartage(reponses, poids, origines), resumePartage());
-    setPartageMsg(r === "copied" ? "Lien copié !" : r === "shared" ? null : "Copie indisponible");
-    if (r) setTimeout(() => setPartageMsg(null), 2500);
+    const r = await partagerLien("test_lien", urlPartage(reponses, poids, origines), resumePartage(), "Test de proximité — Scrutoir");
+    // Feuille fermée (« cancelled ») ou partagé : aucun message.
+    setPartageMsg(r === "copied" ? "Lien copié !" : r === "manual" ? "Copie indisponible" : null);
+    if (r === "copied" || r === "manual") setTimeout(() => setPartageMsg(null), 2500);
   };
 
   // Story : image déjà prête en général (cf. useEffect) ; sinon on la dessine maintenant.
@@ -330,7 +323,7 @@ export function TestResultatScreen({
       blob = await fabriquerStory(lignes);
     }
     if (!blob) { setStoryMsg("Image indisponible"); setTimeout(() => setStoryMsg(null), 2500); return; }
-    const r = await partagerImage(blob);
+    const r = await partagerImage("spectre_story", blob);
     setStoryMsg(r === "downloaded" ? "Image téléchargée" : r === "manual" ? "Partage indisponible" : null);
     if (r === "downloaded" || r === "manual") setTimeout(() => setStoryMsg(null), 2500);
   };

@@ -84,7 +84,7 @@ export function MesureScreen({ programme, mesure, nav }: { programme: string; me
   };
   const partager = () => {
     const texte = cible.type === "ligne" ? cible.ligne.libelle : cible.m.texte;
-    partagerLien(urlRubrique({ ecran: "mesure", programme: p.id, mesure }), `« ${texte} » : face aux votes du groupe ${groupe} à l'Assemblée.`, "Scrutoir · Présidentielle 2027");
+    partagerLien("mesure", urlRubrique({ ecran: "mesure", programme: p.id, mesure }), `« ${texte} » : face aux votes du groupe ${groupe} à l'Assemblée.`, "Scrutoir · Présidentielle 2027");
   };
   const secondaires = cible.type === "ligne" ? cible.ligne.secondaires : [];
 

@@ -8,6 +8,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.43.0 — 2026-11-18
+**Mesure des partages et de la provenance des visites, trafic interne exclu, tableau de bord refait.**
+- **Partages mesurés** : un événement `share` par partage, avec le type de contenu (spectre en story, lien du résultat, scrutin, député, groupe, mesure de la Présidentielle) et l'issue (partagé, copié, téléchargé, fermé, impossible). Jamais ce que contient le résultat. Mesure faite dans `partagerLien` et `partagerImage` ; la copie locale de `partagerLien` dans l'écran du résultat est supprimée.
+- **Fermer la feuille de partage n'affiche plus « Copie indisponible »** (lien du résultat, scrutin) : l'annulation est reconnue comme telle.
+- **Provenance des visites** : un événement `arrivee` par visite, avec l'écran d'arrivée et la provenance, dans des listes fermées (lien partagé, Instagram bio / story / post, référent Instagram, moteurs, pages Scrutoir, autres réseaux, appli installée, accès direct). Du référent, seul le nom de domaine est lu, et seule sa catégorie part. Les liens partagés portent `via=partage` (les anciens restent valides) ; `via`, `source` et `mesure` sont retirés de l'adresse à l'arrivée. Le lien de la bio Instagram (`?source=insta_bio`) est reconnu.
+- **Ne pas être compté** : nouveau réglage Paramètres → Vie privée → « Mesure d'audience anonyme » (interrupteur, activée par défaut), aussi par `?mesure=off` / `?mesure=on`. Désactivée, plus rien ne part de l'appareil.
+- **Trafic interne exclu** : un build servi en local (preview sur localhost) n'envoie plus rien au Worker de prod, et le Worker n'accepte plus aucune origine locale.
+- **Infos** (Vie privée) : trois blocs, « Mesure d'audience », « Ce qui est compté », « Ne pas être compté ». **Mentions légales** : « Tu peux désactiver cette mesure dans Paramètres. »
+- **Worker** : `share` et `arrivee` acceptés, valeurs hors liste ramenées à « autre » ; neuf types déjà émis par l'appli mais rejetés jusqu'ici sont acceptés (`parcours_open`, `parcours_close` et ceux de la rubrique Présidentielle). Tableau de bord refait : tient sur un écran de 1280 × 720 sans défiler, chiffres clés avec écart à la période précédente, activité quotidienne avec jalons, entonnoir du test, provenance, classements à onglets (sans script). Nouveaux compteurs à partir de la mise en service : rien de rétroactif.
+
 ## 1.42.0 — 2026-11-16
 **Corriger un vote déduit, lot 5 : une déduction « comme toi » plus juste.**
 - La pastille déduite (pointillés) prête un camp à l'utilisateur à partir de sa proximité avec chaque groupe. Chaque groupe pèse désormais sa **proximité à la puissance 4**, sans sa taille. Seuil de « Partagé » inchangé (écart < 8 %).

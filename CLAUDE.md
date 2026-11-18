@@ -150,6 +150,23 @@ cd ../app && npm run web                            # app -> http://localhost:80
   SearchScreen (recherches), ScrutinScreen (clic source). Secrets Worker (NON committés) : `DASH_KEY` +
   `CF_API_TOKEN` (Account Analytics:Read). Déploiement : `cd analytics && wrangler deploy`. (Endpoint public
   `/trends` créé puis RETIRÉ — pas de tendances publiques.) Détail/lien/mdp : voir mémoire brain `scrutoir-analytics-dashboard`.
+  **Depuis v1.43.0** : (1) **partages** `track("share", quoi, issue)`, mesuré DANS `partagerLien` (share.ts) et
+  `partagerImage` (share/storyImage.ts), `quoi` obligatoire ; « cancelled » (feuille fermée) n'affiche aucun message.
+  (2) **provenance** `track("arrivee", entree, source)`, une fois par visite (garde `sessionStorage`
+  `scrutoir.arrivee`), dans `src/arrivee.ts` appelé par `index.ts` avant le 1er rendu ; source = `#test=` ou
+  `via=partage` (posé par toutes les URL de partage) > `?source=insta_bio|insta_story|insta_post` > `pwa` >
+  catégorie du référent (nom de domaine seul) > `direct` ; `via`, `source`, `mesure` retirés de l'adresse.
+  **Listes fermées** dans `src/mesureListes.ts`, importé AUSSI par le Worker (`collecte.ts`), qui ramène toute
+  valeur hors liste à « autre ». (3) **trafic interne** : réglage Paramètres « Mesure d'audience anonyme »
+  (clé localStorage `scrutoir.mesure`, `off` coupe `track()`), aussi `?mesure=off|on` ; `endpointAnalytics`
+  renvoie "" sur localhost/127.x même en build de prod ; `ALLOWED_ORIGINS` n'a plus AUCUNE origine locale.
+  Pour tester la mesure en local : `EXPO_PUBLIC_ANALYTICS_URL=http://127.0.0.1:8787/collect` + `wrangler dev`.
+  (4) **Tableau de bord** refait (tient sur 1280 × 720, sans script, onglets en radio CSS) : `analytics/src/`
+  `collecte.ts` (EVENTS, normalisation), `donnees.ts` (SQL → données), `tableau.ts` (rendu, `META`),
+  `serveur.ts` (routes, CSP, police Manrope servie par le Worker), `index.ts` (constante `JALONS` du graphique,
+  à compléter), `demo.ts` (aperçu local avec données fictives : `npx wrangler dev src/demo.ts`, mot de passe =
+  `DASH_KEY` de `analytics/.dev.vars`). ⚠️ Un nouveau `track("<type>")` doit toujours entrer dans `EVENTS`
+  (`collecte.ts`) : un test le vérifie désormais (`collecte.test.ts`).
 - **Onglet Suivis** (5e onglet, cloche) : `SuivisScreen.tsx` + `getVotesSuivis()` (api.ts) → feed des votes
   des élu·e·s suivi·e·s (follows.ts), badge « Nouveau » via `getLastSeen`/`markSeen` (localStorage). 100 %
   client-side. ⚠️ Le **push réel** (notif hors-app) reste à faire (nécessite un serveur ; `notifierNouveauxVotes`
