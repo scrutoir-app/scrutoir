@@ -29,7 +29,7 @@ export const JALONS: Jalon[] = [
   { date: "2026-11-09", libelle: "Partage du spectre en story" },
   // Date de mise en service de la v1.43.0 (déploiement du Worker et de l'appli) : à corriger si
   // le déploiement a lieu un autre jour.
-  { date: "2026-11-19", libelle: "Mesure des partages" },
+  { date: "2026-11-18", libelle: "Mesure des partages" },
 ];
 
 interface Env {
