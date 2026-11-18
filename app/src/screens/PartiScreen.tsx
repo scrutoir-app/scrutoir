@@ -21,7 +21,7 @@ import { OrigineVotes } from "../components/OrigineVotes";
 import { decompteGroupe } from "../decompte";
 import { useFollow } from "../hooks/useFollows";
 import { positionMajoritaire, tailleGroupe } from "../testProximite/verdict";
-import { partagerLien } from "../share";
+import { partagerLien, urlParti } from "../share";
 import type { ProfilParti, PartiResume, CategorieRef, GroupeVentilation, DeputeResume, ScrutinResume } from "../types";
 import type { Nav } from "../nav";
 
@@ -205,8 +205,7 @@ export function PartiScreen({ uid, sansUid = false, nav }: { uid: string; sansUi
             style={{ flex: 1 }}
             iconLeft={<Feather name="share" size={ICON.sm} color={C.accent} />}
             onPress={() => {
-              const origin = typeof window !== "undefined" && window.location ? window.location.origin : "https://scrutoir.fr";
-              partagerLien(`${origin}/?open=parti:${p.uid}`, `${p.abrev ?? p.libelle} à l'Assemblée : ce qu'ils votent vraiment. Et toi ?`);
+              partagerLien("parti", urlParti(p.uid), `${p.abrev ?? p.libelle} à l'Assemblée : ce qu'ils votent vraiment. Et toi ?`);
             }}
           />
         </View>

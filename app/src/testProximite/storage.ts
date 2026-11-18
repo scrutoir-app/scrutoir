@@ -227,13 +227,17 @@ export function decoderPartage(s: string): { reponses: Record<number, Reponse>; 
   }
 }
 
-/** URL de partage (web) : recalculée à l'ouverture, sans rien envoyer au serveur. */
+/**
+ * URL de partage (web) : recalculée à l'ouverture, sans rien envoyer au serveur. `?via=partage`
+ * est une marque fixe (la visite amenée par ce lien est comptée comme venue d'un partage, cf.
+ * arrivee.ts) : elle ne dit rien des réponses, qui restent dans le hash, jamais envoyé au serveur.
+ */
 export function urlPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>, origines?: Record<number, Origine>): string {
   const enc = encoderPartage(reponses, poids, origines);
   if (typeof window !== "undefined" && window.location) {
-    return `${window.location.origin}${window.location.pathname}#test=${enc}`;
+    return `${window.location.origin}${window.location.pathname}?via=partage#test=${enc}`;
   }
-  return `https://scrutoir.fr/#test=${enc}`;
+  return `https://scrutoir.fr/?via=partage#test=${enc}`;
 }
 
 /** Lit un éventuel résultat partagé dans le hash de l'URL (web). */

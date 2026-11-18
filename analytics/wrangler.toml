@@ -13,5 +13,13 @@ dataset = "scrutoir_events"
 [vars]
 CF_ACCOUNT_ID = "627984d2dd614e139df12342e9f2469a"
 DATASET = "scrutoir_events"
-# Origines autorisées à envoyer des événements (CORS).
-ALLOWED_ORIGINS = "https://scrutoir.fr,https://www.scrutoir.fr,https://scrutoir.pages.dev,http://localhost:8099,http://localhost:8081"
+# Origines autorisées à envoyer des événements (CORS). AUCUNE origine locale : une preview
+# locale du build de prod (localhost:8099) polluait les chiffres. Pour tester la mesure en local,
+# EXPO_PUBLIC_ANALYTICS_URL vers un Worker local (`wrangler dev`), jamais la prod.
+ALLOWED_ORIGINS = "https://scrutoir.fr,https://www.scrutoir.fr,https://scrutoir.pages.dev"
+
+# Police du tableau de bord (Manrope, OFL) embarquée dans le Worker : servie par /stats/polices/.
+[[rules]]
+type = "Data"
+globs = ["**/*.ttf"]
+fallthrough = false

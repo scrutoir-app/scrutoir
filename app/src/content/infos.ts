@@ -275,25 +275,33 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
   {
     id: "vie-privee",
     titre: "Vie privée",
-    sousTitre: "Mesure d'audience, pas de cookie",
+    sousTitre: "Mesure d'audience, pas de cookie, désactivable",
     blocs: [
       {
         titre: "Mesure d'audience",
         texte:
-          "Scrutoir mesure de façon anonyme ce qui est consulté sur l'application (élus, duels, " +
-          "partis, thèmes), afin d'améliorer le service et de dégager des tendances d'intérêt " +
-          "agrégées. Aucune donnée ne permet de t'identifier individuellement. Nous ne " +
-          "profilons personne et nous ne vendons aucune donnée d'usage à des partis ou à des " +
-          "candidats. Aucun compte n'est nécessaire pour utiliser Scrutoir.",
+          "Scrutoir mesure de façon anonyme ce qui est consulté et partagé sur l'application " +
+          "(élus, scrutins, partis, thèmes, test de proximité), pour améliorer le service et " +
+          "dégager des tendances d'intérêt agrégées. Aucune donnée ne permet de t'identifier. " +
+          "Nous ne profilons personne et nous ne vendons aucune donnée d'usage à des partis ou " +
+          "à des candidats. Aucun compte n'est nécessaire pour utiliser Scrutoir.",
       },
       {
-        titre: "Concrètement",
+        titre: "Ce qui est compté",
         texte:
-          "Pas de cookie ni de traceur publicitaire. Aucune adresse IP ni identifiant n'est " +
-          "conservé. Les mesures se limitent à des compteurs agrégés — « combien de fois tel " +
-          "contenu est consulté ou suivi » — jamais reliés à une personne. Et la liste des " +
-          "élus et partis que tu suis, elle, reste sur ton appareil : elle n'est " +
-          "envoyée à personne.",
+          "Pas de cookie ni de traceur publicitaire, aucune adresse IP ni identifiant conservé. " +
+          "Quand tu partages, on compte le type de contenu (ton spectre, un scrutin, un élu) et " +
+          "si le partage est parti, jamais ce que contient ton résultat. Quand tu arrives sur " +
+          "Scrutoir, on note d'où vient la visite dans une liste fermée (un lien partagé, " +
+          "Instagram, un moteur de recherche, l'appli installée ou un accès direct), jamais " +
+          "l'adresse de la page d'origine. Tes réponses au test et la liste des élus que tu " +
+          "suis restent sur ton appareil.",
+      },
+      {
+        titre: "Ne pas être compté",
+        texte:
+          "Dans Paramètres, désactive la mesure d'audience : plus rien ne part de cet appareil. " +
+          "Le réglage vaut pour ce navigateur, à refaire sur chacun de tes appareils.",
       },
     ],
   },

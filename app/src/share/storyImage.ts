@@ -15,6 +15,8 @@ import { LIGHT, F, couleurGroupePour } from "../theme";
 import { INSTAGRAM_HANDLE } from "../config";
 import { surNVotes, type LigneSpectre } from "../testProximite/spectre";
 import { geometrieMarque, LOGOTYPE } from "../components/brand/geometrie";
+import { track } from "../analytics";
+import type { QuoiPartage } from "../mesureListes";
 
 export interface LigneImage extends LigneSpectre {
   /** Hex officiel du groupe (partis.json). */
@@ -229,8 +231,15 @@ export type ResultatPartageImage = "shared" | "downloaded" | "cancelled" | "manu
  * Partage l'image par la feuille système (où Instagram apparaît sur mobile). Sans partage
  * de fichiers (ordinateur, vieux navigateur), ou si le navigateur refuse le partage (geste
  * expiré : NotAllowedError), l'image est téléchargée. Fermer la feuille ne télécharge rien.
+ * Mesure : `track("share", quoi, issue)`, le type de contenu et l'issue, jamais l'image.
  */
-export async function partagerImage(blob: Blob, nom = "scrutoir-spectre.png"): Promise<ResultatPartageImage> {
+export async function partagerImage(quoi: QuoiPartage, blob: Blob, nom = "scrutoir-spectre.png"): Promise<ResultatPartageImage> {
+  const r = await tenterPartageImage(blob, nom);
+  track("share", quoi, r);
+  return r;
+}
+
+async function tenterPartageImage(blob: Blob, nom: string): Promise<ResultatPartageImage> {
   try {
     const fichier = new File([blob], nom, { type: "image/png" });
     const nav: any = typeof navigator !== "undefined" ? navigator : null;
