@@ -13,16 +13,25 @@
  */
 
 import { reglerMesure, track } from "./analytics";
-import { SOURCES_INSTAGRAM, type Entree, type Referent, type Source } from "./mesureListes";
+import { SOURCES, type Contexte, type Entree, type Referent, type Source } from "./mesureListes";
 import { TYPES_LIEN } from "./presidentielle/logique";
 
-/** Garde « une seule arrivée par visite » (sessionStorage : reste sur l'appareil, oublié à la fermeture de l'onglet). */
+/**
+ * Garde « une seule arrivée par visite » (sessionStorage : reste sur l'appareil, oublié à la
+ * fermeture de l'onglet). Elle garde aussi la source de la visite (une valeur de SOURCES), que
+ * le lien « Ouvrir dans Safari / Chrome » reporte (les paramètres sont retirés de l'adresse).
+ */
 export const CLE_ARRIVEE = "scrutoir.arrivee";
+
+/** Garde « un seul contexte mesuré par visite » (sessionStorage). */
+export const CLE_CONTEXTE = "scrutoir.contexte";
 
 /** Paramètres lus puis retirés de l'adresse. */
 export const PARAMS_RETIRES = ["via", "source", "mesure"] as const;
 
 const aLienTest = (hash: string) => /(^#|&)test=/.test(hash);
+const aLienTransfert = (hash: string) => /(^#|&)transfert=/.test(hash);
+const estSource = (s: string): s is Source => (SOURCES as readonly string[]).includes(s);
 
 /**
  * Catégorie d'un référent (`document.referrer`), par son seul nom de domaine. `null` = pas de
@@ -56,19 +65,20 @@ export function categorieReferent(referrer: string | null | undefined, hoteSite?
 /** Provenance d'une visite : première règle qui s'applique (cf. mesureListes.ts, SOURCES). */
 export function choisirSource(p: { hash: string; params: URLSearchParams; referrer?: string | null; hoteSite?: string }): Source {
   if (aLienTest(p.hash) || p.params.get("via") === "partage") return "partage";
+  if (aLienTransfert(p.hash) || p.params.get("via") === "transfert") return "transfert";
   const brut = p.params.get("source");
   if (brut !== null) {
+    // Nos liens Instagram (insta_bio…), l'appli installée (pwa), et toute valeur de la liste
+    // fermée : le lien « Ouvrir dans Safari » reporte ainsi la source de la visite d'origine.
     const s = brut.trim().toLowerCase();
-    if ((SOURCES_INSTAGRAM as readonly string[]).includes(s)) return s as Source;
-    if (s === "pwa") return "pwa";
-    return "autre_lien"; // valeur inconnue : jamais transmise telle quelle
+    return estSource(s) ? s : "autre_lien"; // valeur inconnue : jamais transmise telle quelle
   }
   return categorieReferent(p.referrer, p.hoteSite) ?? "direct";
 }
 
 /** Écran d'arrivée, d'après le hash `#test=` et le lien profond `?open=type:id` (cf. App.tsx). */
 export function choisirEntree(hash: string, params: URLSearchParams): Entree {
-  if (aLienTest(hash)) return "test";
+  if (aLienTest(hash) || aLienTransfert(hash)) return "test";
   const open = params.get("open");
   if (!open) return "accueil";
   const [type, id] = open.split(":");
@@ -133,15 +143,24 @@ export function demarrerMesure(ctx: ContexteDemarrage | null = contexteNavigateu
     const m = params.get("mesure");
     if (m === "off" || m === "on") reglerMesure(m === "on");
 
-    let deja = false;
+    let garde: string | null = null;
     try {
-      deja = ctx.session?.getItem(CLE_ARRIVEE) === "1";
-      ctx.session?.setItem(CLE_ARRIVEE, "1");
+      garde = ctx.session?.getItem(CLE_ARRIVEE) ?? null;
     } catch {
       /* garde indisponible */
     }
-    if (!deja) {
-      track("arrivee", choisirEntree(loc.hash, params), choisirSource({ hash: loc.hash, params, referrer: ctx.referrer, hoteSite: loc.hostname }));
+    if (garde === null) {
+      const source = choisirSource({ hash: loc.hash, params, referrer: ctx.referrer, hoteSite: loc.hostname });
+      sourceMemoire = source;
+      try {
+        ctx.session?.setItem(CLE_ARRIVEE, source);
+      } catch {
+        /* garde indisponible : l'arrivée sera recomptée au rechargement */
+      }
+      track("arrivee", choisirEntree(loc.hash, params), source);
+    } else {
+      // Rechargement : la source reste celle de la visite (une garde d'avant la v1.44.0 vaut « 1 »).
+      sourceMemoire = estSource(garde) ? garde : "direct";
     }
 
     const propre = rechercheSans(loc.search, PARAMS_RETIRES);
@@ -149,4 +168,59 @@ export function demarrerMesure(ctx: ContexteDemarrage | null = contexteNavigateu
   } catch {
     /* jamais bloquant */
   }
+}
+
+// --- Source de la visite et contexte d'arrivée ---------------------------------------------
+
+let sourceMemoire: Source = "direct";
+
+/** Source de la visite en cours (posée par `demarrerMesure`), « direct » si inconnue. */
+export function sourceVisite(): Source {
+  return sourceMemoire;
+}
+
+/**
+ * Contexte d'arrivée (pwa.ts), une fois par visite, avec la source : `track("contexte", c, source)`.
+ * Ni user agent, ni rien d'autre. Appelé quand l'attente de l'invite Android est terminée.
+ */
+export function mesurerContexte(
+  contexte: Contexte,
+  session: { getItem: (k: string) => string | null; setItem: (k: string, v: string) => void } | null = sessionNavigateur(),
+): void {
+  try {
+    if (session?.getItem(CLE_CONTEXTE)) return;
+    session?.setItem(CLE_CONTEXTE, contexte);
+  } catch {
+    /* garde indisponible : mesuré à chaque chargement */
+  }
+  track("contexte", contexte, sourceMemoire);
+}
+
+function sessionNavigateur() {
+  try {
+    return typeof window !== "undefined" ? window.sessionStorage : null;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Lien qui rouvre la page courante hors du navigateur intégré (Instagram…), en gardant la source
+ * de la visite pour la mesure. iOS : `x-safari-https://…` ouvre Safari. Android : `intent://…`
+ * ouvre le navigateur par défaut (Chrome le plus souvent). Sur Android, la syntaxe Intent occupe
+ * le fragment : le hash de la page (un `#test=` partagé) ne suit pas, `via=partage` garde la
+ * provenance. Aucune donnée de l'appareil n'y figure : l'adresse de la page, plus la source.
+ */
+export function lienOuvrirNavigateur(
+  plateforme: "ios" | "android",
+  loc: { host: string; pathname: string; search: string; hash: string },
+  source: Source,
+): string {
+  const reste = rechercheSans(loc.search, PARAMS_RETIRES);
+  const base = (reste ?? loc.search).replace(/^\?/, "");
+  const marque = source === "partage" ? "via=partage" : `source=${source}`;
+  const requete = `?${base ? `${base}&` : ""}${marque}`;
+  const chemin = loc.pathname || "/";
+  if (plateforme === "ios") return `x-safari-https://${loc.host}${chemin}${requete}${loc.hash}`;
+  return `intent://${loc.host}${chemin}${requete}#Intent;scheme=https;end`;
 }

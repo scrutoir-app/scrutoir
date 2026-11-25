@@ -83,3 +83,17 @@ test("chaque track(\"<type>\") de l'app est accepté par le Worker (sinon rejet�
   assert.ok(types.size > 10, "le relevé doit trouver les appels");
   for (const t of types) assert.ok(EVENTS.has(t), `type « ${t} » émis par l'app mais refusé par le Worker`);
 });
+
+test("installer avant le test : contexte et gestes en listes fermées, rien d'autre ne passe", () => {
+  assert.deepEqual(normaliser({ t: "contexte", e: "integre-ios", x: "insta_bio", d: "mobile" }), { type: "contexte", e: "integre-ios", x: "insta_bio", d: "mobile" });
+  assert.deepEqual(normaliser({ t: "contexte", e: "Mozilla/5.0 (iPhone…)", x: "zz" }), { type: "contexte", e: "autre", x: "autre", d: "" });
+  assert.equal(normaliser({ t: "installer_clic", e: "arrivee", x: "ios" })!.x, "ios");
+  assert.equal(normaliser({ t: "installer_ok", e: "bandeau", x: "android-installable" })!.e, "bandeau");
+  assert.equal(normaliser({ t: "ouvrir_navigateur", e: "integre-android", x: "instagram" })!.x, "instagram");
+  assert.equal(normaliser({ t: "transfert_copie", e: "resultat", x: "copied" })!.x, "copied");
+  // Un code de transfert glissé dans l'événement ne serait jamais stocké.
+  const fuite = normaliser({ t: "transfert_colle", e: "presse_papiers", x: "eyJ2IjoxLCJyIjp7IjEiOjF9fQ" })!;
+  assert.deepEqual([fuite.e, fuite.x], ["presse_papiers", "autre"]);
+  assert.deepEqual(normaliser({ t: "test_sans_installer", e: "ios", x: "" }), { type: "test_sans_installer", e: "ios", x: "", d: "" });
+  assert.equal(normaliser({ t: "test_sans_installer", e: "ios", x: "n'importe quoi" })!.x, "autre");
+});

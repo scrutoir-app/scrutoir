@@ -87,3 +87,59 @@ export function useOnboardingVisible(reporte = false): boolean {
   }, []);
   return visible;
 }
+
+// --- Écran « Scrutoir est installé » (iPhone / iPad, app installée) -------------------------
+//
+// L'app installée sur iOS a son propre stockage, séparé de Safari : à son premier lancement sans
+// réponse, elle propose de coller les réponses copiées dans Safari. Montré une seule fois :
+// marqué vu dès qu'on le quitte (import réussi, test lancé, exploration). Remplace l'onboarding
+// à ce lancement. Jamais sur Android ni sur ordinateur, où l'app partage le stockage du navigateur.
+const KEY_REPRISE = "scrutoir.reprise.vue";
+
+let repriseVue: boolean | undefined;
+let repriseVisible: boolean | undefined;
+const ecouteursReprise = new Set<() => void>();
+
+function lireRepriseVue(): boolean {
+  if (repriseVue !== undefined) return repriseVue;
+  try {
+    repriseVue = typeof localStorage !== "undefined" && localStorage.getItem(KEY_REPRISE) === "1";
+  } catch {
+    repriseVue = false;
+  }
+  return repriseVue;
+}
+
+/** À montrer : app installée sur iOS, aucune réponse, jamais vu. Lu une fois au lancement. */
+function repriseAMontrer(iosInstallee: boolean): boolean {
+  if (!iosInstallee || lireRepriseVue()) return false;
+  const test = chargerTest();
+  return !test || !Object.keys(test.reponses).length;
+}
+
+/** Ferme l'écran et mémorise « vu » ; l'onboarding, qu'il remplace, est marqué vu aussi. */
+export function fermerReprise(): void {
+  repriseVue = true;
+  repriseVisible = false;
+  try {
+    if (typeof localStorage !== "undefined") localStorage.setItem(KEY_REPRISE, "1");
+  } catch {
+    /* fallback mémoire */
+  }
+  fermerOnboarding();
+  ecouteursReprise.forEach((l) => l());
+}
+
+/** Hook : l'écran « Scrutoir est installé » doit-il être visible ? `iosInstallee` lu au 1er appel. */
+export function useRepriseVisible(iosInstallee: boolean): boolean {
+  if (repriseVisible === undefined) repriseVisible = repriseAMontrer(iosInstallee);
+  const [, force] = useState(0);
+  useEffect(() => {
+    const l = () => force((n) => n + 1);
+    ecouteursReprise.add(l);
+    return () => {
+      ecouteursReprise.delete(l);
+    };
+  }, []);
+  return repriseVisible;
+}

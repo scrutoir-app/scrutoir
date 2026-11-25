@@ -1,7 +1,10 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { CLE_MESURE } from "./analytics";
-import { CLE_ARRIVEE, categorieReferent, choisirEntree, choisirSource, demarrerMesure, rechercheSans } from "./arrivee";
+import {
+  CLE_ARRIVEE, CLE_CONTEXTE, categorieReferent, choisirEntree, choisirSource, demarrerMesure, lienOuvrirNavigateur, mesurerContexte,
+  rechercheSans, sourceVisite,
+} from "./arrivee";
 import { ENTREES, SOURCES } from "./mesureListes";
 
 // Espion sur la sortie de track() (sendBeacon) ; une URL posée pour que la mesure parte.
@@ -67,6 +70,12 @@ test("source : première règle qui s'applique", () => {
   assert.equal(choisirSource({ hash: "", params: p("source=") }), "autre_lien");
   // 4. référent
   assert.equal(choisirSource({ hash: "", params: p(""), referrer: ig }), "instagram");
+  // 1 bis. transfert vers l'app (hash ou marque), avant les liens Instagram
+  assert.equal(choisirSource({ hash: "#transfert=abc", params: p("") }), "transfert");
+  assert.equal(choisirSource({ hash: "", params: p("via=transfert"), referrer: ig }), "transfert");
+  // ?source= reprend toute valeur de la liste fermée (lien « Ouvrir dans Safari » depuis Instagram)
+  assert.equal(choisirSource({ hash: "", params: p("source=instagram") }), "instagram");
+  assert.equal(choisirSource({ hash: "", params: p("source=facebook") }), "facebook");
   // 5. direct
   assert.equal(choisirSource({ hash: "", params: p(""), referrer: "" }), "direct");
   assert.equal(choisirSource({ hash: "", params: p("via=autre"), referrer: "https://scrutoir.fr/" }), "direct");
@@ -74,6 +83,7 @@ test("source : première règle qui s'applique", () => {
 
 test("entrée : hash du test, lien profond ou accueil", () => {
   assert.equal(choisirEntree("#test=abc", p("")), "test");
+  assert.equal(choisirEntree("#transfert=abc", p("")), "test");
   assert.equal(choisirEntree("", p("")), "accueil");
   assert.equal(choisirEntree("", p("open=scrutin:VTANR5L17V1")), "scrutin");
   assert.equal(choisirEntree("", p("open=depute:PA1")), "depute");
@@ -126,7 +136,7 @@ test("démarrage : une arrivée, puis l'adresse nettoyée (open et hash gardés)
   demarrerMesure(c.ctx);
   assert.deepEqual(envois.map(({ t, e, x }) => ({ t, e, x })), [{ t: "arrivee", e: "depute", x: "partage" }]);
   assert.deepEqual(c.remplacements, ["/?open=depute:PA1#x"]);
-  assert.equal(c.session.get(CLE_ARRIVEE), "1");
+  assert.equal(c.session.get(CLE_ARRIVEE), "partage", "la garde retient la source de la visite");
 });
 
 test("démarrage : un rechargement dans le même onglet ne recompte pas l'arrivée", () => {
@@ -161,4 +171,43 @@ test("démarrage : sans sessionStorage ni historique, ne lève pas", () => {
   );
   assert.equal(envois.length, 1);
   assert.doesNotThrow(() => demarrerMesure(null));
+});
+
+test("démarrage : la source de la visite survit au rechargement (paramètres retirés de l'adresse)", () => {
+  memoire.clear();
+  envois.length = 0;
+  const session = new Map<string, string>();
+  demarrerMesure(contexte("https://scrutoir.fr/?source=insta_bio", "", session).ctx);
+  assert.equal(sourceVisite(), "insta_bio");
+  demarrerMesure(contexte("https://scrutoir.fr/", "", session).ctx);
+  assert.equal(sourceVisite(), "insta_bio");
+  // Garde d'avant la v1.44.0 (« 1 ») : source inconnue, rien de recompté.
+  demarrerMesure(contexte("https://scrutoir.fr/", "", new Map([[CLE_ARRIVEE, "1"]])).ctx);
+  assert.equal(sourceVisite(), "direct");
+  assert.equal(envois.length, 1);
+});
+
+test("contexte : un seul envoi par visite, avec la source, jamais l'user agent", () => {
+  memoire.clear();
+  envois.length = 0;
+  demarrerMesure(contexte("https://scrutoir.fr/?source=insta_story", "", new Map()).ctx);
+  envois.length = 0;
+  const s = new Map<string, string>();
+  const session = { getItem: (k: string) => s.get(k) ?? null, setItem: (k: string, v: string) => void s.set(k, v) };
+  mesurerContexte("integre-ios", session);
+  mesurerContexte("ios", session);
+  assert.deepEqual(envois.map(({ t, e, x }) => ({ t, e, x })), [{ t: "contexte", e: "integre-ios", x: "insta_story" }]);
+  assert.equal(s.get(CLE_CONTEXTE), "integre-ios");
+  assert.ok(!JSON.stringify(envois).includes("Mozilla"));
+});
+
+test("ouvrir dans le navigateur : Safari (x-safari-https) ou Android (intent), source reportée", () => {
+  const loc = { host: "scrutoir.fr", pathname: "/", search: "", hash: "" };
+  assert.equal(lienOuvrirNavigateur("ios", loc, "insta_bio"), "x-safari-https://scrutoir.fr/?source=insta_bio");
+  assert.equal(lienOuvrirNavigateur("android", loc, "insta_bio"), "intent://scrutoir.fr/?source=insta_bio#Intent;scheme=https;end");
+  // Lien profond et hash gardés sur iOS ; la source retirée de l'adresse revient une seule fois.
+  const profond = { host: "scrutoir.fr", pathname: "/", search: "?open=scrutin:VTANR5L17V1&source=insta_post", hash: "#test=abc" };
+  assert.equal(lienOuvrirNavigateur("ios", profond, "partage"), "x-safari-https://scrutoir.fr/?open=scrutin:VTANR5L17V1&via=partage#test=abc");
+  assert.equal(lienOuvrirNavigateur("android", profond, "insta_post"), "intent://scrutoir.fr/?open=scrutin:VTANR5L17V1&source=insta_post#Intent;scheme=https;end");
+  assert.equal(lienOuvrirNavigateur("ios", { ...loc, pathname: "" }, "direct"), "x-safari-https://scrutoir.fr/?source=direct");
 });

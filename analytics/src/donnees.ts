@@ -29,9 +29,14 @@ const JOUR = 86_400_000;
 export const RETENTION_JOURS = 90;
 /** Types comptés dans les chiffres clés et l'entonnoir. */
 const TYPES_COMPTES = ["arrivee", "share", "test_start", "test_done"];
+/** Installer avant le test (v1.44.0) : contexte d'arrivée et gestes, lus par (t, e, x) comme les comptes. */
+const TYPES_INSTALL = [
+  "contexte", "installer_clic", "installer_ok", "ouvrir_navigateur", "transfert_copie", "transfert_colle", "test_sans_installer",
+];
 /** Types montrés ailleurs (chiffres clés ou onglets) : tout autre type va dans « Autres ». */
 const COUVERTS = new Set([
   ...TYPES_COMPTES,
+  ...TYPES_INSTALL,
   "scrutin", "depute", "parti", "theme", "search", "search_empty", "confront", "screen",
   "follow", "unfollow", "follow_parti", "unfollow_parti",
 ]);
@@ -120,6 +125,63 @@ const LIB_ENTREE: Record<string, string> = {
   presidentielle: "Présidentielle",
   autre: "Autre lien profond",
 };
+const LIB_CONTEXTE: Record<string, string> = {
+  installee: "Appli installée",
+  "integre-ios": "Appli intégrée · iPhone",
+  "integre-android": "Appli intégrée · Android",
+  ios: "iPhone · navigateur",
+  "android-installable": "Android · installable",
+  android: "Android · sans invite",
+  ordinateur: "Ordinateur",
+  autre: "Hors liste",
+};
+const pctTexte = (a: number, b: number) => (b > 0 ? `${Math.round((a / b) * 100)} %` : "n/d");
+
+/**
+ * Onglets « Contextes » et « Installation » (v1.44.0), depuis les rangées (t, e, x) de la période.
+ * Contextes : visites par contexte d'arrivée, et tests terminés dans ce contexte (`test_done`
+ * porte le contexte en extra depuis la v1.44.0), pour comparer le taux avant et après.
+ */
+export function classementsInstall(courant: Rangee[]): Classement[] {
+  const visites = new Map<string, number>();
+  const tests = new Map<string, number>();
+  const g = { sortie: 0, sansInstaller: 0, clic: 0, ok: 0, copie: 0, copieMain: 0, colle: 0, colleRien: 0, colleRefus: 0 };
+  for (const r of courant) {
+    const t = s(r.t), e = s(r.e), x = s(r.x), v = n(r);
+    if (t === "contexte") visites.set(e, (visites.get(e) ?? 0) + v);
+    else if (t === "test_done" && x) tests.set(x, (tests.get(x) ?? 0) + v);
+    else if (t === "ouvrir_navigateur") g.sortie += v;
+    else if (t === "test_sans_installer") g.sansInstaller += v;
+    else if (t === "installer_clic") g.clic += v;
+    else if (t === "installer_ok") g.ok += v;
+    else if (t === "transfert_copie") x === "copied" ? (g.copie += v) : (g.copieMain += v);
+    else if (t === "transfert_colle") {
+      if (x === "transfert" || x === "test") g.colle += v;
+      else if (x === "refuse") g.colleRefus += v;
+      else g.colleRien += v;
+    }
+  }
+  const contextes = [...visites.entries()]
+    .map(([k, v]) => {
+      const l = LIB_CONTEXTE[k] ?? k;
+      const tt = tests.get(k) ?? 0;
+      return { libelle: l, n: v, detail: `${l} : ${v} visite${v > 1 ? "s" : ""} · ${tt} test${tt > 1 ? "s" : ""} terminé${tt > 1 ? "s" : ""} (${pctTexte(tt, v)})` };
+    })
+    .sort((a, b) => b.n - a.n);
+  const gestes = [
+    { libelle: "Sorties vers le navigateur", n: g.sortie, detail: `« Ouvrir dans Safari / Chrome » depuis Instagram & co : ${g.sortie}` },
+    { libelle: "Tests sans installer", n: g.sansInstaller, detail: `Test lancé depuis l'écran d'arrivée sans installer : ${g.sansInstaller}` },
+    { libelle: "Clics « Installer »", n: g.clic, detail: `Invite Android ou guide iPhone ouverts : ${g.clic}` },
+    { libelle: "Installations acceptées", n: g.ok, detail: `Invite Android acceptée : ${g.ok}` },
+    { libelle: "Réponses copiées", n: g.copie, detail: `« Copier et installer » : ${g.copie} copiées · ${g.copieMain} à copier à la main` },
+    { libelle: "Réponses collées dans l'app", n: g.colle, detail: `Collées : ${g.colle} · rien de Scrutoir : ${g.colleRien} · lecture refusée : ${g.colleRefus}` },
+  ].filter((l) => l.n > 0);
+  return [
+    { id: "contextes", onglet: "Contextes", titre: "Contexte d'arrivée, tests terminés", lignes: contextes.slice(0, 7) },
+    { id: "installation", onglet: "Installation", titre: "Installer avant le test", lignes: gestes },
+  ];
+}
+
 const LIB_ECRAN: Record<string, string> = {
   search: "Accueil",
   themes: "Scrutins",
@@ -228,6 +290,7 @@ export function assembler(b: Brut, noms: Noms): Donnees {
       id: "suivis", onglet: "Suivis", titre: "Élus et groupes les plus suivis (solde)",
       lignes: tri([...net("follow", "unfollow", (k) => noms.depute.get(k) ?? k), ...net("follow_parti", "unfollow_parti", (k) => noms.parti.get(k) ?? k)]),
     },
+    ...classementsInstall(b.courant),
   ];
 
   const autres = b.parType
@@ -296,12 +359,13 @@ export async function collecter(env: EnvSql, jours: number, maintenant = Date.no
   const f = fenetres(maintenant, jours, debutMesure);
   const secCompte = Math.max(1, Math.ceil((maintenant - f.debutCompte) / 1000));
   const comptes = listeSql(TYPES_COMPTES);
+  const comptesEtInstall = listeSql([...TYPES_COMPTES, ...TYPES_INSTALL]);
 
   const tousTypes = ["scrutin", "depute", "parti", "theme", "search", "search_empty", "confront", "screen"];
   const suivis = ["follow", "unfollow", "follow_parti", "unfollow_parti"];
   const [courant, precedent, activite, parType, appareils, ...tops] = await Promise.all([
     q(env, `SELECT blob1 AS t, blob2 AS e, blob3 AS x, sum(_sample_interval) AS n FROM ${ds}
-      WHERE timestamp > NOW() - INTERVAL '${secCompte}' SECOND AND blob1 IN (${comptes}) GROUP BY t, e, x`),
+      WHERE timestamp > NOW() - INTERVAL '${secCompte}' SECOND AND blob1 IN (${comptesEtInstall}) GROUP BY t, e, x`),
     f.precedentComparable
       ? q(env, `SELECT blob1 AS t, blob2 AS e, blob3 AS x, sum(_sample_interval) AS n FROM ${ds}
           WHERE timestamp > NOW() - INTERVAL '${2 * jours}' DAY AND timestamp <= NOW() - INTERVAL '${jours}' DAY

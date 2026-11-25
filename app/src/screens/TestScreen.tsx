@@ -15,6 +15,7 @@ import { questionsNeuves, N_AFFINER } from "../testProximite/config";
 import { libelleProgression, libelleScrutin, intituleOfficiel, reponseDeTouche } from "../testProximite/carte";
 import { useDeckSwipe, type Direction, type StyleRepos } from "../hooks/useDeckSwipe";
 import { track } from "../analytics";
+import { contexteArrivee } from "../pwa";
 
 // TEST DE PROXIMITÉ « au swipe ». MÊME test que le question-par-question d'origine : mêmes
 // questions (getTestProximite + même tirage par mode), MÊME stockage (fusionnerReponses), MÊME
@@ -84,7 +85,7 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
   const reduce = useReduceMotion();
 
   const testKey = mode === "affiner" ? "affiner" : mode === "theme" ? theme ?? "theme" : "complet";
-  useEffect(() => { track("test_start", testKey); }, []);
+  useEffect(() => { track("test_start", testKey, contexteArrivee()); }, []);
   useEffect(() => {
     Promise.all([getTestProximite(), getPartis(), getCategories()]).then(([qs, , cs]) => { setCats(cs); setAll(qs); });
   }, []);
@@ -108,7 +109,7 @@ export function TestScreen({ mode, theme, nav }: { mode: "theme" | "complet" | "
     setReponses(suite);
     setHistory((h) => [...h, q.id]);
     if (idx + 1 >= total) {
-      track("test_done", testKey);
+      track("test_done", testKey, contexteArrivee());
       fusionnerReponses(suite); // MÊME stockage que le test question-par-question
       nav.push({ name: "testResultat" });
     } else {
