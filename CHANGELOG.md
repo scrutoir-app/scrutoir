@@ -8,6 +8,10 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.44.2 — 2026-11-25
+**Retester l'arrivée : `?premiere=1`.**
+- L'écran d'arrivée ne s'affiche qu'une fois par navigateur, et seulement à un nouveau visiteur : impossible de retester le parcours Instagram → Safari sur un téléphone qui connaît déjà Scrutoir. Avec `?premiere=1` dans l'adresse, l'écran d'arrivée s'affiche comme pour un nouveau visiteur, sans rien effacer (réponses, suivis, réglages gardés). Le paramètre est retiré de l'adresse au démarrage, et le bouton « Ouvrir dans Safari » le reporte, pour que Safari réaffiche aussi l'écran iPhone.
+
 ## 1.44.1 — 2026-11-25
 **« Ouvrir dans Safari » depuis Instagram sur iPhone : le bouton ouvre enfin le navigateur.**
 - Instagram bloque le lien `x-safari-https://` : au toucher, rien ne se passait (constaté sur iPhone le soir de la mise en service). Depuis Instagram sur iPhone, le bouton passe désormais par le schéma d'Instagram lui-même, `instagram://extbrowser/?url=…`, qui ouvre le navigateur par défaut après une confirmation d'Instagram. La provenance de la visite et le lien profond suivent, comme avant.

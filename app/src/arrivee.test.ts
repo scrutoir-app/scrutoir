@@ -2,7 +2,7 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { CLE_MESURE } from "./analytics";
 import {
-  CLE_ARRIVEE, CLE_CONTEXTE, categorieReferent, choisirEntree, choisirSource, demarrerMesure, lienOuvrirNavigateur, mesurerContexte,
+  CLE_ARRIVEE, CLE_CONTEXTE, arriveeForcee, categorieReferent, choisirEntree, choisirSource, demarrerMesure, lienOuvrirNavigateur, mesurerContexte,
   rechercheSans, sourceVisite,
 } from "./arrivee";
 import { ENTREES, SOURCES } from "./mesureListes";
@@ -225,4 +225,20 @@ test("ouvrir dans le navigateur depuis Instagram sur iPhone : le schéma d'Insta
   // Autres applis : inchangé (x-safari-https sur iPhone, intent sur Android, Instagram Android compris).
   assert.ok(lienOuvrirNavigateur("ios", loc, "facebook", "Facebook").startsWith("x-safari-https://"));
   assert.ok(lienOuvrirNavigateur("android", loc, "insta_bio", "Instagram").startsWith("intent://"));
+});
+
+test("?premiere=1 : écran d'arrivée réaffiché pour un test, paramètre retiré de l'adresse, reporté vers Safari", () => {
+  memoire.clear();
+  envois.length = 0;
+  const c = contexte("https://scrutoir.fr/?source=insta_bio&premiere=1", "", new Map());
+  demarrerMesure(c.ctx);
+  assert.equal(arriveeForcee(), true);
+  assert.deepEqual(c.remplacements, ["/"], "source et premiere retirés");
+  assert.deepEqual([envois[0].e, envois[0].x], ["accueil", "insta_bio"], "la provenance reste celle du lien");
+  const loc = { host: "scrutoir.fr", pathname: "/", search: "", hash: "" };
+  assert.equal(
+    decodeURIComponent(lienOuvrirNavigateur("ios", loc, "insta_bio", "Instagram", true).split("url=")[1]),
+    "https://scrutoir.fr/?source=insta_bio&premiere=1",
+  );
+  assert.equal(lienOuvrirNavigateur("ios", loc, "insta_bio", "Instagram"), "instagram://extbrowser/?url=https%3A%2F%2Fscrutoir.fr%2F%3Fsource%3Dinsta_bio");
 });
