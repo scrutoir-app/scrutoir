@@ -8,6 +8,12 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.44.3 — 2026-11-25
+**Installer sur iPhone : le bouton de menu de Safari (iOS 26) dans les consignes.**
+- Sous iOS 26, Safari n'affiche plus de bouton Partager : il est rangé dans le menu de la barre d'adresse, en bas de l'écran (icône à trois traits, à gauche de l'adresse). Constaté sur iPhone le soir de la mise en service.
+- Écran d'arrivée iPhone, étape 1 : « Touche [menu] dans la barre d'adresse, puis Partager » (l'icône de menu remplace « ••• ou Partager »).
+- Guide pas à pas, étape 1 : la même icône, « à gauche de l'adresse en bas de l'écran (••• sur certains iPhone) », et une démo de la barre d'adresse du bas (menu, adresse, recharger).
+
 ## 1.44.2 — 2026-11-25
 **Retester l'arrivée : `?premiere=1`.**
 - L'écran d'arrivée ne s'affiche qu'une fois par navigateur, et seulement à un nouveau visiteur : impossible de retester le parcours Instagram → Safari sur un téléphone qui connaît déjà Scrutoir. Avec `?premiere=1` dans l'adresse, l'écran d'arrivée s'affiche comme pour un nouveau visiteur, sans rien effacer (réponses, suivis, réglages gardés). Le paramètre est retiré de l'adresse au démarrage, et le bouton « Ouvrir dans Safari » le reporte, pour que Safari réaffiche aussi l'écran iPhone.

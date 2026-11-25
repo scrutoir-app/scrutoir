@@ -9,7 +9,7 @@ import type { EtatTransfert } from "./installation";
 /**
  * Guide illustré « Installer Scrutoir sur iPhone ». Ouvert depuis le bandeau d'installation,
  * l'écran d'arrivée et la carte « Garde ton spectre » (iOS), où Apple n'autorise aucun
- * déclenchement automatique : on montre, étape par étape, le parcours Safari « ••• » → Partager
+ * déclenchement automatique : on montre, étape par étape, le parcours Safari « ≡ » (iOS 26, « ••• » ailleurs) → Partager
  * → « Sur l'écran d'accueil » → Ajouter. Chrome iOS (depuis iOS 16.4) : Partager est dans la
  * barre d'adresse, trois étapes. Avec un transfert (« Copier et installer »), le guide dit en
  * tête que les réponses sont copiées, ou montre le lien et un bouton « Copier » de secours.
@@ -188,11 +188,12 @@ export function InstallGuide({
                         paddingVertical: 7,
                       }}
                     >
-                      <Feather name="lock" size={12} color={C.textFaint} />
-                      <Text style={[T.small, { flex: 1, color: C.textMuted }]}>scrutoir.fr</Text>
+                      {/* Barre d'adresse de Safari (iOS 26, en bas de l'écran) : le menu ≡ à gauche de l'adresse. */}
                       <View style={{ backgroundColor: C.accentSoft, borderRadius: 7, paddingHorizontal: 8, paddingVertical: 3 }}>
-                        <Feather name="more-horizontal" size={18} color={C.accent} />
+                        <Feather name="menu" size={18} color={C.accent} />
                       </View>
+                      <Text style={[T.small, { flex: 1, color: C.textMuted, textAlign: "center" }]}>scrutoir.fr</Text>
+                      <Feather name="rotate-cw" size={14} color={C.textFaint} />
                     </View>
                   </Demo>
                 }
@@ -200,7 +201,9 @@ export function InstallGuide({
                 {autre ? (
                   <>Ouvre le menu de ton navigateur (<Text style={{ fontFamily: F.bold }}>« ••• »</Text> ou <Text style={{ fontFamily: F.bold }}>« ≡ »</Text>).</>
                 ) : (
-                  <>Touche <Text style={{ fontFamily: F.bold }}>« ••• »</Text> à droite de la barre d'adresse.</>
+                  <>
+                    Touche <Feather name="menu" size={14} color={C.text} accessibilityLabel="le menu" />, à gauche de l'adresse en bas de l'écran (<Text style={{ fontFamily: F.bold }}>« ••• »</Text> sur certains iPhone).
+                  </>
                 )}
               </Step>
 
