@@ -26,8 +26,8 @@ export const CLE_ARRIVEE = "scrutoir.arrivee";
 /** Garde « un seul contexte mesuré par visite » (sessionStorage). */
 export const CLE_CONTEXTE = "scrutoir.contexte";
 
-/** Paramètres lus puis retirés de l'adresse. */
-export const PARAMS_RETIRES = ["via", "source", "mesure"] as const;
+/** Paramètres lus puis retirés de l'adresse. `premiere=1` : écran d'arrivée réaffiché (test, cf. `arriveeForcee`). */
+export const PARAMS_RETIRES = ["via", "source", "mesure", "premiere"] as const;
 
 const aLienTest = (hash: string) => /(^#|&)test=/.test(hash);
 const aLienTransfert = (hash: string) => /(^#|&)transfert=/.test(hash);
@@ -140,6 +140,8 @@ export function demarrerMesure(ctx: ContexteDemarrage | null = contexteNavigateu
     const { location: loc } = ctx;
     const params = new URLSearchParams(loc.search);
 
+    if (params.get("premiere") === "1") arriveeForceeMemoire = true;
+
     const m = params.get("mesure");
     if (m === "off" || m === "on") reglerMesure(m === "on");
 
@@ -173,6 +175,17 @@ export function demarrerMesure(ctx: ContexteDemarrage | null = contexteNavigateu
 // --- Source de la visite et contexte d'arrivée ---------------------------------------------
 
 let sourceMemoire: Source = "direct";
+let arriveeForceeMemoire = false;
+
+/**
+ * `?premiere=1` (lu au démarrage, puis retiré de l'adresse) : l'écran d'arrivée s'affiche comme
+ * pour un nouveau visiteur, même s'il a déjà été vu ou s'il y a des réponses. Rien n'est effacé.
+ * Sert à retester le parcours (Instagram, puis Safari) sur un appareil qui connaît déjà Scrutoir ;
+ * le lien « Ouvrir dans Safari » le reporte, pour que le navigateur réaffiche aussi son écran.
+ */
+export function arriveeForcee(): boolean {
+  return arriveeForceeMemoire;
+}
 
 /** Source de la visite en cours (posée par `demarrerMesure`), « direct » si inconnue. */
 export function sourceVisite(): Source {
@@ -222,11 +235,12 @@ export function lienOuvrirNavigateur(
   loc: { host: string; pathname: string; search: string; hash: string },
   source: Source,
   appli?: string | null,
+  forcee = false,
 ): string {
   const reste = rechercheSans(loc.search, PARAMS_RETIRES);
   const base = (reste ?? loc.search).replace(/^\?/, "");
   const marque = source === "partage" ? "via=partage" : `source=${source}`;
-  const requete = `?${base ? `${base}&` : ""}${marque}`;
+  const requete = `?${base ? `${base}&` : ""}${marque}${forcee ? "&premiere=1" : ""}`;
   const chemin = loc.pathname || "/";
   if (plateforme === "ios" && appli === "Instagram") {
     return `instagram://extbrowser/?url=${encodeURIComponent(`https://${loc.host}${chemin}${requete}${loc.hash}`)}`;

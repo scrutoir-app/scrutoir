@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { getFollows } from "./follows";
 import { chargerTest } from "./testProximite/storage";
+import { arriveeForcee } from "./arrivee";
 
 /**
  * Overlay d'onboarding première connexion (recentrage « je »). Même mécanique locale que
@@ -36,8 +37,9 @@ function marquerVu(): void {
   }
 }
 
-/** Nouveau venu éligible : jamais vu, aucun suivi, aucun test fait. */
+/** Nouveau venu éligible : jamais vu, aucun suivi, aucun test fait (ou `?premiere=1`, cf. arrivee.ts). */
 function premierLancement(): boolean {
+  if (arriveeForcee()) return true;
   if (lireSeen() === VERSION) return false;
   if (getFollows().length > 0) return false;
   const test = chargerTest();

@@ -8,7 +8,7 @@ import { InstallGuide } from "./InstallGuide";
 import { CarteSombre, Fort, LigneCadenas, NoteInfo, PROMESSE_REPONSES, TexteSombre } from "./installation";
 import { useReduceMotion } from "./HeroScrutins";
 import { track } from "../analytics";
-import { lienOuvrirNavigateur, sourceVisite } from "../arrivee";
+import { arriveeForcee, lienOuvrirNavigateur, sourceVisite } from "../arrivee";
 import {
   appliHote,
   envNavigateur,
@@ -115,7 +115,7 @@ export function ArriveeEcran({
     const plateforme = variante === "integre-ios" ? "ios" : "android";
     track("ouvrir_navigateur", variante, sourceVisite());
     try {
-      window.location.href = lienOuvrirNavigateur(plateforme, window.location, sourceVisite(), appliHote(env.ua));
+      window.location.href = lienOuvrirNavigateur(plateforme, window.location, sourceVisite(), appliHote(env.ua), arriveeForcee());
     } catch {
       /* l'instruction de secours reste affichée sous le bouton */
     }
