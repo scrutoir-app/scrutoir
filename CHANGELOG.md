@@ -8,6 +8,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.44.4 — 2026-11-25
+**Guide d'installation iPhone : l'étape « En voir plus ».**
+- Sous iOS 26, « Sur l'écran d'accueil » n'apparaît pas tout de suite dans la feuille de partage : il faut d'abord toucher « En voir plus » (chevron). Constaté sur iPhone le soir de la mise en service.
+- Guide pas à pas, étape « Sur l'écran d'accueil » : « Touche En voir plus (le chevron), puis Sur l'écran d'accueil », démo à deux lignes (En voir plus, Sur l'écran d'accueil). L'écran d'arrivée (étapes résumées) ne change pas.
+
 ## 1.44.3 — 2026-11-25
 **Installer sur iPhone : le bouton de menu de Safari (iOS 26) dans les consignes.**
 - Sous iOS 26, Safari n'affiche plus de bouton Partager : il est rangé dans le menu de la barre d'adresse, en bas de l'écran (icône à trois traits, à gauche de l'adresse). Constaté sur iPhone le soir de la mise en service.
