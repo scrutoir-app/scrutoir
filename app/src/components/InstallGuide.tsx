@@ -243,28 +243,34 @@ export function InstallGuide({
                 n={2 + k}
                 demo={
                   <Demo>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                        backgroundColor: C.surface,
-                        borderRadius: 8,
-                        borderWidth: 1,
-                        borderColor: C.accentSoft,
-                        paddingHorizontal: 10,
-                        paddingVertical: 8,
-                      }}
-                    >
-                      <Text style={[T.small, { color: C.text, fontFamily: F.medium }]}>Sur l'écran d'accueil</Text>
-                      <View style={{ width: 26, height: 26, borderRadius: 6, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
-                        <MaterialCommunityIcons name="plus" size={18} color={C.accent} />
+                    {/* Feuille de partage d'iOS 26 : « En voir plus » (chevron) déplie la liste où se trouve « Sur l'écran d'accueil ». */}
+                    <View style={{ backgroundColor: C.surface, borderRadius: 8, borderWidth: 1, borderColor: C.accentSoft, overflow: "hidden" }}>
+                      <View
+                        style={{
+                          flexDirection: "row",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          paddingHorizontal: 10,
+                          paddingVertical: 8,
+                          borderBottomWidth: 1,
+                          borderBottomColor: C.border,
+                        }}
+                      >
+                        <Text style={[T.small, { color: C.text, fontFamily: F.medium }]}>En voir plus</Text>
+                        <Feather name="chevron-down" size={18} color={C.accent} />
+                      </View>
+                      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 10, paddingVertical: 8 }}>
+                        <Text style={[T.small, { color: C.text, fontFamily: F.medium }]}>Sur l'écran d'accueil</Text>
+                        <View style={{ width: 26, height: 26, borderRadius: 6, backgroundColor: C.accentSoft, alignItems: "center", justifyContent: "center" }}>
+                          <MaterialCommunityIcons name="plus" size={18} color={C.accent} />
+                        </View>
                       </View>
                     </View>
                   </Demo>
                 }
               >
-                Fais défiler la liste, puis touche <Text style={{ fontFamily: F.bold }}>« Sur l'écran d'accueil »</Text>.
+                Touche <Text style={{ fontFamily: F.bold }}>« En voir plus »</Text> (le chevron), puis{" "}
+                <Text style={{ fontFamily: F.bold }}>« Sur l'écran d'accueil »</Text>.
               </Step>
 
               <Step
