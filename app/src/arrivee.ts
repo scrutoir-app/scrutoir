@@ -206,21 +206,31 @@ function sessionNavigateur() {
 
 /**
  * Lien qui rouvre la page courante hors du navigateur intégré (Instagram…), en gardant la source
- * de la visite pour la mesure. iOS : `x-safari-https://…` ouvre Safari. Android : `intent://…`
- * ouvre le navigateur par défaut (Chrome le plus souvent). Sur Android, la syntaxe Intent occupe
- * le fragment : le hash de la page (un `#test=` partagé) ne suit pas, `via=partage` garde la
- * provenance. Aucune donnée de l'appareil n'y figure : l'adresse de la page, plus la source.
+ * de la visite pour la mesure. Aucune donnée de l'appareil n'y figure : l'adresse de la page,
+ * plus la source.
+ *  · Instagram sur iPhone : `instagram://extbrowser/?url=…`, le schéma d'Instagram lui-même, qui
+ *    ouvre le navigateur par défaut après une confirmation d'Instagram. `x-safari-https://` y est
+ *    bloqué depuis 2026 (rien ne se passe). Doit partir d'un vrai toucher : lancé au chargement,
+ *    Instagram l'ignore.
+ *  · Autres applis sur iPhone : `x-safari-https://…`, au mieux (la consigne de secours reste affichée).
+ *  · Android : `intent://…` ouvre le navigateur par défaut (Chrome le plus souvent). La syntaxe
+ *    Intent occupe le fragment : le hash de la page (un `#test=` partagé) ne suit pas,
+ *    `via=partage` garde la provenance.
  */
 export function lienOuvrirNavigateur(
   plateforme: "ios" | "android",
   loc: { host: string; pathname: string; search: string; hash: string },
   source: Source,
+  appli?: string | null,
 ): string {
   const reste = rechercheSans(loc.search, PARAMS_RETIRES);
   const base = (reste ?? loc.search).replace(/^\?/, "");
   const marque = source === "partage" ? "via=partage" : `source=${source}`;
   const requete = `?${base ? `${base}&` : ""}${marque}`;
   const chemin = loc.pathname || "/";
+  if (plateforme === "ios" && appli === "Instagram") {
+    return `instagram://extbrowser/?url=${encodeURIComponent(`https://${loc.host}${chemin}${requete}${loc.hash}`)}`;
+  }
   if (plateforme === "ios") return `x-safari-https://${loc.host}${chemin}${requete}${loc.hash}`;
   return `intent://${loc.host}${chemin}${requete}#Intent;scheme=https;end`;
 }

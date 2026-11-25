@@ -8,6 +8,11 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.44.1 — 2026-11-25
+**« Ouvrir dans Safari » depuis Instagram sur iPhone : le bouton ouvre enfin le navigateur.**
+- Instagram bloque le lien `x-safari-https://` : au toucher, rien ne se passait (constaté sur iPhone le soir de la mise en service). Depuis Instagram sur iPhone, le bouton passe désormais par le schéma d'Instagram lui-même, `instagram://extbrowser/?url=…`, qui ouvre le navigateur par défaut après une confirmation d'Instagram. La provenance de la visite et le lien profond suivent, comme avant.
+- Autres applis sur iPhone (Facebook, TikTok…) : `x-safari-https://` inchangé. Android : `intent://` inchangé. La consigne de secours (••• puis « Ouvrir dans le navigateur ») reste affichée sous le bouton.
+
 ## 1.44.0 — 2026-11-25
 **Installer avant le test, et emporter ses réponses de Safari dans l'app.**
 - **Contexte d'arrivée** (`contexteArrivee`, pwa.ts) : app installée, navigateur intégré (Instagram, Facebook, Messenger, TikTok, Snapchat, LinkedIn) sur iPhone ou Android, iPhone / iPad (Safari, Chrome iOS, iPad qui se présente comme un Mac), Android avec ou sans invite d'installation, ordinateur. `beforeinstallprompt` est attendu 1,5 s après le début du chargement (sous l'ouverture animée) avant de conclure « Android sans invite » : pas de clignotement.

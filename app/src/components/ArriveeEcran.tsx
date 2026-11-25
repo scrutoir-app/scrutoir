@@ -115,7 +115,7 @@ export function ArriveeEcran({
     const plateforme = variante === "integre-ios" ? "ios" : "android";
     track("ouvrir_navigateur", variante, sourceVisite());
     try {
-      window.location.href = lienOuvrirNavigateur(plateforme, window.location, sourceVisite());
+      window.location.href = lienOuvrirNavigateur(plateforme, window.location, sourceVisite(), appliHote(env.ua));
     } catch {
       /* l'instruction de secours reste affichée sous le bouton */
     }
