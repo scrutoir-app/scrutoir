@@ -83,7 +83,7 @@ test("rendu : aucun script, entrées échappées, n/d expliqué, onglets en CSS"
   assert.match(html, /Mesure des partages/);
   assert.match(html, /Visites et partages mesurés depuis le 19 nov\./);
   const onglets = html.match(/<input type="radio" name="cl"/g) ?? [];
-  assert.equal(onglets.length, 12, "11 classements + Autres");
+  assert.equal(onglets.length, 14, "13 classements + Autres");
   assert.match(html, /nouveau_type/);
   for (const titre of ["Visites", "Tests terminés", "Partages réussis", "Visites via un partage", "Entonnoir du test", "Provenance des visites", "Classements"]) {
     assert.ok(html.includes(titre), titre);
@@ -95,4 +95,25 @@ test("rendu : écart affiché quand la période précédente est comparable", ()
   const d = assembler(brut({ jours: 7, ...f, precedent: [{ t: "arrivee", e: "accueil", x: "direct", n: 4 }] }), noms);
   assert.equal(d.precedent?.visites, 4);
   assert.match(rendreTableau(d, []), /↑ 25 %/);
+});
+
+test("onglets Contextes et Installation : visites et tests terminés par contexte, gestes", async () => {
+  const { classementsInstall } = await import("./donnees");
+  const [ctx, inst] = classementsInstall([
+    { t: "contexte", e: "integre-ios", x: "insta_bio", n: 40 },
+    { t: "contexte", e: "ios", x: "insta_bio", n: 20 },
+    { t: "test_done", e: "complet", x: "integre-ios", n: 4 },
+    { t: "test_done", e: "complet", x: "ios", n: 6 },
+    { t: "test_done", e: "complet", x: "", n: 9 }, // avant la v1.44.0 : sans contexte, ignoré ici
+    { t: "transfert_copie", e: "resultat", x: "copied", n: 3 },
+    { t: "transfert_copie", e: "resultat", x: "manual", n: 1 },
+    { t: "transfert_colle", e: "presse_papiers", x: "transfert", n: 2 },
+    { t: "transfert_colle", e: "presse_papiers", x: "rien", n: 1 },
+  ]);
+  assert.equal(ctx.id, "contextes");
+  assert.deepEqual(ctx.lignes.map((l) => [l.libelle, l.n]), [["Appli intégrée · iPhone", 40], ["iPhone · navigateur", 20]]);
+  assert.match(ctx.lignes[0].detail!, /4 tests terminés \(10 %\)/);
+  assert.match(ctx.lignes[1].detail!, /6 tests terminés \(30 %\)/);
+  assert.deepEqual(inst.lignes.map((l) => [l.libelle, l.n]), [["Réponses copiées", 3], ["Réponses collées dans l'app", 2]]);
+  assert.match(inst.lignes[1].detail!, /rien de Scrutoir : 1/);
 });

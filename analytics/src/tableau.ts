@@ -150,6 +150,13 @@ export const META: Record<string, string> = {
   selection: "Présidentielle · sélection",
   filtre: "Présidentielle · filtre",
   methode_open: "Présidentielle · méthode",
+  contexte: "Contextes d'arrivée",
+  installer_clic: "Clics « Installer »",
+  installer_ok: "Installations acceptées",
+  ouvrir_navigateur: "Sorties vers le navigateur",
+  transfert_copie: "Réponses copiées vers l'app",
+  transfert_colle: "Réponses collées dans l'app",
+  test_sans_installer: "Tests sans installer",
 };
 
 // --- Morceaux de page ---

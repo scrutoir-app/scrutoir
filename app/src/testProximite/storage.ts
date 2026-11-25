@@ -175,53 +175,80 @@ export function sauverPoids(poids: Record<string, number>): void {
 const CODE: Record<Reponse, number> = { sans_avis: 0, pour: 1, contre: 2 };
 const DECODE: Record<number, Reponse> = { 0: "sans_avis", 1: "pour", 2: "contre" };
 
-function b64url(s: string): string {
+export function b64url(s: string): string {
   const b = typeof btoa !== "undefined" ? btoa(s) : s; // web : btoa ; natif : best-effort
   return b.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
-function unb64url(s: string): string {
+export function unb64url(s: string): string {
   const t = s.replace(/-/g, "+").replace(/_/g, "/");
   return typeof atob !== "undefined" ? atob(t) : t;
 }
 
+/** Contenu d'un lien de résultat (`#test=`), repris tel quel par le transfert vers l'app (transfert.ts). */
+export interface ContenuPartage {
+  r: Record<string, number>;
+  w?: Record<string, number>;
+  o?: number[];
+}
+
+/** Réponses décodées d'un lien (partage ou transfert), validées. */
+export interface ReponsesDecodees {
+  reponses: Record<number, Reponse>;
+  poids?: Record<string, number>;
+  origines?: Record<number, Origine>;
+}
+
 /**
- * Encode les réponses (et les poids non neutres) en chaîne compacte URL-safe. Les n° tranchés
- * depuis un scrutin (origine « scrutin ») sont listés à part (`o`) : à l'ouverture, le lien
- * recharge leurs positions pour redonner le même résultat.
+ * Contenu compact des réponses (et des poids non neutres). Les n° tranchés depuis un scrutin
+ * (origine « scrutin ») sont listés à part (`o`) : à l'ouverture, le lien recharge leurs
+ * positions pour redonner le même résultat.
  */
-export function encoderPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>, origines?: Record<number, Origine>): string {
+export function contenuPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>, origines?: Record<number, Origine>): ContenuPartage {
   const r: Record<string, number> = {};
   for (const [id, rep] of Object.entries(reponses)) r[id] = CODE[rep];
-  const payload: { r: Record<string, number>; w?: Record<string, number>; o?: number[] } = { r };
+  const payload: ContenuPartage = { r };
   if (poids && Object.values(poids).some((w) => w !== 1)) payload.w = poids;
   const o = Object.entries(origines ?? {}).filter(([id, v]) => v === "scrutin" && r[id] != null).map(([id]) => Number(id));
   if (o.length) payload.o = o;
-  return b64url(JSON.stringify(payload));
+  return payload;
 }
 
-export function decoderPartage(s: string): { reponses: Record<number, Reponse>; poids?: Record<string, number>; origines?: Record<number, Origine> } | null {
+/**
+ * Valide un contenu lu dans un lien (JSON déjà décodé). Lève si l'objet est inexploitable :
+ * l'appelant attrape et renvoie null.
+ */
+export function lireContenuPartage(p0: unknown): ReponsesDecodees {
+  const p = p0 as { r?: Record<string, number>; w?: Record<string, number>; o?: unknown };
+  const reponses: Record<number, Reponse> = {};
+  for (const [id, c] of Object.entries(p.r ?? {})) {
+    const n = Number(id);
+    // Ne garder que des ids entiers et des codes connus (0/1/2) — un lien trafiqué
+    // ne doit pas injecter de clé NaN ni de réponse hors barème.
+    if (Number.isInteger(n) && (c === 0 || c === 1 || c === 2)) reponses[n] = DECODE[c];
+  }
+  // Poids : seulement des nombres finis bornés (évite NaN/poids absurde dans le score).
+  let poids: Record<string, number> | undefined;
+  if (p.w && typeof p.w === "object") {
+    poids = {};
+    for (const [k, w] of Object.entries(p.w))
+      if (typeof w === "number" && isFinite(w) && w >= 0 && w <= 3) poids[k] = w;
+  }
+  // Origines : seulement des n° entiers présents dans les réponses.
+  let origines: Record<number, Origine> | undefined;
+  if (Array.isArray(p.o)) {
+    for (const id of p.o) if (Number.isInteger(id) && reponses[id as number] != null) (origines ??= {})[id as number] = "scrutin";
+  }
+  return { reponses, poids, origines };
+}
+
+/** Encode les réponses (et les poids non neutres) en chaîne compacte URL-safe (`#test=`). */
+export function encoderPartage(reponses: Record<number, Reponse>, poids?: Record<string, number>, origines?: Record<number, Origine>): string {
+  return b64url(JSON.stringify(contenuPartage(reponses, poids, origines)));
+}
+
+export function decoderPartage(s: string): ReponsesDecodees | null {
   try {
-    const p = JSON.parse(unb64url(s)) as { r?: Record<string, number>; w?: Record<string, number>; o?: unknown };
-    const reponses: Record<number, Reponse> = {};
-    for (const [id, c] of Object.entries(p.r ?? {})) {
-      const n = Number(id);
-      // Ne garder que des ids entiers et des codes connus (0/1/2) — un lien trafiqué
-      // ne doit pas injecter de clé NaN ni de réponse hors barème.
-      if (Number.isInteger(n) && (c === 0 || c === 1 || c === 2)) reponses[n] = DECODE[c];
-    }
-    // Poids : seulement des nombres finis bornés (évite NaN/poids absurde dans le score).
-    let poids: Record<string, number> | undefined;
-    if (p.w && typeof p.w === "object") {
-      poids = {};
-      for (const [k, w] of Object.entries(p.w))
-        if (typeof w === "number" && isFinite(w) && w >= 0 && w <= 3) poids[k] = w;
-    }
-    // Origines : seulement des n° entiers présents dans les réponses.
-    let origines: Record<number, Origine> | undefined;
-    if (Array.isArray(p.o)) {
-      for (const id of p.o) if (Number.isInteger(id) && reponses[id as number] != null) (origines ??= {})[id as number] = "scrutin";
-    }
-    return { reponses, poids, origines };
+    return lireContenuPartage(JSON.parse(unb64url(s)));
   } catch {
     return null;
   }
@@ -241,7 +268,7 @@ export function urlPartage(reponses: Record<number, Reponse>, poids?: Record<str
 }
 
 /** Lit un éventuel résultat partagé dans le hash de l'URL (web). */
-export function lireHashPartage(): { reponses: Record<number, Reponse>; poids?: Record<string, number>; origines?: Record<number, Origine> } | null {
+export function lireHashPartage(): ReponsesDecodees | null {
   if (typeof window === "undefined" || !window.location?.hash) return null;
   const m = window.location.hash.match(/test=([^&]+)/);
   return m ? decoderPartage(m[1]) : null;

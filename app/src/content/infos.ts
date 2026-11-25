@@ -268,7 +268,10 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
           "sont ni envoyées ni stockées sur un serveur : tout le calcul se fait sur ton appareil. Ton " +
           "dernier résultat est gardé en local (sur ce navigateur) pour que tu puisses le revoir, et un " +
           "lien de partage encode tes réponses dans l'adresse elle-même — il recalcule tout à l'ouverture, " +
-          "sans compte ni base de données.",
+          "sans compte ni base de données. Sur iPhone, Safari et l'app installée gardent chacun leurs " +
+          "réponses, et Safari efface celles d'un site où tu ne reviens pas pendant une semaine d'usage. " +
+          "À la fin du test, le bouton « Copier et installer » les transfère dans l'app, sur ton " +
+          "téléphone, sans passer par Scrutoir.",
       },
     ],
   },
@@ -294,8 +297,11 @@ export const FAMILLES_INFOS: FamilleInfos[] = [
           "si le partage est parti, jamais ce que contient ton résultat. Quand tu arrives sur " +
           "Scrutoir, on note d'où vient la visite dans une liste fermée (un lien partagé, " +
           "Instagram, un moteur de recherche, l'appli installée ou un accès direct), jamais " +
-          "l'adresse de la page d'origine. Tes réponses au test et la liste des élus que tu " +
-          "suis restent sur ton appareil.",
+          "l'adresse de la page d'origine. On note aussi le type d'appareil (iPhone, Android ou " +
+          "ordinateur) et si la page s'ouvre dans l'appli installée ou dans une appli comme " +
+          "Instagram, jamais l'appareil précis. Quand tu installes l'appli ou transfères tes " +
+          "réponses vers elle, on compte le geste, jamais ce que contiennent tes réponses. Tes " +
+          "réponses au test et la liste des élus que tu suis restent sur ton appareil.",
       },
       {
         titre: "Ne pas être compté",

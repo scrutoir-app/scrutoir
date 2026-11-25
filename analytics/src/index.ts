@@ -30,6 +30,9 @@ export const JALONS: Jalon[] = [
   // Date de mise en service de la v1.43.0 (déploiement du Worker et de l'appli) : à corriger si
   // le déploiement a lieu un autre jour.
   { date: "2026-11-18", libelle: "Mesure des partages" },
+  // Date de mise en service de la v1.44.0 (Worker puis appli) : à corriger si le déploiement a
+  // lieu un autre jour. Repère du taux de tests terminés avant et après l'installation proposée.
+  { date: "2026-11-26", libelle: "Installer avant le test" },
 ];
 
 interface Env {

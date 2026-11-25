@@ -56,7 +56,13 @@ import { InstallPrompt } from "./src/components/InstallPrompt";
 import { ParcoursLoi } from "./src/components/ParcoursLoi";
 import { useInterstitielParcours } from "./src/parcoursLoiPrefs";
 import { OnboardingOverlay } from "./src/components/OnboardingOverlay";
-import { useOnboardingVisible, fermerOnboarding } from "./src/onboardingPrefs";
+import { useOnboardingVisible, fermerOnboarding, useRepriseVisible, fermerReprise } from "./src/onboardingPrefs";
+import { ArriveeEcran, estVarianteArrivee } from "./src/components/ArriveeEcran";
+import { RepriseEcran } from "./src/components/RepriseEcran";
+import { useContexteArrivee } from "./src/useContexteArrivee";
+import { estIOSInstallee } from "./src/pwa";
+import { mesurerContexte } from "./src/arrivee";
+import { transfertImporte } from "./src/transfertAdresse";
 import { TourNavigation, type TourStep } from "./src/components/TourNavigation";
 import { BulleSigleHote } from "./src/components/SigleGroupe";
 import { useTourNavVisible, fermerTourNav, getTourNote } from "./src/tour";
@@ -121,6 +127,11 @@ function AppInner() {
   // Lien de partage du test de proximité (#test=…) : on recalcule à l'ouverture,
   // 100 % client (rien n'est envoyé au serveur). Une seule fois, au montage.
   useEffect(() => {
+    // Lien de transfert (`#transfert=`) déjà importé au démarrage (index.ts) : le résultat, à soi.
+    if (transfertImporte()) {
+      setStack([{ name: "search" }, { name: "testResultat" }]);
+      return;
+    }
     const partage = lireHashPartage();
     if (partage && Object.keys(partage.reponses).length) {
       setStack([{ name: "search" }, { name: "testResultat", reponses: partage.reponses, poids: partage.poids, origines: partage.origines, partage: true }]);
@@ -219,11 +230,24 @@ function AppInner() {
 
   // Interstitiel pédagogique « parcours d'une loi » : montré UNE fois par installation
   // (re-proposé si le contenu change), rejetable. Persistance locale (cf. parcoursLoiPrefs).
-  const [interstitiel, setInterstitiel] = useState(useInterstitielParcours(lienRubrique));
+  // App installée sur iPhone / iPad, sans réponse : « Scrutoir est installé », coller ses réponses
+  // de Safari. Remplace l'onboarding à ce lancement, montré une fois.
+  const repriseVisible = useRepriseVisible(estIOSInstallee());
+  // Reporté au lancement suivant quand ce lancement ouvre sur l'écran de reprise ou sur des
+  // réponses tout juste importées (lien `#transfert=`) : le résultat d'abord.
+  const [interstitiel, setInterstitiel] = useState(useInterstitielParcours(lienRubrique || repriseVisible || transfertImporte()));
 
   // Overlay d'onboarding « je » : visible au tout premier lancement (aucun suivi/test),
   // ou relancé depuis l'accueil. Piloté par un store local (cf. onboardingPrefs).
   const onboardingVisible = useOnboardingVisible(lienRubrique);
+  // Contexte d'arrivée (pwa.ts) : choisit l'écran d'arrivée d'un nouveau visiteur (sortir
+  // d'Instagram, installer sur iPhone, installer sur Android) ; null tant qu'un Android attend
+  // son invite d'installation (rien n'est montré, pas de clignotement). Mesuré une fois par visite.
+  const contexte = useContexteArrivee();
+  useEffect(() => {
+    if (contexte) mesurerContexte(contexte);
+  }, [contexte]);
+  const arriveeVisible = onboardingVisible && !repriseVisible;
 
   const nav: Nav = {
     push: useCallback((route: Route) => setStack((s) => [...s, route]), []),
@@ -455,19 +479,40 @@ function AppInner() {
         </View>
 
         {/* Bandeau d'installation PWA, en bas de l'Accueil (masqué si clavier ouvert) */}
-        {root === "search" && !keyboardOpen && <InstallPrompt />}
+        {root === "search" && !keyboardOpen && <InstallPrompt ecran={current.name} />}
 
         {/* Interstitiel pédagogique au 1er lancement (une fois par installation).
             Masqué tant que l'onboarding « je » est à l'écran (pas deux modales empilées). */}
-        <ParcoursLoi visible={interstitiel && !onboardingVisible} onClose={() => setInterstitiel(false)} source="interstitiel" />
+        <ParcoursLoi visible={interstitiel && !onboardingVisible && !repriseVisible} onClose={() => setInterstitiel(false)} source="interstitiel" />
 
-        {/* Overlay d'onboarding « je » (1re connexion / relancé depuis l'accueil), au-dessus. */}
-        <OnboardingOverlay
-          visible={onboardingVisible}
-          onStart={() => { fermerOnboarding(); nav.push({ name: "testIntro" }); }}
-          onExplore={fermerOnboarding}
-          onClose={fermerOnboarding}
-        />
+        {/* Arrivée d'un nouveau visiteur, au-dessus : écran par contexte (navigateur intégré,
+            iPhone, Android installable), sinon l'overlay d'onboarding « je ». Rien tant que le
+            contexte attend l'invite Android. Le test reste à un toucher partout. */}
+        {arriveeVisible && estVarianteArrivee(contexte) ? (
+          <ArriveeEcran
+            visible
+            contexte={contexte}
+            onStart={() => { fermerOnboarding(); nav.push({ name: "testIntro" }); }}
+            onClose={fermerOnboarding}
+          />
+        ) : (
+          <OnboardingOverlay
+            visible={arriveeVisible && contexte !== null}
+            onStart={() => { fermerOnboarding(); nav.push({ name: "testIntro" }); }}
+            onExplore={fermerOnboarding}
+            onClose={fermerOnboarding}
+          />
+        )}
+
+        {/* App installée sur iPhone / iPad, sans réponse : coller les réponses de Safari. */}
+        {repriseVisible && (
+          <RepriseEcran
+            visible
+            onImporte={() => { fermerReprise(); setStack([{ name: "search" }, { name: "testResultat" }]); }}
+            onStart={() => { fermerReprise(); nav.push({ name: "testIntro" }); }}
+            onExplore={fermerReprise}
+          />
+        )}
 
         {/* Bandeau « Mise à jour disponible » : le SW n'active plus une nouvelle version
             tout seul (reload forcé en pleine session) — c'est l'utilisateur qui décide. */}

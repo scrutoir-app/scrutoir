@@ -8,8 +8,13 @@
 
 import {
   APPAREILS,
+  CONTEXTES,
   ENTREES,
+  ISSUES_COLLE,
+  ISSUES_COPIE,
   ISSUES_PARTAGE,
+  LIEUX_INSTALL,
+  MODES_COLLE,
   QUOI_PARTAGE,
   SOURCES,
 } from "../../app/src/mesureListes";
@@ -36,12 +41,24 @@ export const EVENTS = new Set([
   // Rubrique Présidentielle 2027 (depuis v1.36.0).
   "presidentielle_open", "programme_open", "chapitre_open", "mesure_open",
   "selection", "filtre", "methode_open",
+  // Installer avant le test, transfert Safari → app (depuis v1.44.0) : listes fermées, jamais
+  // l'user agent ni le contenu d'une réponse.
+  "contexte", "installer_clic", "installer_ok", "ouvrir_navigateur",
+  "transfert_copie", "transfert_colle", "test_sans_installer",
 ]);
 
-/** Pour `share` et `arrivee`, l'entité et l'extra appartiennent à une liste fermée ; sinon « autre ». */
+/** Pour ces types, l'entité et l'extra appartiennent à une liste fermée ; sinon « autre ». */
+const AUCUN = [""] as const;
 const LISTES: Record<string, { e: readonly string[]; x: readonly string[] }> = {
   share: { e: QUOI_PARTAGE, x: ISSUES_PARTAGE },
   arrivee: { e: ENTREES, x: SOURCES },
+  contexte: { e: CONTEXTES, x: SOURCES },
+  installer_clic: { e: LIEUX_INSTALL, x: CONTEXTES },
+  installer_ok: { e: LIEUX_INSTALL, x: CONTEXTES },
+  ouvrir_navigateur: { e: CONTEXTES, x: SOURCES },
+  transfert_copie: { e: LIEUX_INSTALL, x: ISSUES_COPIE },
+  transfert_colle: { e: MODES_COLLE, x: ISSUES_COLLE },
+  test_sans_installer: { e: CONTEXTES, x: AUCUN },
 };
 
 const clip = (s: unknown, n: number): string => (typeof s === "string" ? s : "").slice(0, n);

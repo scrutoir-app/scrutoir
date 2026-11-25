@@ -13,8 +13,12 @@ import { C, F, T, RADIUS, shadowCard, S } from "../../theme";
  * - `outline` : filet `accent`, fond transparent (action secondaire).
  * - `soft`    : aplat `accentSoft` + texte `accent` (action tertiaire discrète).
  * - `text`    : sans fond ni filet (lien d'action) — `muted` pour l'atténuer.
+ * - `citron`  : aplat citron de la marque + encre (CTA posée sur le bloc sombre `heroBg` des
+ *               écrans d'installation, rien d'autre).
+ * - `hero`    : aplat blanc + encre (`onHero` / `heroInk`), action principale non citron posée
+ *               sur le bloc sombre (« Ouvrir dans Safari »).
  */
-export type ButtonVariant = "primary" | "outline" | "soft" | "text";
+export type ButtonVariant = "primary" | "outline" | "soft" | "text" | "citron" | "hero";
 export type ButtonSize = "sm" | "md" | "lg";
 
 export type ButtonProps = {
@@ -70,7 +74,15 @@ export function Button({
 
   // Couleur de premier plan (texte + spinner) selon la variante.
   const fg =
-    variant === "primary" ? C.onAccent : muted && variant === "text" ? C.textMuted : C.accent;
+    variant === "primary"
+      ? C.onAccent
+      : variant === "citron"
+        ? C.onCitron
+        : variant === "hero"
+          ? C.heroInk
+          : muted && variant === "text"
+            ? C.textMuted
+            : C.accent;
 
   const box: ViewStyle = {
     flexDirection: "row",
@@ -83,6 +95,8 @@ export function Button({
     ...(fullWidth ? { alignSelf: "stretch" } : null),
     ...(variant === "primary" ? { backgroundColor: C.accent, ...shadowCard } : null),
     ...(variant === "soft" ? { backgroundColor: C.accentSoft } : null),
+    ...(variant === "citron" ? { backgroundColor: C.citron } : null),
+    ...(variant === "hero" ? { backgroundColor: C.onHero } : null),
     ...(variant === "outline" ? { borderWidth: 1, borderColor: C.accent } : null),
     ...(disabled ? { opacity: 0.5 } : null),
   };

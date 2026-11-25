@@ -67,6 +67,11 @@ function jours(): Jour[] {
   return out;
 }
 
+const CONTEXTES_DEMO: [string, number][] = [
+  ["integre-ios", 0.34], ["ios", 0.22], ["integre-android", 0.12], ["android-installable", 0.1], ["ordinateur", 0.14], ["installee", 0.05], ["android", 0.03],
+];
+const TAUX_DEMO: Record<string, number> = { "integre-ios": 0.12, ios: 0.24, "integre-android": 0.14, "android-installable": 0.26, ordinateur: 0.31, installee: 0.4, android: 0.22 };
+
 const repartir = (total: number, parts: [string, number][]) => parts.map(([k, p]) => [k, Math.round(total * p)] as const);
 
 /** Rangées (t, e, x, n) d'une fenêtre [de, a[. */
@@ -88,6 +93,20 @@ function rangees(js: Jour[], de: number, a: number) {
   for (const [quoi, n] of repartir(partages, PARTAGES)) {
     for (const [issue, m] of repartir(n, ISSUES)) if (m) out.push({ t: "share", e: quoi, x: issue, n: m });
   }
+  // Installer avant le test (v1.44.0) : contexte d'arrivée, tests terminés par contexte, gestes.
+  for (const [ctx, m] of repartir(visites, CONTEXTES_DEMO)) {
+    if (!m) continue;
+    out.push({ t: "contexte", e: ctx, x: "insta_bio", n: m });
+    out.push({ t: "test_done", e: "complet", x: ctx, n: Math.round(m * (TAUX_DEMO[ctx] ?? 0.2)) });
+  }
+  out.push(
+    { t: "ouvrir_navigateur", e: "integre-ios", x: "insta_bio", n: Math.round(visites * 0.12) },
+    { t: "test_sans_installer", e: "integre-ios", x: "", n: Math.round(visites * 0.08) },
+    { t: "installer_clic", e: "arrivee", x: "ios", n: Math.round(visites * 0.07) },
+    { t: "installer_ok", e: "arrivee", x: "android-installable", n: Math.round(visites * 0.02) },
+    { t: "transfert_copie", e: "resultat", x: "copied", n: Math.round(visites * 0.03) },
+    { t: "transfert_colle", e: "presse_papiers", x: "transfert", n: Math.round(visites * 0.02) },
+  );
   return out;
 }
 

@@ -19,6 +19,8 @@ import { chargerTest, chargerPoids, sauverPoids, effacerTest, urlPartage, type O
 import { chargerPerso } from "../testProximite/chargerPerso";
 import { imageStorySpectre, partagerImage } from "../share/storyImage";
 import { partagerLien } from "../share";
+import { GarderSpectre } from "../components/GarderSpectre";
+import { estIOSNavigateur } from "../pwa";
 
 const NIVEAUX = [
   { label: "Peu", v: 0.5 },
@@ -293,6 +295,7 @@ export function TestResultatScreen({
   const libelle = (id: string) => cats.find((c) => c.id === id)?.libelle ?? id;
   // « Affiner » seulement s'il reste assez de scrutins neufs (jamais pour un lien partagé).
   const peutAffiner = !partage && !!all && nbNeuves(all, reponses) >= SEUIL_AFFINER;
+  const garderSpectre = !partage && Platform.OS === "web" && Object.keys(reponses).length > 0 && estIOSNavigateur();
 
   // Message du partage, NEUTRE et honnête : le groupe le plus proche seulement s'il passe le
   // seuil (même règle que l'écran : pas de % sous SEUIL_FIABILITE votes comparés).
@@ -377,9 +380,13 @@ export function TestResultatScreen({
         </TouchableOpacity>
       )}
 
+      {/* iPhone / iPad hors app installée : les réponses vivent dans le navigateur, que l'app
+          installée ne voit pas. « Copier et installer » les emporte (jamais pour un lien partagé). */}
+      {garderSpectre && <GarderSpectre n={Object.keys(reponses).length} style={{ marginTop: peutAffiner ? 6 : 16 }} />}
+
       {/* Deux entrées en liste : trouver son député (action distincte, l'app ne le mémorise pas)
           et les pondérations par thème (accordéon replié, recalcul du spectre en direct). */}
-      <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden", marginTop: peutAffiner ? 6 : 16 }}>
+      <Card padding={0} radius={RADIUS.lg} style={{ overflow: "hidden", marginTop: peutAffiner && !garderSpectre ? 6 : 16 }}>
         <LigneListe icon="user" titre="Trouver ton député" sousTitre="Par code postal ou par commune" chevron="chevron-right" onPress={() => nav.push({ name: "monDepute" })} />
         <View style={{ height: 1, backgroundColor: C.border, marginLeft: 60 }} />
         <LigneListe

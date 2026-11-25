@@ -51,6 +51,12 @@ export const LIGHT = {
   heroInk: "#171A1F",
   heroGhost: "rgba(255,255,255,0.10)", // bouton secondaire posé sur le bloc sombre (« Changer d'élus »)
   heroWatermark: "rgba(255,255,255,0.06)", // filigrane de l'hémicycle sur le bloc sombre (Face à face)
+  // Citron de la marque, en APLAT d'action, réservé au bloc sombre des écrans d'installation
+  // (« Installer Scrutoir », « Me montrer pas à pas », « Copier et installer ») et à leur pastille
+  // d'étape. Identique en clair et en sombre : il est toujours posé sur `heroBg`. `onCitron` =
+  // libellé posé dessus (encre, ≥ 12:1). Ne remplace pas `marqueContour`, réservé au logo.
+  citron: "#C8FF2E",
+  onCitron: "#161A20",
 
   // Sémantique de vote (tons sourds, lecture "donnée")
   pour: "#4F9D83",
@@ -151,6 +157,8 @@ export const DARK: typeof LIGHT = {
   heroInk: "#171A1F",
   heroGhost: "rgba(255,255,255,0.10)",
   heroWatermark: "rgba(255,255,255,0.06)",
+  citron: "#C8FF2E",
+  onCitron: "#161A20",
 
   pour: "#57A98D",
   contre: "#D17F6B",
