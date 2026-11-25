@@ -198,7 +198,10 @@ export function ArriveeEcran({
                 {nav === "chrome" ? (
                   <>Touche <Fort>Partager</Fort> dans la barre d'adresse</>
                 ) : nav === "safari" ? (
-                  <>Touche <Fort>•••</Fort> ou <Fort>Partager</Fort> dans Safari</>
+                  <>
+                    Touche <Feather name="menu" size={ICON.sm} color={C.onHero} accessibilityLabel="le menu" /> dans la barre d'adresse, puis{" "}
+                    <Fort>Partager</Fort>
+                  </>
                 ) : (
                   <>Touche <Fort>Partager</Fort> dans le menu du navigateur</>
                 )}
