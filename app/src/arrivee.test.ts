@@ -211,3 +211,18 @@ test("ouvrir dans le navigateur : Safari (x-safari-https) ou Android (intent), s
   assert.equal(lienOuvrirNavigateur("android", profond, "insta_post"), "intent://scrutoir.fr/?open=scrutin:VTANR5L17V1&source=insta_post#Intent;scheme=https;end");
   assert.equal(lienOuvrirNavigateur("ios", { ...loc, pathname: "" }, "direct"), "x-safari-https://scrutoir.fr/?source=direct");
 });
+
+test("ouvrir dans le navigateur depuis Instagram sur iPhone : le schéma d'Instagram (extbrowser), adresse encodée", () => {
+  const loc = { host: "scrutoir.fr", pathname: "/", search: "", hash: "" };
+  assert.equal(
+    lienOuvrirNavigateur("ios", loc, "insta_bio", "Instagram"),
+    "instagram://extbrowser/?url=https%3A%2F%2Fscrutoir.fr%2F%3Fsource%3Dinsta_bio",
+  );
+  const profond = { host: "scrutoir.fr", pathname: "/", search: "?open=scrutin:VTANR5L17V1", hash: "#test=abc" };
+  const lien = lienOuvrirNavigateur("ios", profond, "partage", "Instagram");
+  assert.ok(lien.startsWith("instagram://extbrowser/?url="));
+  assert.equal(decodeURIComponent(lien.split("url=")[1]), "https://scrutoir.fr/?open=scrutin:VTANR5L17V1&via=partage#test=abc");
+  // Autres applis : inchangé (x-safari-https sur iPhone, intent sur Android, Instagram Android compris).
+  assert.ok(lienOuvrirNavigateur("ios", loc, "facebook", "Facebook").startsWith("x-safari-https://"));
+  assert.ok(lienOuvrirNavigateur("android", loc, "insta_bio", "Instagram").startsWith("intent://"));
+});
