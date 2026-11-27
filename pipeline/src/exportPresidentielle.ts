@@ -44,6 +44,10 @@ export interface ConfigProgramme {
   publieLe: string;
   livre: { titre: string; url: string };
   chiffrage?: { titre: string; url: string; date: string } | null;
+  /** Obligatoire : d'où viennent les montants, pourquoi ceux-là, données plus fraîches intégrées (27/11/2026). */
+  provenanceChiffrage: string;
+  /** Mises à jour des chiffres après publication (affichées telles quelles, la plus récente en premier). */
+  misesAJour?: { date: string; texte: string }[];
   base: { scrutins: number; du: string; au: string };
 }
 export interface ConfigPresidentielle {
@@ -58,7 +62,12 @@ export function lireConfig(fichier = CONFIG): ConfigPresidentielle {
     if (!/^[a-z0-9-]+$/.test(p.id)) throw new Error(`Programme : id invalide « ${p.id} »`);
     if (ids.has(p.id)) throw new Error(`Programme en double : ${p.id}`);
     ids.add(p.id);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.publieLe)) throw new Error(`${p.id} : publieLe invalide`);
+    if (!/^\d{4}-\d{2}(-\d{2})?$/.test(p.publieLe)) throw new Error(`${p.id} : publieLe invalide (AAAA-MM-JJ ou AAAA-MM)`);
+    if (typeof p.provenanceChiffrage !== "string" || !p.provenanceChiffrage.trim()) throw new Error(`${p.id} : provenanceChiffrage manquante (d'où viennent les montants)`);
+    for (const m of p.misesAJour ?? []) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(m.date) || !m.texte?.trim()) throw new Error(`${p.id} : mise à jour invalide (date AAAA-MM-JJ et texte requis)`);
+      if (MENTION_INTERNE.test(m.texte)) throw new Error(`${p.id} : mention interne dans une mise à jour : « ${m.texte.slice(0, 60)} »`);
+    }
     if (typeof p.enService !== "boolean") throw new Error(`${p.id} : enService doit être true ou false`);
   }
   return c;
@@ -106,6 +115,7 @@ interface LigneBrute {
   code: string;
   type: string;
   libelle_chiffrage: string;
+  source?: string;
   confronte_avec: { mesure_programme?: string; texte?: string; libelle_chiffrage?: string };
   verdict: string;
   a_juger?: string;
@@ -142,6 +152,7 @@ const POSITIONS: Record<string, PositionGroupe> = {
   "partagé (pour/abstention)": "partage",
   "partagé (contre/abstention)": "partage",
   "partagé (pour/contre)": "partage",
+  "partagé (pour/contre/abstention)": "partage", // égalité à trois (1/1/1) : possible dans le calcul « parti »
   "non votant": "aucun",
   "absent du scrutin": "aucun",
 };
@@ -167,7 +178,8 @@ const RAISON_A_JUGER = /^à juger \(arbitrage 10\) : /;
 let AVERTISSEMENTS: string[] = [];
 const avertir = (m: string) => AVERTISSEMENTS.push(m);
 /** Mentions internes à la méthode, illisibles pour le public, dans un texte qui sera publié. */
-const MENTION_INTERNE = /\bAnthony\b|\barbitrages? \d|cas de contrôle|\bharmonise|\blot [A-Z0-9]/i;
+// « harmonise » visait le script harmonise.py : le mot « harmoniser » d'un écart n'est pas une mention interne.
+const MENTION_INTERNE = /\bAnthony\b|\barbitrages? \d|cas de contrôle|\bharmonise2?\.py\b|\blot [A-Z0-9]/i;
 
 /** Normalise un scrutin brut. Toute valeur inconnue fait échouer l'export (rien de perdu en silence). */
 function scrutin(id: string, b: ScrutinBrut, raisonForcee?: string, aJugerParNumero?: Record<string, string>): ScrutinConfronte {
@@ -191,15 +203,19 @@ function scrutin(id: string, b: ScrutinBrut, raisonForcee?: string, aJugerParNum
   let raisonAJuger: string | undefined;
   for (const vg of b.vigilance ?? []) {
     if (vg.startsWith("appariement sur le seul intitulé")) alertes.push("intitule-seul");
-    else if (/^amendement déposé par un député du groupe .* sur lequel le groupe a voté contre/.test(vg)) alertes.push("auteur-du-groupe");
+    else if (/^amendement déposé par un député du (groupe|parti) .* sur lequel le (groupe|parti) a voté (contre|abstention)/.test(vg)) alertes.push("auteur-du-groupe");
     else if (RAISON_A_JUGER.test(vg)) raisonAJuger = vg.replace(RAISON_A_JUGER, "").trim();
     // Les trois suivantes se lisent sur le scrutin lui-même (effet, votants) : rien à recopier.
-    else if (/^seuls \d+ députés? du groupe (a|ont) voté : position non représentative/.test(vg)) {
+    else if (/^seuls \d+ députés? du (groupe|parti) (a|ont) voté : position non représentative/.test(vg)) {
       if (effet !== "r" && effet !== "o" && effet !== "c") erreur(id, `${ctx} : position non représentative avec effet ${b.effet}`);
     } else if (/^aucun député .* votant : compté comme tension/.test(vg)) {
       if (v.votants !== 0 || effet !== "t") erreur(id, `${ctx} : « aucun votant » incohérent`);
     } else if (/^abstention sur un scrutin de sens inverse, auteur : .* → neutre/.test(vg)) {
       if (effet !== "o" && effet !== "r" && effet !== "j") avertir(`${ctx} : vigilance « abstention de sens inverse → neutre » mais effet « ${b.effet} » (position ${v.position})`);
+    } else if (/^abstention sur un scrutin de sens inverse, auteur : .* → tension/.test(vg)) {
+      if (effet !== "t" && effet !== "r" && effet !== "j") avertir(`${ctx} : vigilance « abstention de sens inverse → tension » mais effet « ${b.effet} » (position ${v.position})`);
+    } else if (/^auteur parmi les rattachements incertains/.test(vg)) {
+      // Relevé de méthode (rattachement non tranché) : rien à afficher.
     } else erreur(id, `${ctx} : vigilance inconnue « ${vg.slice(0, 80)} »`);
   }
   // Ligne du chiffrage forcée « à juger » (arbitrage 10) : son scrutin de tension est le cas discuté.
@@ -362,7 +378,9 @@ export function construireProgramme(cfg: ConfigProgramme, dossier = path.join(DO
         if (!m) erreur(id, `${b.code} : mesure secondaire ${x.id} inconnue`);
         return { id: x.id, statut: m.statut };
       });
-      lignes.push({ code: b.code, type, libelle: b.libelle_chiffrage.trim(), statut: st, mesure: mp, secondaires });
+      const ligne: LigneChiffree = { code: b.code, type, libelle: b.libelle_chiffrage.trim(), statut: st, mesure: mp, secondaires };
+      if (b.source?.trim()) ligne.source = b.source.trim();
+      lignes.push(ligne);
       const raisonForcee = b.a_juger?.trim();
       const sc = mp ? [] : b.scrutins.map((s) => scrutin(b.code, s, raisonForcee, aJuger[`chiffrage-${b.code}`]?.scrutins));
       if (!mp) verifierStatut(b.code, st, sc);
@@ -421,6 +439,8 @@ export function construireProgramme(cfg: ConfigProgramme, dossier = path.join(DO
     ...resume,
     livre: cfg.livre,
     chiffrage: cfg.chiffrage ?? null,
+    provenanceChiffrage: cfg.provenanceChiffrage.trim(),
+    misesAJour: [...(cfg.misesAJour ?? [])].sort((a, b) => (a.date < b.date ? 1 : -1)).map((m) => ({ date: m.date, texte: m.texte.trim() })),
     comptes,
     verdicts,
     chapitres,

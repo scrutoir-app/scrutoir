@@ -7,7 +7,7 @@ import { C, F, T, tnum, RADIUS } from "../../theme";
 import type { Nav } from "../../nav";
 import type { Perimetre, ProgrammeResume } from "../../presidentielle/types";
 import { getProgramme } from "../../presidentielle/donnees";
-import { dateLongue, ligneComptes, nombre, pluriel } from "../../presidentielle/libelles";
+import { datePublication, ligneComptes, nombre, pluriel } from "../../presidentielle/libelles";
 import { useData } from "../../hooks/useData";
 import { ErreurChargement } from "../../components/ErreurChargement";
 import { Kicker, LigneComptes, Pression } from "../../components/presidentielle/primitives";
@@ -29,7 +29,7 @@ export function OngletProgramme2027({ resume, nav }: { resume: ProgrammeResume; 
     <View style={{ gap: 12, marginTop: 12 }}>
       <View style={{ backgroundColor: C.surface, borderRadius: RADIUS.lg, padding: 16, gap: 14 }}>
         <View style={{ gap: 2 }}>
-          <Kicker style={tnum}>Publié le {dateLongue(p.publieLe)}</Kicker>
+          <Kicker style={tnum}>{datePublication(p.publieLe)}</Kicker>
           <Text accessibilityRole="header" style={[T.callout, { fontFamily: F.extra, color: C.text }]}>Promis face aux votes du groupe</Text>
           <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>
             {nombre(p.comptes.mesures)} mesures, {chiffrees}

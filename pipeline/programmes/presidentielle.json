@@ -5,7 +5,9 @@
       "id": "lfi-2027",
       "dossier": "lfi-2027",
       "enService": false,
-      "alias": ["lfi"],
+      "alias": [
+        "lfi"
+      ],
       "parti": "La France insoumise",
       "groupe": {
         "uid": "PO845413",
@@ -22,10 +24,41 @@
         "url": "https://melenchon2027.fr/wp-content/uploads/2026/10/Comment-nous-allons-remettre-de-l-ordre-dans-les-comptes-publics.pdf",
         "date": "octobre 2026"
       },
+      "provenanceChiffrage": "Montants tirés du document de chiffrage publié par La France insoumise en octobre 2026 : c’est le chiffrage officiel du parti, repris tel quel. Si le parti publie des données plus récentes, Scrutoir les intégrera.",
       "base": {
         "scrutins": 9895,
         "du": "2024-10-08",
         "au": "2026-11-12"
+      }
+    },
+    {
+      "id": "ecologistes-2027",
+      "dossier": "ecologistes-2027",
+      "enService": false,
+      "alias": [
+        "ecologistes"
+      ],
+      "parti": "Les Écologistes",
+      "groupe": {
+        "uid": "PO845439",
+        "abrev": "ECOS",
+        "libelle": "Écologiste et Social"
+      },
+      "publieLe": "2026-07",
+      "livre": {
+        "titre": "Pour une prospérité écologique",
+        "url": "https://lesecologistes.fr/document/3N4JsAEmq6vsx42IITGNZa/vdef-programme-1.pdf"
+      },
+      "chiffrage": {
+        "titre": "Budget 2027 : la grande transmission doit financer la grande transition",
+        "url": "https://lesecologistes.fr/document/3uFsOCRc1JbiqUtDqkoLVd/dossierpresse-budget2027.pdf",
+        "date": "26 août 2026"
+      },
+      "provenanceChiffrage": "Le parti n’a pas publié de chiffrage de son programme. Scrutoir reprend les seuls montants qu’il donne lui-même, dans son programme et dans son dossier de presse « Budget 2027 » du 26 août 2026. Un rendement annoncé sans répartition entre plusieurs mesures n’est attribué à aucune. Si le parti publie des données plus récentes, Scrutoir les intégrera.",
+      "base": {
+        "scrutins": 10116,
+        "du": "2024-10-08",
+        "au": "2026-11-25"
       }
     }
   ]

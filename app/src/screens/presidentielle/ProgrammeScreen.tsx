@@ -9,7 +9,7 @@ import type { Nav } from "../../nav";
 import type { Comptes, Famille, Filtre, LigneChiffree, Perimetre, Programme, SousNeutre } from "../../presidentielle/types";
 import { comptesDe, confrontables, correspond, mesuresDuChapitre, statutsDuPerimetre } from "../../presidentielle/logique";
 import { getProgramme } from "../../presidentielle/donnees";
-import { MOT_STATUT, PHRASE_MONTANTS, annonceFiltre, comptesEnLettres, dateLongue, familleStatut, ligneComptes, nombre } from "../../presidentielle/libelles";
+import { MOT_STATUT, PHRASE_MONTANTS, annonceFiltre, comptesEnLettres, datePublication, familleStatut, ligneMiseAJour, ligneComptes, nombre } from "../../presidentielle/libelles";
 import { useData } from "../../hooks/useData";
 import { ErreurChargement } from "../../components/ErreurChargement";
 import { AnnoncePolie, Anneaux, Bloc, Entree, Kicker, LigneComptes, MiniAnneau, PastilleVerdict, Pression, retourSelection } from "../../components/presidentielle/primitives";
@@ -60,10 +60,14 @@ function noteDePerimetre(p: Programme, perimetre: Perimetre): string {
   if (perimetre === "all")
     return `+ ${nombre(p.comptes.horsChamp)} mesures hors champ, à part, chacune avec son motif : aucun vote de l’Assemblée ne peut les porter.`;
   if (perimetre === "cle")
-    return `Les ${nombre(p.comptes.cles)} mesures que le parti désigne comme clés dans son livre : ${nombre(p.comptes.clesConfrontables)} confrontables, ${nombre(p.comptes.cles - p.comptes.clesConfrontables)} hors champ.`;
-  return p.chiffrage
-    ? `Les ${nombre(p.comptes.chiffrees)} mesures que le parti a chiffrées lui-même dans « ${p.chiffrage.titre} » (${p.chiffrage.date}).`
-    : `Les ${nombre(p.comptes.chiffrees)} mesures que le parti a chiffrées lui-même.`;
+    return `Les ${nombre(p.comptes.cles)} mesures que le parti désigne comme clés dans son programme : ${nombre(p.comptes.clesConfrontables)} confrontables, ${nombre(p.comptes.cles - p.comptes.clesConfrontables)} hors champ.`;
+  const provenance = p.provenanceChiffrage ? ` ${p.provenanceChiffrage}` : "";
+  if (p.comptes.chiffrees === 0) return `Le parti n’a publié aucun chiffrage de ses mesures.${provenance}`;
+  const n = p.comptes.chiffrees;
+  const qui = n > 1 ? `Les ${nombre(n)} mesures que le parti a chiffrées lui-même` : "La seule mesure que le parti a chiffrée lui-même";
+  // Montants tirés de plusieurs documents du parti : la provenance les nomme, la note ne cite pas un seul titre.
+  const plusieursSources = p.listeChiffrees.some((l) => !!l.source);
+  return (p.chiffrage && !plusieursSources ? `${qui}, dans « ${p.chiffrage.titre} » (${p.chiffrage.date}).` : `${qui}.`) + provenance;
 }
 
 export function ProgrammeScreen({
@@ -117,7 +121,10 @@ export function ProgrammeScreen({
         <View style={{ gap: 4, paddingTop: 12 }}>
           <Kicker>Programme 2027 · {p.parti}</Kicker>
           <Text accessibilityRole="header" style={[T.title, { color: C.text }]}>Promis face aux votes du groupe {groupe}</Text>
-          <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>Publié le {dateLongue(p.publieLe)}</Text>
+          <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>{datePublication(p.publieLe)}</Text>
+          {(p.misesAJour ?? []).map((m) => (
+            <Text key={m.date + m.texte} style={[T.small, tnum, { fontFamily: F.semibold, color: C.text, lineHeight: 19 }]}>{ligneMiseAJour(m)}</Text>
+          ))}
         </View>
 
         <Bloc style={{ paddingVertical: 14, gap: 10 }}>
@@ -243,13 +250,13 @@ function ListesChiffrees({ p, filtre, sous, onOpen }: { p: Programme; filtre: Fi
               key={r.code}
               onPress={() => onOpen(r.code)}
               accessibilityRole="button"
-              accessibilityLabel={`${r.libelle}. ${MOT_STATUT[r.statut]}`}
+              accessibilityLabel={`${r.libelle}. ${MOT_STATUT[r.statut]}${r.source ? `. Source : ${r.source}` : ""}`}
               style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: 56, paddingVertical: 10, paddingHorizontal: 14, borderBottomWidth: i === l.length - 1 ? 0 : 1, borderBottomColor: C.border }}
             >
               <PastilleVerdict famille={familleStatut(r.statut)} />
               <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
                 <Text style={[T.callout, { fontFamily: F.bold, color: C.text, lineHeight: 20 }]}>{r.libelle}</Text>
-                <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>{MOT_STATUT[r.statut]}</Text>
+                <Text style={[T.micro, { fontFamily: F.bold, color: C.textMuted }]}>{MOT_STATUT[r.statut]}{r.source ? ` · ${r.source}` : ""}</Text>
               </View>
               <Feather name="chevron-right" size={18} color={C.textFaint} />
             </Pression>
@@ -261,7 +268,7 @@ function ListesChiffrees({ p, filtre, sous, onOpen }: { p: Programme; filtre: Fi
     <Entree cle={`chiffrees:${p.id}`} gap={12}>
       <Liste titre="Recettes" l={rec} />
       <Liste titre="Dépenses" l={dep} />
-      {rec.length + dep.length === 0 && <Text style={[T.small, { color: C.textMuted }]}>Aucune ligne pour ce filtre.</Text>}
+      {rec.length + dep.length === 0 && p.listeChiffrees.length > 0 && <Text style={[T.small, { color: C.textMuted }]}>Aucune ligne pour ce filtre.</Text>}
       <Text style={[T.small, { fontFamily: F.semibold, color: C.textFaint, paddingHorizontal: 4, lineHeight: 18 }]}>{PHRASE_MONTANTS}</Text>
     </Entree>
   );

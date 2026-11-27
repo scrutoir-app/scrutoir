@@ -114,9 +114,14 @@ export function MesureScreen({ programme, mesure, nav }: { programme: string; me
             ) : (
               <>
                 <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>
-                  Document de chiffrage du parti · {cible.type === "ligne" && cible.ligne.type === "recette" ? "Recettes" : "Dépenses"}
+                  {cible.type === "ligne" && cible.ligne.source ? cible.ligne.source : "Document de chiffrage du parti"} · {cible.type === "ligne" && cible.ligne.type === "recette" ? "Recettes" : "Dépenses"}
                 </Text>
-                {p.chiffrage && <LienExterne url={p.chiffrage.url} libelle={`Lire « ${p.chiffrage.titre} »`} />}
+                {cible.type === "ligne" && /^Programme\b/.test(cible.ligne.source ?? "")
+                  ? <LienExterne url={p.livre.url} libelle={`Lire « ${p.livre.titre} »`} />
+                  : p.chiffrage && <LienExterne url={p.chiffrage.url} libelle={`Lire « ${p.chiffrage.titre} »`} />}
+                {!!p.provenanceChiffrage && (
+                  <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted, lineHeight: 18 }]}>{p.provenanceChiffrage}</Text>
+                )}
               </>
             )}
           </Bloc>
