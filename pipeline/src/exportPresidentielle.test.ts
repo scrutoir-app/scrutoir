@@ -239,6 +239,19 @@ test("égalité à trois (1 pour, 1 contre, 1 abstention) : position partagée, 
   assert.equal(s.effet, "r");
 });
 
+test("mentions internes : « arbitrage 3 » est signalé, le verbe « harmoniser » ne l'est pas", () => {
+  const r = tmp();
+  const { dossier } = jeuSynthetique(r, true);
+  const f = path.join(dossier, "verdicts", "tension.json");
+  const t = JSON.parse(fs.readFileSync(f, "utf8"));
+  t[0].scrutins[0].ecart = "Action : harmoniser l'accès au repas à un euro.";
+  t[0].scrutins[1].ecart = "Rétrécit un texte qui portait la mesure (arbitrage 3).";
+  ecrire(f, t);
+  const internes = construireProgramme(CFG, dossier).avertissements.filter((a) => a.includes("mention interne"));
+  assert.equal(internes.length, 1);
+  assert.match(internes[0], /arbitrage 3/);
+});
+
 test("la configuration versionnée est valide et ne met aucun programme en service par erreur", () => {
   const cfg = lireConfig(CONFIG);
   assert.ok(cfg.programmes.length >= 1);

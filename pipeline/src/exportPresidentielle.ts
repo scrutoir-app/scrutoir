@@ -172,7 +172,8 @@ const RAISON_A_JUGER = /^à juger \(arbitrage 10\) : /;
 let AVERTISSEMENTS: string[] = [];
 const avertir = (m: string) => AVERTISSEMENTS.push(m);
 /** Mentions internes à la méthode, illisibles pour le public, dans un texte qui sera publié. */
-const MENTION_INTERNE = /\bAnthony\b|\barbitrages? \d|cas de contrôle|\bharmonise|\blot [A-Z0-9]/i;
+// « harmonise » visait le script harmonise.py : le mot « harmoniser » d'un écart n'est pas une mention interne.
+const MENTION_INTERNE = /\bAnthony\b|\barbitrages? \d|cas de contrôle|\bharmonise2?\.py\b|\blot [A-Z0-9]/i;
 
 /** Normalise un scrutin brut. Toute valeur inconnue fait échouer l'export (rien de perdu en silence). */
 function scrutin(id: string, b: ScrutinBrut, raisonForcee?: string, aJugerParNumero?: Record<string, string>): ScrutinConfronte {
