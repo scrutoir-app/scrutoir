@@ -1,0 +1,189 @@
+[
+  {
+    "id": "p2c3-025",
+    "partie": "Partie 2 – Une économie au service des besoins",
+    "chapitre": "Chapitre 3 : Un pacte productif pour répondre aux besoins",
+    "section": "Refuser le chantage : définanciariser la dette publique",
+    "texte": "Reprendre, sans attendre de modification des traités, les programmes de rachat de dettes souveraines par la BCE, comme en 2015 et en 2020",
+    "url": "https://melenchon2027.fr/programme/livre/une-economie-au-service-des-besoins/chapitre3",
+    "mesure_cle": false,
+    "sous_mesure_de": null,
+    "verdict": "Pas de vote représentatif",
+    "constat": "même sens : 1 scrutin(s), groupe partagé (contre/abstention) 1. Dont 1 position(s) non représentative(s) (3 députés du groupe ou moins, arbitrage 9), sans effet sur le verdict. Pas de vote représentatif du groupe : pas de verdict.",
+    "regle_recherche": [
+      "(décision d'Anthony du 27/11/2026 : arbitrage 4 étendu, leviers budgétaires UE)"
+    ],
+    "n_trouves": 1,
+    "scrutins": [
+      {
+        "uid": "VTANR5L17V8715",
+        "numero": 8715,
+        "date": "2026-10-14",
+        "intitule": "l'amendement n° 3694 de M. Jean-Philippe Tanguy à l'article 55 (examen prioritaire) du projet de loi de finances pour 2027 (première lecture).",
+        "dossier": "Projet de loi de finances pour 2027",
+        "sens": "même sens",
+        "base": "dispositif",
+        "extrait": "En l’absence de reprise par l’Eurosystème, au cours de l’exercice 2027, d’achats nets de titres de créance émis par les administrations publiques des",
+        "ecart": "Levier conditionné à la reprise par l'Eurosystème d'achats nets de titres de dette publique en 2027 (loi de finances pour 2027).",
+        "note": "Levier budgétaire sur la contribution française au budget de l'Union.",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "partagé (contre/abstention)",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "auteur_groupe": "RN",
+        "effet": "non représentatif",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8715",
+        "vigilance": [
+          "seuls 2 députés du groupe ont voté : position non représentative (arbitrage 9)"
+        ]
+      }
+    ],
+    "motif_confrontable": "Loi de finances : levier budgétaire sur la contribution française au budget de l'Union (politique monétaire)"
+  },
+  {
+    "id": "p4c2-009",
+    "partie": "Partie 4 – Le goût du futur : aux nouvelles frontières de l’humanité",
+    "chapitre": "Chapitre 2 : Élever le niveau d’éducation et de savoirs",
+    "section": "Reconstruire une école globale pour l’égalité et l’émancipation",
+    "texte": "Réduire partout les effectifs par classe pour faire mieux que la moyenne européenne de 19 élèves par classe en donnant la priorité aux maternelles et aux classes des actuels réseaux d’éducation prioritaire (REP)",
+    "url": "https://melenchon2027.fr/programme/livre/le-gout-du-futur-aux-nouvelles-frontieres-de-l-humanite/chapitre2",
+    "mesure_cle": false,
+    "sous_mesure_de": "p4c2-008",
+    "verdict": "Pas de vote représentatif",
+    "constat": "même sens : 1 scrutin(s), groupe contre 1. Dont 1 position(s) non représentative(s) (3 députés du groupe ou moins, arbitrage 9), sans effet sur le verdict. Pas de vote représentatif du groupe : pas de verdict.",
+    "regle_recherche": [
+      "effectif*+classe*|eleves+classe|eleves+par+classe",
+      "dedoubl*",
+      "--disp 'eleves par classe|effectifs? par classe|effectifs des classes|nombre d.eleves par|taille des classes|plafonnement des effectifs|limite a [0-9]+ eleves'",
+      "fermeture*+classe*|carte+scolaire"
+    ],
+    "n_trouves": 2,
+    "scrutins": [
+      {
+        "uid": "VTANR5L17V2842",
+        "numero": 2842,
+        "date": "2025-06-27",
+        "intitule": "l'amendement n° 41 de M. Gillet à l'article premier et rapport annexé du projet de loi de programmation pour la refondation de Mayotte (première lecture).",
+        "dossier": "Projet de loi de programmation pour la refondation de Mayotte",
+        "sens": "même sens",
+        "base": "dispositif",
+        "extrait": "le dédoublement des classes de CP et de CE1, afin de garantir un meilleur accompagnement pédagogique",
+        "ecart": "limité à Mayotte et aux classes de CP et de CE1 ; inscrit au rapport annexé d'une loi de programmation ; pas de cible chiffrée par classe",
+        "note": "",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 3,
+          "abstention": 0,
+          "votants_lfi": 3
+        },
+        "auteur_groupe": "RN",
+        "effet": "non représentatif",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2842",
+        "vigilance": [
+          "seuls 3 députés du groupe ont voté : position non représentative (arbitrage 9)"
+        ]
+      }
+    ],
+    "commentaire": "n° 6075 (rapport sur la carte scolaire et les fermetures de classes) hors objet.",
+    "motif_confrontable": "Loi ordinaire / loi de finances — plafonnement et réduction des effectifs par classe"
+  },
+  {
+    "id": "p6c1-010",
+    "partie": "Partie 6 – Un monde ordonné",
+    "chapitre": "Chapitre 1 : Se libérer du libéralisme en Europe",
+    "section": "La construction d’un bloc de bifurcation en Europe",
+    "texte": "La fin de la politique absurde de resserrement monétaire de la Banque centrale européenne (BCE) et la reprise de ses rachats de dettes publiques afin que la politique monétaire serve l’intérêt général, et non les intérêts des banques privées",
+    "url": "https://melenchon2027.fr/programme/livre/un-monde-ordonne/chapitre1",
+    "mesure_cle": false,
+    "sous_mesure_de": null,
+    "verdict": "Pas de vote représentatif",
+    "constat": "même sens : 1 scrutin(s), groupe partagé (contre/abstention) 1. Dont 1 position(s) non représentative(s) (3 députés du groupe ou moins, arbitrage 9), sans effet sur le verdict. Pas de vote représentatif du groupe : pas de verdict.",
+    "regle_recherche": [
+      "(décision d'Anthony du 27/11/2026 : arbitrage 4 étendu, leviers budgétaires UE)"
+    ],
+    "n_trouves": 1,
+    "scrutins": [
+      {
+        "uid": "VTANR5L17V8715",
+        "numero": 8715,
+        "date": "2026-10-14",
+        "intitule": "l'amendement n° 3694 de M. Jean-Philippe Tanguy à l'article 55 (examen prioritaire) du projet de loi de finances pour 2027 (première lecture).",
+        "dossier": "Projet de loi de finances pour 2027",
+        "sens": "même sens",
+        "base": "dispositif",
+        "extrait": "En l’absence de reprise par l’Eurosystème, au cours de l’exercice 2027, d’achats nets de titres de créance émis par les administrations publiques des",
+        "ecart": "Levier conditionné à la reprise par l'Eurosystème d'achats nets de titres de dette publique en 2027 (loi de finances pour 2027).",
+        "note": "Levier budgétaire sur la contribution française au budget de l'Union.",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "partagé (contre/abstention)",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "auteur_groupe": "RN",
+        "effet": "non représentatif",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8715",
+        "vigilance": [
+          "seuls 2 députés du groupe ont voté : position non représentative (arbitrage 9)"
+        ]
+      }
+    ],
+    "motif_confrontable": "Loi de finances : levier budgétaire sur la contribution française au budget de l'Union (politique monétaire)"
+  },
+  {
+    "id": "p6c2-005",
+    "partie": "Partie 6 – Un monde ordonné",
+    "chapitre": "Chapitre 2 : Une France indépendante au service de la paix",
+    "section": "Assumer l’indépendance de la France dans le monde",
+    "texte": "Protéger le Groenland face aux menaces états-uniennes en étendant à l’ensemble des territoires associés à l’UE les garanties de sécurité prévues par les traités",
+    "url": "https://melenchon2027.fr/programme/livre/un-monde-ordonne/chapitre2",
+    "mesure_cle": false,
+    "sous_mesure_de": null,
+    "verdict": "Pas de vote représentatif",
+    "constat": "même sens : 1 scrutin(s), groupe abstention 1. Dont 1 position(s) non représentative(s) (3 députés du groupe ou moins, arbitrage 9), sans effet sur le verdict. Pas de vote représentatif du groupe : pas de verdict.",
+    "regle_recherche": [
+      "groenland|danemark",
+      "--disp 'groenland|danemark|42\\.7|42, paragraphe 7|article 42-7|clause d.assistance mutuelle|territoires? associes|pays et territoires d.outre-mer'"
+    ],
+    "n_trouves": 2,
+    "scrutins": [
+      {
+        "uid": "VTANR5L17V5300",
+        "numero": 5300,
+        "date": "2026-02-03",
+        "intitule": "l'article unique de la proposition de résolution européenne visant à soutenir le Danemark et le Groenland et à œuvrer en faveur d'une plus grande coopération en matière de défense.",
+        "dossier": "Soutenir le Danemark et le Groenland et œuvrer en faveur d’une plus grande coopération en matière de défense",
+        "sens": "même sens",
+        "base": "intitulé",
+        "extrait": "visant à soutenir le Danemark et le Groenland et à œuvrer en faveur d'une plus grande coopération en matière de défense",
+        "ecart": "soutien au Danemark et au Groenland et coopération de défense ; l'intitulé ne mentionne pas l'extension des garanties de sécurité des traités aux territoires associés",
+        "note": "résolution européenne, article unique",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 2,
+          "votants_lfi": 2
+        },
+        "auteur_groupe": null,
+        "effet": "non représentatif",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/5300",
+        "vigilance": [
+          "seuls 2 députés du groupe ont voté : position non représentative (arbitrage 9)",
+          "appariement sur le seul intitulé d'une proposition de résolution, dont le texte n'est pas dans la base"
+        ]
+      }
+    ],
+    "commentaire": "Première version de la règle (regex « 42.7 » non échappée) : 131 résultats, dont des articles 42 ou 427 sans rapport ; règle resserrée en échappant le point. 5299 (amendement sans dispositif disponible) est hors objet faute de contenu lisible. Aucun scrutin trouvé sur l'extension de l'article 42.7 aux territoires associés.",
+    "motif_confrontable": "Proposition de résolution européenne / révision des garanties de sécurité des traités européens"
+  }
+]

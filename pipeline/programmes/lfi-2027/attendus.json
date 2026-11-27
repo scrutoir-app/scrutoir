@@ -1,0 +1,33 @@
+{
+ "_doc": "Comptes attendus après le rejeu du 27/11/2026 (outil corrigé, arbitrage 4 étendu). Contrôle bloquant de l'export.",
+ "mesures": 1069,
+ "confrontables": 698,
+ "horsChamp": 371,
+ "cles": 107,
+ "clesConfrontables": 69,
+ "chiffrees": 28,
+ "chapitres": 23,
+ "verdicts": {
+  "all": {
+   "c": 204,
+   "t": 72,
+   "s": 385,
+   "j": 33,
+   "r": 4
+  },
+  "cle": {
+   "c": 18,
+   "t": 9,
+   "s": 38,
+   "j": 4,
+   "r": 0
+  },
+  "ch": {
+   "c": 14,
+   "t": 6,
+   "s": 4,
+   "j": 3,
+   "r": 1
+  }
+ }
+}

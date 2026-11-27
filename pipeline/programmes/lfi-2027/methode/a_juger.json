@@ -1,0 +1,316 @@
+{
+ "_doc": "Arbitrage 10 : cas où le même sens se discute → « à juger » (faits sans verdict). mesures : scrutins à juger par mesure du programme ; chiffrage : lignes du chiffrage forcées à « à juger ».",
+ "mesures": {
+  "chiffrage-R12": {
+   "scrutins": {
+    "129": "Dispositif mixte : l’assiette s’élargit (valeur d’acquisition au lieu de la réduction de capital, rachats non annulés inclus, seuil abaissé) mais le taux passe de 8 % à 1 % ; le dispositif ne dit pas si le produit de la taxe augmente.",
+    "130": "Dispositif mixte : l’assiette s’élargit (valeur d’acquisition au lieu de la réduction de capital, rachats non annulés inclus) mais le taux passe de 8 % à 2 % ; le dispositif ne dit pas si le produit de la taxe augmente.",
+    "131": "Dispositif mixte : l’assiette s’élargit (valeur d’acquisition au lieu de la réduction de capital, rachats non annulés inclus) mais le taux passe de 8 % à 1 % ; le dispositif ne dit pas si le produit de la taxe augmente.",
+    "132": "Dispositif mixte : l’assiette s’élargit (valeur de rachat au lieu de la réduction de capital) mais le taux est divisé par deux ; le dispositif ne dit pas si le produit de la taxe augmente."
+   }
+  },
+  "p1c2-018": {
+   "scrutins": {
+    "9771": "L’instrument diffère : une orientation ajoutée à une stratégie nationale, sans plan de sortie ni obligation pour les administrations, collectivités et entreprises publiques que vise la mesure."
+   }
+  },
+  "p1c2-025": {
+   "scrutins": {
+    "6975": "Dispositif mixte : il vise le respect des exigences « applicables » (des contrôles) et non l’équivalence des normes de production, retire la mention du bien-être des animaux et de la protection des végétaux, ramène l’habilitation d’un an à six mois et ne dit rien des normes sociales."
+   }
+  },
+  "p1c2-031": {
+   "scrutins": {
+    "4377": "Le critère retenu est la nationalité des sociétés (françaises, puis de l’Union européenne) et non la localisation de l’activité que demande la mesure, et il ne vaut que pour les marchés liés à la sidérurgie.",
+    "6570": "L’instrument est l’exonération d’une contribution nouvelle, et non l’accord d’une aide ni un critère de commande publique, et la localisation admise s’étend à toute l’Union européenne."
+   }
+  },
+  "p1c3-034": {
+   "scrutins": {
+    "2184": "Le dispositif assouplit les zones sans décréter de moratoire et réécrit un article 15 ter dont le contenu n’est pas visible ; si cet article supprimait les zones, l’amendement l’affaiblirait et serait de sens inverse au regard de l’arbitrage 3.",
+    "6183": "Les alinéas supprimés ne sont pas visibles, les zones restent possibles sans moratoire, et l’amendement réécrit un article du texte de commission mixte paritaire dont le contenu n’est pas visible : s’il supprimait les zones, l’amendement l’affaiblirait (arbitrage 3)."
+   }
+  },
+  "p1c3-040": {
+   "scrutins": {
+    "2582": "Dispositif mixte : l’échéance de sortie des fossiles concorde, mais la voie retenue (capacités pilotables, plancher de production de 1 400 TWh) s’écarte de la montée des renouvelables et de la sobriété que prévoit la mesure, et le 3° remplacé n’est pas visible."
+   }
+  },
+  "p1c3-045": {
+   "scrutins": {
+    "9505": "L’instrument diffère : un taux réduit de taxe sur des batteries domestiques n’est pas une planification du déploiement du stockage à l’échelle du système énergétique."
+   }
+  },
+  "p1c3-046": {
+   "scrutins": {
+    "2428": "L’instrument diffère : un objectif annuel de prix inscrit dans la programmation n’est pas un tarif réglementé, et il ne porte que sur l’électricité.",
+    "2434": "Le texte prévoyait déjà des tarifs réglementés « reflétant les coûts de production » ; l’amendement n’ajoute pas la mesure mais retire ce critère de calcul, ce qui pourrait l’affaiblir et le rendre de sens inverse au regard de l’arbitrage 3.",
+    "2435": "Le texte prévoyait déjà des tarifs réglementés « reflétant les coûts de production » ; l’amendement n’ajoute pas la mesure mais retire ce critère de calcul, ce qui pourrait l’affaiblir et le rendre de sens inverse au regard de l’arbitrage 3.",
+    "2436": "Le texte prévoyait déjà des tarifs réglementés « reflétant les coûts de production » ; l’amendement remplace ce critère par les « coûts complets », ce qui s’éloigne du calcul demandé par la mesure et pourrait être de sens inverse au regard de l’arbitrage 3."
+   }
+  },
+  "p1c3-047": {
+   "scrutins": {
+    "2454": "Objectif général et déclaratif : il ne stoppe ni la mise en concurrence des concessions hydroélectriques ni la libéralisation, et ne crée aucun pôle public."
+   }
+  },
+  "p1c3-048": {
+   "scrutins": {
+    "2434": "Le tarif réglementé du gaz était déjà prévu par le texte et l’amendement ne fait que le reformuler (il supprime aussi les mots « diminution et la », dont le contexte n’est pas visible) ; aucun retour sur les hausses de prix n’y figure.",
+    "2447": "Le tarif réglementé du gaz était déjà prévu par le texte et l’amendement ne fait que le reformuler (il supprime aussi les mots « diminution et la », dont le contexte n’est pas visible) ; aucun retour sur les hausses de prix n’y figure."
+   }
+  },
+  "p1c3-054": {
+   "scrutins": {
+    "2390": "L’instrument diffère : une facilité administrative pour ces travaux n’est ni un droit opposable ni une obligation d’équipement à la charge des bailleurs."
+   }
+  },
+  "p1c3-055": {
+   "scrutins": {
+    "4054": "L’instrument diffère (avantage fiscal) et rien dans le dispositif ne vise le remplacement des chauffages fossiles ; l’exposé évoque surtout la substitution à des convecteurs électriques."
+   }
+  },
+  "p1c3-076": {
+   "scrutins": {
+    "1498": "La mesure demande de rendre le réemploi et le recyclage obligatoires ; le dispositif n’ouvre qu’une faculté de qualifier une offre d’innovante dans la commande publique."
+   }
+  },
+  "p1c3-090": {
+   "scrutins": {
+    "1524": "L’instrument est une dérogation aux règles d’urbanisme, rattachée au ZAN par sa seule finalité affichée, et non une protection du foncier agricole, forestier et naturel ; elle élargit en outre une dérogation que le texte réservait aux projets d’intérêt national majeur.",
+    "1698": "L’instrument est une dérogation aux règles d’urbanisme, rattachée au ZAN par sa seule finalité affichée, et non une protection du foncier agricole, forestier et naturel.",
+    "2407": "La protection du foncier n’y est qu’une condition accessoire d’un dispositif de requalification commerciale, limité à ces opérations, qui allège par ailleurs le régime d’autorisation d’exploitation commerciale."
+   }
+  },
+  "p2c1-016": {
+   "scrutins": {
+    "8599": "Le conseiller accompagne un salarié sur saisine individuelle sans le représenter ni négocier pour lui, son mode de désignation n’est pas précisé dans le dispositif, et l’amendement supprime les alinéas 17 et 18 de l’article, dont le contenu n’est pas visible."
+   }
+  },
+  "p2c2-001": {
+   "scrutins": {
+    "2428": "L’instrument diffère : un objectif de prix inscrit dans la programmation énergétique n’est ni un blocage ni un plafond de prix, et il ne porte que sur l’électricité."
+   }
+  },
+  "p2c2-012": {
+   "scrutins": {
+    "76": "Dispositif mixte : la tranche à 49 % alourdit les plus grosses transmissions, mais l’amendement crée aussi un abattement pour les enfants du conjoint, que le cas de contrôle n° 3382 classe en sens inverse pour cette même mesure."
+   }
+  },
+  "p2c2-013": {
+   "scrutins": {
+    "8854": "L’exonération vise un type de bien (l’immobilier) et non le montant total de l’héritage : elle profite aussi aux successions importantes et ne couvre pas un petit héritage composé d’autres actifs."
+   }
+  },
+  "p2c2-015": {
+   "scrutins": {
+    "60": "Les six scrutins sur la réduction d'impôt Ehpad (art. 199 quindecies) et la vente de terres à de jeunes agriculteurs (art. 199 vicies A) transforment une réduction en crédit d'impôt, comme le demande la mesure, mais ce crédit reste non remboursable (« sommes venant en déduction de l'impôt dû ») et, pour les terres, la niche est élargie : classés en sens inverse (correction d'Anthony), le même sens se discute. À juger (arbitrage 10), même classement pour les six.",
+    "336": "Les six scrutins sur la réduction d'impôt Ehpad (art. 199 quindecies) et la vente de terres à de jeunes agriculteurs (art. 199 vicies A) transforment une réduction en crédit d'impôt, comme le demande la mesure, mais ce crédit reste non remboursable (« sommes venant en déduction de l'impôt dû ») et, pour les terres, la niche est élargie : classés en sens inverse (correction d'Anthony), le même sens se discute. À juger (arbitrage 10), même classement pour les six.",
+    "3098": "Les six scrutins sur la réduction d'impôt Ehpad (art. 199 quindecies) et la vente de terres à de jeunes agriculteurs (art. 199 vicies A) transforment une réduction en crédit d'impôt, comme le demande la mesure, mais ce crédit reste non remboursable (« sommes venant en déduction de l'impôt dû ») et, pour les terres, la niche est élargie : classés en sens inverse (correction d'Anthony), le même sens se discute. À juger (arbitrage 10), même classement pour les six.",
+    "8764": "Les six scrutins sur la réduction d'impôt Ehpad (art. 199 quindecies) et la vente de terres à de jeunes agriculteurs (art. 199 vicies A) transforment une réduction en crédit d'impôt, comme le demande la mesure, mais ce crédit reste non remboursable (« sommes venant en déduction de l'impôt dû ») et, pour les terres, la niche est élargie : classés en sens inverse (correction d'Anthony), le même sens se discute. À juger (arbitrage 10), même classement pour les six.",
+    "3097": "Les six scrutins sur la réduction d'impôt Ehpad (art. 199 quindecies) et la vente de terres à de jeunes agriculteurs (art. 199 vicies A) transforment une réduction en crédit d'impôt, comme le demande la mesure, mais ce crédit reste non remboursable (« sommes venant en déduction de l'impôt dû ») et, pour les terres, la niche est élargie : classés en sens inverse (correction d'Anthony), le même sens se discute. À juger (arbitrage 10), même classement pour les six.",
+    "3391": "Les six scrutins sur la réduction d'impôt Ehpad (art. 199 quindecies) et la vente de terres à de jeunes agriculteurs (art. 199 vicies A) transforment une réduction en crédit d'impôt, comme le demande la mesure, mais ce crédit reste non remboursable (« sommes venant en déduction de l'impôt dû ») et, pour les terres, la niche est élargie : classés en sens inverse (correction d'Anthony), le même sens se discute. À juger (arbitrage 10), même classement pour les six."
+   }
+  },
+  "p2c2-024": {
+   "scrutins": {
+    "4313": "Dispositif mixte : l'amendement conditionne les aides publiques mais remplace aussi les mots « est nationalisée », si bien que son adoption retire la nationalisation prévue par le texte ; il ne vise en outre qu'une entreprise.",
+    "4314": "Dispositif mixte : l'amendement conditionne les aides publiques mais remplace aussi les mots « est nationalisée », si bien que son adoption retire la nationalisation prévue par le texte ; il ne vise en outre qu'une entreprise.",
+    "4315": "Dispositif mixte : l'amendement conditionne les aides publiques mais remplace aussi les mots « est nationalisée », si bien que son adoption retire la nationalisation prévue par le texte ; il ne vise en outre qu'une entreprise.",
+    "4316": "Dispositif mixte : l'amendement conditionne les aides publiques mais remplace aussi les mots « est nationalisée », si bien que son adoption retire la nationalisation prévue par le texte ; il ne vise en outre qu'une entreprise."
+   }
+  },
+  "p2c3-004": {
+   "scrutins": {
+    "36": "Le prélèvement frappe les actionnaires sur des dividendes exceptionnels, les rachats n'entrant que dans le calcul du seuil : ce n'est pas une taxe sur les rachats d'actions, et une taxe n'est pas une variante de la limitation des rendements (arbitrage 1).",
+    "129": "Dispositif mixte : l'assiette est élargie mais le taux passe de 8 % à 1 % ; l'amendement modifie un article qui taxe déjà les rachats, et s'il l'affaiblit au total il serait de sens inverse (arbitrage 3), ce que le dispositif ne permet pas de chiffrer.",
+    "130": "Dispositif mixte : l'assiette est élargie mais le taux passe de 8 % à 2 % ; l'amendement modifie un article qui taxe déjà les rachats, et s'il l'affaiblit au total il serait de sens inverse (arbitrage 3), ce que le dispositif ne permet pas de chiffrer.",
+    "131": "Dispositif mixte : l'assiette est élargie mais le taux passe de 8 % à 1 % ; l'amendement modifie un article qui taxe déjà les rachats, et s'il l'affaiblit au total il serait de sens inverse (arbitrage 3), ce que le dispositif ne permet pas de chiffrer."
+   }
+  },
+  "p2c3-009": {
+   "scrutins": {
+    "956": "La vérification encadre l'exercice du droit de préemption, pas les investissements étrangers eux-mêmes : ni contrôle, ni autorisation, ni notification, sur un périmètre (foncier agricole) très éloigné de la mesure."
+   }
+  },
+  "p2c3-026": {
+   "scrutins": {
+    "9348": "Instrument différent : une simple faculté de souscription directe par les résidents n'est pas un circuit du Trésor, et le reste de la dette demeure placé sur les marchés."
+   }
+  },
+  "p2c3-033": {
+   "scrutins": {
+    "543": "Dispositif mixte : le critère de taille (PME et artisans) disparaît, ce qui va contre la mesure, mais la part réservée passe de « jusqu'à un tiers » à « au moins 50 % », ce qui peut aussi profiter aux PME locales.",
+    "6668": "Instrument différent : une procédure simplifiée et facultative, réservée aux solutions technologiques innovantes de défense, ne garantit pas aux PME une part de la commande publique selon leur poids."
+   }
+  },
+  "p3c1-011": {
+   "scrutins": {
+    "5208": "Réécriture complète d'un article d'un texte qui porte déjà la mesure : le dispositif ne permet pas de dire s'il élargit ou restreint la rédaction initiale (objet ramené à faciliter l'insertion, expérimentation prolongée de six mois) ; s'il la restreint, il serait de sens inverse (arbitrage 3).",
+    "5217": "Réécriture d'un article d'un texte qui porte déjà la mesure : le financement « dans la limite des crédits disponibles » et le conventionnement pour cinq ans au plus peuvent restreindre la rédaction initiale, ce qui le rendrait de sens inverse (arbitrage 3) ; le dispositif seul ne permet pas de trancher."
+   }
+  },
+  "p3c1-017": {
+   "scrutins": {
+    "3491": "Périmètre éloigné : la mesure porte sur la durée légale (35 heures, 32 heures) et sur la majoration des heures supplémentaires ; retirer une déduction de cotisations au-delà de 3 SMIC ne touche ni la durée ni la majoration, et le lien avec « cotisations incluses » est indirect."
+   }
+  },
+  "p3c1-054": {
+   "scrutins": {
+    "3428": "Seule la part progressive est présente : une CSG à taux progressifs n'est pas la cotisation sociale universelle fusionnant cotisations et CSG que demande la mesure, et le barème ne vise que les revenus modestes.",
+    "8937": "Seule une modulation de la CSG sur les revenus du capital est présente, sans fusion ni perception directe par les caisses, et le barème n'est pas progressif jusqu'au bout (10,2 % pour la tranche la plus haute contre 11 % pour la précédente)."
+   }
+  },
+  "p3c1-063": {
+   "scrutins": {
+    "2933": "Le maintien de la rémunération ne vaut que pour la reconversion interne (clause située au-delà des 1 500 premiers caractères) ; en reconversion externe le contrat est suspendu, et l'article remplace des dispositifs existants sans qu'on puisse dire s'il étend ou réduit le maintien du revenu."
+   }
+  },
+  "p3c2-029": {
+   "scrutins": {
+    "3618": "Instrument différent : le tiers payant ne change ni le remboursement ni le public des séances, alors que la mesure demande de rembourser la psychothérapie des moins de 26 ans."
+   }
+  },
+  "p3c3-007": {
+   "scrutins": {
+    "657": "Cas listé à l'arbitrage 10 (statut « à juger ») : loi pénale alors que l'élément chiffré de la mesure est un budget, si bien que le même sens se discute.",
+    "8669": "Cas listé à l'arbitrage 10 (statut « à juger ») : texte d'organisation judiciaire alors que l'élément chiffré de la mesure est un budget, si bien que le même sens se discute.",
+    "8705": "Cas listé à l'arbitrage 10 (statut « à juger ») : loi pénale alors que l'élément chiffré de la mesure est un budget, si bien que le même sens se discute.",
+    "8706": "Cas listé à l'arbitrage 10 (statut « à juger ») : texte d'organisation judiciaire alors que l'élément chiffré de la mesure est un budget, si bien que le même sens se discute."
+   }
+  },
+  "p3c3-012": {
+   "scrutins": {
+    "8599": "Le dispositif supprime aussi les alinéas 17 et 18 sans que leur contenu soit visible, et les conseillers relèvent de l'accompagnement des salariés plutôt que des obligations de l'employeur que vise la mesure."
+   }
+  },
+  "p3c4-001": {
+   "scrutins": {
+    "1601": "Instrument et périmètre différents : une loi sur l'enseignement supérieur (formation, référents, procédures disciplinaires) n'est pas un plan d'action national doté d'un budget ; cas proche de ceux que l'arbitrage 10 classe « à juger ».",
+    "2879": "Le classement dépend de celui du texte rejeté (loi limitée à l'antisémitisme dans l'enseignement supérieur, sans plan ni budget), dont le même sens se discute ; si ce texte est hors objet, sa motion de rejet l'est aussi.",
+    "2880": "Instrument et périmètre différents : une loi limitée à l'antisémitisme dans l'enseignement supérieur n'est pas un plan d'action national contre toutes les formes de racisme doté d'un budget ; cas proche de ceux que l'arbitrage 10 classe « à juger »."
+   }
+  },
+  "p4c1-011": {
+   "scrutins": {
+    "7101": "Instrument différent : la bande grève les terrains à bâtir et non les parcelles traitées, et elle ne protège ni les habitations ni les crèches, écoles et hôpitaux existants ; l'amendement réécrit en outre tout l'article sans que l'on voie ce qu'il remplace."
+   }
+  },
+  "p4c2-023": {
+   "scrutins": {
+    "6073": "Le dispositif n'est pas dans les données : encadrer les regroupements d'écoles n'est pas en soi construire ou maintenir des écoles de proximité, et l'intitulé ne dit pas si le texte freine ou organise ces regroupements.",
+    "6076": "Le dispositif n'est pas dans les données : encadrer les regroupements d'écoles n'est pas en soi construire ou maintenir des écoles de proximité, et l'intitulé ne dit pas si le texte freine ou organise ces regroupements."
+   }
+  },
+  "p4c2-068": {
+   "scrutins": {
+    "3183": "Dispositif mixte : la suppression du crédit d'impôt recherche est la mesure, mais la recette sert une baisse de l'impôt sur les sociétés et non des dotations récurrentes aux universités et instituts, que la mesure associe à la suppression."
+   }
+  },
+  "p4c2-075": {
+   "scrutins": {
+    "4216": "Dispositif mixte : exonération des seuls étudiants français et hausse de 90 à 120 euros pour les étudiants étrangers, alors que la mesure demande la suppression de la contribution pour tous."
+   }
+  },
+  "p4c3-024": {
+   "scrutins": {
+    "8090": "Dispositif mixte : il restreint une extension prévue par l'amendement sous-amendé, dont la rédaction n'est pas visible, tout en inscrivant lui-même la faculté d'étendre l'interdiction aux cortèges de supporters ; le même sens n'est que relatif."
+   }
+  },
+  "p4c4-004": {
+   "scrutins": {
+    "7296": "Réécriture de l'article unique d'un texte qui interdisait déjà les engrais à plus de 40 mg/kg (d'après les autres scrutins du dossier) : le seuil de départ est assoupli (60 mg/kg jusqu'en 2030) et le seuil final durci (20 mg/kg), si bien qu'il pourrait être de sens inverse (arbitrage 3) ; une teneur maximale sur un contaminant n'est pas non plus une liste d'interdiction de substances."
+   }
+  },
+  "p4c4-053": {
+   "scrutins": {
+    "248": "Dispositif mixte : le plafond et la sélection restreignent le conventionnement, mais la suppression de l'adressage médical élargit l'accès des patients ; le nombre de séances et le taux de remboursement ne sont pas touchés."
+   }
+  },
+  "p4c5-018": {
+   "scrutins": {
+    "6530": "Seul l'intitulé du texte porte la mesure : l'article 2 (exonérations de cotisations pour les navires à propulsion vélique, d'après un autre scrutin du dossier) n'est ni l'article premier ni l'article unique et son contenu n'est pas visible, comme dans le cas visé par l'arbitrage 2.",
+    "6533": "Seul l'intitulé du texte porte la mesure : le contenu de l'article 4 n'est pas visible et ce n'est ni l'article premier ni l'article unique, comme dans le cas visé par l'arbitrage 2."
+   }
+  },
+  "p4c6-005": {
+   "scrutins": {
+    "6417": "Le lien avec la mesure est une inférence : le dispositif ne parle ni de neutralisation ni d'actions hostiles, et une priorité donnée à un démonstrateur dans le rapport annexé est très éloignée d'un objectif général de moyens de neutralisation."
+   }
+  },
+  "p4c7-009": {
+   "scrutins": {
+    "5758": "Objet voisin : le dispositif limite les finalités de traitement des données de santé par les assureurs, alors que la mesure vise la formation des personnes et l'encadrement de la transmission des données à des tiers."
+   }
+  },
+  "p4c7-027": {
+   "scrutins": {
+    "9789": "Instrument différent : des critères de protection contre l'accès d'États tiers (ceux de l'article 31 de la loi du 21 mai 2024) ne sont pas un hébergement sur des serveurs publics situés en France.",
+    "9790": "Instrument différent : des critères de protection contre l'accès d'États tiers (ceux de l'article 31 de la loi du 21 mai 2024) ne sont pas un hébergement sur des serveurs publics situés en France, et le périmètre exclut les entités publiques."
+   }
+  },
+  "p5c1-011": {
+   "scrutins": {
+    "7407": "Rédaction globale d’un article qui portait déjà un statut d’autonomie : elle garde le statut mais en change le régime (adaptations soumises à habilitation, dérogations au principe d’égalité pour l’emploi et le logement), et le dispositif seul ne permet pas de dire si elle affaiblit le texte (arbitrage 3)."
+   }
+  },
+  "p5c2-024": {
+   "scrutins": {
+    "8202": "L’instrument diffère : il s’agit d’un transfert de compétences vers des agents moins qualifiés pour soulager les enquêteurs, pas d’un renforcement des moyens dédiés au recueil des plaintes ni de l’accompagnement des victimes."
+   }
+  },
+  "p5c2-033": {
+   "scrutins": {
+    "8483": "Dispositif mixte : il retire la sanction dans la procédure (nullité de l’expertise) mais élargit les cas visés (commentaire sur la crédibilité, stéréotypes liés au sexe) tout en retirant les stéréotypes racistes et liés au handicap ; le sens net n’est pas univoque."
+   }
+  },
+  "p5c3-034": {
+   "scrutins": {
+    "952": "Le contenu de l’alinéa étendu n’apparaît pas dans le dispositif ; la mesure (encadrer le prix du foncier) n’y figure que par l’intitulé du texte, et le critère retenu est la nationalité de l’investisseur, pas le prix."
+   }
+  },
+  "p5c3-035": {
+   "scrutins": {
+    "24": "Le volet SRU, au-delà des 1 500 premiers caractères, accompagne le remplacement de la convention Anah par un engagement de location ; le dispositif ne permet pas de dire s’il étend le décompte des logements sociaux ou s’il maintient celui de logements déjà conventionnés (seule l’extension aux meublés est nette).",
+    "3798": "Le volet SRU accompagne le remplacement de la convention Anah par un engagement de location et la transformation de la réduction d’impôt en crédit d’impôt ; le dispositif ne permet pas de dire s’il étend le décompte des logements sociaux ou s’il maintient celui de logements déjà conventionnés."
+   }
+  },
+  "p5c3-037": {
+   "scrutins": {
+    "2706": "L’objet (habitat insalubre) est commun, mais l’instrument est une dérogation aux règles d’urbanisme et d’environnement, différent du permis de louer et du plan de rénovation que nomme la mesure."
+   }
+  },
+  "p5c3-050": {
+   "scrutins": {
+    "2865": "Rapprochement sur le seul intitulé ; le rapport annexé mêle la programmation des investissements à des orientations sur l’immigration et l’ordre public, ce qui en fait un texte mixte au regard de la mesure.",
+    "2874": "Vote sur l’ensemble d’un texte mixte rapproché sur son seul intitulé, qui ne nomme pas les services publics ; la programmation est fixée par le Gouvernement et le texte contient des dispositions étrangères à la mesure.",
+    "2975": "Vote sur l’ensemble d’un texte mixte rapproché sur son seul intitulé, qui ne nomme pas les services publics ; la programmation est fixée par le Gouvernement et le texte contient des dispositions étrangères à la mesure."
+   }
+  },
+  "p6c2-010": {
+   "scrutins": {
+    "6309": "Le dispositif n’ajoute qu’une mention de l’intelligence artificielle après le mot « opérationnelle » ; sans le contenu de l’alinéa 7, on ne peut pas vérifier qu’il porte sur un modèle d’armée fondé sur les technologies de rupture."
+   }
+  },
+  "p6c2-022": {
+   "scrutins": {
+    "6371": "Périmètre éloigné : l’allocation de reconnaissance du combattant relève du droit des anciens combattants, ni de la condition militaire des personnels, ni du service de santé, ni de la reconnaissance des blessures que nomme la mesure.",
+    "6374": "Périmètre éloigné : la carte du combattant reconnaît un service et non une blessure, et ne renforce ni les moyens de la condition militaire ni le service de santé des armées nommés par la mesure."
+   }
+  },
+  "p6c2-036": {
+   "scrutins": {
+    "8724": "La condition du levier est cumulée : la création d'un fonds européen pour Gaza suffirait à lever la minoration, alors que l'accord resterait en vigueur. Le même sens se discute."
+   }
+  },
+  "p6c2-039": {
+   "scrutins": {
+    "8724": "La condition du levier est cumulée : la création d'un fonds européen pour Gaza suffirait à lever la minoration, alors que l'accord resterait en vigueur. Le même sens se discute."
+   }
+  }
+ },
+ "chiffrage": {
+  "D08": "Le seul scrutin (n° 4692) rétablit l'Ondam 2026 des établissements de santé à 112,8 Md€, soit une hausse d'environ 3 %. La mesure chiffrée demande 3 Md€ de plus et 10 000 postes : les deux ne se comparent pas sur la même base. Le groupe a voté contre. Le même sens se discute.",
+  "D09": "Les scrutins (n° 657, 8669, 8705, 8706) portent sur des lois pénales relatives aux violences sexistes et sexuelles, alors que la mesure chiffrée est un budget (2,6 Md€ supplémentaires pour atteindre 3 Md€). Le même sens se discute."
+ }
+}

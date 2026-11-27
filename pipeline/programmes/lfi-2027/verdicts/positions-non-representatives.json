@@ -1,0 +1,731 @@
+[
+  {
+    "id": "p1c2-027",
+    "texte": "Mettre fin aux niches fiscales sur le kérosène pour limiter le dumping exercé par l’e-commerce depuis l’étranger",
+    "verdict": "Cohérent",
+    "positions_non_representatives": [
+      {
+        "numero": 299,
+        "date": "2024-11-07",
+        "sens": "sens inverse",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 3652 de M. Eskenazi après l'article 13 du projet de loi de finances pour 2025 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/299"
+      }
+    ]
+  },
+  {
+    "id": "p1c3-086",
+    "texte": "Garantir des prix rémunérateurs aux producteurs en instaurant des prix planchers pour les agriculteurs, et créer une caisse de défaisance pour reprendre les dettes agricoles des exploitants qui se sont convertis au 100 % bio",
+    "verdict": "Cohérent",
+    "positions_non_representatives": [
+      {
+        "numero": 7165,
+        "date": "2026-05-30",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 637 de M. Patrice Martin après l'article 19 du projet de loi d'urgence pour la protection et la souveraineté agricoles (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7165"
+      }
+    ]
+  },
+  {
+    "id": "p2c2-010",
+    "texte": "Introduire une garantie d’impôt de 2 % sur le patrimoine des centimillionaires, dite « taxe Zucman », et rétablir une exit tax renforcée pour lutter contre l’évasion fiscale",
+    "verdict": "Cohérent",
+    "positions_non_representatives": [
+      {
+        "numero": 3334,
+        "date": "2025-11-03",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 807 de M. Tanguy après l'article 3 du projet de loi de finances pour 2026 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3334"
+      }
+    ]
+  },
+  {
+    "id": "p3c1-006",
+    "texte": "Plafonner strictement les frais d’incidents bancaires pour empêcher les banques de s’enrichir grâce à la pauvreté",
+    "verdict": "Cohérent",
+    "positions_non_representatives": [
+      {
+        "numero": 2275,
+        "date": "2025-06-05",
+        "sens": "sens inverse",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement de suppression n° 22 de M. Labaronne à l'article 2 de la proposition de loi portant plusieurs mesures pour limiter les frais bancaires (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2275"
+      }
+    ]
+  },
+  {
+    "id": "p4c4-031",
+    "texte": "Porter l’alimentation dans la restauration collective et scolaire à 100  % biologique et locale, diversifier les sources de protéines en augmentant la part des protéines végétales et garantir l’accès à une option végétarienne quotidienne",
+    "verdict": "Cohérent",
+    "positions_non_representatives": [
+      {
+        "numero": 7062,
+        "date": "2026-05-29",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 732 de Mme Grangier à l'article 4 du projet de loi d'urgence pour la protection et la souveraineté agricoles (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7062"
+      }
+    ]
+  },
+  {
+    "id": "p5c2-004",
+    "texte": "Procéder à l’évaluation des résultats des lois déjà adoptées et abroger les dispositions liberticides qui ont instauré un état d’urgence permanent",
+    "verdict": "Cohérent",
+    "positions_non_representatives": [
+      {
+        "numero": 5811,
+        "date": "2026-02-27",
+        "sens": "sens inverse",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 2,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 103 (rect.) de Mme Pirès Beaune après l'article 1er bis du projet de loi relatif à la lutte contre les fraudes sociales et fiscales (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/5811"
+      }
+    ]
+  },
+  {
+    "id": "p5c3-014",
+    "texte": "Réserver le statut de collectivité unique aux territoires insulaires et aux Outre-mer",
+    "verdict": "Cohérent",
+    "positions_non_representatives": [
+      {
+        "numero": 6034,
+        "date": "2026-04-08",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 2,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 5 de Mme Morel à l'article 2 de la proposition de loi visant à simplifier le millefeuille territorial par la collectivité unique (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6034"
+      }
+    ]
+  },
+  {
+    "id": "p1c2-024",
+    "texte": "Réviser le Code des marchés publics pour favoriser les entreprises sociales et solidaires, écologiques et locales",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 1514,
+        "date": "2025-04-30",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "partagé (pour/abstention)",
+          "pour": 1,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 1467 de M. Renault à l'article 4 undecies (examen prioritaire) du projet de loi de simplification de la vie économique (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1514"
+      },
+      {
+        "numero": 7062,
+        "date": "2026-05-29",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 732 de Mme Grangier à l'article 4 du projet de loi d'urgence pour la protection et la souveraineté agricoles (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7062"
+      }
+    ]
+  },
+  {
+    "id": "p1c2-031",
+    "texte": "Établir des critères de localisation de l’activité pour la commande publique nationale et locale ainsi que pour l’accord des aides aux entreprises",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 299,
+        "date": "2024-11-07",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 3652 de M. Eskenazi après l'article 13 du projet de loi de finances pour 2025 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/299"
+      },
+      {
+        "numero": 1514,
+        "date": "2025-04-30",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "partagé (pour/abstention)",
+          "pour": 1,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 1467 de M. Renault à l'article 4 undecies (examen prioritaire) du projet de loi de simplification de la vie économique (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1514"
+      },
+      {
+        "numero": 3780,
+        "date": "2025-11-14",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 2,
+          "abstention": 0,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 38 de M. Mauvieux après l'article 12 du projet de loi de finances pour 2026 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3780"
+      }
+    ]
+  },
+  {
+    "id": "p1c3-021",
+    "texte": "Mettre en œuvre un plan d’urgence pour résoudre la crise de l’eau à Mayotte",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 2836,
+        "date": "2025-06-27",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 350 de Mme Bamana à l'article premier et rapport annexé du projet de loi de programmation pour la refondation de Mayotte (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2836"
+      }
+    ]
+  },
+  {
+    "id": "p1c3-045",
+    "texte": "Planifier le déploiement de technologies de stockage d’énergie et de mécanismes nécessaires à l’équilibre d’un système énergétique 100 % renouvelable",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 2608,
+        "date": "2025-06-19",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 1,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 103 (rect.) de M. de Courson après l'article 12 de la proposition de loi portant programmation nationale énergie et climat pour les années 2025 à 2035 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2608"
+      }
+    ]
+  },
+  {
+    "id": "p2c2-012",
+    "texte": "Augmenter les droits de succession sur les plus hauts patrimoines en comptabilisant l’ensemble des dons et héritages reçus tout au long de la vie ; créer un héritage maximal de 12 millions d’euros",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 9396,
+        "date": "2026-10-30",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 2,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 3601 de M. Le Coq après l'article 10 du projet de loi de finances pour 2027 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/9396"
+      }
+    ]
+  },
+  {
+    "id": "p2c2-022",
+    "texte": "Intensifier les poursuites judiciaires et durcir les sanctions à l’encontre des criminels en col blanc reconnus coupables de fraude fiscale",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 7835,
+        "date": "2026-06-29",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 314 de M. Odoul à l'article 1er ter de la proposition de loi relative à l'organisation, à la gestion et au financement du sport professionnel (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7835"
+      }
+    ]
+  },
+  {
+    "id": "p2c3-009",
+    "texte": "Renforcer le contrôle des investissements étrangers dans tous les secteurs présentant un caractère stratégique, y compris a posteriori, en obligeant la notification de tout investissement étranger au ministère de l’Économie",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 7857,
+        "date": "2026-06-29",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 2,
+          "abstention": 0,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 328 de M. Odoul à l'article 4 de la proposition de loi relative à l'organisation, à la gestion et au financement du sport professionnel (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7857"
+      }
+    ]
+  },
+  {
+    "id": "p2c3-038",
+    "texte": "Plafonner les frais bancaires, notamment sur le paiement par carte bancaire",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 2275,
+        "date": "2025-06-05",
+        "sens": "sens inverse",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement de suppression n° 22 de M. Labaronne à l'article 2 de la proposition de loi portant plusieurs mesures pour limiter les frais bancaires (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2275"
+      }
+    ]
+  },
+  {
+    "id": "p2c3-041",
+    "texte": "Réserver une partie des marchés publics aux productions locales",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 1514,
+        "date": "2025-04-30",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "partagé (pour/abstention)",
+          "pour": 1,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 1467 de M. Renault à l'article 4 undecies (examen prioritaire) du projet de loi de simplification de la vie économique (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1514"
+      },
+      {
+        "numero": 7062,
+        "date": "2026-05-29",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 732 de Mme Grangier à l'article 4 du projet de loi d'urgence pour la protection et la souveraineté agricoles (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/7062"
+      }
+    ]
+  },
+  {
+    "id": "p3c3-012",
+    "texte": "Adapter le monde du travail à la réalité des violences conjugales et sexuelles et renforcer les obligations de l’employeur en matière de prévention et de traitement des violences sexistes et sexuelles au travail",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 8622,
+        "date": "2026-10-09",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 3,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 3
+        },
+        "intitule": "l'amendement n° 722 de Mme Faucillon et l'amendement identique suivant à l'article 43 bis (examen prioritaire) de la proposition de loi apportant une réponse intégrale au phénomène des violences sexuelles et sexistes contre les femmes et les enfants (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8622"
+      },
+      {
+        "numero": 8630,
+        "date": "2026-10-09",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 3,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 3
+        },
+        "intitule": "l'amendement n° 498 de Mme Autain après l'article 44 (examen prioritaire) de la proposition de loi apportant une réponse intégrale au phénomène des violences sexuelles et sexistes contre les femmes et les enfants (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8630"
+      }
+    ]
+  },
+  {
+    "id": "p3c4-016",
+    "texte": "Ouvrir les archives sur les guerres de décolonisation, être ouvert à la discussion quant aux demandes de restitution et de circulation des biens culturels issus de la colonisation",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 6136,
+        "date": "2026-04-13",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 3,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 3
+        },
+        "intitule": "l'amendement n° 18 (rect.) de Mme Taillé-Polian à l'article premier du projet de loi relatif à la restitution de biens culturels provenant d’États qui, du fait d’une appropriation illicite, en ont été privés (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6136"
+      },
+      {
+        "numero": 6142,
+        "date": "2026-04-13",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 3,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 3
+        },
+        "intitule": "l'amendement n° 34 de M. Marion à l'article premier du projet de loi relatif à la restitution de biens culturels provenant d’États qui, du fait d’une appropriation illicite, en ont été privés (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6142"
+      }
+    ]
+  },
+  {
+    "id": "p4c2-068",
+    "texte": "Supprimer le crédit impôt recherche au profit de dotations récurrentes à hauteur des besoins des universités et instituts de recherche ; garantir leur indépendance afin de libérer la recherche du poids des lobbys",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 3185,
+        "date": "2025-10-28",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 823 de M. Emmanuel Taché après l'article 12 (examen prioritaire) du projet de loi de finances pour 2026 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3185"
+      }
+    ]
+  },
+  {
+    "id": "p4c3-010",
+    "texte": "Abolir tous les privilèges fiscaux liés au mécénat culturel et mettre fin à la mainmise des grandes fortunes et entreprises sur les arts et la culture",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 3247,
+        "date": "2025-10-29",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 731 de M. Buisson et l'amendement identique suivant après l'article 12 (examen prioritaire) du projet de loi de finances pour 2026 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/3247"
+      }
+    ]
+  },
+  {
+    "id": "p5c3-050",
+    "texte": "Engager un plan pluriannuel d’investissement et de développement des services publics (transports, éducation, santé, logement, culture) en partant des propositions formulées par les mouvements sociaux ultramarins eux-mêmes, notamment en Guyane et à Mayotte",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 2844,
+        "date": "2025-06-27",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 0,
+          "votants_lfi": 1
+        },
+        "intitule": "l'amendement n° 43 de M. Gillet à l'article premier et rapport annexé du projet de loi de programmation pour la refondation de Mayotte (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2844"
+      },
+      {
+        "numero": 2842,
+        "date": "2025-06-27",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 3,
+          "abstention": 0,
+          "votants_lfi": 3
+        },
+        "intitule": "l'amendement n° 41 de M. Gillet à l'article premier et rapport annexé du projet de loi de programmation pour la refondation de Mayotte (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2842"
+      },
+      {
+        "numero": 2856,
+        "date": "2025-06-27",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 2,
+          "abstention": 0,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 51 de M. Gillet à l'article premier et rapport annexé du projet de loi de programmation pour la refondation de Mayotte (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2856"
+      }
+    ]
+  },
+  {
+    "id": "p6c2-010",
+    "texte": "Créer un modèle d’armée basé sur les technologies de ruptures, (cyber, spatial, cloud, IA) et réduire nos dépendances militaires dans ces domaines en développant des programmes souverains",
+    "verdict": "Tension",
+    "positions_non_representatives": [
+      {
+        "numero": 6430,
+        "date": "2026-05-07",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "pour",
+          "pour": 2,
+          "contre": 0,
+          "abstention": 0,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 746 (rect.) de Mme Catherine Hervieu à l'article premier et rapport annexé du projet de loi actualisant la programmation militaire pour les années 2024 à 2030 et portant diverses dispositions intéressant la défense (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6430"
+      },
+      {
+        "numero": 6432,
+        "date": "2026-05-07",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 3,
+          "votants_lfi": 3
+        },
+        "intitule": "l'amendement n° 450 de Mme Pouzyreff à l'article premier et rapport annexé du projet de loi actualisant la programmation militaire pour les années 2024 à 2030 et portant diverses dispositions intéressant la défense (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/6432"
+      }
+    ]
+  },
+  {
+    "id": "p2c3-033",
+    "texte": "Garantir que les aides et la commande publiques bénéficient aux PME et à l’ESS, selon leur juste poids dans l’économie et l’emploi",
+    "verdict": "À juger",
+    "positions_non_representatives": [
+      {
+        "numero": 1514,
+        "date": "2025-04-30",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "partagé (pour/abstention)",
+          "pour": 1,
+          "contre": 0,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 1467 de M. Renault à l'article 4 undecies (examen prioritaire) du projet de loi de simplification de la vie économique (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/1514"
+      }
+    ]
+  },
+  {
+    "id": "p2c3-025",
+    "texte": "Reprendre, sans attendre de modification des traités, les programmes de rachat de dettes souveraines par la BCE, comme en 2015 et en 2020",
+    "verdict": "Pas de vote représentatif",
+    "positions_non_representatives": [
+      {
+        "numero": 8715,
+        "date": "2026-10-14",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "partagé (contre/abstention)",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 3694 de M. Jean-Philippe Tanguy à l'article 55 (examen prioritaire) du projet de loi de finances pour 2027 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8715"
+      }
+    ]
+  },
+  {
+    "id": "p4c2-009",
+    "texte": "Réduire partout les effectifs par classe pour faire mieux que la moyenne européenne de 19 élèves par classe en donnant la priorité aux maternelles et aux classes des actuels réseaux d’éducation prioritaire (REP)",
+    "verdict": "Pas de vote représentatif",
+    "positions_non_representatives": [
+      {
+        "numero": 2842,
+        "date": "2025-06-27",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "contre",
+          "pour": 0,
+          "contre": 3,
+          "abstention": 0,
+          "votants_lfi": 3
+        },
+        "intitule": "l'amendement n° 41 de M. Gillet à l'article premier et rapport annexé du projet de loi de programmation pour la refondation de Mayotte (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/2842"
+      }
+    ]
+  },
+  {
+    "id": "p6c1-010",
+    "texte": "La fin de la politique absurde de resserrement monétaire de la Banque centrale européenne (BCE) et la reprise de ses rachats de dettes publiques afin que la politique monétaire serve l’intérêt général, et non les intérêts des banques privées",
+    "verdict": "Pas de vote représentatif",
+    "positions_non_representatives": [
+      {
+        "numero": 8715,
+        "date": "2026-10-14",
+        "sens": "même sens",
+        "sort": "rejete",
+        "vote_lfi": {
+          "position": "partagé (contre/abstention)",
+          "pour": 0,
+          "contre": 1,
+          "abstention": 1,
+          "votants_lfi": 2
+        },
+        "intitule": "l'amendement n° 3694 de M. Jean-Philippe Tanguy à l'article 55 (examen prioritaire) du projet de loi de finances pour 2027 (première lecture).",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/8715"
+      }
+    ]
+  },
+  {
+    "id": "p6c2-005",
+    "texte": "Protéger le Groenland face aux menaces états-uniennes en étendant à l’ensemble des territoires associés à l’UE les garanties de sécurité prévues par les traités",
+    "verdict": "Pas de vote représentatif",
+    "positions_non_representatives": [
+      {
+        "numero": 5300,
+        "date": "2026-02-03",
+        "sens": "même sens",
+        "sort": "adopte",
+        "vote_lfi": {
+          "position": "abstention",
+          "pour": 0,
+          "contre": 0,
+          "abstention": 2,
+          "votants_lfi": 2
+        },
+        "intitule": "l'article unique de la proposition de résolution européenne visant à soutenir le Danemark et le Groenland et à œuvrer en faveur d'une plus grande coopération en matière de défense.",
+        "url_an": "https://www.assemblee-nationale.fr/dyn/17/scrutins/5300"
+      }
+    ]
+  }
+]
