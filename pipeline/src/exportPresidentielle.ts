@@ -146,6 +146,7 @@ const POSITIONS: Record<string, PositionGroupe> = {
   "partagé (pour/abstention)": "partage",
   "partagé (contre/abstention)": "partage",
   "partagé (pour/contre)": "partage",
+  "partagé (pour/contre/abstention)": "partage", // égalité à trois (1/1/1) : possible dans le calcul « parti »
   "non votant": "aucun",
   "absent du scrutin": "aucun",
 };

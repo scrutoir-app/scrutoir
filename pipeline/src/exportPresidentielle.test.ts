@@ -219,6 +219,26 @@ test("vigilances des deux calculs (groupe, parti) et de l'arbitrage 5 par parti 
   assert.deepEqual(s.alertes, ["auteur-du-groupe"]);
 });
 
+test("égalité à trois (1 pour, 1 contre, 1 abstention) : position partagée, non représentative", () => {
+  const r = tmp();
+  const { config, dossier } = jeuSynthetique(r, true);
+  const f = path.join(dossier, "verdicts", "tension.json");
+  const t = JSON.parse(fs.readFileSync(f, "utf8"));
+  t[0].scrutins[1] = {
+    ...t[0].scrutins[1],
+    vote_lfi: undefined,
+    vote_groupe: { position: "partagé (pour/contre/abstention)", pour: 1, contre: 1, abstention: 1, votants: 3 },
+    effet: "non représentatif",
+    vigilance: ["seuls 3 députés du parti ont voté : position non représentative (arbitrage 9)"],
+  };
+  ecrire(f, t);
+  exporterPresidentielle({ sortie: path.join(r, "out"), config, dossierProgrammes: r, log: silence });
+  const ch = JSON.parse(fs.readFileSync(path.join(r, "out", "presidentielle", "fic-2027", "chapitre", "p1c1.json"), "utf8")) as ChapitreDetail;
+  const s = ch.mesures.find((m) => m.id === "p1c1-002")!.scrutins.find((x) => x.numero === 13)!;
+  assert.equal(s.position, "partage");
+  assert.equal(s.effet, "r");
+});
+
 test("la configuration versionnée est valide et ne met aucun programme en service par erreur", () => {
   const cfg = lireConfig(CONFIG);
   assert.ok(cfg.programmes.length >= 1);
