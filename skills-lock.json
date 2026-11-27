@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "skills": {
+    "animations": {
+      "source": "software-mansion-labs/skills",
+      "ref": "main",
+      "sourceType": "github",
+      "skillPath": "skills/react-native-best-practices/references/animations/SKILL.md",
+      "computedHash": "84578c7d3434e5a88e861fccb6735ccc637e529260105dae9363a9b873978355"
+    },
+    "motion-design": {
+      "source": "lottiefiles/motion-design-skill",
+      "sourceType": "github",
+      "skillPath": "skills/motion-design/SKILL.md",
+      "computedHash": "9fcf9130cc46ee8fd1d8e09a9263347a9d76efbcbfa46591cc4cefaf19bbb453"
+    }
+  }
+}
