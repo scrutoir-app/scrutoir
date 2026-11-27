@@ -78,6 +78,11 @@ export interface MesureLegere {
   chiffree?: string;
 }
 
+export interface MiseAJour {
+  date: string;
+  texte: string;
+}
+
 export interface LigneChiffree {
   code: string; // R01…R14, D01…D14
   type: "recette" | "depense";
@@ -98,6 +103,8 @@ export interface Programme extends ProgrammeResume {
   /** D'où viennent les montants, pourquoi ceux-là, et la promesse d'intégrer des données plus fraîches
    *  (arbitrage du 27/11/2026 : toujours affichée, chiffrage complet, partiel ou absent). */
   provenanceChiffrage: string | null;
+  /** Mises à jour des chiffres après publication, la plus récente en premier (date AAAA-MM-JJ, ce qui a changé). */
+  misesAJour: MiseAJour[];
   comptes: {
     mesures: number;
     confrontables: number;

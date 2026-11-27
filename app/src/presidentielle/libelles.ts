@@ -29,6 +29,9 @@ export function datePublication(iso: string | null | undefined): string {
 
 export const pluriel = (n: number, un: string, plusieurs: string) => (n > 1 ? plusieurs : un);
 
+/** « Chiffres mis à jour le 27 novembre 2026 : … » (une ligne par mise à jour, dite telle quelle). */
+export const ligneMiseAJour = (m: { date: string; texte: string }) => `Chiffres mis à jour le ${dateLongue(m.date)} : ${m.texte}`;
+
 export const GLYPHE: Record<Famille, string> = { c: "=", t: "≠", n: "∅" };
 
 export function familleStatut(s: Statut): Famille {

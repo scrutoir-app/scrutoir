@@ -46,6 +46,8 @@ export interface ConfigProgramme {
   chiffrage?: { titre: string; url: string; date: string } | null;
   /** Obligatoire : d'où viennent les montants, pourquoi ceux-là, données plus fraîches intégrées (27/11/2026). */
   provenanceChiffrage: string;
+  /** Mises à jour des chiffres après publication (affichées telles quelles, la plus récente en premier). */
+  misesAJour?: { date: string; texte: string }[];
   base: { scrutins: number; du: string; au: string };
 }
 export interface ConfigPresidentielle {
@@ -62,6 +64,10 @@ export function lireConfig(fichier = CONFIG): ConfigPresidentielle {
     ids.add(p.id);
     if (!/^\d{4}-\d{2}(-\d{2})?$/.test(p.publieLe)) throw new Error(`${p.id} : publieLe invalide (AAAA-MM-JJ ou AAAA-MM)`);
     if (typeof p.provenanceChiffrage !== "string" || !p.provenanceChiffrage.trim()) throw new Error(`${p.id} : provenanceChiffrage manquante (d'où viennent les montants)`);
+    for (const m of p.misesAJour ?? []) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(m.date) || !m.texte?.trim()) throw new Error(`${p.id} : mise à jour invalide (date AAAA-MM-JJ et texte requis)`);
+      if (MENTION_INTERNE.test(m.texte)) throw new Error(`${p.id} : mention interne dans une mise à jour : « ${m.texte.slice(0, 60)} »`);
+    }
     if (typeof p.enService !== "boolean") throw new Error(`${p.id} : enService doit être true ou false`);
   }
   return c;
@@ -434,6 +440,7 @@ export function construireProgramme(cfg: ConfigProgramme, dossier = path.join(DO
     livre: cfg.livre,
     chiffrage: cfg.chiffrage ?? null,
     provenanceChiffrage: cfg.provenanceChiffrage.trim(),
+    misesAJour: [...(cfg.misesAJour ?? [])].sort((a, b) => (a.date < b.date ? 1 : -1)).map((m) => ({ date: m.date, texte: m.texte.trim() })),
     comptes,
     verdicts,
     chapitres,

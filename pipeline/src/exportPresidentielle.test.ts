@@ -252,6 +252,21 @@ test("mentions internes : « arbitrage 3 » est signalé, le verbe « harmoniser
   assert.match(internes[0], /arbitrage 3/);
 });
 
+test("mises à jour des chiffres : exportées, la plus récente d'abord ; invalides ou internes refusées", () => {
+  const r = tmp();
+  const { config } = jeuSynthetique(r, true);
+  const mises = [{ date: "2026-11-20", texte: "première." }, { date: "2026-11-27", texte: "seconde." }];
+  ecrire(config, { programmes: [{ ...CFG, enService: true, misesAJour: mises }] });
+  exporterPresidentielle({ sortie: path.join(r, "out"), config, dossierProgrammes: r, log: silence });
+  const p = JSON.parse(fs.readFileSync(path.join(r, "out", "presidentielle", "fic-2027", "programme.json"), "utf8")) as Programme;
+  assert.deepEqual(p.misesAJour.map((m) => m.date), ["2026-11-27", "2026-11-20"]);
+  const f = path.join(r, "c.json");
+  ecrire(f, { programmes: [{ ...CFG, misesAJour: [{ date: "27/11/2026", texte: "x" }] }] });
+  assert.throws(() => lireConfig(f), /mise à jour invalide/);
+  ecrire(f, { programmes: [{ ...CFG, misesAJour: [{ date: "2026-11-27", texte: "voir arbitrage 4" }] }] });
+  assert.throws(() => lireConfig(f), /mention interne/);
+});
+
 test("la configuration versionnée est valide et ne met aucun programme en service par erreur", () => {
   const cfg = lireConfig(CONFIG);
   assert.ok(cfg.programmes.length >= 1);

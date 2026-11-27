@@ -13,7 +13,7 @@ import {
   rubriqueVisible, valeurOpen, ordonnerProgrammes, indexValide, estLienRubrique,
 } from "./logique";
 import {
-  annonceFiltre, comptesEnLettres, dateLongue, datePublication, detailNeutre, intituleAffiche, ligneComptes, metaMesure, nombre, phraseGroupe, phraseSansEffet,
+  annonceFiltre, comptesEnLettres, dateLongue, datePublication, detailNeutre, ligneMiseAJour, intituleAffiche, ligneComptes, metaMesure, nombre, phraseGroupe, phraseSansEffet,
   phraseVerdict, sortsDuLot, titreLot,
 } from "./libelles";
 import { pileDeCible, pileLienProfond } from "./routes";
@@ -150,6 +150,7 @@ test("nombres et dates à la française", () => {
   assert.equal(datePublication("2026-07"), "Publié en juillet 2026");
   assert.equal(datePublication("2026-11-06"), "Publié le 6 novembre 2026");
   assert.equal(datePublication(""), "");
+  assert.equal(ligneMiseAJour({ date: "2026-11-27", texte: "697 mesures confrontables au lieu de 692." }), "Chiffres mis à jour le 27 novembre 2026 : 697 mesures confrontables au lieu de 692.");
 });
 
 // --- Scrutins : répartition, regroupement, phrases -----------------------------------------------

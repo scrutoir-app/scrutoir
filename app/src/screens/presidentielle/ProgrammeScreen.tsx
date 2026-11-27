@@ -9,7 +9,7 @@ import type { Nav } from "../../nav";
 import type { Comptes, Famille, Filtre, LigneChiffree, Perimetre, Programme, SousNeutre } from "../../presidentielle/types";
 import { comptesDe, confrontables, correspond, mesuresDuChapitre, statutsDuPerimetre } from "../../presidentielle/logique";
 import { getProgramme } from "../../presidentielle/donnees";
-import { MOT_STATUT, PHRASE_MONTANTS, annonceFiltre, comptesEnLettres, datePublication, familleStatut, ligneComptes, nombre } from "../../presidentielle/libelles";
+import { MOT_STATUT, PHRASE_MONTANTS, annonceFiltre, comptesEnLettres, datePublication, familleStatut, ligneMiseAJour, ligneComptes, nombre } from "../../presidentielle/libelles";
 import { useData } from "../../hooks/useData";
 import { ErreurChargement } from "../../components/ErreurChargement";
 import { AnnoncePolie, Anneaux, Bloc, Entree, Kicker, LigneComptes, MiniAnneau, PastilleVerdict, Pression, retourSelection } from "../../components/presidentielle/primitives";
@@ -122,6 +122,9 @@ export function ProgrammeScreen({
           <Kicker>Programme 2027 · {p.parti}</Kicker>
           <Text accessibilityRole="header" style={[T.title, { color: C.text }]}>Promis face aux votes du groupe {groupe}</Text>
           <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted }]}>{datePublication(p.publieLe)}</Text>
+          {(p.misesAJour ?? []).map((m) => (
+            <Text key={m.date + m.texte} style={[T.small, tnum, { fontFamily: F.semibold, color: C.text, lineHeight: 19 }]}>{ligneMiseAJour(m)}</Text>
+          ))}
         </View>
 
         <Bloc style={{ paddingVertical: 14, gap: 10 }}>
