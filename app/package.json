@@ -22,9 +22,11 @@
     "@types/react": "~19.2.2",
     "typescript": "~6.0.3"
   },
-  "//overrides": "Force uuid >= 11.1.1 (GHSA-w5hq-g745-h8pq, contrôle de bornes). Seul conso = xcode@3.0.1 (génération projet iOS, build-time, jamais exécuté par 'expo export -p web') via @expo/config-plugins ; il appelle uuid.v4(), named export conservé en v11 → compatible.",
+  "//overrides": "Force uuid >= 11.1.1 (GHSA-w5hq-g745-h8pq, contrôle de bornes). Seul conso = xcode@3.0.1 (génération projet iOS, build-time, jamais exécuté par 'expo export -p web') via @expo/config-plugins ; il appelle uuid.v4(), named export conservé en v11 → compatible. Force glob >= 14.0.2 (GHSA-3g3m-2fjr-6pw4) et minimatch >= 11.0.1 (GHSA-g3hv-75wg-m249, ReDoS) : Dependabot ne peut pas les monter seul (Expo 56 tire glob 13 / minimatch 10). Consommateurs = outillage Expo (cli, config, config-plugins, fingerprint, metro-config), build-time uniquement ; ils n’appellent que glob()/globSync() et new Minimatch().match()/.negate/.pattern, conservés en v14/v11 (seules makeRe/regexp/AST/matchOne disparaissent) → compatible. À retirer quand Expo tirera ces versions.",
   "overrides": {
-    "uuid": "^11.1.1"
+    "uuid": "^11.1.1",
+    "glob": "^14.0.4",
+    "minimatch": "^11.0.8"
   },
   "scripts": {
     "start": "expo start",
