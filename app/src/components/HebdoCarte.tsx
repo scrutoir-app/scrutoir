@@ -3,11 +3,16 @@ import { View, Text, TouchableOpacity, FlatList, Platform, type LayoutChangeEven
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { C, F, T, RADIUS, CONTROL, ICON, tnum } from "../theme";
 import { catUI } from "../categoryUI";
-import { useSemaineAccueil } from "../hooks/useHebdo";
+import { useSemaineAccueil, useFocusSemaine } from "../hooks/useHebdo";
+import { FocusCarte } from "./FocusCarte";
 import { useCibleTour } from "../tourTargets";
 import { getEditionLue, marquerEditionLue } from "../hebdoPrefs";
 import { libelleFenetre, libelleReprise, libelleScrutins, type ThemeHebdo, type TexteHebdo } from "../hebdo";
 import type { Nav } from "../nav";
+
+/** Une carte du carrousel : le vote le plus suivi (en tête), puis un thème par carte. */
+type Item = { type: "focus" } | { type: "theme"; t: ThemeHebdo };
+const cleItem = (it: Item) => (it.type === "focus" ? "focus" : it.t.categorie ?? "autres");
 
 const SIDE = 16;
 const GAP = 10;
@@ -38,10 +43,28 @@ const capitalise = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
  * scrutins publics. Sert AUSSI de pagination du carrousel (segment actif plein, les autres
  * estompés) : toucher un segment amène sa carte.
  */
-function Repartition({ themes, total, actif, onSelect }: { themes: ThemeHebdo[]; total: number; actif: number; onSelect: (i: number) => void }) {
+function Repartition({ themes, total, actif, onSelect, focus }: { themes: ThemeHebdo[]; total: number; actif: number; onSelect: (i: number) => void; focus: boolean }) {
+  // Avec le vote le plus suivi en tête du carrousel : un court segment neutre d'abord (carte 0),
+  // puis les thèmes à partir de la carte 1.
+  const decalage = focus ? 1 : 0;
+  // Cible tactile de 44 px dans une barre de 26 px : marges négatives plutôt que hitSlop,
+  // que React Native Web ignore.
+  const cible = { height: CONTROL.md, marginVertical: -(CONTROL.md - 26) / 2, justifyContent: "center" } as const;
   return (
     <View style={{ flexDirection: "row", gap: 3, height: 26, alignItems: "center", paddingHorizontal: SIDE }}>
-      {themes.map((t, i) => {
+      {focus && (
+        <TouchableOpacity
+          onPress={() => onSelect(0)}
+          accessibilityRole="button"
+          accessibilityLabel="Le vote le plus suivi"
+          aria-selected={actif === 0}
+          style={{ width: 18, ...cible }}
+        >
+          <View style={{ height: actif === 0 ? 8 : 6, borderRadius: RADIUS.pill, backgroundColor: C.text, opacity: actif === 0 ? 1 : 0.32 }} />
+        </TouchableOpacity>
+      )}
+      {themes.map((t, j) => {
+        const i = j + decalage;
         const tt = teinte(t.categorie);
         return (
           <TouchableOpacity
@@ -50,9 +73,7 @@ function Repartition({ themes, total, actif, onSelect }: { themes: ThemeHebdo[];
             accessibilityRole="button"
             accessibilityLabel={`${tt.nom}, ${libelleScrutins(t.nb)}`}
             aria-selected={i === actif}
-            // Cible tactile de 44 px dans une barre de 26 px : marges négatives plutôt que hitSlop,
-            // que React Native Web ignore.
-            style={{ flexGrow: t.nb / total, flexBasis: 0, minWidth: 8, height: CONTROL.md, marginVertical: -(CONTROL.md - 26) / 2, justifyContent: "center" }}
+            style={{ flexGrow: t.nb / total, flexBasis: 0, minWidth: 8, ...cible }}
           >
             <View style={{ height: i === actif ? 8 : 6, borderRadius: RADIUS.pill, backgroundColor: tt.fg, opacity: i === actif ? 1 : 0.32 }} />
           </TouchableOpacity>
@@ -107,12 +128,15 @@ function CarteTheme({ t, width, nav, onHauteur }: { t: ThemeHebdo; width: number
 
 /**
  * Module d'accueil « La semaine à l'Assemblée » : chaque vendredi, les textes soumis à un
- * scrutin public pendant les sept jours précédents, par thème. Dit SUR QUOI on a voté, jamais
- * ce que ça veut dire : ni résultat, ni camp, ni « comme toi ». Semaine sans scrutin public :
- * on montre la dernière semaine qui en a eu, en le disant. Rien pendant le chargement.
+ * scrutin public pendant les sept jours précédents, par thème. Les cartes de thème disent SUR
+ * QUOI on a voté, jamais ce que ça veut dire : ni résultat, ni camp, ni « comme toi ». En tête du
+ * carrousel (accueil allégé, v1.46.0) : le vote le plus suivi de la semaine (`FocusCarte`), seule
+ * carte avec un résultat et la pastille « comme toi ». Semaine sans scrutin public : on montre la
+ * dernière semaine qui en a eu, en le disant. Rien pendant le chargement.
  */
 export function HebdoCarte({ nav }: { nav: Nav }) {
   const s = useSemaineAccueil();
+  const f = useFocusSemaine();
   // Cible de la visite guidée : enregistrée seulement quand le module s'affiche.
   const refTour = useCibleTour("semaine");
   const [boxW, setBoxW] = useState(0);
@@ -120,7 +144,7 @@ export function HebdoCarte({ nav }: { nav: Nav }) {
   // Hauteur du carrousel = celle de la carte affichée (les cartes gardent leur hauteur
   // naturelle : pas de vide sous une carte courte, la voisine plus haute est rognée).
   const [hauteurs, setHauteurs] = useState<Record<number, number>>({});
-  const listRef = useRef<FlatList<ThemeHebdo>>(null);
+  const listRef = useRef<FlatList<Item>>(null);
   const e = s.edition;
   // Pastille « Nouvelle » : on lit la dernière édition vue AVANT de marquer celle-ci comme lue,
   // pour que la pastille reste affichée pendant cette visite et disparaisse à la suivante.
@@ -139,8 +163,9 @@ export function HebdoCarte({ nav }: { nav: Nav }) {
 
   if (!e) return null;
 
+  const items: Item[] = [...(f ? [{ type: "focus" } as const] : []), ...e.themes.map((t) => ({ type: "theme", t }) as const)];
   // La carte suivante dépasse à droite ; une carte seule prend toute la largeur.
-  const cardW = Math.max(240, (boxW || 360) - SIDE * 2 - (e.themes.length > 1 ? 34 : 0));
+  const cardW = Math.max(240, (boxW || 360) - SIDE * 2 - (items.length > 1 ? 34 : 0));
   const interval = cardW + GAP;
   const aller = (i: number) => {
     listRef.current?.scrollToOffset({ offset: i * interval, animated: true });
@@ -172,13 +197,13 @@ export function HebdoCarte({ nav }: { nav: Nav }) {
         )}
       </View>
 
-      {e.themes.length > 1 && <View style={{ marginTop: 8 }}><Repartition themes={e.themes} total={e.nbScrutins} actif={actif} onSelect={aller} /></View>}
+      {items.length > 1 && <View style={{ marginTop: 8 }}><Repartition themes={e.themes} total={e.nbScrutins} actif={actif} onSelect={aller} focus={!!f} /></View>}
 
       <FlatList
         ref={listRef}
-        style={[SNAP_LISTE, { marginTop: e.themes.length > 1 ? 4 : 10, height: hauteurs[actif] }]}
-        data={e.themes}
-        keyExtractor={(t) => t.categorie ?? "autres"}
+        style={[SNAP_LISTE, { marginTop: items.length > 1 ? 4 : 10, height: hauteurs[actif] }]}
+        data={items}
+        keyExtractor={cleItem}
         horizontal
         showsHorizontalScrollIndicator={false}
         decelerationRate="fast"
@@ -189,14 +214,14 @@ export function HebdoCarte({ nav }: { nav: Nav }) {
         ItemSeparatorComponent={() => <View style={{ width: GAP }} />}
         onViewableItemsChanged={onViewRef.current}
         viewabilityConfig={viewConfigRef.current}
-        renderItem={({ item, index }) => (
-          <CarteTheme
-            t={item}
-            width={cardW}
-            nav={nav}
-            onHauteur={(h) => setHauteurs((m) => (m[index] === h ? m : { ...m, [index]: h }))}
-          />
-        )}
+        renderItem={({ item, index }) => {
+          const onHauteur = (h: number) => setHauteurs((m) => (m[index] === h ? m : { ...m, [index]: h }));
+          return item.type === "focus" && f ? (
+            <FocusCarte f={f} width={cardW} nav={nav} onHauteur={onHauteur} style={SNAP_CARTE} />
+          ) : item.type === "theme" ? (
+            <CarteTheme t={item.t} width={cardW} nav={nav} onHauteur={onHauteur} />
+          ) : null;
+        }}
       />
     </View>
   );
