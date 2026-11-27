@@ -8,6 +8,14 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.45.0 — 2026-11-27
+**Présidentielle 2027 : le programme des Écologistes déclaré, en attente de mise en service ; la provenance du chiffrage toujours dite.**
+- Rubrique Présidentielle (toujours hors service) : « Pour une prospérité écologique » (Les Écologistes, juillet 2026) est déclaré dans `pipeline/programmes/presidentielle.json`, `enService: false`, face au groupe Écologiste et Social. Aucune donnée de verdict n'est publiée avant sa mise en service.
+- Chiffrage : chaque programme dit d'où viennent les montants, pourquoi ceux-là, et que des données plus récentes du parti seront intégrées (champ `provenanceChiffrage`, obligatoire, affiché sous la sélection « Chiffrées par le parti » et sur chaque ligne chiffrée). Un programme sans chiffrage publié s'affiche sans casser : anneau vide tracé en contour, « Le parti n'a publié aucun chiffrage de ses mesures ». Quand les montants viennent de plusieurs documents du parti, chaque ligne dit sa source et renvoie au bon document.
+- Date de publication au mois quand le document du parti ne donne pas le jour : « Publié en juillet 2026 ».
+- Méthode : l'abstention sur un texte de sens inverse se juge par parti, comme en campagne (un député du même groupe venu d'un autre mouvement compte comme un autre auteur). Sans effet sur les verdicts du programme LFI.
+- Export : vigilances des deux calculs (groupe, députés du parti) reconnues ; contrôle bloquant si la provenance du chiffrage manque.
+
 ## 1.44.4 — 2026-11-25
 **Guide d'installation iPhone : l'étape « En voir plus ».**
 - Sous iOS 26, « Sur l'écran d'accueil » n'apparaît pas tout de suite dans la feuille de partage : il faut d'abord toucher « En voir plus » (chevron). Constaté sur iPhone le soir de la mise en service.

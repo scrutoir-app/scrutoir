@@ -11,12 +11,20 @@ export function nombre(n: number): string {
   return String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ");
 }
 
-/** « 2026-11-06 » → « 6 novembre 2026 » (« 1er » le premier du mois). */
+/** « 2026-11-06 » → « 6 novembre 2026 » (« 1er » le premier du mois) ; « 2026-07 » → « juillet 2026 ». */
 export function dateLongue(iso: string | null | undefined): string {
-  const m = (iso ?? "").match(/^(\d{4})-(\d{2})-(\d{2})/);
+  const m = (iso ?? "").match(/^(\d{4})-(\d{2})(?:-(\d{2}))?/);
   if (!m) return "";
+  if (!m[3]) return `${MOIS[Number(m[2]) - 1] ?? ""} ${m[1]}`;
   const j = Number(m[3]);
   return `${j === 1 ? "1er" : j} ${MOIS[Number(m[2]) - 1] ?? ""} ${m[1]}`;
+}
+
+/** « Publié le 6 novembre 2026 », ou « Publié en juillet 2026 » quand le parti ne donne que le mois. */
+export function datePublication(iso: string | null | undefined): string {
+  const d = dateLongue(iso);
+  if (!d) return "";
+  return /^\d{4}-\d{2}$/.test(iso ?? "") ? `Publié en ${d}` : `Publié le ${d}`;
 }
 
 export const pluriel = (n: number, un: string, plusieurs: string) => (n > 1 ? plusieurs : un);

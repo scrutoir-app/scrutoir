@@ -28,6 +28,7 @@ const CFG: ConfigProgramme = {
   publieLe: "2026-11-01",
   livre: { titre: "Livre", url: "https://exemple.fr/livre/" },
   chiffrage: { titre: "Chiffrage", url: "https://exemple.fr/c.pdf", date: "octobre 2026" },
+  provenanceChiffrage: "Montants tirés du document de chiffrage du parti fictif.",
   base: { scrutins: 10, du: "2024-10-08", au: "2026-11-12" },
 };
 
@@ -170,6 +171,52 @@ test("contrôle bloquant : vigilance inconnue (rien ne se perd en silence)", () 
   c[0].scrutins[0].vigilance = ["une remarque jamais vue"];
   ecrire(f, c);
   assert.throws(() => exporterPresidentielle({ sortie: path.join(r, "out"), config, dossierProgrammes: r, log: silence }), /vigilance inconnue/);
+});
+
+test("sans chiffrage publié : 0 ligne, anneau vide, provenance toujours exportée ; date au mois", () => {
+  const r = tmp();
+  const { config, dossier } = jeuSynthetique(r, false);
+  fs.rmSync(path.join(dossier, "fic-2027-chiffrees-2.json"));
+  const att = JSON.parse(fs.readFileSync(path.join(dossier, "attendus.json"), "utf8"));
+  ecrire(path.join(dossier, "attendus.json"), { ...att, chiffrees: 0, verdicts: { ...att.verdicts, ch: { c: 0, t: 0, s: 0, j: 0, r: 0 } } });
+  const provenance = "Le parti n’a publié aucun chiffrage. Si le parti publie des données plus récentes, Scrutoir les intégrera.";
+  ecrire(config, { programmes: [{ ...CFG, enService: true, publieLe: "2026-07", chiffrage: null, provenanceChiffrage: provenance }] });
+  const sortie = path.join(r, "out");
+  exporterPresidentielle({ sortie, config, dossierProgrammes: r, log: silence });
+  const p = JSON.parse(fs.readFileSync(path.join(sortie, "presidentielle", "fic-2027", "programme.json"), "utf8")) as Programme;
+  assert.equal(p.comptes.chiffrees, 0);
+  assert.deepEqual(p.listeChiffrees, []);
+  assert.equal(p.chiffrage, null);
+  assert.equal(p.provenanceChiffrage, provenance);
+  assert.equal(p.publieLe, "2026-07");
+});
+
+test("configuration : provenance du chiffrage obligatoire, date au jour ou au mois", () => {
+  const r = tmp();
+  const f = path.join(r, "presidentielle.json");
+  ecrire(f, { programmes: [{ ...CFG, provenanceChiffrage: "" }] });
+  assert.throws(() => lireConfig(f), /provenanceChiffrage/);
+  ecrire(f, { programmes: [{ ...CFG, publieLe: "juillet 2026" }] });
+  assert.throws(() => lireConfig(f), /publieLe/);
+  ecrire(f, { programmes: [{ ...CFG, publieLe: "2026-07" }] });
+  assert.equal(lireConfig(f).programmes[0].publieLe, "2026-07");
+});
+
+test("vigilances des deux calculs (groupe, parti) et de l'arbitrage 5 par parti : reconnues", () => {
+  const r = tmp();
+  const { config, dossier } = jeuSynthetique(r, true);
+  const f = path.join(dossier, "verdicts", "tension.json");
+  const t = JSON.parse(fs.readFileSync(f, "utf8"));
+  t[0].scrutins[0].vigilance = [
+    "amendement déposé par un député du parti (Nom Fictif) sur lequel le parti a voté abstention : relevé officiel à vérifier",
+    "abstention sur un scrutin de sens inverse, auteur : Nom Fictif, FIC → tension (auteur proche, arbitrage 5)",
+    "auteur parmi les rattachements incertains (Nom Fictif) : proximité non tranchée",
+  ];
+  ecrire(f, t);
+  exporterPresidentielle({ sortie: path.join(r, "out"), config, dossierProgrammes: r, log: silence });
+  const ch = JSON.parse(fs.readFileSync(path.join(r, "out", "presidentielle", "fic-2027", "chapitre", "p1c1.json"), "utf8")) as ChapitreDetail;
+  const s = ch.mesures.find((m) => m.id === "p1c1-002")!.scrutins.find((x) => x.numero === 12)!;
+  assert.deepEqual(s.alertes, ["auteur-du-groupe"]);
 });
 
 test("la configuration versionnée est valide et ne met aucun programme en service par erreur", () => {

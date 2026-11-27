@@ -44,6 +44,8 @@ export interface ConfigProgramme {
   publieLe: string;
   livre: { titre: string; url: string };
   chiffrage?: { titre: string; url: string; date: string } | null;
+  /** Obligatoire : d'où viennent les montants, pourquoi ceux-là, données plus fraîches intégrées (27/11/2026). */
+  provenanceChiffrage: string;
   base: { scrutins: number; du: string; au: string };
 }
 export interface ConfigPresidentielle {
@@ -58,7 +60,8 @@ export function lireConfig(fichier = CONFIG): ConfigPresidentielle {
     if (!/^[a-z0-9-]+$/.test(p.id)) throw new Error(`Programme : id invalide « ${p.id} »`);
     if (ids.has(p.id)) throw new Error(`Programme en double : ${p.id}`);
     ids.add(p.id);
-    if (!/^\d{4}-\d{2}-\d{2}$/.test(p.publieLe)) throw new Error(`${p.id} : publieLe invalide`);
+    if (!/^\d{4}-\d{2}(-\d{2})?$/.test(p.publieLe)) throw new Error(`${p.id} : publieLe invalide (AAAA-MM-JJ ou AAAA-MM)`);
+    if (typeof p.provenanceChiffrage !== "string" || !p.provenanceChiffrage.trim()) throw new Error(`${p.id} : provenanceChiffrage manquante (d'où viennent les montants)`);
     if (typeof p.enService !== "boolean") throw new Error(`${p.id} : enService doit être true ou false`);
   }
   return c;
@@ -106,6 +109,7 @@ interface LigneBrute {
   code: string;
   type: string;
   libelle_chiffrage: string;
+  source?: string;
   confronte_avec: { mesure_programme?: string; texte?: string; libelle_chiffrage?: string };
   verdict: string;
   a_juger?: string;
@@ -191,15 +195,19 @@ function scrutin(id: string, b: ScrutinBrut, raisonForcee?: string, aJugerParNum
   let raisonAJuger: string | undefined;
   for (const vg of b.vigilance ?? []) {
     if (vg.startsWith("appariement sur le seul intitulé")) alertes.push("intitule-seul");
-    else if (/^amendement déposé par un député du groupe .* sur lequel le groupe a voté contre/.test(vg)) alertes.push("auteur-du-groupe");
+    else if (/^amendement déposé par un député du (groupe|parti) .* sur lequel le (groupe|parti) a voté (contre|abstention)/.test(vg)) alertes.push("auteur-du-groupe");
     else if (RAISON_A_JUGER.test(vg)) raisonAJuger = vg.replace(RAISON_A_JUGER, "").trim();
     // Les trois suivantes se lisent sur le scrutin lui-même (effet, votants) : rien à recopier.
-    else if (/^seuls \d+ députés? du groupe (a|ont) voté : position non représentative/.test(vg)) {
+    else if (/^seuls \d+ députés? du (groupe|parti) (a|ont) voté : position non représentative/.test(vg)) {
       if (effet !== "r" && effet !== "o" && effet !== "c") erreur(id, `${ctx} : position non représentative avec effet ${b.effet}`);
     } else if (/^aucun député .* votant : compté comme tension/.test(vg)) {
       if (v.votants !== 0 || effet !== "t") erreur(id, `${ctx} : « aucun votant » incohérent`);
     } else if (/^abstention sur un scrutin de sens inverse, auteur : .* → neutre/.test(vg)) {
       if (effet !== "o" && effet !== "r" && effet !== "j") avertir(`${ctx} : vigilance « abstention de sens inverse → neutre » mais effet « ${b.effet} » (position ${v.position})`);
+    } else if (/^abstention sur un scrutin de sens inverse, auteur : .* → tension/.test(vg)) {
+      if (effet !== "t" && effet !== "r" && effet !== "j") avertir(`${ctx} : vigilance « abstention de sens inverse → tension » mais effet « ${b.effet} » (position ${v.position})`);
+    } else if (/^auteur parmi les rattachements incertains/.test(vg)) {
+      // Relevé de méthode (rattachement non tranché) : rien à afficher.
     } else erreur(id, `${ctx} : vigilance inconnue « ${vg.slice(0, 80)} »`);
   }
   // Ligne du chiffrage forcée « à juger » (arbitrage 10) : son scrutin de tension est le cas discuté.
@@ -362,7 +370,9 @@ export function construireProgramme(cfg: ConfigProgramme, dossier = path.join(DO
         if (!m) erreur(id, `${b.code} : mesure secondaire ${x.id} inconnue`);
         return { id: x.id, statut: m.statut };
       });
-      lignes.push({ code: b.code, type, libelle: b.libelle_chiffrage.trim(), statut: st, mesure: mp, secondaires });
+      const ligne: LigneChiffree = { code: b.code, type, libelle: b.libelle_chiffrage.trim(), statut: st, mesure: mp, secondaires };
+      if (b.source?.trim()) ligne.source = b.source.trim();
+      lignes.push(ligne);
       const raisonForcee = b.a_juger?.trim();
       const sc = mp ? [] : b.scrutins.map((s) => scrutin(b.code, s, raisonForcee, aJuger[`chiffrage-${b.code}`]?.scrutins));
       if (!mp) verifierStatut(b.code, st, sc);
@@ -421,6 +431,7 @@ export function construireProgramme(cfg: ConfigProgramme, dossier = path.join(DO
     ...resume,
     livre: cfg.livre,
     chiffrage: cfg.chiffrage ?? null,
+    provenanceChiffrage: cfg.provenanceChiffrage.trim(),
     comptes,
     verdicts,
     chapitres,

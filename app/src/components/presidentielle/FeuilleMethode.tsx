@@ -56,7 +56,7 @@ export function ContenuMethode({ chiffres, base }: { chiffres: ChiffresMethode |
     <View style={{ gap: 14 }}>
       <Carte>
         <Kicker>Quatre étapes, les mêmes pour chaque programme</Kicker>
-        <Etape n={1}>On relève {chiffres ? `les ${n(chiffres.mesures, "")} mesures` : "toutes les mesures"} du programme, mot pour mot, dans le livre publié sur le site du parti.</Etape>
+        <Etape n={1}>On relève {chiffres ? `les ${n(chiffres.mesures, "")} mesures` : "toutes les mesures"} du programme, mot pour mot, dans le programme publié par le parti.</Etape>
         <Etape n={2}>
           On écarte celles qu’aucun vote de l’Assemblée ne peut porter : intentions générales, mesures réglementaires ou locales.
           {chiffres ? ` ${n(chiffres.horsChamp, "")} mesures, chacune avec son motif.` : " Chacune garde son motif."}
@@ -94,7 +94,7 @@ export function ContenuMethode({ chiffres, base }: { chiffres: ChiffresMethode |
         <Kicker>Ce qui compte comme le même sens</Kicker>
         <Para>Une variante de la mesure, déposée par n’importe quel groupe : autre montant, autre calendrier, périmètre plus étroit, suspension au lieu d’abrogation. L’écart est noté sur la mesure.</Para>
         <Para>
-          Un scrutin de sens inverse compte aussi. Le groupe vote pour : tension. Il vote contre : cohérent. Il s’abstient : tension, uniquement si le texte vient du groupe lui-même ou du groupe qui lui est apparié pour cette règle (LFI-NFP et Écologiste et Social, RN et UDR, EPR et Horizons).
+          Un scrutin de sens inverse compte aussi. Le groupe vote pour : tension. Il vote contre : cohérent. Il s’abstient : tension, uniquement si le texte vient d’un député du parti lui-même ou du parti qui lui est apparié pour cette règle (La France insoumise et Les Écologistes, RN et UDR, Renaissance et Horizons). On raisonne par parti, comme en campagne : un député du même groupe venu d’un autre mouvement compte comme un autre auteur.
         </Para>
         <Para faible>
           Ces paires sont une convention de méthode, fixée pour trancher les abstentions. Elles ne disent rien de la proximité réelle entre ces groupes et restent discutables.
@@ -114,7 +114,7 @@ export function ContenuMethode({ chiffres, base }: { chiffres: ChiffresMethode |
         <Para faible>Afficher des nombres, jamais un pourcentage : Scrutoir ne note pas les programmes.</Para>
       </Carte>
       <Text style={[T.micro, { color: C.textFaint, lineHeight: 15 }]}>
-        Sources : le programme publié par le parti, les scrutins publics de l’Assemblée nationale (open data). Même crible pour chaque programme, dans l’ordre de publication.
+        Sources : le programme publié par le parti et les montants qu’il donne lui-même, les scrutins publics de l’Assemblée nationale (open data). Même crible pour chaque programme, dans l’ordre de publication.
       </Text>
     </View>
   );

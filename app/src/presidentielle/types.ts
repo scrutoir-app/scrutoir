@@ -40,7 +40,8 @@ export interface ProgrammeResume {
   parti: string;
   /** Groupe confronté à l'Assemblée ; null = parti sans groupe (affiché sans confrontation). */
   groupe: GroupeRef | null;
-  publieLe: string; // AAAA-MM-JJ
+  /** AAAA-MM-JJ, ou AAAA-MM quand le document du parti ne donne que le mois. */
+  publieLe: string;
   mesures: number;
   chiffrees: number;
   base: BaseScrutins;
@@ -86,11 +87,17 @@ export interface LigneChiffree {
   mesure: string | null;
   /** Autres mesures du programme rattachées à la ligne (avec leur statut). */
   secondaires: { id: string; statut: Statut }[];
+  /** Document du parti qui donne le montant, quand il y en a plusieurs (« Programme, p. 27 »). */
+  source?: string;
 }
 
 export interface Programme extends ProgrammeResume {
   livre: { titre: string; url: string };
+  /** Document de chiffrage principal du parti ; null = le parti n'en a publié aucun. */
   chiffrage: { titre: string; url: string; date: string } | null;
+  /** D'où viennent les montants, pourquoi ceux-là, et la promesse d'intégrer des données plus fraîches
+   *  (arbitrage du 27/11/2026 : toujours affichée, chiffrage complet, partiel ou absent). */
+  provenanceChiffrage: string | null;
   comptes: {
     mesures: number;
     confrontables: number;

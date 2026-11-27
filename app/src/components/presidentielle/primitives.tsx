@@ -202,6 +202,10 @@ export function Anneaux({ taille, anneaux, epaisseur, pas, label, cleSession }: 
         return (
           <Animated.View key={an.cle} style={[{ position: "absolute", left: 0, top: 0, width: taille, height: taille }, style]} pointerEvents="none">
             <Svg width={taille} height={taille} viewBox={`0 0 ${taille} ${taille}`}>
+              {/* Sélection vide (aucune mesure chiffrée par le parti) : un contour, pour que l'anneau reste lisible. */}
+              {an.comptes.c + an.comptes.t + neutres(an.comptes) === 0 && (
+                <Path d={arcCouronne(c, c, c - 2 - i * pas, epaisseur, 0, 2 * Math.PI)} fill="none" stroke={C.borderStrong} strokeWidth={1} />
+              )}
               {(["c", "t", "n"] as Famille[]).map((f) =>
                 seg[f] ? <Path key={f} d={seg[f]} {...remplissage(f)} opacity={an.opacite(f)} /> : null,
               )}

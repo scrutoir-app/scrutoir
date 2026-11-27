@@ -7,7 +7,7 @@ import type { Nav } from "../../nav";
 import type { ProgrammeResume } from "../../presidentielle/types";
 import { ordonnerProgrammes, rubriqueVisible } from "../../presidentielle/logique";
 import { useIndexPresidentielle } from "../../presidentielle/donnees";
-import { dateLongue, nombre, pluriel } from "../../presidentielle/libelles";
+import { datePublication, nombre, pluriel } from "../../presidentielle/libelles";
 import { Entree, Kicker, Pression } from "../../components/presidentielle/primitives";
 import { FeuilleMethode } from "../../components/presidentielle/FeuilleMethode";
 import { track } from "../../analytics";
@@ -47,11 +47,11 @@ export function HubScreen({ nav }: { nav: Nav }) {
               disabled={!p.groupe}
               onPress={() => nav.push({ name: "programme", programme: p.id })}
               accessibilityRole="button"
-              accessibilityLabel={`${p.parti}, publié le ${dateLongue(p.publieLe)}. ${ligneProgramme(p)}`}
+              accessibilityLabel={`${p.parti}, ${datePublication(p.publieLe).toLowerCase()}. ${ligneProgramme(p)}`}
               style={{ flexDirection: "row", alignItems: "center", gap: 12, padding: 14, backgroundColor: C.surface, borderRadius: RADIUS.md }}
             >
               <View style={{ flex: 1, minWidth: 0, gap: 2 }}>
-                <Kicker style={tnum}>Publié le {dateLongue(p.publieLe)}</Kicker>
+                <Kicker style={tnum}>{datePublication(p.publieLe)}</Kicker>
                 <Text style={[T.callout, { fontFamily: F.extra, color: C.text }]}>{p.parti}</Text>
                 <Text style={[T.small, tnum, { fontFamily: F.semibold, color: C.textMuted, lineHeight: 18 }]}>{ligneProgramme(p)}</Text>
               </View>
