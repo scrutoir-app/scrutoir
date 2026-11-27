@@ -86,7 +86,7 @@ const TABS: { root: Route["name"]; label: string; icon: any }[] = [
 // Tour guidé de la nav : une phrase par onglet RÉEL (ordre = TABS). Le suivi d'un député
 // n'a pas d'onglet → rattaché à l'Accueil (sa recherche « Sur quoi ils ont voté ? »).
 const TOUR_PHRASES: Record<string, string> = {
-  search: "La semaine à l'Assemblée, le focus actualité, tes suivis, et la recherche pour trouver et suivre un député.",
+  search: "La semaine à l'Assemblée et son vote le plus suivi, tes suivis, et la recherche pour trouver et suivre un député.",
   themes: "Cherche un sujet, une loi ou un nom, ou parcours les textes votés récemment : un texte par carte, les amendements qui ont compté en second.",
   partis: "Les groupes de l'Assemblée. Une fois situé, chacun dit à quel point il vote comme toi. Touche un groupe pour ouvrir sa fiche, ou la cloche pour le suivre.",
   apropos: "La méthode, les sources et les limites de Scrutoir. Tu peux rouvrir cette visite à tout moment via le « ? » de l'accueil.",
@@ -99,13 +99,13 @@ const TOUR_ZONES: { cle: CibleTour; label: string; phrase: string; preferAbove?:
   // Bulle AU-DESSUS du héro : son propre bouton « Reprendre » (en bas) ne doit pas être pris
   // pour « Suivant ».
   { cle: "hero", label: "Continue à te situer", phrase: "Ton test de proximité t'attend ici. Chaque scrutin que tu tranches affine ton spectre. Reprends quand tu veux, là où tu en étais.", preferAbove: true },
-  { cle: "espace", label: "Ton espace", phrase: "À gauche, ta proximité : de quels groupes tu es le plus proche. À droite, tes accords : les textes où tu t'es situé et qui a voté comme toi." },
-  { cle: "depute", label: "Trouver ton député", phrase: "Ton élu local par code postal, ou au swipe ceux qui votent le plus comme toi. Tu peux les suivre pour retrouver leurs votes." },
-  { cle: "semaine", label: "La semaine à l'Assemblée", phrase: "Chaque vendredi, les textes votés dans la semaine, rangés par thème. Fais glisser les cartes, ou touche la barre, pour passer d'un thème à l'autre." },
-  // Focus de la semaine (focusSemaine.ts) : pas sauté tant que les données ne sont pas chargées
-  // (le bloc n'est alors pas monté).
-  { cle: "actualite", label: "Focus de la semaine", phrase: "Chaque semaine, le scrutin de l'Assemblée qui a réuni le plus de votants : son résultat et le vote de chaque groupe. Il est choisi automatiquement, jamais à la main." },
+  { cle: "espace", label: "Ton espace", phrase: "À gauche, ta proximité : le groupe dont tu es le plus proche, et tout le spectre en touchant la tuile. À droite, tes accords : les textes où tu t'es situé et qui a voté comme toi." },
+  { cle: "semaine", label: "La semaine à l'Assemblée", phrase: "Chaque vendredi, les textes votés dans la semaine : d'abord le vote le plus suivi, puis un thème par carte. Fais glisser les cartes, ou touche la barre, pour passer de l'une à l'autre." },
+  // Vote le plus suivi (focusSemaine.ts), 1re carte du carrousel : pas sauté tant que les données
+  // ne sont pas chargées (la carte n'est alors pas montée).
+  { cle: "actualite", label: "Le vote le plus suivi", phrase: "Chaque semaine, le scrutin de l'Assemblée qui a réuni le plus de votants : son résultat et ta pastille « comme toi ». Le vote de chaque groupe est sur sa fiche. Il est choisi automatiquement, jamais à la main." },
   { cle: "suivis", label: "Tes suivis", phrase: "Suis des élus ou des groupes : l'accueil te dit lesquels ont voté depuis ta dernière visite, et l'écran Suivis montre tous leurs votes." },
+  { cle: "depute", label: "Trouver ton député", phrase: "Ton élu local par code postal, ou au swipe ceux qui votent le plus comme toi. Tu peux les suivre pour retrouver leurs votes." },
 ];
 
 export default function App() {

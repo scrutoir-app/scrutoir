@@ -1,5 +1,4 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
-import { SigleGroupe } from "../components/SigleGroupe";
 import { View, Text, ScrollView, TouchableOpacity, TextInput, Animated, Easing } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { C, F, T, tnum, RADIUS, shadowCard, MOTION, ICON, CONTROL } from "../theme";
@@ -8,13 +7,10 @@ import { rubriqueVisible } from "../presidentielle/logique";
 import { CartePresidentielle } from "../components/presidentielle/CartePresidentielle";
 import { ScrutoirMark } from "../components/brand/ScrutoirMark";
 import { HebdoCarte } from "../components/HebdoCarte";
-import { FocusActu } from "../components/FocusActu";
-import { HemicycleLogo } from "../components/HemicycleLogo";
 import { ORDRE_HEMICYCLE } from "../components/hemicycleGeo";
 import { SearchResultsList } from "../components/SearchResultsList";
 import { useReduceMotion } from "../components/HeroScrutins";
-import { catUI } from "../categoryUI";
-import { getPartis, getCategories, getTestProximite, getVotesSuivis, getVotesPartisSuivis, getDossiersSitues, getNumeroVersDossier } from "../api";
+import { getPartis, getTestProximite, getVotesSuivis, getVotesPartisSuivis, getDossiersSitues, getNumeroVersDossier } from "../api";
 import { getLastSeen } from "../follows";
 import { useFollows } from "../hooks/useFollows";
 import { useCibleTour } from "../tourTargets";
@@ -22,18 +18,21 @@ import { ouvrirTourNav } from "../tour";
 import { tourAccueilAFaire, marquerTourAccueilVu } from "../accueilTourPrefs";
 import { useJe } from "../testProximite/jeProximite";
 import { chargerTest } from "../testProximite/storage";
-import { accordsParTexte, progressionTest, type Accord } from "../testProximite/accordsTexte";
+import { accordsParTexte, progressionTest } from "../testProximite/accordsTexte";
 import { nbVotesActuels } from "../testProximite/config";
-import type { PartiResume, CategorieRef, VoteSuivi } from "../types";
+import type { PartiResume, VoteSuivi } from "../types";
 import type { QuestionProximite } from "../testProximite/score";
 import type { Nav } from "../nav";
 
-// ACCUEIL v5 — « une seule chose forte » (maquettes validées le 15/10/2026). Masthead + recherche
-// réelle (montage stable = garde le focus) + thèmes en boutons texte, puis le BLOC SOMBRE du test
-// (« Commence à te situer » / « Continue à te situer »), et, une fois situé, le DUO « Ta
-// proximité » + « Tes accords » au même moule. Ensuite des lignes calmes (député, Face à face,
-// suivis) et la semaine à l'Assemblée. Tout se calcule sur l'appareil : aucune requête ne
-// dépend des réponses au test. Aucune couleur en dur : tokens de theme.ts uniquement.
+// ACCUEIL v6 — « accueil allégé », 6 blocs (maquette Présidentielle validée le 14/11/2026, version
+// « tuiles chiffrées » validée le 27/11/2026) : 1. masthead ; 2. recherche réelle (montage stable =
+// garde le focus), sans rangée de thèmes ; 3. BLOC SOMBRE du test (« Commence à te situer » /
+// « Continue à te situer ») qui, une fois situé, porte deux TUILES chiffrées « Ta proximité » et
+// « Tes accords » (l'ancien duo de cartes : le « % comme toi » reste visible d'un coup d'œil) ;
+// 4. carte Présidentielle 2027 (si un programme est en service) ; 5. la semaine à l'Assemblée, dont
+// le vote le plus suivi est la 1re carte ; 6. une seule liste : suivis + Trouver ton député (ou,
+// sans suivi, Trouver ton député + Face à face). Tout se calcule sur l'appareil : aucune requête
+// ne dépend des réponses au test. Aucune couleur en dur : tokens de theme.ts uniquement.
 
 /** Barre de remplissage animée (piste + fill mesuré en px → anim fiable web, comme VoteBar…). */
 function BarreFill({ pct, color, track, height = 6, delay = 0 }: { pct: number; color: string; track: string; height?: number; delay?: number }) {
@@ -54,15 +53,30 @@ function BarreFill({ pct, color, track, height = 6, delay = 0 }: { pct: number; 
   );
 }
 
-/** Ligne calme : pastille d'icône, titre + sous-titre, chevron (Trouver ton député, Face à face, suivis). */
-function LigneCalme({ icon, titre, sousTitre, onPress, style }: { icon: React.ComponentProps<typeof Feather>["name"]; titre: string; sousTitre: string; onPress: () => void; style?: object }) {
+type Rangee = { cle: string; icon: React.ComponentProps<typeof Feather>["name"]; titre: string; sousTitre: string; onPress: () => void; refCible?: (node: any) => void };
+
+/** Liste calme : une seule carte, une rangée par entrée (suivis, Trouver ton député, Face à face). */
+function ListeCalme({ rangees }: { rangees: Rangee[] }) {
+  return (
+    <View style={{ borderRadius: RADIUS.lg, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, overflow: "hidden", ...shadowCard }}>
+      {rangees.map((r, i) => (
+        <View key={r.cle} ref={r.refCible} collapsable={false} style={i > 0 ? { borderTopWidth: 1, borderTopColor: C.border } : undefined}>
+          <LigneCalme icon={r.icon} titre={r.titre} sousTitre={r.sousTitre} onPress={r.onPress} />
+        </View>
+      ))}
+    </View>
+  );
+}
+
+/** Rangée calme : pastille d'icône, titre + sous-titre, chevron. */
+function LigneCalme({ icon, titre, sousTitre, onPress }: Omit<Rangee, "cle" | "refCible">) {
   return (
     <TouchableOpacity
       activeOpacity={0.7}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={`${titre}. ${sousTitre}`}
-      style={[{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, paddingHorizontal: 14, borderRadius: RADIUS.lg, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, ...shadowCard }, style]}
+      style={{ flexDirection: "row", alignItems: "center", gap: 12, minHeight: CONTROL.lg, paddingVertical: 12, paddingHorizontal: 14 }}
     >
       <View style={{ width: 34, height: 34, borderRadius: RADIUS.sm, backgroundColor: C.surfaceSunken, alignItems: "center", justifyContent: "center" }}>
         <Feather name={icon} size={ICON.base} color={C.accent} />
@@ -76,20 +90,25 @@ function LigneCalme({ icon, titre, sousTitre, onPress, style }: { icon: React.Co
   );
 }
 
-/** Carte du duo : même moule à gauche et à droite (titre, sous-titre, image, chiffre, lien en pied). */
-function CarteDuo({ titre, sousTitre, lien, onPress, accessibilityLabel, children }: { titre: string; sousTitre: string; lien: string; onPress: () => void; accessibilityLabel: string; children: React.ReactNode }) {
+/**
+ * Tuile du bloc sombre (une fois situé) : libellé + chevron, le chiffre en avant, la base en petit
+ * dessous. Même moule à gauche (Ta proximité) et à droite (Tes accords).
+ */
+function TuileHero({ titre, onPress, accessibilityLabel, children, base }: { titre: string; onPress: () => void; accessibilityLabel: string; children: React.ReactNode; base: string }) {
   return (
     <TouchableOpacity
-      activeOpacity={0.8}
+      activeOpacity={0.75}
       onPress={onPress}
       accessibilityRole="button"
       accessibilityLabel={accessibilityLabel}
-      style={{ flex: 1, minWidth: 0, backgroundColor: C.surface, borderWidth: 1, borderColor: C.border, borderRadius: RADIUS.lg, padding: 14, ...shadowCard }}
+      style={{ flex: 1, minWidth: 0, borderRadius: RADIUS.md, backgroundColor: C.heroGhost, paddingHorizontal: 12, paddingTop: 11, paddingBottom: 12, gap: 3 }}
     >
-      <Text style={[T.callout, { fontFamily: F.bold, color: C.text }]}>{titre}</Text>
-      <Text style={[T.micro, { color: C.textFaint, marginTop: 2 }]}>{sousTitre}</Text>
-      {children}
-      <Text style={[T.small, { fontFamily: F.bold, color: C.accent, marginTop: "auto", paddingTop: 10 }]}>{lien}</Text>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 4 }}>
+        <Text style={[T.small, { fontFamily: F.bold, color: C.onHeroMuted, flexShrink: 1 }]} numberOfLines={1}>{titre}</Text>
+        <Feather name="chevron-right" size={ICON.sm} color={C.onHeroMuted} />
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "baseline", gap: 6, flexWrap: "wrap" }}>{children}</View>
+      <Text style={[T.micro, tnum, { color: C.onHeroMuted, opacity: 0.85 }]}>{base}</Text>
     </TouchableOpacity>
   );
 }
@@ -109,12 +128,11 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   const refHero = useCibleTour("hero");
   const refEspace = useCibleTour("espace");
   const refDepute = useCibleTour("depute");
-  // « La semaine » et le focus posent leur propre cible (rien quand ils sont masqués).
+  // « La semaine » et le vote le plus suivi posent leur propre cible (rien quand ils sont masqués).
   const refSuivis = useCibleTour("suivis");
 
   const [partis, setPartis] = useState<PartiResume[]>([]);
   const indexPresidentielle = useIndexPresidentielle(); // rubrique Présidentielle 2027 (null = en lecture)
-  const [cats, setCats] = useState<CategorieRef[]>([]);
   const [questions, setQuestions] = useState<QuestionProximite[]>([]);
   const [votes, setVotes] = useState<VoteSuivi[] | null>(null);
   // Textes où tu t'es situé (du plus récent au plus ancien) + lien numéro de scrutin → texte.
@@ -127,7 +145,6 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
 
   useEffect(() => {
     getPartis().then(setPartis).catch(() => {});
-    getCategories().then(setCats).catch(() => {});
     getTestProximite().then(setQuestions).catch(() => setQuestions([]));
   }, []);
   useEffect(() => {
@@ -190,14 +207,13 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
     entitesNeuves.length <= 2
       ? entitesNeuves.join(" et ")
       : `${entitesNeuves.slice(0, 2).join(", ")} et ${entitesNeuves.length - 2 === 1 ? "1 autre" : `${entitesNeuves.length - 2} autres`}`;
-  const sujets = [...cats].sort((a, b) => (b.nb_scrutins ?? 0) - (a.nb_scrutins ?? 0)).slice(0, 6);
 
-  // Ta proximité : le top 3 des groupes du test (classement DÉJÀ trié par pct dans `je`). Barres
-  // neutres, identiques pour tous les groupes : « un spectre, pas un parti ».
-  const spectre = useMemo(
-    () => (je ? je.resultat.global.slice(0, 3).map((g) => ({ abrev: g.abrev, pct: Math.round(g.pct * 100) })) : []),
-    [je]
-  );
+  // Ta proximité : le groupe le plus proche (classement DÉJÀ trié par pct dans `je`). Le spectre
+  // complet est derrière la tuile (écran résultat) : « un spectre, pas un parti ».
+  const premier = useMemo(() => {
+    const g = je?.resultat.global[0];
+    return g ? { abrev: g.abrev, pct: Math.round(g.pct * 100) } : null;
+  }, [je]);
 
   // Tes accords : sur le dernier texte où tu t'es situé, chaque groupe de l'hémicycle a-t-il voté
   // comme toi ? Calcul pur (accordsTexte.ts) à partir des questions et de l'index des scrutins.
@@ -209,7 +225,6 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
   }, [situes, questions, reponses, groupes]);
   const accord = accords?.[0] ?? null;
   const nbTextes = accords?.length ?? situes?.refs.length ?? 0;
-  const couleurAccord: Record<Accord, string> = { comme: C.pour, pas: C.contre, neutre: C.siege };
 
   // Entrée en fondu-montée (une valeur partagée), coupée si « animations réduites ».
   const enter = useRef(new Animated.Value(0)).current;
@@ -289,25 +304,10 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
         </View>
       )}
 
-      {/* 2 — Recherche (position STABLE = garde le focus) + thèmes en boutons texte (accueil seul) */}
+      {/* 2 — Recherche (position STABLE = garde le focus). Plus de rangée de thèmes : les thèmes
+          sont dans l'onglet Scrutins et dans les suggestions à la frappe. */}
       <View style={{ paddingHorizontal: 16, paddingTop: recherche ? 12 : 0 }}>
         {Champ}
-        {!recherche && (
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6, paddingTop: 8 }}>
-            {sujets.map((c) => (
-              <TouchableOpacity
-                key={c.id}
-                activeOpacity={0.6}
-                onPress={() => nav.push({ name: "categorie", id: c.id, libelle: c.libelle })}
-                accessibilityRole="button"
-                accessibilityLabel={`Thème ${c.libelle}`}
-                style={{ minHeight: CONTROL.sm, paddingHorizontal: 10, justifyContent: "center" }}
-              >
-                <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{catUI(c.id).court ?? c.libelle}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
-        )}
       </View>
 
       {/* 3a — Mode recherche : résultats sous le champ (le reste de l'accueil est masqué) */}
@@ -363,6 +363,47 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
                       {boutonHero("Voir ta proximité", () => nav.push({ name: "testResultat" }))}
                     </>
                   )}
+                  {/* TUILES — l'ancien duo replié dans le bloc sombre : le chiffre reste visible. */}
+                  <View ref={refEspace} collapsable={false} style={{ flexDirection: "row", gap: 8, marginTop: 12 }}>
+                    <TuileHero
+                      titre="Ta proximité"
+                      onPress={() => nav.push({ name: "testResultat" })}
+                      accessibilityLabel={`Ta proximité${premier ? ` : ${premier.pct} % avec le groupe ${partis.find((p) => p.abrev === premier.abrev)?.libelle ?? premier.abrev}` : ""}${nbVotesSpectre != null ? `, sur tes ${pluriel(nbVotesSpectre, "vote")}` : ""}. Voir le spectre`}
+                      base={nbVotesSpectre != null ? `sur tes ${pluriel(nbVotesSpectre, "vote")}` : " "}
+                    >
+                      {premier ? (
+                        <>
+                          <Text style={[T.title, tnum, { fontFamily: F.extra, color: C.onHero }]}>{premier.pct}{"\u00A0"}%</Text>
+                          {/* Sigle en texte simple : la tuile entière est déjà un bouton (pas de bouton
+                              dans un bouton). Le nom complet est dans le libellé d'accessibilité. */}
+                          <Text style={[T.small, { fontFamily: F.bold, color: C.onHeroMuted, flexShrink: 1 }]} numberOfLines={1}>{premier.abrev}</Text>
+                        </>
+                      ) : (
+                        <Text style={[T.title, { color: C.onHero }]}>…</Text>
+                      )}
+                    </TuileHero>
+                    {nbTextes > 0 || !situes ? (
+                      <TuileHero
+                        titre="Tes accords"
+                        onPress={() => nav.push({ name: "accords" })}
+                        accessibilityLabel={`Tes accords : ${pluriel(nbTextes, "texte")}${accord ? `, au dernier texte : ${accord.comme} groupe${accord.comme > 1 ? "s" : ""} sur ${accord.total} comme toi` : ""}. Voir tes textes`}
+                        base={accord ? `au dernier texte : ${accord.comme} groupe${accord.comme > 1 ? "s" : ""} sur ${accord.total}` : " "}
+                      >
+                        <Text style={[T.title, tnum, { fontFamily: F.extra, color: C.onHero }]}>{situes ? nbTextes : "…"}</Text>
+                        <Text style={[T.small, { fontFamily: F.bold, color: C.onHeroMuted }]}>{nbTextes > 1 ? "textes" : "texte"}</Text>
+                      </TuileHero>
+                    ) : (
+                      // Aucun texte situé (tes votes tranchés ne se rattachent à aucun texte) : invitation.
+                      <TuileHero
+                        titre="Tes accords"
+                        onPress={() => nav.push({ name: "test", mode: "affiner" })}
+                        accessibilityLabel="Tes accords : aucun texte pour l'instant. Te situer sur un texte"
+                        base="Tranche un vote sur un texte"
+                      >
+                        <Text style={[T.callout, { fontFamily: F.extra, color: C.onHero }]}>Aucun texte</Text>
+                      </TuileHero>
+                    )}
+                  </View>
                 </>
               ) : (
                 <>
@@ -381,79 +422,6 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
             </View>
           </Animated.View>
 
-          {/* DUO — Ta proximité + Tes accords, côte à côte, même hauteur, même moule. */}
-          {situe && (
-            <View ref={refEspace} collapsable={false}>
-              <Animated.View style={[{ flexDirection: "row", gap: 10, marginHorizontal: 16, marginTop: 10 }, rise(1)]}>
-                <CarteDuo
-                  titre="Ta proximité"
-                  sousTitre="Un spectre, pas un parti"
-                  lien="Voir le spectre"
-                  onPress={() => nav.push({ name: "testResultat" })}
-                  accessibilityLabel={`Ta proximité${nbVotesSpectre != null ? `, sur tes ${pluriel(nbVotesSpectre, "vote")}` : ""}. Voir le spectre`}
-                >
-                  <View style={{ marginTop: 12, gap: 9 }}>
-                    {spectre.map((g, i) => (
-                      <View key={g.abrev}>
-                        <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", gap: 6 }}>
-                          <SigleGroupe abrev={g.abrev} style={[T.small, { fontFamily: F.semibold, color: C.accent, flexShrink: 1 }]} numberOfLines={1} />
-                          <Text style={[T.callout, tnum, { fontFamily: F.extra, color: C.text }]}>{g.pct}{" "}%</Text>
-                        </View>
-                        <View style={{ marginTop: 4 }}>
-                          <BarreFill pct={g.pct} color={C.siegeFocal} track={C.surfaceSunken} delay={200 + i * 90} />
-                        </View>
-                      </View>
-                    ))}
-                  </View>
-                  <Text style={[T.micro, tnum, { color: C.textFaint, marginTop: 10 }]}>{nbVotesSpectre != null ? `Sur tes ${pluriel(nbVotesSpectre, "vote")}` : " "}</Text>
-                </CarteDuo>
-
-                {nbTextes > 0 || !situes ? (
-                  <CarteDuo
-                    titre="Tes accords"
-                    sousTitre="Qui a voté comme toi"
-                    lien="Voir tes textes"
-                    onPress={() => nav.push({ name: "accords" })}
-                    accessibilityLabel={`Tes accords : ${pluriel(nbTextes, "texte")}${accord ? `, dernier : ${accord.comme} groupes sur ${accord.total} comme toi` : ""}. Voir tes textes`}
-                  >
-                    <View style={{ marginTop: 12, alignItems: "center" }}>
-                      <HemicycleLogo
-                        groupes={groupes}
-                        size={112}
-                        couleur={(ab) => (accord ? couleurAccord[accord.parGroupe[ab] ?? "neutre"] : null)}
-                        label={accord ? `Dernier texte : ${accord.comme} groupes sur ${accord.total} ont voté comme toi` : undefined}
-                      />
-                    </View>
-                    <Text style={[T.title, tnum, { color: C.text, marginTop: 8 }]}>
-                      {situes ? nbTextes : "…"} <Text style={[T.small, { fontFamily: F.semibold, color: C.textMuted }]}>{nbTextes > 1 ? "textes" : "texte"}</Text>
-                    </Text>
-                    {accord && (
-                      <Text style={[T.micro, tnum, { color: C.textFaint, marginTop: 2 }]}>
-                        Dernier : {accord.comme} groupe{accord.comme > 1 ? "s" : ""} sur {accord.total} comme toi
-                      </Text>
-                    )}
-                  </CarteDuo>
-                ) : (
-                  // Aucun texte situé (tes votes tranchés ne se rattachent à aucun texte) : invitation.
-                  <CarteDuo
-                    titre="Tes accords"
-                    sousTitre="Qui a voté comme toi"
-                    lien="Te situer sur un texte"
-                    onPress={() => nav.push({ name: "test", mode: "affiner" })}
-                    accessibilityLabel="Tes accords : aucun texte pour l'instant. Te situer sur un texte"
-                  >
-                    <View style={{ marginTop: 12, alignItems: "center" }}>
-                      <HemicycleLogo groupes={groupes} size={112} couleur={() => null} />
-                    </View>
-                    <Text style={[T.small, { color: C.textMuted, marginTop: 8 }]}>
-                      Tranche un vote sur un texte de loi pour voir quels groupes ont voté comme toi.
-                    </Text>
-                  </CarteDuo>
-                )}
-              </Animated.View>
-            </View>
-          )}
-
           {/* PRÉSIDENTIELLE 2027 : carte d'entrée, ABSENTE tant qu'aucun programme n'est en service
               (index vide, absent ou en erreur). Aucun parti, aucun drapeau. */}
           {rubriqueVisible(indexPresidentielle) && (
@@ -462,46 +430,49 @@ export function AccueilAccordsScreen({ nav }: { nav: Nav }) {
             </Animated.View>
           )}
 
-          {/* Trouver ton député : ligne calme, sous le bloc sombre (ou le duo). */}
-          <Animated.View style={rise(2)}>
-            <View ref={refDepute} collapsable={false} style={{ paddingHorizontal: 16, marginTop: 10 }}>
-              <LigneCalme icon="user" titre="Trouver ton député" sousTitre="Par code postal ou par commune" onPress={() => nav.push({ name: "monDepute" })} />
-            </View>
-          </Animated.View>
-
-          {/* LA SEMAINE À L'ASSEMBLÉE (inchangée), puis le focus actualité, puis les suivis en UNE
-              ligne (→ écran Suivis), ou l'invitation « Suis un élu ou un groupe » + Face à face
-              tant qu'on ne suit personne. Visite guidée : un pas par bloc (semaine, focus, suivis). */}
-          <Animated.View style={[{ marginTop: 28 }, rise(3)]}>
+          {/* LA SEMAINE À L'ASSEMBLÉE : le vote le plus suivi en 1re carte (il remplace le bloc
+              « Focus de la semaine »), puis un thème par carte. */}
+          <Animated.View style={[{ marginTop: 24 }, rise(3)]}>
             <HebdoCarte nav={nav} />
           </Animated.View>
-          {/* FOCUS ACTUALITÉ (content/focus.ts) : rien hors période ou sans texte retenu (sa marge
-              haute est portée par le composant, pour ne laisser aucun vide quand il est masqué). */}
-          <Animated.View style={rise(3)}>
-            <FocusActu nav={nav} />
-          </Animated.View>
-          <View ref={refSuivis} collapsable={false}>
-            {follows.length > 0 ? (
-              <Animated.View style={[{ paddingHorizontal: 16, marginTop: 12 }, rise(3)]}>
-                <LigneCalme
-                  icon="bell"
-                  titre={entitesNeuves.length ? "Du neuf chez tes suivis" : "Tes suivis"}
-                  sousTitre={votes == null ? "…" : entitesNeuves.length ? resumeNeuf : "Rien de neuf depuis ta dernière visite"}
-                  onPress={() => nav.push({ name: "suivis" })}
-                />
-              </Animated.View>
-            ) : (
-              <Animated.View style={rise(3)}>
-                <View style={{ paddingHorizontal: 18, paddingTop: 28 }}>
+
+          {/* UNE SEULE LISTE. Avec des suivis : Tes suivis (qui a voté depuis ta dernière visite,
+              le flux complet vit sur l'écran Suivis) + Trouver ton député. Sans suivi : l'invitation
+              « Suis un élu ou un groupe », puis Trouver ton député + Face à face. */}
+          {follows.length > 0 ? (
+            <Animated.View style={[{ paddingHorizontal: 16, marginTop: 22 }, rise(3)]}>
+              <ListeCalme
+                rangees={[
+                  {
+                    cle: "suivis",
+                    icon: "bell",
+                    titre: entitesNeuves.length ? "Du neuf chez tes suivis" : "Tes suivis",
+                    sousTitre: votes == null ? "…" : entitesNeuves.length ? resumeNeuf : "Rien de neuf depuis ta dernière visite",
+                    onPress: () => nav.push({ name: "suivis" }),
+                    refCible: refSuivis,
+                  },
+                  { cle: "depute", icon: "user", titre: "Trouver ton député", sousTitre: "Par code postal ou par commune", onPress: () => nav.push({ name: "monDepute" }), refCible: refDepute },
+                ]}
+              />
+            </Animated.View>
+          ) : (
+            <Animated.View style={rise(3)}>
+              <View ref={refSuivis} collapsable={false}>
+                <View style={{ paddingHorizontal: 18, paddingTop: 26 }}>
                   <Text style={[T.heading, { color: C.text }]} accessibilityRole="header">Suis un élu ou un groupe</Text>
-                  <Text style={[T.small, { color: C.textMuted, marginTop: 3 }]}>Pour savoir quand ils votent. En attendant, confronte deux élus.</Text>
+                  <Text style={[T.small, { color: C.textMuted, marginTop: 3 }]}>Pour savoir quand ils votent. Commence par ton député, ou confronte deux élus.</Text>
                 </View>
                 <View style={{ paddingHorizontal: 16, marginTop: 10 }}>
-                  <LigneCalme icon="users" titre="Face à face" sousTitre="Deux élus, leurs votes côte à côte" onPress={() => nav.push({ name: "confrontation" })} />
+                  <ListeCalme
+                    rangees={[
+                      { cle: "depute", icon: "user", titre: "Trouver ton député", sousTitre: "Par code postal ou par commune", onPress: () => nav.push({ name: "monDepute" }), refCible: refDepute },
+                      { cle: "duel", icon: "users", titre: "Face à face", sousTitre: "Deux élus, leurs votes côte à côte", onPress: () => nav.push({ name: "confrontation" }) },
+                    ]}
+                  />
                 </View>
-              </Animated.View>
-            )}
-          </View>
+              </View>
+            </Animated.View>
+          )}
         </>
       )}
     </ScrollView>

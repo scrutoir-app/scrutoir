@@ -8,6 +8,16 @@ La version est affichée en bas de l'écran **Infos** de l'app (à citer avec le
 > `sw.js` : la nouvelle version change le service worker, ce qui affiche le bandeau
 > « Mise à jour disponible » aux visiteurs déjà venus.
 
+## 1.46.0 — 2026-11-27
+**Accueil allégé : six blocs, la carte Présidentielle 2027 entière dans le premier écran.**
+- Maquette Présidentielle validée le 14/11/2026 (accueil à 6 blocs), version « tuiles chiffrées » validée le 27/11/2026.
+- Bloc sombre du test, une fois situé : le duo « Ta proximité » / « Tes accords » devient deux tuiles dans le bloc. Le chiffre reste visible d'un coup d'œil : le groupe le plus proche en % avec sa base (« sur tes N votes »), le nombre de textes et, au dernier texte, combien de groupes ont voté comme toi. Le spectre complet et la liste des textes sont derrière chaque tuile. Non situé : inchangé.
+- Recherche : la rangée de thèmes sous le champ est retirée (les thèmes restent dans l'onglet Scrutins et dans les suggestions à la frappe).
+- « La semaine à l'Assemblée » : le focus de la semaine devient la première carte du carrousel, « Le vote le plus suivi » (même règle : le plus de votants de la semaine), avec son résultat et la pastille « comme toi ». Le vote de chaque groupe n'est plus sur l'accueil : il est sur la fiche du scrutin (« Voir le scrutin »). La barre de la semaine gagne un court segment en tête pour cette carte.
+- Une seule liste en bas : « Tes suivis » et « Trouver ton député ». Sans suivi : l'invitation « Suis un élu ou un groupe », puis « Trouver ton député » et « Face à face ».
+- Visite guidée : les étapes suivent le nouvel ordre de l'écran (proximité et accords dans le bloc sombre, semaine, vote le plus suivi, suivis, député).
+- Accessibilité : le sigle du groupe le plus proche n'est plus un bouton dans un bouton ; le nom complet du groupe est lu par le lecteur d'écran.
+
 ## 1.45.0 — 2026-11-27
 **Présidentielle 2027 : le programme des Écologistes déclaré, en attente de mise en service ; la provenance du chiffrage toujours dite.**
 - Rubrique Présidentielle (toujours hors service) : « Pour une prospérité écologique » (Les Écologistes, juillet 2026) est déclaré dans `pipeline/programmes/presidentielle.json`, `enService: false`, face au groupe Écologiste et Social. Aucune donnée de verdict n'est publiée avant sa mise en service.
